@@ -1,10 +1,14 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bell, Plus, TrendingUp, MapPin, Clock } from 'lucide-react';
+import { Bell, Plus, TrendingUp, MapPin, Clock, RefreshCw } from 'lucide-react';
 import CoachBottomNav from '@/components/CoachBottomNav';
 import { useGroups } from '@/hooks/useGroups';
 import { useTodaySessions, useWeekSessions } from '@/hooks/useSessions';
 import { useSessionConfirmations } from '@/hooks/useSessions';
+import { useGenerateAllSessions } from '@/hooks/useAutomation';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
@@ -99,23 +103,47 @@ function GroupCard({ group }: { group: any }) {
 export default function CoachDashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { data: groups = [] } = useGroups();
   const { data: todaySessions = [] } = useTodaySessions();
   const { data: weekSessions = [] } = useWeekSessions();
+  const generateAll = useGenerateAllSessions();
 
   const statsThisWeek = weekSessions.length;
+
+  // Real-time: live confirmation updates on dashboard
+  useEffect(() => {
+    const channel = supabase
+      .channel('coach-dashboard-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'confirmations' }, () => {
+        qc.invalidateQueries({ queryKey: ['sessions-today'] });
+        qc.invalidateQueries({ queryKey: ['confirmations'] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-4">
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
-        <button
-          onClick={() => navigate('/coach/notifications')}
-          className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
-        >
-          <Bell className="h-5 w-5 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => generateAll.mutate()}
+            disabled={generateAll.isPending}
+            title="Generate next sessions for all groups"
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 text-muted-foreground ${generateAll.isPending ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={() => navigate('/coach/notifications')}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
+          >
+            <Bell className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 px-4 py-6 pb-24 space-y-6">
