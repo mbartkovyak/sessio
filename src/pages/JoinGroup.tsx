@@ -40,7 +40,23 @@ export default function JoinGroup() {
       });
   }, [inviteCode]);
 
-  // After auth+onboarding, auto-join
+  // Update page meta for OG previews
+  useEffect(() => {
+    if (!group) return;
+    const coach = group.profiles;
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    document.title = `Join ${group.name} on Sessio`;
+    const setMeta = (prop: string, content: string, attr = 'property') => {
+      let el = document.querySelector(`meta[${attr}="${prop}"]`) as HTMLMetaElement;
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr, prop); document.head.appendChild(el); }
+      el.content = content;
+    };
+    setMeta('og:title', `Join ${group.name} on Sessio`);
+    setMeta('og:description', `${group.sport} · Every ${days[group.day_of_week]} at ${group.start_time?.slice(0,5)} · Coach ${coach?.full_name ?? ''}`);
+    setMeta('twitter:title', `Join ${group.name} on Sessio`, 'name');
+    setMeta('twitter:description', `${group.sport} · Every ${days[group.day_of_week]} at ${group.start_time?.slice(0,5)} · Coach ${coach?.full_name ?? ''}`, 'name');
+    return () => { document.title = 'Sessio — Sports Coaching, Simplified'; };
+  }, [group]);
   useEffect(() => {
     if (loading || !session || !profile || !group) return;
     if (!profile.onboarding_complete || !profile.role) {

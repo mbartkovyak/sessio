@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -40,6 +40,15 @@ export default function PlayerNotifications() {
   const qc = useQueryClient();
   const { data: notifications = [], isLoading } = useNotifications();
 
+  // Mark all as read when the page opens → clears the badge
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false)
+      .then(() => {
+        qc.invalidateQueries({ queryKey: ['notifications', user.id] });
+      });
+  }, [user]);
+
   async function markAllRead() {
     await supabase.from('notifications').update({ is_read: true }).eq('user_id', user!.id).eq('is_read', false);
     qc.invalidateQueries({ queryKey: ['notifications'] });
@@ -71,8 +80,17 @@ export default function PlayerNotifications() {
 
       <main className="flex-1 pb-24">
         {isLoading ? (
-          <div className="flex justify-center pt-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="divide-y divide-border">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="flex gap-3 px-4 py-4 animate-pulse">
+                <div className="h-8 w-8 rounded-full bg-muted shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 bg-muted rounded" />
+                  <div className="h-3 w-full bg-muted rounded" />
+                  <div className="h-3 w-20 bg-muted rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-24 text-center px-6">
