@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import NavigationLoadingBar from "@/components/NavigationLoadingBar";
+import InstallPWA from "@/components/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -31,6 +33,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <NavigationLoadingBar />
+        <InstallPWA />
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Landing />} />

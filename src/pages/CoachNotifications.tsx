@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Bell, Check } from 'lucide-react';
 import CoachBottomNav from '@/components/CoachBottomNav';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 
 function useNotifications() {
   const { user } = useAuth();
@@ -36,6 +38,13 @@ export default function CoachNotifications() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: notifications = [], isLoading } = useNotifications();
+
+  // Mark all as read when the page is opened
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false)
+      .then(() => qc.invalidateQueries({ queryKey: ['notifications'] }));
+  }, [user]);
 
   async function markAllRead() {
     await supabase.from('notifications').update({ is_read: true }).eq('user_id', user!.id).eq('is_read', false);
@@ -75,7 +84,7 @@ export default function CoachNotifications() {
                   <p className={`text-sm font-medium text-foreground ${!n.is_read ? 'font-semibold' : ''}`}>{n.title}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">{n.message}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                   </p>
                 </div>
                 {!n.is_read && <div className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />}

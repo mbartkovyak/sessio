@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell, Plus, TrendingUp, MapPin, Clock, RefreshCw } from 'lucide-react';
@@ -9,6 +9,8 @@ import { useSessionConfirmations } from '@/hooks/useSessions';
 import { useGenerateAllSessions } from '@/hooks/useAutomation';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { SessionCardSkeleton, GroupCardSkeleton } from '@/components/SkeletonLoaders';
+import CoachWalkthrough from '@/components/CoachWalkthrough';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
@@ -104,12 +106,28 @@ export default function CoachDashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: groups = [] } = useGroups();
-  const { data: todaySessions = [] } = useTodaySessions();
+  const { data: groups = [], isLoading: groupsLoading } = useGroups();
+  const { data: todaySessions = [], isLoading: sessionsLoading } = useTodaySessions();
   const { data: weekSessions = [] } = useWeekSessions();
   const generateAll = useGenerateAllSessions();
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
 
   const statsThisWeek = weekSessions.length;
+
+  // Show walkthrough for new coaches
+  useEffect(() => {
+    const key = `sessio_walkthrough_${profile?.id}`;
+    if (profile?.id && !localStorage.getItem(key)) {
+      // Slight delay so dashboard renders first
+      const t = setTimeout(() => setShowWalkthrough(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [profile?.id]);
+
+  function closeWalkthrough() {
+    setShowWalkthrough(false);
+    if (profile?.id) localStorage.setItem(`sessio_walkthrough_${profile.id}`, '1');
+  }
 
   // Real-time: live confirmation updates on dashboard
   useEffect(() => {
@@ -125,6 +143,7 @@ export default function CoachDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {showWalkthrough && <CoachWalkthrough onClose={closeWalkthrough} />}
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-4">
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
@@ -172,11 +191,15 @@ export default function CoachDashboard() {
         {/* Today's Sessions */}
         <div>
           <h2 className="mb-3 font-semibold text-foreground">Today's Sessions</h2>
-          {todaySessions.length === 0 ? (
+          {sessionsLoading ? (
+            <div className="space-y-3">
+              <SessionCardSkeleton />
+            </div>
+          ) : todaySessions.length === 0 ? (
             <div className="rounded-xl border border-border bg-card p-6 text-center card-shadow">
               <p className="text-2xl mb-1">📅</p>
               <p className="font-medium text-foreground text-sm">No sessions today</p>
-              <p className="text-xs text-muted-foreground mt-1">Check Groups to see upcoming sessions</p>
+              <p className="text-xs text-muted-foreground mt-1">Tap ↺ above to generate upcoming sessions</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -198,14 +221,18 @@ export default function CoachDashboard() {
             </button>
           </div>
 
-          {groups.length === 0 ? (
+          {groupsLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              <GroupCardSkeleton /><GroupCardSkeleton />
+            </div>
+          ) : groups.length === 0 ? (
             <div className="rounded-2xl bg-primary p-5 text-primary-foreground">
               <TrendingUp className="h-6 w-6 opacity-80 mb-2" />
               <h2 className="mb-1 text-lg font-bold">Create your first group</h2>
               <p className="mb-4 text-sm opacity-80">Add a recurring training group and invite your players</p>
               <button
                 onClick={() => navigate('/coach/groups/new')}
-                className="flex items-center gap-2 rounded-xl bg-primary-foreground/15 px-4 py-2.5 text-sm font-semibold hover:bg-primary-foreground/25 min-h-[44px]"
+                className="flex items-center gap-2 rounded-xl bg-primary-foreground/15 px-4 py-2.5 text-sm font-semibold hover:bg-primary-foreground/25 min-h-[48px]"
               >
                 <Plus className="h-4 w-4" />
                 New Group
