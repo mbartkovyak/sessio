@@ -58,7 +58,7 @@ export default function JoinGroup() {
     return () => { document.title = 'Sessio — Sports Coaching, Simplified'; };
   }, [group]);
   useEffect(() => {
-    if (loading || !session || !profile || !group) return;
+    if (!session || !profile || !group) return;
     if (!profile.onboarding_complete || !profile.role) {
       // Save invite code so we can auto-join after onboarding
       sessionStorage.setItem('pending_invite', inviteCode ?? '');
@@ -154,7 +154,8 @@ export default function JoinGroup() {
     }
   }
 
-  if (groupLoading || loading) {
+  // Show spinner while group info is loading, or while auth is loading AND we have a session (i.e. auto-join pending)
+  if (groupLoading || (loading && session)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
