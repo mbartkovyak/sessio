@@ -29,17 +29,28 @@ const steps = [
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { profile, loading } = useAuth();
+  const { profile, loading, session } = useAuth();
 
   useEffect(() => {
     if (loading) return;
+    // If there's a session but no profile yet, wait
+    if (session && !profile) return;
     if (!profile) return;
     if (!profile.onboarding_complete) {
-      navigate('/onboarding');
+      navigate('/onboarding', { replace: true });
     } else {
-      navigate(profile.role === 'coach' ? '/coach/dashboard' : '/player/dashboard');
+      navigate(profile.role === 'coach' ? '/coach/dashboard' : '/player/dashboard', { replace: true });
     }
-  }, [loading, profile, navigate]);
+  }, [loading, profile, session, navigate]);
+
+  // Don't flash the landing page to authenticated users while loading
+  if (loading || session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
