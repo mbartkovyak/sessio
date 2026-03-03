@@ -33,18 +33,16 @@ export default function Landing() {
 
   useEffect(() => {
     if (loading) return;
-    // If there's a session but no profile yet, wait
-    if (session && !profile) return;
     if (!profile) return;
     if (!profile.onboarding_complete) {
       navigate('/onboarding', { replace: true });
     } else {
       navigate(profile.role === 'coach' ? '/coach/dashboard' : '/player/dashboard', { replace: true });
     }
-  }, [loading, profile, session, navigate]);
+  }, [loading, profile, navigate]);
 
-  // Don't flash the landing page to authenticated users while loading
-  if (loading || session) {
+  // Only show spinner during initial auth check
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
