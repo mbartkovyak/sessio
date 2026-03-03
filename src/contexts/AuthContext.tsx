@@ -41,34 +41,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    let initialised = false;
-
-    // Set up listener FIRST, then getSession
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        // Only setLoading(false) on subsequent changes (after init)
-        if (initialised) {
-          setLoading(false);
-        }
-      }
-    );
-
+    // IMPORTANT: Do NOT await inside onAuthStateChange — it deadlocks Supabase auth.
+    // Instead: use getSession() for initial load, and onAuthStateChange for sign-in/out events only.
+    
+    // 1. Restore session from storage and load profile
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[Auth] getSession resolved, user:', session?.user?.id ?? 'none');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfile(session.user.id);
       }
-      initialised = true;
       setLoading(false);
     });
+
+    // 2. Listen for subsequent sign-in / sign-out changes (fire-and-forget, no await)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('[Auth] onAuthStateChange event:', event, 'user:', session?.user?.id ?? 'none');
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          // Fire and forget — do NOT await here
+          fetchProfile(session.user.id).then(() => setLoading(false));
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
