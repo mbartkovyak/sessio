@@ -41,16 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Initialise from existing session first, then subscribe to changes
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
+    let initialised = false;
 
+    // Set up listener FIRST, then getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
@@ -60,8 +53,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
         }
+        // Only setLoading(false) on subsequent changes (after init)
+        if (initialised) {
+          setLoading(false);
+        }
       }
     );
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      }
+      initialised = true;
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
