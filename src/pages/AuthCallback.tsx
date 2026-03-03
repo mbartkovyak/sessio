@@ -16,6 +16,15 @@ export default function AuthCallback() {
       navigate('/onboarding');
       return;
     }
+
+    // Check for pending invite
+    const pendingInvite = sessionStorage.getItem('pending_invite');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pending_invite');
+      navigate(`/join/${pendingInvite}`);
+      return;
+    }
+
     if (profile.role === 'coach') {
       navigate('/coach/dashboard');
     } else {

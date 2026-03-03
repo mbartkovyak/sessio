@@ -17,6 +17,10 @@ import CreateGroup from "./pages/CreateGroup";
 import GroupDetail from "./pages/GroupDetail";
 import SessionDetail from "./pages/SessionDetail";
 import PlayerDashboard from "./pages/PlayerDashboard";
+import PlayerNotifications from "./pages/PlayerNotifications";
+import PlayerProfile from "./pages/PlayerProfile";
+import PlayerSpots from "./pages/PlayerSpots";
+import JoinGroup from "./pages/JoinGroup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +45,10 @@ const App = () => (
             <Route path="/coach/notifications" element={<ProtectedRoute requiredRole="coach"><CoachNotifications /></ProtectedRoute>} />
             <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><CoachProfile /></ProtectedRoute>} />
             <Route path="/player/dashboard" element={<ProtectedRoute requiredRole="player"><PlayerDashboard /></ProtectedRoute>} />
+            <Route path="/player/notifications" element={<ProtectedRoute requiredRole="player"><PlayerNotifications /></ProtectedRoute>} />
+            <Route path="/player/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
+            <Route path="/player/spots" element={<ProtectedRoute requiredRole="player"><PlayerSpots /></ProtectedRoute>} />
+            <Route path="/join/:inviteCode" element={<JoinGroup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
