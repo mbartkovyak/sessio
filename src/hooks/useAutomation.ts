@@ -7,11 +7,12 @@ const AUTOMATION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supa
 
 async function callAutomation(action: string, extra?: Record<string, any>) {
   const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error('Not authenticated');
   const res = await fetch(AUTOMATION_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      'Authorization': `Bearer ${session.access_token}`,
       'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ action, ...extra }),
