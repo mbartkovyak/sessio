@@ -32,7 +32,11 @@ export default function Landing() {
   const { profile, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && profile?.onboarding_complete) {
+    if (loading) return;
+    if (!profile) return;
+    if (!profile.onboarding_complete) {
+      navigate('/onboarding');
+    } else {
       navigate(profile.role === 'coach' ? '/coach/dashboard' : '/player/dashboard');
     }
   }, [loading, profile, navigate]);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bell, Plus, TrendingUp, MapPin, Clock, RefreshCw } from 'lucide-react';
+import { Bell, Plus, TrendingUp, MapPin, Clock } from 'lucide-react';
 import CoachBottomNav from '@/components/CoachBottomNav';
 import { useGroups } from '@/hooks/useGroups';
 import { useTodaySessions, useWeekSessions } from '@/hooks/useSessions';
@@ -112,6 +112,14 @@ export default function CoachDashboard() {
   const generateAll = useGenerateAllSessions();
   const [showWalkthrough, setShowWalkthrough] = useState(false);
 
+  // Auto-generate sessions silently on mount
+  useEffect(() => {
+    if (groups.length > 0) {
+      generateAll.mutate();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups.length > 0]);
+
   const statsThisWeek = weekSessions.length;
 
   // Show walkthrough for new coaches
@@ -148,14 +156,6 @@ export default function CoachDashboard() {
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-4">
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => generateAll.mutate()}
-            disabled={generateAll.isPending}
-            title="Generate next sessions for all groups"
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary disabled:opacity-60"
-          >
-            <RefreshCw className={`h-4 w-4 text-muted-foreground ${generateAll.isPending ? 'animate-spin' : ''}`} />
-          </button>
           <button
             onClick={() => navigate('/coach/notifications')}
             className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
@@ -199,7 +199,7 @@ export default function CoachDashboard() {
             <div className="rounded-xl border border-border bg-card p-6 text-center card-shadow">
               <p className="text-2xl mb-1">📅</p>
               <p className="font-medium text-foreground text-sm">No sessions today</p>
-              <p className="text-xs text-muted-foreground mt-1">Tap ↺ above to generate upcoming sessions</p>
+              <p className="text-xs text-muted-foreground mt-1">Sessions are auto-generated for your groups</p>
             </div>
           ) : (
             <div className="space-y-3">
