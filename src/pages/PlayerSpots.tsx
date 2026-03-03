@@ -1,9 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import { useOpenSpots } from '@/hooks/usePlayerData';
 import PlayerBottomNav from '@/components/PlayerBottomNav';
 import { MapPin, Clock, Unlock } from 'lucide-react';
 import { useState } from 'react';
-import { useClaimSpot } from '@/hooks/usePlayerData';
+import { useClaimSpotRPC } from '@/hooks/useAutomation';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 
@@ -13,7 +12,7 @@ const SPORT_ICONS: Record<string, string> = {
 };
 
 function SpotCard({ spot }: { spot: any }) {
-  const claim = useClaimSpot();
+  const claim = useClaimSpotRPC();
   const [claimed, setClaimed] = useState(false);
   const group = spot.groups;
   const session = spot.sessions;
