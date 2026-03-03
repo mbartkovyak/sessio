@@ -365,6 +365,10 @@ export type Database = {
         Returns: Json
       }
       handle_no_response_deadline: { Args: never; Returns: Json }
+      is_group_member: {
+        Args: { _group_id: string; _player_id: string }
+        Returns: boolean
+      }
       process_confirmation_window: { Args: never; Returns: Json }
     }
     Enums: {
