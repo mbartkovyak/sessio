@@ -144,24 +144,6 @@ export function useOpenSpots() {
   });
 }
 
-/** Claim an open spot */
-export function useClaimSpot() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (spotId: string) => {
-      const { error } = await supabase
-        .from('open_spots')
-        .update({ status: 'claimed', claimed_by: user!.id, claimed_at: new Date().toISOString() })
-        .eq('id', spotId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['player-open-spots'] });
-    },
-  });
-}
-
 /** Player's session history */
 export function usePlayerSessionHistory() {
   const { user } = useAuth();
