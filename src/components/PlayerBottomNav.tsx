@@ -1,16 +1,16 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Unlock, Bell, User } from 'lucide-react';
-import { useNotificationCount } from '@/hooks/useNotificationCount';
+import { Home, Unlock, MessageCircle, User } from 'lucide-react';
+import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 export default function PlayerBottomNav() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const unread = useNotificationCount();
+  const unread = useUnreadMessageCount();
 
   const tabs = [
     { icon: Home, label: 'Home', path: '/player/dashboard' },
     { icon: Unlock, label: 'Spots', path: '/player/spots' },
-    { icon: Bell, label: 'Alerts', path: '/player/notifications', badge: unread },
+    { icon: MessageCircle, label: 'Messages', path: '/player/messages', badge: unread },
     { icon: User, label: 'Profile', path: '/player/profile' },
   ];
 
