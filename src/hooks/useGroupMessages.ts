@@ -8,6 +8,7 @@ export function useGroupMessages(groupId: string | undefined) {
   const query = useQuery({
     queryKey: ['group-messages', groupId],
     enabled: !!groupId,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('group_messages' as any)
