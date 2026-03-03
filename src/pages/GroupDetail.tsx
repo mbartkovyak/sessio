@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Calendar, Settings, UserMinus, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Calendar, Settings, UserMinus, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGroup } from '@/hooks/useGroups';
 import { useGroupMembers, useRemoveMember } from '@/hooks/useGroupMembers';
 import { useGroupSessions } from '@/hooks/useSessions';
+import { useGenerateGroupSessions } from '@/hooks/useAutomation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import CoachBottomNav from '@/components/CoachBottomNav';
 
@@ -76,6 +77,7 @@ export default function GroupDetail() {
   const { data: members = [] } = useGroupMembers(id);
   const { data: sessions = [] } = useGroupSessions(id);
   const removeMember = useRemoveMember(id!);
+  const generateSessions = useGenerateGroupSessions(id!);
   const [showPast, setShowPast] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
@@ -210,6 +212,14 @@ export default function GroupDetail() {
 
           {/* Sessions Tab */}
           <TabsContent value="sessions" className="mt-0 flex-1 px-4 py-4 space-y-4">
+            <button
+              onClick={() => generateSessions.mutate()}
+              disabled={generateSessions.isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary min-h-[44px] disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${generateSessions.isPending ? 'animate-spin' : ''}`} />
+              Generate Next Sessions
+            </button>
             <div>
               <h3 className="mb-3 text-sm font-semibold text-foreground">Upcoming ({upcomingSessions.length})</h3>
               {upcomingSessions.length === 0 ? (

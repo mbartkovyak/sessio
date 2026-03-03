@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Bell, Trash2, FileText, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, ChevronRight, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession, useSessionConfirmations } from '@/hooks/useSessions';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCancelSession } from '@/hooks/useAutomation';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  confirmed:  { label: 'Confirmed',  color: 'bg-success/10 text-success' },
-  declined:   { label: 'Declined',   color: 'bg-destructive/10 text-destructive' },
-  pending:    { label: 'Pending',    color: 'bg-muted text-muted-foreground' },
-  no_response:{ label: 'No response',color: 'bg-muted text-muted-foreground' },
+  confirmed:   { label: 'Confirmed',   color: 'bg-success/10 text-success' },
+  declined:    { label: 'Declined',    color: 'bg-destructive/10 text-destructive' },
+  pending:     { label: 'Pending',     color: 'bg-muted text-muted-foreground' },
+  no_response: { label: 'No response', color: 'bg-muted text-muted-foreground' },
 };
 
 export default function SessionDetail() {
@@ -19,9 +20,26 @@ export default function SessionDetail() {
   const qc = useQueryClient();
   const { data: session, isLoading } = useSession(id);
   const { data: confirmations = [] } = useSessionConfirmations(id);
+  const cancelSession = useCancelSession(id!);
   const [notes, setNotes] = useState('');
   const [editingNotes, setEditingNotes] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
+
+  // Real-time subscription for live attendance updates
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`session-confirmations-${id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'confirmations',
+        filter: `session_id=eq.${id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: ['confirmations', id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, qc]);
 
   const group = session?.groups as any;
   const date = session ? new Date(session.session_date + 'T00:00:00') : null;
@@ -29,16 +47,14 @@ export default function SessionDetail() {
 
   async function handleCancel() {
     if (!confirm('Cancel this session? Players will be notified.')) return;
-    setCancelling(true);
-    try {
-      await supabase.from('sessions').update({ status: 'cancelled' }).eq('id', id!);
-      qc.invalidateQueries({ queryKey: ['session', id] });
-      toast.success('Session cancelled');
-    } catch {
-      toast.error('Failed to cancel session');
-    } finally {
-      setCancelling(false);
-    }
+    cancelSession.mutate();
+  }
+
+  // Coach manual override for a player's status
+  async function overrideStatus(confId: string, status: 'confirmed' | 'declined') {
+    await supabase.from('confirmations').update({ status, responded_at: new Date().toISOString() }).eq('id', confId);
+    qc.invalidateQueries({ queryKey: ['confirmations', id] });
+    toast.success(`Marked as ${status}`);
   }
 
   async function handleSaveNotes() {
@@ -60,6 +76,10 @@ export default function SessionDetail() {
   }
 
   if (!session) return null;
+
+  const confirmedCount = confirmations.filter(c => c.status === 'confirmed').length;
+  const declinedCount  = confirmations.filter(c => c.status === 'declined').length;
+  const pendingCount   = confirmations.filter(c => c.status === 'pending').length;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -89,12 +109,12 @@ export default function SessionDetail() {
           </div>
         </div>
 
-        {/* Attendance summary */}
+        {/* Live Attendance */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label: 'Confirmed', count: confirmations.filter(c => c.status === 'confirmed').length, color: 'text-success' },
-            { label: 'Declined',  count: confirmations.filter(c => c.status === 'declined').length,  color: 'text-destructive' },
-            { label: 'Pending',   count: confirmations.filter(c => c.status === 'pending').length,   color: 'text-muted-foreground' },
+            { label: 'Confirmed', count: confirmedCount, color: 'text-success' },
+            { label: 'Declined',  count: declinedCount,  color: 'text-destructive' },
+            { label: 'Pending',   count: pendingCount,   color: 'text-warning' },
             { label: 'Total',     count: confirmations.length, color: 'text-foreground' },
           ].map(({ label, count, color }) => (
             <div key={label} className="rounded-xl border border-border bg-card p-3 text-center card-shadow">
@@ -106,7 +126,13 @@ export default function SessionDetail() {
 
         {/* Player Roster */}
         <div>
-          <h2 className="mb-3 font-semibold text-foreground">Player Roster</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold text-foreground">Player Roster</h2>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+              Live
+            </div>
+          </div>
           {confirmations.length === 0 ? (
             <div className="rounded-xl border border-border bg-card p-6 text-center card-shadow">
               <p className="text-sm text-muted-foreground">No confirmation requests sent yet</p>
@@ -117,12 +143,14 @@ export default function SessionDetail() {
                 const profile = c.profiles;
                 const cfg = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.pending;
                 const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? '?';
-                const respondedAt = c.responded_at ? new Date(c.responded_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : null;
+                const respondedAt = c.responded_at
+                  ? new Date(c.responded_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                  : null;
 
                 return (
                   <div key={c.id} className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary shrink-0">
                         {initials}
                       </div>
                       <div>
@@ -132,9 +160,30 @@ export default function SessionDetail() {
                         )}
                       </div>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.color}`}>
-                      {cfg.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.color}`}>
+                        {cfg.label}
+                      </span>
+                      {/* Coach manual override */}
+                      {c.status !== 'confirmed' && (
+                        <button
+                          onClick={() => overrideStatus(c.id, 'confirmed')}
+                          title="Mark confirmed"
+                          className="rounded-full p-1 hover:bg-success/10 text-muted-foreground hover:text-success transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </button>
+                      )}
+                      {c.status !== 'declined' && (
+                        <button
+                          onClick={() => overrideStatus(c.id, 'declined')}
+                          title="Mark declined"
+                          className="rounded-full p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -175,11 +224,13 @@ export default function SessionDetail() {
           <div className="space-y-3 pt-2">
             <button
               onClick={handleCancel}
-              disabled={cancelling}
-              className="flex w-full items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive min-h-[44px]"
+              disabled={cancelSession.isPending}
+              className="flex w-full items-center justify-between rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive min-h-[44px] disabled:opacity-60"
             >
               <div className="flex items-center gap-2">
-                <Trash2 className="h-4 w-4" />
+                {cancelSession.isPending
+                  ? <RefreshCw className="h-4 w-4 animate-spin" />
+                  : <span>🚫</span>}
                 Cancel Session
               </div>
               <ChevronRight className="h-4 w-4 opacity-50" />

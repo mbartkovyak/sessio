@@ -356,7 +356,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_spot: {
+        Args: { p_player_id: string; p_spot_id: string }
+        Returns: Json
+      }
+      generate_sessions_for_group: {
+        Args: { p_group_id: string }
+        Returns: Json
+      }
+      handle_no_response_deadline: { Args: never; Returns: Json }
+      process_confirmation_window: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never

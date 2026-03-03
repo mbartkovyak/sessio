@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Clock, RefreshCw } from 'lucide-react';
 import PlayerBottomNav from '@/components/PlayerBottomNav';
-import { usePlayerUpcomingSessions, useMyConfirmation, useUpsertConfirmation, useOpenSpots, useClaimSpot, usePlayerSessionHistory } from '@/hooks/usePlayerData';
-import { formatDistanceToNow, format, parseISO, isToday, isTomorrow } from 'date-fns';
+import { usePlayerUpcomingSessions, useMyConfirmation, useUpsertConfirmation, useOpenSpots, usePlayerSessionHistory } from '@/hooks/usePlayerData';
+import { useDeclineAndOpenSpot, useClaimSpotRPC } from '@/hooks/useAutomation';
+import { useProcessConfirmationWindow } from '@/hooks/useAutomation';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { toast } from 'sonner';
 
 const SPORT_ICONS: Record<string, string> = {
@@ -19,15 +23,18 @@ function relativeSessionTime(dateStr: string, startTime: string) {
   return `${format(date, 'EEE d MMM')} at ${startTime.slice(0, 5)}`;
 }
 
-function ConfirmButtons({ sessionId }: { sessionId: string }) {
+function ConfirmButtons({ sessionId, groupId }: { sessionId: string; groupId: string }) {
   const { data: confirmation, isLoading } = useMyConfirmation(sessionId);
   const upsert = useUpsertConfirmation();
-  const [justTapped, setJustTapped] = useState<'confirmed' | 'declined' | null>(null);
+  const decline = useDeclineAndOpenSpot();
 
-  async function tap(status: 'confirmed' | 'declined') {
-    setJustTapped(status);
-    await upsert.mutateAsync({ sessionId, status });
-    toast.success(status === 'confirmed' ? "You're in! 🎉" : "Noted. Hope to see you next time.");
+  async function tapConfirm() {
+    await upsert.mutateAsync({ sessionId, status: 'confirmed' });
+    toast.success("You're in! 🎉");
+  }
+
+  async function tapDecline() {
+    await decline.mutateAsync({ sessionId, groupId });
   }
 
   if (isLoading) return <div className="h-14 animate-pulse rounded-xl bg-muted" />;
@@ -47,7 +54,8 @@ function ConfirmButtons({ sessionId }: { sessionId: string }) {
           </span>
         </div>
         <button
-          onClick={() => tap(isConfirmed ? 'declined' : 'confirmed')}
+          onClick={isConfirmed ? tapDecline : tapConfirm}
+          disabled={upsert.isPending || decline.isPending}
           className="text-xs font-medium text-primary min-h-[44px] px-2"
         >
           Change
@@ -56,28 +64,22 @@ function ConfirmButtons({ sessionId }: { sessionId: string }) {
     );
   }
 
+  const busy = upsert.isPending || decline.isPending;
+
   return (
     <div className="grid grid-cols-2 gap-3">
       <button
-        onClick={() => tap('confirmed')}
-        disabled={upsert.isPending}
-        className={`flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold min-h-[56px] transition-all active:scale-95 ${
-          justTapped === 'confirmed' && upsert.isPending
-            ? 'bg-success/80 text-success-foreground scale-95'
-            : 'bg-success text-success-foreground'
-        } disabled:opacity-60`}
+        onClick={tapConfirm}
+        disabled={busy}
+        className="flex items-center justify-center gap-2 rounded-2xl bg-success py-4 text-base font-bold text-success-foreground min-h-[56px] transition-all active:scale-95 disabled:opacity-60"
       >
         <CheckCircle2 className="h-5 w-5" />
         I'm coming
       </button>
       <button
-        onClick={() => tap('declined')}
-        disabled={upsert.isPending}
-        className={`flex items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold min-h-[56px] transition-all active:scale-95 ${
-          justTapped === 'declined' && upsert.isPending
-            ? 'bg-destructive/80 text-destructive-foreground scale-95'
-            : 'bg-destructive text-destructive-foreground'
-        } disabled:opacity-60`}
+        onClick={tapDecline}
+        disabled={busy}
+        className="flex items-center justify-center gap-2 rounded-2xl bg-destructive py-4 text-base font-bold text-destructive-foreground min-h-[56px] transition-all active:scale-95 disabled:opacity-60"
       >
         <XCircle className="h-5 w-5" />
         Can't make it
@@ -116,7 +118,7 @@ function NextSessionCard({ session }: { session: any }) {
           </div>
         )}
       </div>
-      <ConfirmButtons sessionId={session.id} />
+      <ConfirmButtons sessionId={session.id} groupId={session.group_id} />
     </div>
   );
 }
@@ -125,8 +127,9 @@ function SessionListItem({ session }: { session: any }) {
   const group = session.groups;
   const { data: confirmation } = useMyConfirmation(session.id);
   const upsert = useUpsertConfirmation();
+  const decline = useDeclineAndOpenSpot();
 
-  const statusDot = confirmation?.status === 'confirmed'
+  const dotColor = confirmation?.status === 'confirmed'
     ? 'bg-success'
     : confirmation?.status === 'declined'
     ? 'bg-destructive'
@@ -134,7 +137,7 @@ function SessionListItem({ session }: { session: any }) {
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 card-shadow">
-      <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${statusDot}`} />
+      <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${dotColor}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{group?.name}</p>
         <p className="text-xs text-muted-foreground">{relativeSessionTime(session.session_date, session.start_time)}</p>
@@ -148,7 +151,7 @@ function SessionListItem({ session }: { session: any }) {
             <CheckCircle2 className="h-4 w-4" />
           </button>
           <button
-            onClick={() => upsert.mutate({ sessionId: session.id, status: 'declined' })}
+            onClick={() => decline.mutate({ sessionId: session.id, groupId: session.group_id })}
             className="rounded-lg bg-destructive/10 p-2 text-destructive min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <XCircle className="h-4 w-4" />
@@ -160,16 +163,24 @@ function SessionListItem({ session }: { session: any }) {
 }
 
 function OpenSpotCard({ spot }: { spot: any }) {
-  const claim = useClaimSpot();
+  const claimRPC = useClaimSpotRPC();
   const [claimed, setClaimed] = useState(false);
   const group = spot.groups;
   const session = spot.sessions;
   const sportIcon = SPORT_ICONS[group?.sport] ?? '🎯';
 
   async function handleClaim() {
-    await claim.mutateAsync(spot.id);
-    setClaimed(true);
-    toast.success("Spot claimed! You're in 🎉");
+    try {
+      await claimRPC.mutateAsync(spot.id);
+      setClaimed(true);
+      toast.success("Spot claimed! You're in 🎉");
+    } catch (err: any) {
+      if (err.message === 'already_claimed') {
+        toast.error("Someone was faster! That spot was just taken.");
+      } else {
+        toast.error("Failed to claim spot");
+      }
+    }
   }
 
   if (claimed) {
@@ -191,10 +202,12 @@ function OpenSpotCard({ spot }: { spot: any }) {
         </div>
       </div>
       <div className="mb-3 space-y-1">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          {session ? relativeSessionTime(session.session_date, session.start_time) : '—'}
-        </div>
+        {session && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            {relativeSessionTime(session.session_date, session.start_time)}
+          </div>
+        )}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3" />
           {group?.location}
@@ -202,31 +215,51 @@ function OpenSpotCard({ spot }: { spot: any }) {
       </div>
       <button
         onClick={handleClaim}
-        disabled={claim.isPending}
+        disabled={claimRPC.isPending}
         className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground min-h-[44px] disabled:opacity-60 active:scale-95 transition-transform"
       >
-        Claim Spot
+        {claimRPC.isPending ? 'Claiming...' : 'Claim Spot'}
       </button>
     </div>
   );
 }
 
 export default function PlayerDashboard() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { data: sessions = [], isLoading: sessionsLoading } = usePlayerUpcomingSessions();
   const { data: openSpots = [] } = useOpenSpots();
   const { data: history = [] } = usePlayerSessionHistory();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
+  const processWindow = useProcessConfirmationWindow();
+
+  // Run confirmation window check on dashboard load
+  useEffect(() => {
+    if (user) processWindow.mutate();
+  }, [user]);
+
+  // Real-time: refresh open spots when they change
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('player-open-spots-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'open_spots' }, () => {
+        qc.invalidateQueries({ queryKey: ['player-open-spots'] });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ['notifications', user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, qc]);
 
   const nextSession = sessions[0];
   const thisWeek = sessions.slice(1, 6);
 
   function handleJoinGroup() {
-    if (joinCode.trim()) {
-      navigate(`/join/${joinCode.trim().toUpperCase()}`);
-    }
+    if (joinCode.trim()) navigate(`/join/${joinCode.trim().toUpperCase()}`);
   }
 
   return (
