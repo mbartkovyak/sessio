@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Clock, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Clock, RefreshCw, Bell } from 'lucide-react';
+import { useNotificationCount } from '@/hooks/useNotificationCount';
 import PlayerBottomNav from '@/components/PlayerBottomNav';
 import { usePlayerUpcomingSessions, useMyConfirmation, useUpsertConfirmation, useOpenSpots, usePlayerSessionHistory } from '@/hooks/usePlayerData';
 import { useDeclineAndOpenSpot, useClaimSpotRPC } from '@/hooks/useAutomation';
@@ -228,6 +229,7 @@ export default function PlayerDashboard() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const notifCount = useNotificationCount();
   const { data: sessions = [], isLoading: sessionsLoading } = usePlayerUpcomingSessions();
   const { data: openSpots = [] } = useOpenSpots();
   const { data: history = [] } = usePlayerSessionHistory();
@@ -266,7 +268,17 @@ export default function PlayerDashboard() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-4">
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
-        <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Player</span>
+        <button
+          onClick={() => navigate('/player/notifications')}
+          className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
+        >
+          <Bell className="h-5 w-5 text-muted-foreground" />
+          {notifCount > 0 && (
+            <span className="absolute right-1 top-1 h-4 w-4 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+              {notifCount > 9 ? '9+' : notifCount}
+            </span>
+          )}
+        </button>
       </header>
 
       <main className="flex-1 px-4 py-6 pb-24 space-y-6">

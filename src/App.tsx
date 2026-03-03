@@ -20,6 +20,9 @@ import GroupDetail from "./pages/GroupDetail";
 import SessionDetail from "./pages/SessionDetail";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import PlayerNotifications from "./pages/PlayerNotifications";
+import CoachMessages from "./pages/CoachMessages";
+import PlayerMessages from "./pages/PlayerMessages";
+import GroupChat from "./pages/GroupChat";
 import PlayerProfile from "./pages/PlayerProfile";
 import PlayerSpots from "./pages/PlayerSpots";
 import JoinGroup from "./pages/JoinGroup";
@@ -52,6 +55,10 @@ const App = () => (
             <Route path="/player/notifications" element={<ProtectedRoute requiredRole="player"><PlayerNotifications /></ProtectedRoute>} />
             <Route path="/player/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
             <Route path="/player/spots" element={<ProtectedRoute requiredRole="player"><PlayerSpots /></ProtectedRoute>} />
+            <Route path="/coach/messages" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
+            <Route path="/coach/messages/:groupId" element={<ProtectedRoute requiredRole="coach"><GroupChat /></ProtectedRoute>} />
+            <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
+            <Route path="/player/messages/:groupId" element={<ProtectedRoute requiredRole="player"><GroupChat /></ProtectedRoute>} />
             <Route path="/join/:inviteCode" element={<JoinGroup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
