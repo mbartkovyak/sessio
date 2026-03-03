@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, ChevronRight, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, ChevronRight, CheckCircle2, XCircle, RefreshCw, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession, useSessionConfirmations } from '@/hooks/useSessions';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCancelSession } from '@/hooks/useAutomation';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   confirmed:   { label: 'Confirmed',   color: 'bg-success/10 text-success' },
@@ -23,6 +29,11 @@ export default function SessionDetail() {
   const cancelSession = useCancelSession(id!);
   const [notes, setNotes] = useState('');
   const [editingNotes, setEditingNotes] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>();
+  const [rescheduleStart, setRescheduleStart] = useState('');
+  const [rescheduleEnd, setRescheduleEnd] = useState('');
+  const [savingReschedule, setSavingReschedule] = useState(false);
 
   // Real-time subscription for live attendance updates
   useEffect(() => {
@@ -44,6 +55,25 @@ export default function SessionDetail() {
   const group = session?.groups as any;
   const date = session ? new Date(session.session_date + 'T00:00:00') : null;
   const dateStr = date?.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  async function handleReschedule() {
+    if (!rescheduleDate || !rescheduleStart || !rescheduleEnd) { toast.error('Fill all fields'); return; }
+    setSavingReschedule(true);
+    try {
+      await supabase.from('sessions').update({
+        session_date: format(rescheduleDate, 'yyyy-MM-dd'),
+        start_time: rescheduleStart + ':00',
+        end_time: rescheduleEnd + ':00',
+      }).eq('id', id!);
+      qc.invalidateQueries({ queryKey: ['session', id] });
+      setRescheduling(false);
+      toast.success('Session rescheduled');
+    } catch {
+      toast.error('Failed to reschedule');
+    } finally {
+      setSavingReschedule(false);
+    }
+  }
 
   async function handleCancel() {
     if (!confirm('Cancel this session? Players will be notified.')) return;
@@ -222,6 +252,56 @@ export default function SessionDetail() {
         {/* Actions */}
         {session.status !== 'cancelled' && (
           <div className="space-y-3 pt-2">
+            {/* Reschedule */}
+            {rescheduling ? (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3 card-shadow">
+                <p className="text-sm font-semibold text-foreground">Reschedule Session</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !rescheduleDate && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {rescheduleDate ? format(rescheduleDate, 'PPP') : 'Pick new date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={rescheduleDate} onSelect={setRescheduleDate} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Start</p>
+                    <Input type="time" value={rescheduleStart} onChange={e => setRescheduleStart(e.target.value)} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">End</p>
+                    <Input type="time" value={rescheduleEnd} onChange={e => setRescheduleEnd(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setRescheduling(false)} className="flex-1">Cancel</Button>
+                  <Button onClick={handleReschedule} disabled={savingReschedule} className="flex-1">
+                    {savingReschedule ? 'Saving…' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setRescheduleDate(date ?? undefined);
+                  setRescheduleStart(session.start_time?.slice(0,5) ?? '');
+                  setRescheduleEnd(session.end_time?.slice(0,5) ?? '');
+                  setRescheduling(true);
+                }}
+                className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground min-h-[44px]"
+              >
+                <div className="flex items-center gap-2">
+                  <span>📅</span>
+                  Reschedule Session
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </button>
+            )}
+
             <button
               onClick={handleCancel}
               disabled={cancelSession.isPending}
