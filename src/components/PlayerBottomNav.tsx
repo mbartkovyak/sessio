@@ -15,10 +15,10 @@ export default function PlayerBottomNav() {
   ];
 
   return (
-    <nav className="sticky bottom-0 border-t border-border bg-card z-10">
-      <div className="flex">
+    <nav className="sticky bottom-0 border-t border-border bg-card z-10 safe-area-bottom">
+      <div className="flex max-w-md mx-auto">
         {tabs.map(({ icon: Icon, label, path, badge }) => {
-          const active = pathname === path;
+          const active = pathname === path || (path !== '/player/dashboard' && pathname.startsWith(path));
           return (
             <button
               key={label}
