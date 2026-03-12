@@ -22,7 +22,8 @@ export default function CoachProfile() {
         <h1 className="font-semibold text-foreground">Profile</h1>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-24 space-y-6">
+      <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Avatar & name */}
         <div className="flex flex-col items-center pt-4 pb-2">
           <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
