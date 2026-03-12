@@ -1,75 +1,54 @@
 
-## Plan: Dedicated Chat page in bottom nav
+## Diagnosis
 
-### What the user wants
-Replace the deeply buried "Chat" tab inside GroupDetail with a top-level **Messages** page accessible directly from the bottom navigation bar — replacing or sitting alongside the current tabs.
+### Messages not saving
+The `useGroupMessages` hook queries `group_messages` but uses `.from('group_messages' as any)` — this is fine TypeScript but the real issue is that after `send.mutate()`, the UI clears optimistically but the query invalidation triggers a refetch that replaces the displayed list with a fresh fetch. Since `placeholderData: (prev) => prev` was added, this *should* work... but the `useSendGroupMessage` mutation only invalidates the query on `onSuccess`. If the INSERT fails silently (RLS), messages won't appear.
 
-### Approach
+The deeper problem: the `GroupChat.tsx` page uses `useSendGroupMessage` which calls `.from('group_messages' as any)` with no error surfacing — errors are swallowed silently. We need to surface errors and also add **optimistic updates** so sent messages appear immediately regardless.
 
-**Both coach and player get a "Messages" nav tab** (replacing "Alerts" position or shifting layout). The Messages page shows a list of group conversations. Tapping one opens the chat for that group.
+### UX Issues (from screenshot + code review)
+1. **Messages list takes full page width** — no `max-w` container, looks stretched on tablets/desktop
+2. **GroupChat fills entire screen** but message area doesn't properly calculate height with sticky header/footer — on mobile browsers the address bar causes overflow
+3. **CoachMessages / PlayerMessages** shows no unread indicators per group thread
+4. **Thread list avatar** uses a basic emoji circle — fine, but no unread dot
+5. **All pages** use `min-h-screen` with `pb-24` — needs proper `max-w` centering for non-mobile views
+6. **PlayerSpots** header looks plain; empty state icon oversized
+7. **CoachProfile / PlayerProfile** centered content but no visual hierarchy on tablet
+8. **GroupChat input area** — textarea doesn't auto-grow; send button needs better visual weight
+9. **Messages page** — "No messages yet" text too sparse, should show a nicer empty state with group icon
+10. **Bottom nav** — 56px height fine on mobile but needs `safe-area-inset-bottom` padding for iOS
 
-**Bottom nav changes:**
-- Coach: Home | Groups | Messages | Alerts | Profile → but that's 5 tabs which is too many on mobile. Better: **Home | Groups | Messages | Profile** — move notifications badge onto Messages or keep Alerts but swap Bell for MessageCircle. 
+## Plan
 
-Actually cleanest: **Home | Groups | Messages | Profile** for coach (4 tabs, remove Alerts as separate tab — unread notifications can show on the dashboard or badge on Messages). But the user specifically said "like notifications" which implies keeping alerts and adding chat. Let me do 5 tabs for coach but compact them, OR replace Alerts with a combined Messages+Alerts tab.
+### Fix 1: Messages not saving (root cause fix)
+- Add **optimistic update** in `useSendGroupMessage`: immediately append the message to the cache before the server responds
+- Add proper **error handling** with toast on failure
+- Remove `as any` cast — `group_messages` IS in `types.ts` so cast it properly
 
-Best approach: Keep 4 tabs but replace "Alerts" with "Messages", and put notification count on the Messages icon OR show alerts within the Messages/Inbox page (combined inbox). Actually simplest: add Messages as a 5th tab — but 5 is too many on mobile.
+### Fix 2: App-wide max width container
+- Wrap all pages in a `max-w-md mx-auto` container so they look good on tablet/desktop too
+- The bottom nav and header should stay full-width on mobile but content max-width on larger screens
 
-Clean solution: **Replace "Alerts" with "Messages"** for coach. Notifications can move inside the Profile or Dashboard. For player: swap Alerts → Messages.
+### Fix 3: GroupChat layout
+- Fix `h-screen` to use `dvh` (dynamic viewport height) for mobile browser compatibility: `h-[100dvh]`
+- Auto-grow textarea based on content
 
-Wait — the user said "down there in notifications or something". So they want it next to notifications, not replacing it. Let me just add Messages as a tab by rearranging:
+### Fix 4: Thread list UX
+- Add unread dot indicator per group thread in Messages list
+- Show "today" vs date for last message timestamp
+- Truncate last message preview properly
 
-**Coach bottom nav (4 tabs):** Home | Groups | Chat | Profile  
-Put notifications badge on Chat if there are unread messages. Move Alerts into the Profile area or as a bell icon in the header of the dashboard.
+### Fix 5: iOS safe area
+- Add `pb-safe` / `padding-bottom: env(safe-area-inset-bottom)` to bottom nav
 
-Actually simplest that respects existing structure: **Add Messages as a 5th tab** and let the icons be small enough. Many apps do 5 tabs. OR replace Groups with a combined view.
+### Files to change
+1. **`src/hooks/useGroupMessages.ts`** — optimistic updates, proper error handling, remove `as any`
+2. **`src/pages/GroupChat.tsx`** — fix `h-[100dvh]`, auto-grow textarea, better empty state
+3. **`src/pages/CoachMessages.tsx`** — add unread dot per thread, improve thread item layout
+4. **`src/pages/PlayerMessages.tsx`** — same improvements
+5. **`src/index.css`** — add `safe-area` utility for bottom nav
+6. **`src/components/CoachBottomNav.tsx`** — add safe-area padding
+7. **`src/components/PlayerBottomNav.tsx`** — add safe-area padding
+8. **All page layouts** — add `max-w-md mx-auto` wrapper inside main content areas (CoachDashboard, PlayerDashboard, CoachMessages, PlayerMessages, GroupChat, PlayerSpots, CoachProfile, PlayerProfile)
 
-Simplest clean solution the user will appreciate: **Replace the Bell/Alerts tab with a Messages tab** (MessageCircle icon). The notifications can be accessed via a bell icon in the top-right of the dashboard header instead of a dedicated tab. This gives chat top-level prominence.
-
----
-
-### Implementation
-
-1. **New page: `src/pages/CoachMessages.tsx`**
-   - Lists all coach's groups as conversation threads
-   - Shows group name, last message preview, timestamp, unread badge
-   - Tap → navigates to `/coach/messages/:groupId` (or reuses GroupDetail chat tab)
-   - Actually, tap → opens a full-screen chat view for that group: `src/pages/GroupChat.tsx`
-
-2. **New page: `src/pages/PlayerMessages.tsx`**
-   - Lists all groups the player belongs to  
-   - Same thread-list UI
-   - Tap → `src/pages/PlayerGroupChat.tsx`
-
-3. **New page: `src/pages/GroupChat.tsx`** (shared chat UI, used by both coach and player)
-   - Full-screen chat for a specific group
-   - Back button → returns to Messages list
-   - Reuses the `ChatTab` logic from GroupDetail
-
-4. **Update `CoachBottomNav`**: replace Bell with MessageCircle, add badge for unread messages, move notifications to dashboard header bell icon
-
-5. **Update `PlayerBottomNav`**: replace Bell with MessageCircle
-
-6. **Move notifications**: Add a small bell icon button in the header of `CoachDashboard` and `PlayerDashboard` linking to notifications pages.
-
-7. **Hook: `useUnreadMessageCount`** — counts messages newer than last-seen timestamp per group. Simple approach: just show badge if any messages exist in the last 24h from other senders.
-
-8. **Add routes** in `App.tsx`:
-   - `/coach/messages` → CoachMessages
-   - `/coach/messages/:groupId` → GroupChat  
-   - `/player/messages` → PlayerMessages
-   - `/player/messages/:groupId` → GroupChat (player variant)
-
-9. **Player groups hook**: need to fetch groups a player belongs to (via `group_members` table joining `groups`). Create `usePlayerGroups` hook.
-
-### Files to create/edit
-- Create `src/pages/CoachMessages.tsx`
-- Create `src/pages/PlayerMessages.tsx`  
-- Create `src/pages/GroupChat.tsx`
-- Create `src/hooks/usePlayerGroups.ts`
-- Create `src/hooks/useUnreadMessageCount.ts`
-- Edit `src/components/CoachBottomNav.tsx` — Bell → MessageCircle, point to /coach/messages
-- Edit `src/components/PlayerBottomNav.tsx` — Bell → MessageCircle, point to /player/messages
-- Edit `src/pages/CoachDashboard.tsx` — add Bell icon button in header → /coach/notifications
-- Edit `src/pages/PlayerDashboard.tsx` — add Bell icon button in header → /player/notifications
-- Edit `src/App.tsx` — add new routes
+The most impactful fix is the optimistic update for messages + `h-[100dvh]` for the chat layout.
