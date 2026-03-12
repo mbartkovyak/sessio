@@ -377,6 +377,7 @@ export default function PlayerDashboard() {
             )}
           </div>
         )}
+        </div>
       </main>
 
       <PlayerBottomNav />

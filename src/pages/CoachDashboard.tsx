@@ -252,6 +252,7 @@ export default function CoachDashboard() {
             </div>
           )}
         </div>
+        </div>
       </main>
 
       <CoachBottomNav />
