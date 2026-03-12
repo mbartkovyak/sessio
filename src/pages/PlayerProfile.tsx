@@ -187,6 +187,7 @@ export default function PlayerProfile() {
             Sign Out
           </button>
         </div>
+        </div>
       </main>
 
       <PlayerBottomNav />

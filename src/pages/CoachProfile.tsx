@@ -83,6 +83,7 @@ export default function CoachProfile() {
             Sign Out
           </button>
         </div>
+        </div>
       </main>
 
       <CoachBottomNav />

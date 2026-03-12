@@ -110,6 +110,7 @@ export default function PlayerSpots() {
           <div className="space-y-4">
             {openSpots.map((spot: any) => <SpotCard key={spot.id} spot={spot} />)}
           </div>
+        )}
         </div>
       </main>
 
