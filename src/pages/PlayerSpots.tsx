@@ -92,7 +92,8 @@ export default function PlayerSpots() {
         )}
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-24">
+      <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 py-6">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2].map(i => <div key={i} className="h-48 animate-pulse rounded-2xl bg-muted" />)}
@@ -110,6 +111,7 @@ export default function PlayerSpots() {
             {openSpots.map((spot: any) => <SpotCard key={spot.id} spot={spot} />)}
           </div>
         )}
+        </div>
       </main>
 
       <PlayerBottomNav />

@@ -15,8 +15,8 @@ export default function CoachBottomNav() {
   const unreadCount = useUnreadMessageCount();
 
   return (
-    <nav className="sticky bottom-0 z-10 border-t border-border bg-card">
-      <div className="flex">
+    <nav className="sticky bottom-0 z-10 border-t border-border bg-card safe-area-bottom">
+      <div className="flex max-w-md mx-auto">
         {tabs.map(({ icon: Icon, label, path }) => {
           const active = location.pathname === path || (path !== '/coach/dashboard' && location.pathname.startsWith(path));
           const isMessages = label === 'Messages';
@@ -24,7 +24,7 @@ export default function CoachBottomNav() {
             <button
               key={label}
               onClick={() => navigate(path)}
-              className={`relative flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors min-h-[44px] ${
+              className={`relative flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors min-h-[56px] ${
                 active ? 'text-primary' : 'text-muted-foreground'
               }`}
             >

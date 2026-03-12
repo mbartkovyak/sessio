@@ -38,6 +38,7 @@ export default function GroupChat() {
   const send = useSendGroupMessage(groupId!);
   const [text, setText] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const backPath = profile?.role === 'coach' ? '/coach/messages' : '/player/messages';
 
   useEffect(() => {
@@ -48,10 +49,19 @@ export default function GroupChat() {
     if (groupId) markGroupSeen(groupId);
   }, [groupId, messages.length]);
 
+  // Auto-grow textarea
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+  }, [text]);
+
   function handleSend() {
     if (!text.trim() || !user) return;
     send.mutate({ content: text.trim(), senderId: user.id });
     setText('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
   }
 
   function handleKey(e: React.KeyboardEvent) {
@@ -59,17 +69,17 @@ export default function GroupChat() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-3">
+      <header className="shrink-0 flex items-center gap-3 border-b border-border bg-card px-4 py-3">
         <button
           onClick={() => navigate(backPath)}
-          className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
+          className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary active:bg-secondary/80"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <div>
-          <p className="font-semibold text-foreground leading-tight">{group?.name ?? '...'}</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-foreground leading-tight truncate">{group?.name ?? '...'}</p>
           <p className="text-xs text-muted-foreground">{group?.sport}</p>
         </div>
       </header>
@@ -97,17 +107,19 @@ export default function GroupChat() {
                 <span className="text-xs text-muted-foreground px-1">{senderName}</span>
               )}
               <div
-                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm break-words ${
                   isMe
-                    ? 'bg-primary text-primary-foreground rounded-br-sm'
+                    ? `bg-primary text-primary-foreground rounded-br-sm ${msg._optimistic ? 'opacity-70' : ''}`
                     : 'bg-secondary text-secondary-foreground rounded-bl-sm'
                 }`}
               >
                 {msg.content}
               </div>
-              <span className="text-[10px] text-muted-foreground px-1">
-                {msg.created_at ? msgTime(msg.created_at) : ''}
-              </span>
+              {!msg._optimistic && (
+                <span className="text-[10px] text-muted-foreground px-1">
+                  {msg.created_at ? msgTime(msg.created_at) : ''}
+                </span>
+              )}
             </div>
           );
         })}
@@ -115,15 +127,16 @@ export default function GroupChat() {
       </div>
 
       {/* Input */}
-      <div className="sticky bottom-0 border-t border-border bg-card px-4 py-3">
-        <div className="flex items-end gap-2">
+      <div className="shrink-0 border-t border-border bg-card px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+        <div className="flex items-end gap-2 max-w-md mx-auto">
           <textarea
+            ref={textareaRef}
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKey}
             placeholder="Message..."
             rows={1}
-            className="flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring max-h-24 overflow-y-auto"
+            className="flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring overflow-hidden"
           />
           <button
             onClick={handleSend}

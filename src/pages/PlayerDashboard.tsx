@@ -281,7 +281,8 @@ export default function PlayerDashboard() {
         </button>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-24 space-y-6">
+      <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             Hey, {profile?.full_name?.split(' ')[0] ?? 'Player'} 👋
@@ -376,6 +377,7 @@ export default function PlayerDashboard() {
             )}
           </div>
         )}
+        </div>
       </main>
 
       <PlayerBottomNav />
