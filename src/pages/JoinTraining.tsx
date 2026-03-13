@@ -64,7 +64,7 @@ export default function JoinTraining() {
     try {
       if (training._type === 'training') {
         const { data: existing } = await supabase
-          .from('training_members' as any)
+          .from('training_members')
           .select('id, role')
           .eq('training_id', training.id)
           .eq('user_id', profile.id)
