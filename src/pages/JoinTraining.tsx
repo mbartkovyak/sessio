@@ -28,7 +28,6 @@ export default function JoinTraining() {
   // Fetch training from invite_code
   useEffect(() => {
     if (!inviteCode) return;
-    // Try new trainings table first
     supabase
       .from('trainings' as any)
       .select('*, profiles:coach_id(full_name, avatar_url)')
@@ -37,21 +36,9 @@ export default function JoinTraining() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setTraining({ ...data, _type: 'training' });
-          setTrainingLoading(false);
-          return;
+          setTraining(Object.assign({}, data as object, { _type: 'training' }));
         }
-        // Fallback: legacy groups table
-        supabase
-          .from('groups')
-          .select('*, profiles:coach_id(full_name, avatar_url)')
-          .eq('invite_code', inviteCode.toUpperCase())
-          .eq('is_active', true)
-          .maybeSingle()
-          .then(({ data: legacyData }) => {
-            if (legacyData) setTraining({ ...legacyData, _type: 'group' });
-            setTrainingLoading(false);
-          });
+        setTrainingLoading(false);
       });
   }, [inviteCode]);
 
