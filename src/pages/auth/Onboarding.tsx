@@ -75,7 +75,7 @@ export default function Onboarding() {
     if (schoolError) { setError(schoolError.message); setLoading(false); return; }
 
     await refreshProfile();
-    navigate('/school');
+    navigate('/coach');
   }
 
   // ── Submit: Join School ──

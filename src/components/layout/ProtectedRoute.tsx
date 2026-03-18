@@ -20,8 +20,13 @@ export default function ProtectedRoute({ children, requiredRole }: Props) {
 
   if (!session) return <Navigate to="/auth" replace />;
   if (!profile?.onboarding_complete || !profile.role) return <Navigate to="/onboarding" replace />;
-  if (requiredRole && profile.role !== requiredRole) {
-    const home = profile.role === 'school_owner' ? '/school' : profile.role === 'coach' ? '/coach' : '/player';
+  // school_owner can access both coach and school_owner routes
+  const hasAccess = !requiredRole
+    || profile.role === requiredRole
+    || (profile.role === 'school_owner' && requiredRole === 'coach');
+
+  if (!hasAccess) {
+    const home = profile.role === 'school_owner' ? '/coach' : profile.role === 'coach' ? '/coach' : '/player';
     return <Navigate to={home} replace />;
   }
 

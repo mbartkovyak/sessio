@@ -38,8 +38,7 @@ export default function Landing() {
     if (!profile.onboarding_complete) {
       navigate('/onboarding', { replace: true });
     } else {
-      const home = profile.role === 'school_owner' ? '/school' : profile.role === 'coach' ? '/coach' : '/player';
-      navigate(home, { replace: true });
+      navigate(profile.role === 'player' ? '/player' : '/coach', { replace: true });
     }
   }, [loading, profile, navigate]);
 

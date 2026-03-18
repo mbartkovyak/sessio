@@ -25,8 +25,7 @@ export default function AuthCallback() {
       return;
     }
 
-    const home = profile.role === 'school_owner' ? '/school' : profile.role === 'coach' ? '/coach' : '/player';
-    navigate(home);
+    navigate(profile.role === 'player' ? '/player' : '/coach');
   }, [loading, profile, navigate]);
 
   return (

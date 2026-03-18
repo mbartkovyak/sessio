@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CheckCircle2, Users } from 'lucide-react';
+import { Plus, CheckCircle2, Users, Settings, UserPlus, Calendar } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,6 +69,8 @@ function TodaySessionRow({ session }: { session: any }) {
 export default function CoachHome() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const isSchoolOwner = profile?.role === 'school_owner';
+  const [view, setView] = useState<'coaching' | 'school'>('coaching');
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
@@ -82,15 +84,65 @@ export default function CoachHome() {
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-2">
           <SessioLogoCompact />
-          {school && (
-            <button onClick={() => navigate('/school')} className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground">
-              🏫 {school.name}
-            </button>
+          {isSchoolOwner && school && (
+            <div className="ml-auto flex rounded-lg bg-secondary p-0.5">
+              <button
+                onClick={() => setView('coaching')}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === 'coaching' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
+              >
+                My coaching
+              </button>
+              <button
+                onClick={() => setView('school')}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === 'school' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
+              >
+                {school.name}
+              </button>
+            </div>
           )}
         </div>
       </header>
 
       <main className="flex-1 pb-24">
+        {isSchoolOwner && view === 'school' && school ? (
+        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+            <p className="text-sm text-muted-foreground">School overview</p>
+          </div>
+
+          {/* Coaches in school */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-foreground">Coaches</h2>
+              <button onClick={() => navigate('/school/coaches')} className="flex items-center gap-1 text-sm font-medium text-primary min-h-[44px] px-2">
+                <Plus className="h-4 w-4" /> Invite
+              </button>
+            </div>
+            {/* TODO: show school coaches list */}
+            <button
+              onClick={() => navigate('/school/coaches')}
+              className="w-full rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <UserPlus className="h-5 w-5 mx-auto mb-1" />
+              Add coaches to your school
+            </button>
+          </div>
+
+          {/* School management links */}
+          <div className="rounded-xl border border-border bg-card divide-y divide-border">
+            <button onClick={() => navigate('/school/calendar')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+              <Calendar className="h-4 w-4 text-muted-foreground" /> School Calendar
+            </button>
+            <button onClick={() => navigate('/school/coaches')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+              <Users className="h-4 w-4 text-muted-foreground" /> Manage Coaches
+            </button>
+            <button onClick={() => navigate('/school/profile')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+              <Settings className="h-4 w-4 text-muted-foreground" /> School Settings
+            </button>
+          </div>
+        </div>
+        ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Hey, {profile?.full_name?.split(' ')[0] ?? 'Coach'} 👋</h1>
@@ -204,6 +256,7 @@ export default function CoachHome() {
             )}
           </div>
         </div>
+        )}
       </main>
 
       <CoachBottomNav />
