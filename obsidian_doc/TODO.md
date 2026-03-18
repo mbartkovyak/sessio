@@ -6,6 +6,7 @@ kanban-plugin: board
 
 ## Backlog
 
+- [ ] Attendance tracking — monthly view per training showing attended/missed per athlete. Coaches use this to track makeup sessions owed. Data already in session_attendance, just need UI #dev
 - [ ] Phone number at registration — ideally auth by phone not email. SMS OTP needs paid service (Twilio). Decide: needed for Kajtek demo or can wait? #dev #decision
 - [ ] Work with Yoodli.ai #gtm
 - [ ] Align design through Behance and then Figma Make #design

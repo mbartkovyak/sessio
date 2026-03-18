@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTrainings } from '@/hooks/training/useTrainings';
+import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolView } from '@/contexts/SchoolViewContext';
+import { useMySchool } from '@/hooks/school/useSchools';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
@@ -39,8 +41,14 @@ function unreadCount(trainingId: string, lastMsg: any, userId: string): boolean 
 }
 
 export default function CoachMessages() {
-  const { user } = useAuth();
-  const { data: trainings = [], isLoading } = useTrainings();
+  const { user, profile } = useAuth();
+  const { view } = useSchoolView();
+  const isSchoolView = profile?.role === 'school_owner' && view === 'school';
+  const { data: school } = useMySchool();
+  const { data: myTrainings = [], isLoading: myLoading } = useTrainings();
+  const { data: schoolTrainings = [], isLoading: schoolLoading } = useSchoolTrainings(isSchoolView ? school?.id : undefined);
+  const trainings = isSchoolView ? schoolTrainings : myTrainings;
+  const isLoading = isSchoolView ? schoolLoading : myLoading;
   const trainingIds = trainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
   const navigate = useNavigate();
@@ -59,7 +67,7 @@ export default function CoachMessages() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Messages</h1>
+          <h1 className="text-lg font-semibold text-foreground">{isSchoolView ? 'School Messages' : 'Messages'}</h1>
         </div>
       </header>
 

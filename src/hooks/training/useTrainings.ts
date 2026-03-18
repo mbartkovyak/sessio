@@ -21,6 +21,23 @@ export function useTrainings() {
   });
 }
 
+export function useSchoolTrainings(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-trainings', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings' as any)
+        .select('*, schools(id, name), coach:profiles(id, full_name, avatar_url)')
+        .eq('school_id', schoolId!)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
 export function useTraining(id: string | undefined) {
   return useQuery({
     queryKey: ['training', id],
