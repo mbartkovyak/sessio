@@ -1,0 +1,7 @@
+node_modules
+.tools
+.obsidian
+obsidian_doc
+supabase/.temp
+.git
+.claude

@@ -1,5 +1,5 @@
-import { useMySchool } from '@/hooks/useSchools';
-import CoachBottomNav from '@/components/CoachBottomNav';
+import { useMySchool } from '@/hooks/school/useSchools';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { Users } from 'lucide-react';
 
 export default function SchoolCoaches() {
@@ -29,13 +29,13 @@ export default function SchoolCoaches() {
           coaches.map((m: any) => (
             <div key={m.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                {m.profiles?.avatar_url
-                  ? <img src={m.profiles.avatar_url} alt="" className="h-full w-full object-cover" />
-                  : (m.profiles?.full_name?.[0] ?? '?')}
+                {m.coach?.avatar_url
+                  ? <img src={m.coach.avatar_url} alt="" className="h-full w-full object-cover" />
+                  : (m.coach?.full_name?.[0] ?? '?')}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm">{m.profiles?.full_name ?? 'Coach'}</p>
-                <p className="text-xs text-muted-foreground">{m.profiles?.sport ?? ''} · {m.profiles?.city ?? ''}</p>
+                <p className="font-medium text-foreground text-sm">{m.coach?.full_name ?? 'Coach'}</p>
+                <p className="text-xs text-muted-foreground">{m.coach?.sport ?? ''} · {m.coach?.city ?? ''}</p>
               </div>
             </div>
           ))

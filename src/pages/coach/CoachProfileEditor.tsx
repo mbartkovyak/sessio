@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import CoachBottomNav from '@/components/CoachBottomNav';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { User, MapPin, FileText, LogOut } from 'lucide-react';
 
 export default function CoachProfileEditor() {
+  const navigate = useNavigate();
   const { profile, user, signOut } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
@@ -28,7 +30,9 @@ export default function CoachProfileEditor() {
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <h1 className="text-lg font-bold text-foreground">Profile</h1>
+        <div className="max-w-md mx-auto">
+          <h1 className="text-lg font-bold text-foreground">Profile</h1>
+        </div>
       </header>
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">
         <div className="flex flex-col items-center gap-3">
@@ -88,7 +92,7 @@ export default function CoachProfileEditor() {
         </button>
 
         <button
-          onClick={signOut}
+          onClick={async () => { await signOut(); navigate('/auth'); }}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
         >
           <LogOut className="h-4 w-4" /> Sign Out

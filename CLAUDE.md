@@ -1,0 +1,1 @@
+obsidian_doc/CLAUDE.md

@@ -1,15 +1,50 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Plus, AlertCircle, CheckCircle2, MessageCircle, Users } from 'lucide-react';
-import CoachBottomNav from '@/components/CoachBottomNav';
+import { Plus, CheckCircle2, Users } from 'lucide-react';
+import { SessioLogoCompact } from '@/components/SessioLogo';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useTrainingSessions } from '@/hooks/useTrainings';
-import { format, isToday, parseISO } from 'date-fns';
+import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
   Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
 };
+
+function useTodaySessions(coachId: string | undefined) {
+  return useQuery({
+    queryKey: ['today-sessions', coachId],
+    enabled: !!coachId,
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('training_sessions' as any)
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
+        .eq('trainings.coach_id', coachId!)
+        .eq('session_date', today)
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
+function useMySchoolBasic(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-school-basic', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('schools' as any)
+        .select('id, name')
+        .eq('owner_id', userId!)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+}
 
 function TodaySessionRow({ session }: { session: any }) {
   const navigate = useNavigate();
@@ -21,17 +56,14 @@ function TodaySessionRow({ session }: { session: any }) {
     >
       <span className="text-2xl">{SPORT_ICONS[training?.sport] ?? '🎯'}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground truncate">{training?.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-foreground truncate">{training?.name}</p>
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+        </div>
         <p className="text-xs text-muted-foreground">{session.start_time?.slice(0, 5)} · {training?.venue}</p>
       </div>
     </button>
   );
-}
-
-function useTodayTrainingSessions(trainings: any[]) {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const { supabase } = require('@/integrations/supabase/client');
-  return { data: [] as any[] };
 }
 
 export default function CoachHome() {
@@ -40,29 +72,35 @@ export default function CoachHome() {
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
+  const { data: todaySessions = [] } = useTodaySessions(profile?.id);
+  const { data: school } = useMySchoolBasic(profile?.id);
 
   const initials = (name: string) => name?.split(' ').map(n => n[0]).join('').slice(0, 2) ?? '?';
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-4">
-        <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
-        <button onClick={() => navigate('/coach/profile')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-        </button>
+      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+        <div className="max-w-md mx-auto flex items-center gap-2">
+          <SessioLogoCompact />
+          {school && (
+            <button onClick={() => navigate('/school')} className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground">
+              🏫 {school.name}
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Hey, {profile?.full_name?.split(' ')[0] ?? 'Coach'} 👋</h1>
-            <p className="text-sm text-muted-foreground">Your coaching overview</p>
+            <p className="text-sm text-muted-foreground">Your training overview</p>
           </div>
 
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Trainings', value: trainings.length },
+              { label: 'Lessons', value: trainings.length },
               { label: 'Requests', value: joinRequests.length },
               { label: 'Active', value: trainings.filter((t: any) => t.is_active).length },
             ].map(({ label, value }) => (
@@ -72,6 +110,18 @@ export default function CoachHome() {
               </div>
             ))}
           </div>
+
+          {/* Today's Sessions */}
+          {todaySessions.length > 0 && (
+            <div>
+              <h2 className="mb-3 font-semibold text-foreground">Today's Trainings</h2>
+              <div className="space-y-2">
+                {todaySessions.map((session: any) => (
+                  <TodaySessionRow key={session.id} session={session} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Join Requests */}
           {joinRequests.length > 0 && (
@@ -116,7 +166,7 @@ export default function CoachHome() {
           {/* My Trainings */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-foreground">My Trainings</h2>
+              <h2 className="font-semibold text-foreground">My Lessons</h2>
               <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 text-sm font-medium text-primary min-h-[44px] px-2">
                 <Plus className="h-4 w-4" /> New
               </button>
@@ -126,8 +176,8 @@ export default function CoachHome() {
             ) : trainings.length === 0 ? (
               <div className="rounded-2xl bg-primary p-5 text-primary-foreground">
                 <Users className="h-6 w-6 opacity-80 mb-2" />
-                <h3 className="font-bold text-lg mb-1">Create your first training</h3>
-                <p className="text-sm opacity-80 mb-4">Add a recurring training and invite your players</p>
+                <h3 className="font-bold text-lg mb-1">Create your first lesson</h3>
+                <p className="text-sm opacity-80 mb-4">Add a recurring lesson and invite your athletes</p>
                 <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-primary-foreground/15 px-4 py-2.5 text-sm font-semibold min-h-[48px]">
                   <Plus className="h-4 w-4" /> New Training
                 </button>
@@ -142,7 +192,7 @@ export default function CoachHome() {
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{t.type}</span>
                     </div>
                     <p className="font-semibold text-foreground text-sm leading-tight">{t.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][t.day_of_week]} · {t.start_time?.slice(0,5)}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][t.day_of_week] ?? '—'} · {t.start_time?.slice(0,5)}</p>
                   </button>
                 ))}
                 <button onClick={() => navigate('/coach/trainings/new')}

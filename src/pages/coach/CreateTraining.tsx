@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import CoachBottomNav from '@/components/CoachBottomNav';
-import { useCreateTraining } from '@/hooks/useTrainings';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import { useCreateTraining } from '@/hooks/training/useTrainings';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const SPORTS = ['Tennis','Swimming','Running','Fitness','Yoga','Football','Badminton','Boxing','Other'];
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -21,17 +23,26 @@ export default function CreateTraining() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload: any = { ...form, start_time: form.start_time + ':00', end_time: form.end_time + ':00' };
-    if (form.type === 'individual') delete payload.max_players;
-    const training = await create.mutateAsync(payload);
-    navigate(`/coach/trainings/${training.id}`);
+    try {
+      const payload: any = { ...form, start_time: form.start_time + ':00', end_time: form.end_time + ':00' };
+      if (form.type === 'individual') delete payload.max_players;
+      const training = await create.mutateAsync(payload);
+      const { error: rpcError } = await supabase.rpc('generate_sessions_for_training' as any, { p_training_id: training.id });
+      if (rpcError) {
+        console.warn('Session generation failed:', rpcError.message);
+        toast.error('Training created but session generation failed. Try editing the training to regenerate.');
+      }
+      navigate(`/coach/trainings/${training.id}`);
+    } catch (err: any) {
+      console.error('Create training error:', err);
+    }
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-4">
         <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"><ArrowLeft className="h-5 w-5" /></button>
-        <h1 className="font-semibold text-foreground">New Training</h1>
+        <h1 className="font-semibold text-foreground">New Lesson</h1>
       </header>
       <main className="flex-1 pb-24">
         <form onSubmit={handleSubmit} className="max-w-md mx-auto px-4 py-6 space-y-5">
@@ -48,7 +59,7 @@ export default function CreateTraining() {
             </div>
           </div>
           {/* Name */}
-          <div><label className="text-sm font-medium text-foreground mb-1 block">Training Name</label>
+          <div><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name</label>
             <input required value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Wednesday Tennis" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           {/* Sport */}
           <div><label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
@@ -74,7 +85,7 @@ export default function CreateTraining() {
           </div>
           {/* Capacity */}
           {form.type === 'group' && (
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Max Players</label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes</label>
               <input type="number" min={1} max={50} value={form.max_players} onChange={e => set('max_players', Number(e.target.value))} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           )}
           {/* Booking Mode */}
@@ -95,7 +106,7 @@ export default function CreateTraining() {
             </div></div>
           <button type="submit" disabled={create.isPending || !form.name || !form.venue}
             className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
-            {create.isPending ? 'Creating...' : 'Create Training'}
+            {create.isPending ? 'Creating...' : 'Create Lesson'}
           </button>
         </form>
       </main>

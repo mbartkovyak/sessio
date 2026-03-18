@@ -1,0 +1,118 @@
+import { useNavigate } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
+import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import { useMyTrainings } from '@/hooks/training/useTrainings';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
+import { formatDistanceToNow } from 'date-fns';
+
+const SPORT_ICONS: Record<string, string> = {
+  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
+  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
+};
+
+function useLatestMessages(trainingIds: string[]) {
+  return useQuery({
+    queryKey: ['latest-messages', ...trainingIds],
+    enabled: trainingIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('training_messages' as any)
+        .select('training_id, content, created_at, profiles:sender_id(full_name)')
+        .in('training_id', trainingIds)
+        .order('created_at', { ascending: false });
+      const map: Record<string, any> = {};
+      for (const msg of data ?? []) {
+        if (!map[msg.training_id]) map[msg.training_id] = msg;
+      }
+      return map;
+    },
+  });
+}
+
+export default function PlayerMessages() {
+  const { user } = useAuth();
+  const { data: memberships = [], isLoading } = useMyTrainings();
+  const navigate = useNavigate();
+
+  const trainings = memberships.map((m: any) => m.trainings).filter(Boolean);
+  const trainingIds = trainings.map((t: any) => t.id);
+  const { data: latestMessages = {} } = useLatestMessages(trainingIds);
+
+  const sorted = [...trainings].sort((a: any, b: any) => {
+    const ma = latestMessages[a.id];
+    const mb = latestMessages[b.id];
+    if (!ma && !mb) return 0;
+    if (!ma) return 1;
+    if (!mb) return -1;
+    return mb.created_at.localeCompare(ma.created_at);
+  });
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-lg font-semibold text-foreground">Messages</h1>
+        </div>
+      </header>
+
+      <div className="flex-1 pb-24">
+        <div className="max-w-md mx-auto">
+        {isLoading ? (
+          <div className="space-y-1 p-4">
+            {[1, 2, 3].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="flex flex-col items-center justify-center pt-20 text-center px-6">
+            <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
+            <p className="font-medium text-foreground">No conversations yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Join a training to start chatting with your group</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {sorted.map((t: any) => {
+              const lastMsg = latestMessages[t.id];
+              const seen = getConversationLastSeen(t.id);
+              const hasUnread = lastMsg && lastMsg.sender_id !== user?.id && (!seen || lastMsg.created_at > seen);
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    markConversationSeen(t.id);
+                    navigate(`/player/messages/${t.id}`);
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl shrink-0">
+                    {SPORT_ICONS[t.sport] ?? '🎯'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
+                      {lastMsg && (
+                        <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                          {formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: false })}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                      {lastMsg
+                        ? `${lastMsg.profiles?.full_name ?? 'Someone'}: ${lastMsg.content}`
+                        : 'No messages yet'}
+                    </p>
+                  </div>
+                  {hasUnread && <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        </div>
+      </div>
+
+      <PlayerBottomNav />
+    </div>
+  );
+}

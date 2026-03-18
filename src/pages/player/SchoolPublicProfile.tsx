@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin } from 'lucide-react';
-import PlayerBottomNav from '@/components/PlayerBottomNav';
-import { useSchool } from '@/hooks/useSchools';
+import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import { useSchool } from '@/hooks/school/useSchools';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,7 +16,7 @@ export default function SchoolPublicProfile() {
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members' as any)
-        .select('*, profiles:coach_id(id, full_name, avatar_url, sport, city, bio)')
+        .select('*, coach:profiles(id, full_name, avatar_url, sport, city, bio)')
         .eq('school_id', id!);
       return (data ?? []) as any[];
     },

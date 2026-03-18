@@ -1,4 +1,4 @@
-import CoachBottomNav from '@/components/CoachBottomNav';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { Calendar } from 'lucide-react';
 
 export default function SchoolCalendar() {

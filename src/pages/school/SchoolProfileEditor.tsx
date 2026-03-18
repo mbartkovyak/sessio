@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useMySchool, useUpdateSchool } from '@/hooks/useSchools';
-import CoachBottomNav from '@/components/CoachBottomNav';
+import { useMySchool, useUpdateSchool } from '@/hooks/school/useSchools';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 export default function SchoolProfileEditor() {
   const { data: school, isLoading } = useMySchool();

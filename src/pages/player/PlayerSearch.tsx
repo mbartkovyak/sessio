@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Star, MapPin } from 'lucide-react';
-import PlayerBottomNav from '@/components/PlayerBottomNav';
-import { useDiscoverableCoaches } from '@/hooks/useSchools';
+import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import { useDiscoverableCoaches } from '@/hooks/school/useSchools';
 
 const SPORTS = ['All', 'Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing'];
 

@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, MapPin, ExternalLink } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import PlayerBottomNav from '@/components/PlayerBottomNav';
-import { useCoachReviews, useCoachTrainings } from '@/hooks/useSchools';
+import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -117,7 +117,7 @@ export default function CoachPublicProfile() {
                   {reviews.map((r: any) => (
                     <div key={r.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm text-foreground">{r.profiles?.full_name ?? 'Player'}</span>
+                        <span className="font-medium text-sm text-foreground">{r.profiles?.full_name ?? 'Athlete'}</span>
                         <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star key={i} className={`h-3 w-3 ${i < r.rating ? 'fill-warning text-warning' : 'text-muted'}`} />

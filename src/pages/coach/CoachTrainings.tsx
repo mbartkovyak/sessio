@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
-import CoachBottomNav from '@/components/CoachBottomNav';
-import { useTrainings } from '@/hooks/useTrainings';
+import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import { useTrainings } from '@/hooks/training/useTrainings';
 
 const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -18,14 +18,14 @@ export default function CoachTrainings() {
       <header className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-md mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-foreground">Trainings</h1>
+            <h1 className="text-lg font-bold text-foreground">Lessons</h1>
             <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
               <Plus className="h-4 w-4" /> New
             </button>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search trainings..." className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..." className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
         </div>
       </header>
@@ -33,7 +33,7 @@ export default function CoachTrainings() {
         <div className="max-w-md mx-auto px-4 py-4 space-y-2">
           {isLoading ? [1,2,3].map(i => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />) :
           filtered.length === 0 ? (
-            <div className="text-center py-16"><div className="text-4xl mb-3">🏋️</div><p className="font-medium text-foreground">No trainings yet</p><button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">Create your first training →</button></div>
+            <div className="text-center py-16"><div className="text-4xl mb-3">🏋️</div><p className="font-medium text-foreground">No lessons yet</p><button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">Create your first lesson →</button></div>
           ) : filtered.map((t: any) => (
             <button key={t.id} onClick={() => navigate(`/coach/trainings/${t.id}`)}
               className="w-full flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left shadow-sm active:bg-secondary/50">

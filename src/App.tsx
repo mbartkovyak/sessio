@@ -3,20 +3,20 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NavigationLoadingBar from "@/components/NavigationLoadingBar";
-import InstallPWA from "@/components/InstallPWA";
+import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
+import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 
-// Public pages
-import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import Onboarding from "./pages/Onboarding";
-import NotFound from "./pages/NotFound";
+// Auth pages
+import Landing from "./pages/auth/Landing";
+import Auth from "./pages/auth/Auth";
+import AuthCallback from "./pages/auth/AuthCallback";
+import Onboarding from "./pages/auth/Onboarding";
 
-// Join flow
-import JoinTraining from "./pages/JoinTraining";
+// Shared pages
+import JoinTraining from "./pages/shared/JoinTraining";
+import NotFound from "./pages/shared/NotFound";
 
 // Player pages
 import PlayerHome from "./pages/player/PlayerHome";
@@ -25,6 +25,8 @@ import CoachPublicProfile from "./pages/player/CoachPublicProfile";
 import SchoolPublicProfile from "./pages/player/SchoolPublicProfile";
 import PlayerCalendar from "./pages/player/PlayerCalendar";
 import PlayerProfile from "./pages/player/PlayerProfile";
+import PlayerMessages from "./pages/player/PlayerMessages";
+import PlayerChat from "./pages/player/PlayerChat";
 
 // Coach pages
 import CoachHome from "./pages/coach/CoachHome";
@@ -33,6 +35,7 @@ import CoachTrainings from "./pages/coach/CoachTrainings";
 import CreateTraining from "./pages/coach/CreateTraining";
 import TrainingDetail from "./pages/coach/TrainingDetail";
 import CoachProfileEditor from "./pages/coach/CoachProfileEditor";
+import CoachMessages from "./pages/coach/CoachMessages";
 
 // School pages
 import SchoolDashboard from "./pages/school/SchoolDashboard";
@@ -64,12 +67,15 @@ const App = () => (
             <Route path="/search" element={<ProtectedRoute requiredRole="player"><PlayerSearch /></ProtectedRoute>} />
             <Route path="/search/coach/:id" element={<ProtectedRoute requiredRole="player"><CoachPublicProfile /></ProtectedRoute>} />
             <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><SchoolPublicProfile /></ProtectedRoute>} />
+            <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
+            <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><PlayerChat /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><PlayerCalendar /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
 
             {/* Coach routes */}
             <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachHome /></ProtectedRoute>} />
             <Route path="/coach/calendar" element={<ProtectedRoute requiredRole="coach"><CoachCalendar /></ProtectedRoute>} />
+            <Route path="/coach/messages" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
             <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><CoachTrainings /></ProtectedRoute>} />
             <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><CreateTraining /></ProtectedRoute>} />
             <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><TrainingDetail /></ProtectedRoute>} />

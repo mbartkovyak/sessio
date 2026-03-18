@@ -46,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // 1. Restore session from storage and load profile
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('[Auth] getSession resolved, user:', session?.user?.id ?? 'none');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -58,10 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 2. Listen for subsequent sign-in / sign-out changes (fire-and-forget, no await)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('[Auth] onAuthStateChange event:', event, 'user:', session?.user?.id ?? 'none');
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
+          // Set loading=true so any waiting components (e.g. AuthCallback) hold until profile is ready
+          setLoading(true);
           // Fire and forget — do NOT await here
           fetchProfile(session.user.id).then(() => setLoading(false));
         } else {
