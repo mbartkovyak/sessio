@@ -1,14 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, SmilePlus } from 'lucide-react';
+import { ArrowLeft, Send, Smile, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingMessages, useSendTrainingMessage } from '@/hooks/training/useTrainingMessages';
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
-const QUICK_EMOJIS = ['👍', '🎾', '💪', '🔥', '😊', '👋', '✅', '❌', '😂', '🙏'];
+// ── Hooks ──
 
 function useTrainingName(id: string | undefined) {
   return useQuery({
@@ -24,6 +26,59 @@ function useTrainingName(id: string | undefined) {
     },
   });
 }
+
+function useMessageReactions(trainingId: string | undefined) {
+  return useQuery({
+    queryKey: ['message-reactions', trainingId],
+    enabled: !!trainingId,
+    queryFn: async () => {
+      const msgResult = await supabase
+        .from('training_messages' as any)
+        .select('id')
+        .eq('training_id', trainingId!);
+      const msgIds = (msgResult.data ?? []).map((m: any) => m.id);
+      if (!msgIds.length) return {};
+      const { data } = await supabase
+        .from('message_reactions' as any)
+        .select('*, profiles:user_id(full_name)')
+        .in('message_id', msgIds);
+      const grouped: Record<string, any[]> = {};
+      (data ?? []).forEach((r: any) => {
+        if (!grouped[r.message_id]) grouped[r.message_id] = [];
+        grouped[r.message_id].push(r);
+      });
+      return grouped;
+    },
+  });
+}
+
+function useToggleReaction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ messageId, emoji, userId }: { messageId: string; emoji: string; userId: string }) => {
+      // Check if reaction exists
+      const { data: existing } = await supabase
+        .from('message_reactions' as any)
+        .select('id')
+        .eq('message_id', messageId)
+        .eq('user_id', userId)
+        .eq('emoji', emoji)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('message_reactions' as any).delete().eq('id', existing.id);
+      } else {
+        await supabase.from('message_reactions' as any).insert({ message_id: messageId, user_id: userId, emoji });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['message-reactions'] });
+    },
+  });
+}
+
+// ── Helpers ──
+
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉', '👎'];
 
 function formatDateLabel(dateStr: string) {
   const date = parseISO(dateStr);
@@ -45,41 +100,103 @@ function Avatar({ url, name }: { url?: string; name: string }) {
   );
 }
 
+// ── Reaction bar (appears on long-press) ──
+
+function ReactionBar({ messageId, userId, onClose, reactions }: {
+  messageId: string; userId: string; onClose: () => void; reactions: any[];
+}) {
+  const toggle = useToggleReaction();
+  const myReactions = new Set(reactions.filter(r => r.user_id === userId).map(r => r.emoji));
+
+  return (
+    <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-20 animate-in fade-in zoom-in-95 duration-150">
+      <div className="flex items-center gap-0.5 rounded-full bg-card border border-border shadow-lg px-2 py-1">
+        {REACTION_EMOJIS.map(emoji => (
+          <button
+            key={emoji}
+            onClick={() => { toggle.mutate({ messageId, emoji, userId }); onClose(); }}
+            className={`h-8 w-8 flex items-center justify-center rounded-full text-lg hover:bg-secondary active:scale-90 transition-transform ${
+              myReactions.has(emoji) ? 'bg-primary/10' : ''
+            }`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Inline reactions display ──
+
+function ReactionsDisplay({ reactions, userId, messageId }: { reactions: any[]; userId: string; messageId: string }) {
+  const toggle = useToggleReaction();
+  if (!reactions?.length) return null;
+
+  // Group by emoji
+  const counts: Record<string, { count: number; mine: boolean }> = {};
+  reactions.forEach(r => {
+    if (!counts[r.emoji]) counts[r.emoji] = { count: 0, mine: false };
+    counts[r.emoji].count++;
+    if (r.user_id === userId) counts[r.emoji].mine = true;
+  });
+
+  return (
+    <div className="flex gap-1 mt-[2px] px-1 flex-wrap">
+      {Object.entries(counts).map(([emoji, { count, mine }]) => (
+        <button
+          key={emoji}
+          onClick={() => toggle.mutate({ messageId, emoji, userId })}
+          className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-[1px] text-[11px] transition-colors ${
+            mine
+              ? 'bg-primary/15 border border-primary/30'
+              : 'bg-secondary/80 border border-transparent'
+          }`}
+        >
+          <span>{emoji}</span>
+          {count > 1 && <span className="text-muted-foreground font-medium">{count}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Main ──
+
 export default function PlayerChat() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: training } = useTrainingName(id);
   const { data: messages = [] } = useTrainingMessages(id);
+  const { data: allReactions = {} } = useMessageReactions(id);
   const send = useSendTrainingMessage(id!);
   const [text, setText] = useState('');
   const [showEmojis, setShowEmojis] = useState(false);
+  const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userScrolled = useRef(false);
   const prevMsgCount = useRef(0);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  // Scroll to bottom on mount and when new messages arrive (unless user scrolled up)
+  // Scroll to bottom on mount and new messages
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const isNewMessage = messages.length > prevMsgCount.current;
+    const isNew = messages.length > prevMsgCount.current;
     prevMsgCount.current = messages.length;
-
-    if (!userScrolled.current || isNewMessage) {
+    if (!userScrolled.current || isNew) {
       el.scrollTop = el.scrollHeight;
     }
   }, [messages.length]);
 
-  // Detect user scrolling away from bottom
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    userScrolled.current = distFromBottom > 100;
+    userScrolled.current = el.scrollHeight - el.scrollTop - el.clientHeight > 100;
   }, []);
 
-  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -97,9 +214,20 @@ export default function PlayerChat() {
     userScrolled.current = false;
   }
 
-  function insertEmoji(emoji: string) {
-    setText(prev => prev + emoji);
-    textareaRef.current?.focus();
+  // Long-press handlers
+  function onPointerDown(msgId: string) {
+    longPressTimer.current = setTimeout(() => {
+      setReactionMsgId(msgId);
+      if (navigator.vibrate) navigator.vibrate(30);
+    }, 500);
+  }
+  function onPointerUp() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  }
+
+  // Close reactions on tap outside
+  function handleAreaClick() {
+    if (reactionMsgId) setReactionMsgId(null);
   }
 
   // Group messages by date
@@ -107,11 +235,8 @@ export default function PlayerChat() {
   messages.forEach((msg: any) => {
     const date = msg.created_at?.split('T')[0] ?? '';
     const last = grouped[grouped.length - 1];
-    if (last && last.date === date) {
-      last.msgs.push(msg);
-    } else {
-      grouped.push({ date, msgs: [msg] });
-    }
+    if (last && last.date === date) last.msgs.push(msg);
+    else grouped.push({ date, msgs: [msg] });
   });
 
   return (
@@ -136,11 +261,10 @@ export default function PlayerChat() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
+        onClick={handleAreaClick}
         className="flex-1 overflow-y-auto overscroll-y-contain"
       >
-        {/* min-h-full + justify-end = messages stick to bottom like Telegram */}
         <div className="max-w-lg mx-auto px-3 flex flex-col justify-end min-h-full">
-
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center px-8 py-20">
               <span className="text-4xl mb-3">💬</span>
@@ -151,7 +275,6 @@ export default function PlayerChat() {
             <div className="py-2">
               {grouped.map(group => (
                 <div key={group.date}>
-                  {/* Date pill */}
                   <div className="flex justify-center py-2 sticky top-0 z-[1]">
                     <span className="rounded-full bg-foreground/[0.06] backdrop-blur-sm px-3 py-[3px] text-[11px] font-medium text-muted-foreground">
                       {formatDateLabel(group.date)}
@@ -169,14 +292,9 @@ export default function PlayerChat() {
                     const showAvatar = !isMe && !sameNext;
                     const timeDelta = next ? new Date(next.created_at).getTime() - new Date(msg.created_at).getTime() : Infinity;
                     const showTime = !sameNext || timeDelta > 5 * 60 * 1000;
+                    const msgReactions = allReactions[msg.id] ?? [];
 
-                    // Adaptive corner radii for connected bubbles
-                    const r = 18; // base radius
-                    const s = 4;  // small radius for connected edge
-                    const borderRadius = isMe
-                      ? `${samePrev ? s : r}px ${samePrev ? s : r}px ${sameNext ? s : r}px ${sameNext ? s : r}px`
-                      : `${samePrev ? s : r}px ${samePrev ? s : r}px ${sameNext ? s : r}px ${sameNext ? s : r}px`;
-
+                    const r = 18, s = 4;
                     const myRadius = {
                       borderTopLeftRadius: r,
                       borderTopRightRadius: samePrev ? s : r,
@@ -191,31 +309,43 @@ export default function PlayerChat() {
                     };
 
                     return (
-                      <div key={msg.id} className={`${samePrev ? 'mt-[2px]' : 'mt-3'} ${!samePrev && i > 0 ? '' : ''}`}>
+                      <div key={msg.id} className={samePrev ? 'mt-[2px]' : 'mt-3'}>
                         {showName && (
                           <p className="text-[11px] font-semibold text-primary/70 mb-[2px]" style={{ marginLeft: 35 }}>
                             {sender?.full_name ?? 'Member'}
                           </p>
                         )}
                         <div className={`flex items-end gap-[6px] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                          {/* Avatar or spacer */}
                           {!isMe && (
                             showAvatar
                               ? <Avatar url={sender?.avatar_url} name={sender?.full_name ?? ''} />
                               : <div className="w-7 shrink-0" />
                           )}
 
-                          <div className={`max-w-[75%] min-w-[48px]`}>
+                          <div className={`max-w-[75%] min-w-[48px] relative`}>
+                            {/* Reaction bar on long-press */}
+                            {reactionMsgId === msg.id && user && (
+                              <ReactionBar
+                                messageId={msg.id}
+                                userId={user.id}
+                                reactions={msgReactions}
+                                onClose={() => setReactionMsgId(null)}
+                              />
+                            )}
+
                             <div
                               style={isMe ? myRadius : theirRadius}
-                              className={`px-3 py-[6px] text-[15px] leading-[1.35] break-words ${
+                              className={`px-3 py-[6px] text-[15px] leading-[1.35] break-words select-none ${
                                 isMe
                                   ? `bg-primary text-primary-foreground ${msg._optimistic ? 'opacity-50' : ''}`
                                   : 'bg-secondary text-secondary-foreground'
                               }`}
+                              onPointerDown={() => onPointerDown(msg.id)}
+                              onPointerUp={onPointerUp}
+                              onPointerLeave={onPointerUp}
+                              onContextMenu={e => { e.preventDefault(); setReactionMsgId(msg.id); }}
                             >
                               {msg.content}
-                              {/* Inline time for short messages */}
                               {showTime && msg.content.length < 30 && (
                                 <span className={`inline-block ml-2 align-bottom text-[10px] leading-none translate-y-[1px] ${
                                   isMe ? 'text-primary-foreground/50' : 'text-muted-foreground/50'
@@ -225,12 +355,17 @@ export default function PlayerChat() {
                                 </span>
                               )}
                             </div>
-                            {/* Separate time for long messages */}
+
                             {showTime && msg.content.length >= 30 && (
                               <p className={`text-[10px] text-muted-foreground/50 mt-[2px] px-1 ${isMe ? 'text-right' : 'text-left'}`}>
                                 {formatTime(msg.created_at)}
                                 {isMe && !msg._optimistic && ' ✓'}
                               </p>
+                            )}
+
+                            {/* Reactions display */}
+                            {user && (
+                              <ReactionsDisplay reactions={msgReactions} userId={user.id} messageId={msg.id} />
                             )}
                           </div>
                         </div>
@@ -244,20 +379,27 @@ export default function PlayerChat() {
         </div>
       </div>
 
-      {/* ── Emoji tray ── */}
+      {/* ── Emoji picker ── */}
       {showEmojis && (
-        <div className="shrink-0 border-t border-border bg-card px-2 py-1.5">
-          <div className="max-w-lg mx-auto flex gap-0.5 justify-center">
-            {QUICK_EMOJIS.map(emoji => (
-              <button
-                key={emoji}
-                onClick={() => insertEmoji(emoji)}
-                className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-secondary active:scale-90 transition-transform text-xl"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+        <div className="shrink-0 border-t border-border bg-card relative">
+          <button
+            onClick={() => setShowEmojis(false)}
+            className="absolute top-2 right-2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-secondary"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <Picker
+            data={data}
+            onEmojiSelect={(e: any) => {
+              setText(prev => prev + e.native);
+              textareaRef.current?.focus();
+            }}
+            theme="light"
+            previewPosition="none"
+            skinTonePosition="none"
+            maxFrequentRows={1}
+            perLine={8}
+          />
         </div>
       )}
 
@@ -270,7 +412,7 @@ export default function PlayerChat() {
               showEmojis ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
-            <SmilePlus className="h-[22px] w-[22px]" />
+            <Smile className="h-[22px] w-[22px]" />
           </button>
           <textarea
             ref={textareaRef}
@@ -278,6 +420,7 @@ export default function PlayerChat() {
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             onFocus={() => {
+              setShowEmojis(false);
               userScrolled.current = false;
               setTimeout(() => {
                 scrollRef.current?.scrollTo({ top: scrollRef.current!.scrollHeight, behavior: 'smooth' });
@@ -287,17 +430,17 @@ export default function PlayerChat() {
             rows={1}
             className="flex-1 resize-none rounded-[20px] border border-input bg-background px-4 py-2 text-[15px] leading-snug focus:outline-none focus:border-primary/40 overflow-hidden min-h-[40px]"
           />
-          {text.trim() ? (
-            <button
-              onClick={handleSend}
-              disabled={send.isPending}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground active:scale-90 transition-all shrink-0 disabled:opacity-50"
-            >
-              <Send className="h-[18px] w-[18px]" />
-            </button>
-          ) : (
-            <div className="w-10 shrink-0" /> // keeps layout stable when no send button
-          )}
+          <button
+            onClick={handleSend}
+            disabled={!text.trim() || send.isPending}
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${
+              text.trim()
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            <Send className="h-[18px] w-[18px]" />
+          </button>
         </div>
       </div>
     </div>
