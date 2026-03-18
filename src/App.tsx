@@ -82,10 +82,10 @@ const App = () => (
             <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><CoachProfileEditor /></ProtectedRoute>} />
 
             {/* School routes */}
-            <Route path="/school" element={<ProtectedRoute requiredRole="coach"><SchoolDashboard /></ProtectedRoute>} />
-            <Route path="/school/calendar" element={<ProtectedRoute requiredRole="coach"><SchoolCalendar /></ProtectedRoute>} />
-            <Route path="/school/coaches" element={<ProtectedRoute requiredRole="coach"><SchoolCoaches /></ProtectedRoute>} />
-            <Route path="/school/profile" element={<ProtectedRoute requiredRole="coach"><SchoolProfileEditor /></ProtectedRoute>} />
+            <Route path="/school" element={<ProtectedRoute requiredRole="school_owner"><SchoolDashboard /></ProtectedRoute>} />
+            <Route path="/school/calendar" element={<ProtectedRoute requiredRole="school_owner"><SchoolCalendar /></ProtectedRoute>} />
+            <Route path="/school/coaches" element={<ProtectedRoute requiredRole="school_owner"><SchoolCoaches /></ProtectedRoute>} />
+            <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><SchoolProfileEditor /></ProtectedRoute>} />
 
             {/* Legacy redirect support */}
             <Route path="/player/dashboard" element={<ProtectedRoute requiredRole="player"><PlayerHome /></ProtectedRoute>} />
