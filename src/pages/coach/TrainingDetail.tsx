@@ -22,7 +22,7 @@ function SettingsTab({ training, onDelete }: { training: any; onDelete: () => vo
   const [name, setName] = useState('');
   const [sport, setSport] = useState('');
   const [venue, setVenue] = useState('');
-  const [dayOfWeek, setDayOfWeek] = useState(0);
+  const [selectedDays, setSelectedDays] = useState<number[]>([0]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(6);
@@ -33,7 +33,7 @@ function SettingsTab({ training, onDelete }: { training: any; onDelete: () => vo
       setName(training.name ?? '');
       setSport(training.sport ?? '');
       setVenue(training.venue ?? '');
-      setDayOfWeek(training.day_of_week ?? 0);
+      setSelectedDays(training.days_of_week ?? [training.day_of_week ?? 0]);
       setStartTime(training.start_time?.slice(0, 5) ?? '09:00');
       setEndTime(training.end_time?.slice(0, 5) ?? '10:00');
       setMaxPlayers(training.max_players ?? 6);
@@ -42,7 +42,7 @@ function SettingsTab({ training, onDelete }: { training: any; onDelete: () => vo
 
   async function handleSave() {
     await update.mutateAsync({
-      name, sport, venue, day_of_week: dayOfWeek,
+      name, sport, venue, day_of_week: selectedDays[0], days_of_week: selectedDays,
       start_time: startTime + ':00', end_time: endTime + ':00',
       max_players: training.type === 'group' ? maxPlayers : undefined,
     });
@@ -83,13 +83,14 @@ function SettingsTab({ training, onDelete }: { training: any; onDelete: () => vo
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
       </div>
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Day of Week</label>
+        <label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-muted-foreground font-normal">(tap multiple)</span></label>
         <div className="flex gap-1 flex-wrap">
           {DAYS.map((d, i) => (
-            <button key={d} type="button" onClick={() => setDayOfWeek(i)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium ${dayOfWeek === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
+            <button key={d} type="button" onClick={() => setSelectedDays(prev => prev.includes(i) ? (prev.length > 1 ? prev.filter(x => x !== i) : prev) : [...prev, i].sort())}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${selectedDays.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
           ))}
         </div>
+        {selectedDays.length > 1 && <p className="text-xs text-muted-foreground mt-1.5">{selectedDays.length}x/week</p>}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -168,7 +169,7 @@ export default function TrainingDetail() {
           <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"><ArrowLeft className="h-5 w-5" /></button>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-foreground truncate">{training.name}</h1>
-            <p className="text-xs text-muted-foreground">{training.sport} · {DAYS[training.day_of_week]} · {training.start_time?.slice(0,5)}</p>
+            <p className="text-xs text-muted-foreground">{training.sport} · {(training.days_of_week ?? [training.day_of_week]).map((d: number) => DAYS[d]).filter(Boolean).join(', ')} · {training.start_time?.slice(0,5)}</p>
           </div>
         </div>
       </header>

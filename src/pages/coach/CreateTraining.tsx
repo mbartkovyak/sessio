@@ -28,8 +28,9 @@ export default function CreateTraining() {
   const hasSchool = !!school;
   const [isSchoolTraining, setIsSchoolTraining] = useState(true);
   const [isRecurring, setIsRecurring] = useState(true);
+  const [selectedDays, setSelectedDays] = useState<number[]>([0]);
   const [form, setForm] = useState({
-    name:'', type:'group', sport:'Tennis', venue:'', day_of_week:0,
+    name:'', type:'group', sport:'Tennis', venue:'',
     start_time:'09:00', end_time:'10:00', max_players:6,
     start_date: new Date().toISOString().split('T')[0],
     end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
@@ -37,6 +38,12 @@ export default function CreateTraining() {
     confirmation_window_hours:48, no_response_behavior:'mark_absent',
     booking_mode:'instant', visibility:'private', notification_channel:'push_email',
   });
+
+  function toggleDay(day: number) {
+    setSelectedDays(prev =>
+      prev.includes(day) ? (prev.length > 1 ? prev.filter(d => d !== day) : prev) : [...prev, day].sort()
+    );
+  }
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
@@ -48,16 +55,18 @@ export default function CreateTraining() {
         start_time: form.start_time + ':00',
         end_time: form.end_time + ':00',
         is_recurring: isRecurring,
-        start_date: isRecurring ? (form.start_date || getNextDayDate(form.day_of_week)) : form.one_off_date,
+        days_of_week: isRecurring ? selectedDays : undefined,
+        day_of_week: isRecurring ? selectedDays[0] : undefined,
+        start_date: isRecurring ? (form.start_date || getNextDayDate(selectedDays[0])) : form.one_off_date,
         end_date: isRecurring ? (form.end_date || null) : form.one_off_date,
       };
       delete payload.one_off_date;
       if (form.type === 'individual') delete payload.max_players;
       if (hasSchool && isSchoolTraining) payload.school_id = school.id;
       if (!isRecurring) {
-        // For one-off, set day_of_week from the selected date
         const d = new Date(form.one_off_date + 'T00:00:00');
-        payload.day_of_week = (d.getDay() + 6) % 7; // Monday=0
+        payload.day_of_week = (d.getDay() + 6) % 7;
+        payload.days_of_week = [payload.day_of_week];
       }
       const training = await create.mutateAsync(payload);
       const { error: rpcError } = await supabase.rpc('generate_sessions_for_training' as any, { p_training_id: training.id });
@@ -121,12 +130,16 @@ export default function CreateTraining() {
 
           {isRecurring ? (
             <>
-              {/* Day */}
-              <div><label className="text-sm font-medium text-foreground mb-2 block">Day of Week</label>
+              {/* Days — multi-select */}
+              <div><label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-muted-foreground font-normal">(tap multiple)</span></label>
                 <div className="flex gap-1 flex-wrap">{DAYS.map((d, i) => (
-                  <button type="button" key={d} onClick={() => set('day_of_week', i)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium ${form.day_of_week === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
-                ))}</div></div>
+                  <button type="button" key={d} onClick={() => toggleDay(i)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${selectedDays.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
+                ))}</div>
+                {selectedDays.length > 1 && (
+                  <p className="text-xs text-muted-foreground mt-1.5">{selectedDays.length} days/week — {selectedDays.map(d => DAYS[d].slice(0,3)).join(', ')}</p>
+                )}
+              </div>
               {/* Start / End dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>

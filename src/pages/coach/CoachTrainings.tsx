@@ -57,7 +57,7 @@ export default function CoachTrainings() {
                   <p className="font-semibold text-foreground truncate">{t.name}</p>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{t.type}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{DAYS[t.day_of_week]} · {t.start_time?.slice(0,5)} · {t.venue}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{(t.days_of_week ?? [t.day_of_week]).map((d: number) => DAYS[d]).filter(Boolean).join(', ')} · {t.start_time?.slice(0,5)} · {t.venue}</p>
                 {isSchoolView && t.coach?.full_name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.coach.full_name}</span>}
                 {!isSchoolView && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
               </div>

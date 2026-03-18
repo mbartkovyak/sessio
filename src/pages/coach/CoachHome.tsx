@@ -272,7 +272,7 @@ export default function CoachHome() {
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{t.type}</span>
                     </div>
                     <p className="font-semibold text-foreground text-sm leading-tight">{t.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][t.day_of_week] ?? '—'} · {t.start_time?.slice(0,5)}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{(t.days_of_week ?? [t.day_of_week]).map((d: number) => ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d]).filter(Boolean).join(', ') || '—'} · {t.start_time?.slice(0,5)}</p>
                   </button>
                 ))}
                 <button onClick={() => navigate('/coach/trainings/new')}
