@@ -1,11 +1,37 @@
 import { useNavigate } from 'react-router-dom';
 import { useMySchool } from '@/hooks/school/useSchools';
-import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { Users, Calendar, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { Users, Plus, UserPlus, LogOut, Calendar, Settings } from 'lucide-react';
+import { SessioLogoCompact } from '@/components/SessioLogo';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function SchoolDashboard() {
   const { data: school, isLoading } = useMySchool();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [addingSelf, setAddingSelf] = useState(false);
+
+  const coaches = (school as any)?.school_members ?? [];
+  const isSelfCoach = coaches.some((m: any) => m.coach_id === user?.id);
+
+  async function addSelfAsCoach() {
+    if (!school?.id || !user) return;
+    setAddingSelf(true);
+    const { error } = await supabase
+      .from('school_members' as any)
+      .insert({ school_id: school.id, coach_id: user.id });
+    setAddingSelf(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("You're now a coach at your school!");
+      qc.invalidateQueries({ queryKey: ['my-school'] });
+    }
+  }
 
   if (isLoading) {
     return (
@@ -15,61 +41,117 @@ export default function SchoolDashboard() {
     );
   }
 
-  const coaches = (school as any)?.school_members ?? [];
-
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-24">
+    <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <h1 className="text-lg font-bold text-foreground">{school?.name ?? 'School'}</h1>
-        <p className="text-sm text-muted-foreground">{coaches.length} coach{coaches.length !== 1 ? 'es' : ''}</p>
-      </header>
-      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground">Coaches</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{coaches.length}</p>
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground">{school?.name ?? 'School'}</h1>
+            <p className="text-xs text-muted-foreground">{school?.city} · {school?.sport}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground">Sport</p>
-            <p className="text-xl font-bold text-foreground mt-1 truncate">{school?.sport ?? '—'}</p>
+          <SessioLogoCompact size={24} />
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border bg-card p-3 text-center">
+            <p className="text-xl font-bold text-foreground">{coaches.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Coaches</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-3 text-center">
+            <p className="text-xl font-bold text-foreground">0</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Trainings</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-3 text-center">
+            <p className="text-xl font-bold text-foreground">0</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Athletes</p>
           </div>
         </div>
 
+        {/* Quick actions */}
+        {!isSelfCoach && (
+          <button
+            onClick={addSelfAsCoach}
+            disabled={addingSelf}
+            className="w-full rounded-xl bg-primary p-4 text-left active:scale-[0.98] transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                <UserPlus className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <p className="font-semibold text-primary-foreground">I also coach</p>
+                <p className="text-sm text-primary-foreground/70">Add yourself as a coach at your school</p>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* Coaches */}
         <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3">Coaches</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-foreground">Coaches</h2>
+            <button
+              onClick={() => navigate('/school/coaches')}
+              className="flex items-center gap-1 text-sm font-medium text-primary px-2 min-h-[44px]"
+            >
+              <Plus className="h-4 w-4" /> Add
+            </button>
+          </div>
           {coaches.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-6 text-center">
+            <div className="rounded-2xl border border-dashed border-border p-8 text-center">
               <Users className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
-              <p className="text-sm text-muted-foreground">No coaches yet</p>
+              <p className="text-sm font-medium text-foreground">No coaches yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Add yourself or invite coaches to get started</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {coaches.map((m: any) => (
-                <div key={m.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                    {m.coach?.avatar_url
-                      ? <img src={m.coach.avatar_url} alt="" className="h-full w-full object-cover" />
-                      : (m.coach?.full_name?.[0] ?? '?')}
+              {coaches.map((m: any) => {
+                const coach = m.coach ?? m.profiles;
+                const isMe = m.coach_id === user?.id;
+                return (
+                  <div key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                      {coach?.avatar_url
+                        ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
+                        : (coach?.full_name?.[0] ?? '?')}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm truncate">
+                        {coach?.full_name ?? 'Coach'}
+                        {isMe && <span className="text-xs text-primary ml-1">(you)</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm truncate">{m.coach?.full_name ?? 'Coach'}</p>
-                    <p className="text-xs text-muted-foreground">{m.coach?.sport ?? ''}</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
+        {/* Navigation */}
+        <div className="rounded-xl border border-border bg-card divide-y divide-border">
+          <button onClick={() => navigate('/school/calendar')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+            <Calendar className="h-4 w-4 text-muted-foreground" /> School Calendar
+          </button>
+          <button onClick={() => navigate('/school/coaches')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+            <Users className="h-4 w-4 text-muted-foreground" /> Manage Coaches
+          </button>
+          <button onClick={() => navigate('/school/profile')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
+            <Settings className="h-4 w-4 text-muted-foreground" /> School Settings
+          </button>
+        </div>
+
         <button
-          onClick={() => navigate('/school/coaches')}
-          className="w-full rounded-xl border border-border bg-card py-3 text-sm font-medium text-foreground"
+          onClick={async () => { await signOut(); navigate('/auth'); }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
         >
-          Manage Coaches
+          <LogOut className="h-4 w-4" /> Sign Out
         </button>
       </main>
-      <CoachBottomNav />
     </div>
   );
 }
