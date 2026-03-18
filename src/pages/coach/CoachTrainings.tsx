@@ -6,6 +6,7 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
 import { useMySchool } from '@/hooks/school/useSchools';
+import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 
 const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -28,10 +29,13 @@ export default function CoachTrainings() {
       <header className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-md mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-foreground">{isSchoolView ? 'School Lessons' : 'Lessons'}</h1>
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
-              <Plus className="h-4 w-4" /> New
-            </button>
+            <h1 className="text-lg font-bold text-foreground">Lessons</h1>
+            <div className="flex items-center gap-2">
+              <SchoolViewToggle />
+              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
+                <Plus className="h-4 w-4" /> New
+              </button>
+            </div>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

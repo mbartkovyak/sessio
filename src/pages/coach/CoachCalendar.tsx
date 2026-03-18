@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
 import { useMySchool } from '@/hooks/school/useSchools';
+import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 const SPORT_ICONS: Record<string, string> = {
@@ -84,8 +85,9 @@ export default function CoachCalendar() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">{isSchoolView ? 'School Calendar' : 'Calendar'}</h1>
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
+          <SchoolViewToggle />
         </div>
       </header>
 

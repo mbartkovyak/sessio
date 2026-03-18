@@ -8,6 +8,7 @@ import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
+import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
@@ -85,22 +86,7 @@ export default function CoachHome() {
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-2">
           <SessioLogoCompact />
-          {isSchoolOwner && school && (
-            <div className="ml-auto flex rounded-lg bg-secondary p-0.5">
-              <button
-                onClick={() => setView('coaching')}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === 'coaching' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
-              >
-                My coaching
-              </button>
-              <button
-                onClick={() => setView('school')}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${view === 'school' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
-              >
-                {school.name}
-              </button>
-            </div>
-          )}
+          <div className="ml-auto"><SchoolViewToggle /></div>
         </div>
       </header>
 

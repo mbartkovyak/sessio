@@ -5,6 +5,7 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
 import { useMySchool } from '@/hooks/school/useSchools';
+import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
@@ -66,8 +67,9 @@ export default function CoachMessages() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">{isSchoolView ? 'School Messages' : 'Messages'}</h1>
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-foreground">Messages</h1>
+          <SchoolViewToggle />
         </div>
       </header>
 
