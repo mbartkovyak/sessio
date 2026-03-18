@@ -5,10 +5,12 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
+import { useMySchool } from '@/hooks/school/useSchools';
 import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
+import { toast } from 'sonner';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
@@ -73,11 +75,27 @@ export default function CoachHome() {
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { view, setView } = useSchoolView();
+  const qc = useQueryClient();
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
   const { data: todaySessions = [] } = useTodaySessions(profile?.id);
   const { data: school } = useMySchoolBasic(profile?.id);
+  const { data: fullSchool } = useMySchool();
+  const schoolMembers = (fullSchool as any)?.school_members ?? [];
+  const isSelfCoach = schoolMembers.some((m: any) => m.coach_id === profile?.id);
+
+  async function addSelfAsCoach() {
+    if (!fullSchool?.id || !profile?.id) return;
+    const { error } = await supabase
+      .from('school_members' as any)
+      .insert({ school_id: fullSchool.id, coach_id: profile.id });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Added! You can now create trainings.");
+      qc.invalidateQueries({ queryKey: ['my-school'] });
+    }
+  }
 
   const initials = (name: string) => name?.split(' ').map(n => n[0]).join('').slice(0, 2) ?? '?';
 
@@ -106,14 +124,40 @@ export default function CoachHome() {
                 <Plus className="h-4 w-4" /> Invite
               </button>
             </div>
-            {/* TODO: show school coaches list */}
-            <button
-              onClick={() => navigate('/school/coaches')}
-              className="w-full rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              <UserPlus className="h-5 w-5 mx-auto mb-1" />
-              Add coaches to your school
-            </button>
+            {schoolMembers.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                <Users className="mx-auto h-6 w-6 text-muted-foreground/40 mb-2" />
+                <p className="text-sm text-muted-foreground">No coaches yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {schoolMembers.map((m: any) => {
+                  const coach = m.coach;
+                  const isMe = m.coach_id === profile?.id;
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary overflow-hidden">
+                        {coach?.avatar_url ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" /> : (coach?.full_name?.[0] ?? '?')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground text-sm truncate">
+                          {coach?.full_name ?? 'Coach'}{isMe && <span className="text-primary ml-1">(you)</span>}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {!isSelfCoach && (
+              <button
+                onClick={addSelfAsCoach}
+                className="w-full rounded-xl border-2 border-dashed border-primary/30 p-3 text-center text-sm font-medium text-primary hover:bg-primary/5 transition-colors mt-2"
+              >
+                <UserPlus className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+                Add myself as coach
+              </button>
+            )}
           </div>
 
           {/* School management */}
