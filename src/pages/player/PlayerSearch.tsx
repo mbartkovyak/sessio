@@ -5,12 +5,14 @@ import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useDiscoverableCoaches } from '@/hooks/school/useSchools';
 
 const SPORTS = ['All', 'Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing'];
+const CITIES = ['All cities', 'Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
 
 export default function PlayerSearch() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
-  const { data: coaches = [], isLoading } = useDiscoverableCoaches(search, selectedSport || undefined);
+  const [selectedCity, setSelectedCity] = useState('');
+  const { data: coaches = [], isLoading } = useDiscoverableCoaches(search, selectedSport || undefined, selectedCity || undefined);
 
   const initials = (name: string) => name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
 
@@ -40,6 +42,21 @@ export default function PlayerSearch() {
                 }`}
               >
                 {sport}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {CITIES.map(city => (
+              <button
+                key={city}
+                onClick={() => setSelectedCity(city === 'All cities' ? '' : city)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  (city === 'All cities' && !selectedCity) || selectedCity === city
+                    ? 'bg-foreground text-background'
+                    : 'bg-secondary text-secondary-foreground'
+                }`}
+              >
+                {city}
               </button>
             ))}
           </div>

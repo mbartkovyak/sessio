@@ -48,10 +48,10 @@ export default function PlayerChat() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+    <div className="fixed inset-0 flex flex-col bg-background">
+      <header className="shrink-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate('/player/messages')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary">
+          <button onClick={() => navigate('/player/messages')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
@@ -61,30 +61,31 @@ export default function PlayerChat() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col" style={{ height: 'calc(100dvh - 65px)' }}>
-        <div className="flex-1 overflow-y-auto py-4 space-y-3 max-w-md mx-auto w-full px-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center pt-16 text-center">
-              <MessageCircle className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p className="font-medium text-foreground text-sm">No messages yet</p>
+      <div className="flex-1 overflow-y-auto py-4 space-y-3 max-w-md mx-auto w-full px-4">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center pt-16 text-center">
+            <MessageCircle className="h-10 w-10 text-muted-foreground/40 mb-3" />
+            <p className="font-medium text-foreground text-sm">No messages yet</p>
+          </div>
+        )}
+        {messages.map((msg: any) => {
+          const isMe = msg.sender_id === user?.id;
+          return (
+            <div key={msg.id} className={`flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+              {!isMe && <span className="text-xs text-muted-foreground px-1">{msg.profiles?.full_name ?? 'Member'}</span>}
+              <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm break-words ${
+                isMe
+                  ? `bg-primary text-primary-foreground rounded-br-sm ${msg._optimistic ? 'opacity-70' : ''}`
+                  : 'bg-secondary text-secondary-foreground rounded-bl-sm'
+              }`}>{msg.content}</div>
             </div>
-          )}
-          {messages.map((msg: any) => {
-            const isMe = msg.sender_id === user?.id;
-            return (
-              <div key={msg.id} className={`flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
-                {!isMe && <span className="text-xs text-muted-foreground px-1">{msg.profiles?.full_name ?? 'Member'}</span>}
-                <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm break-words ${
-                  isMe
-                    ? `bg-primary text-primary-foreground rounded-br-sm ${msg._optimistic ? 'opacity-70' : ''}`
-                    : 'bg-secondary text-secondary-foreground rounded-bl-sm'
-                }`}>{msg.content}</div>
-              </div>
-            );
-          })}
-          <div ref={bottomRef} />
-        </div>
-        <div className="border-t border-border bg-card py-3 safe-area-bottom"><div className="max-w-md mx-auto px-4 flex items-end gap-2">
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="shrink-0 border-t border-border bg-card py-3 safe-area-bottom">
+        <div className="max-w-md mx-auto px-4 flex items-end gap-2">
           <textarea
             ref={textareaRef}
             value={text}
@@ -101,7 +102,7 @@ export default function PlayerChat() {
           >
             <Send className="h-4 w-4" />
           </button>
-        </div></div>
+        </div>
       </div>
     </div>
   );
