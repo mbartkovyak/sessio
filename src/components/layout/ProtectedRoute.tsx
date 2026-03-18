@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 type Props = {
   children: ReactNode;
-  requiredRole?: 'coach' | 'player';
+  requiredRole?: 'coach' | 'player' | 'school_owner';
 };
 
 export default function ProtectedRoute({ children, requiredRole }: Props) {
@@ -21,7 +21,8 @@ export default function ProtectedRoute({ children, requiredRole }: Props) {
   if (!session) return <Navigate to="/auth" replace />;
   if (!profile?.onboarding_complete || !profile.role) return <Navigate to="/onboarding" replace />;
   if (requiredRole && profile.role !== requiredRole) {
-    return <Navigate to={profile.role === 'coach' ? '/coach' : '/player'} replace />;
+    const home = profile.role === 'school_owner' ? '/school' : profile.role === 'coach' ? '/coach' : '/player';
+    return <Navigate to={home} replace />;
   }
 
   return <>{children}</>;
