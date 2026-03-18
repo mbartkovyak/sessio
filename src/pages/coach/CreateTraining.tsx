@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMySchool } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -12,6 +14,10 @@ const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sun
 export default function CreateTraining() {
   const navigate = useNavigate();
   const create = useCreateTraining();
+  const { profile } = useAuth();
+  const { data: school } = useMySchool();
+  const hasSchool = !!school;
+  const [isSchoolTraining, setIsSchoolTraining] = useState(true);
   const [form, setForm] = useState({
     name:'', type:'group', sport:'Tennis', venue:'', day_of_week:0,
     start_time:'09:00', end_time:'10:00', max_players:6,
@@ -26,6 +32,7 @@ export default function CreateTraining() {
     try {
       const payload: any = { ...form, start_time: form.start_time + ':00', end_time: form.end_time + ':00' };
       if (form.type === 'individual') delete payload.max_players;
+      if (hasSchool && isSchoolTraining) payload.school_id = school.id;
       const training = await create.mutateAsync(payload);
       const { error: rpcError } = await supabase.rpc('generate_sessions_for_training' as any, { p_training_id: training.id });
       if (rpcError) {
@@ -104,6 +111,22 @@ export default function CreateTraining() {
                   className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.visibility === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
               ))}
             </div></div>
+          {/* School association */}
+          {hasSchool && (
+            <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">{school.name} training</p>
+                <p className="text-xs text-muted-foreground">Visible in school dashboard</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSchoolTraining(v => !v)}
+                className={`relative h-7 w-12 rounded-full transition-colors ${isSchoolTraining ? 'bg-primary' : 'bg-muted'}`}
+              >
+                <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${isSchoolTraining ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+          )}
           <button type="submit" disabled={create.isPending || !form.name || !form.venue}
             className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
             {create.isPending ? 'Creating...' : 'Create Lesson'}

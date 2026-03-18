@@ -1,8 +1,10 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Calendar, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Calendar, MessageCircle, Settings, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining } from '@/hooks/training/useTrainings';
+import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import ChatView from '@/components/shared/ChatView';
@@ -11,6 +13,128 @@ const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sun
 
 function ChatTab({ trainingId }: { trainingId: string }) {
   return <ChatView trainingId={trainingId} className="max-w-md mx-auto w-full" style={{ height: 'calc(100dvh - 180px)' }} />;
+}
+
+const SPORTS = ['Tennis','Swimming','Running','Fitness','Yoga','Football','Badminton','Boxing','Other'];
+
+function SettingsTab({ training, onDelete }: { training: any; onDelete: () => void }) {
+  const update = useUpdateTraining(training.id);
+  const [name, setName] = useState('');
+  const [sport, setSport] = useState('');
+  const [venue, setVenue] = useState('');
+  const [dayOfWeek, setDayOfWeek] = useState(0);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [maxPlayers, setMaxPlayers] = useState(6);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (training) {
+      setName(training.name ?? '');
+      setSport(training.sport ?? '');
+      setVenue(training.venue ?? '');
+      setDayOfWeek(training.day_of_week ?? 0);
+      setStartTime(training.start_time?.slice(0, 5) ?? '09:00');
+      setEndTime(training.end_time?.slice(0, 5) ?? '10:00');
+      setMaxPlayers(training.max_players ?? 6);
+    }
+  }, [training]);
+
+  async function handleSave() {
+    await update.mutateAsync({
+      name, sport, venue, day_of_week: dayOfWeek,
+      start_time: startTime + ':00', end_time: endTime + ':00',
+      max_players: training.type === 'group' ? maxPlayers : undefined,
+    });
+    toast.success('Training updated');
+  }
+
+  async function handleDelete() {
+    const { error } = await supabase
+      .from('trainings' as any)
+      .update({ is_active: false })
+      .eq('id', training.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success('Training deleted');
+      onDelete();
+    }
+  }
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-6 space-y-5">
+      <div>
+        <label className="text-sm font-medium text-foreground mb-1 block">Name</label>
+        <input value={name} onChange={e => setName(e.target.value)}
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
+        <div className="flex flex-wrap gap-2">
+          {SPORTS.map(s => (
+            <button key={s} type="button" onClick={() => setSport(s)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${sport === s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{s}</button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-foreground mb-1 block">Venue</label>
+        <input value={venue} onChange={e => setVenue(e.target.value)}
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-foreground mb-2 block">Day of Week</label>
+        <div className="flex gap-1 flex-wrap">
+          {DAYS.map((d, i) => (
+            <button key={d} type="button" onClick={() => setDayOfWeek(i)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${dayOfWeek === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">Start</label>
+          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+        </div>
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">End</label>
+          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+        </div>
+      </div>
+      {training.type === 'group' && (
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">Max Athletes</label>
+          <input type="number" min={1} max={50} value={maxPlayers} onChange={e => setMaxPlayers(Number(e.target.value))}
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+        </div>
+      )}
+      <button onClick={handleSave} disabled={update.isPending || !name || !venue}
+        className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-60 min-h-[48px]">
+        {update.isPending ? 'Saving...' : 'Save Changes'}
+      </button>
+
+      <div className="border-t border-border pt-5">
+        {!confirmDelete ? (
+          <button onClick={() => setConfirmDelete(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]">
+            <Trash2 className="h-4 w-4" /> Delete Training
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-destructive text-center font-medium">Are you sure? This can't be undone.</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setConfirmDelete(false)}
+                className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
+              <button onClick={handleDelete}
+                className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]">Delete</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function TrainingDetail() {
@@ -54,7 +178,7 @@ export default function TrainingDetail() {
           <div className="sticky top-[65px] z-10 bg-card border-b border-border">
             <div className="max-w-md mx-auto px-4">
             <TabsList className="w-full bg-transparent h-auto p-0 gap-0">
-              {[{v:'invite',l:'Invite',icon:Share2},{v:'members',l:'Members',icon:Users},{v:'schedule',l:'Schedule',icon:Calendar},{v:'chat',l:'Chat',icon:MessageCircle}].map(({v,l,icon:Icon}) => (
+              {[{v:'invite',l:'Invite',icon:Share2},{v:'members',l:'Members',icon:Users},{v:'schedule',l:'Schedule',icon:Calendar},{v:'chat',l:'Chat',icon:MessageCircle},{v:'settings',l:'Settings',icon:Settings}].map(({v,l,icon:Icon}) => (
                 <TabsTrigger key={v} value={v} className="flex-1 flex items-center gap-1.5 rounded-none border-b-2 border-transparent py-3 text-xs font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
                   <Icon className="h-3.5 w-3.5" />{l}
                 </TabsTrigger>
@@ -123,6 +247,10 @@ export default function TrainingDetail() {
 
           <TabsContent value="chat" className="mt-0">
             {id && <ChatTab trainingId={id} />}
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-0">
+            <SettingsTab training={training} onDelete={() => navigate('/coach/trainings')} />
           </TabsContent>
         </Tabs>
       </div>
