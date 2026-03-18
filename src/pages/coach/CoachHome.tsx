@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useSchoolView } from '@/contexts/SchoolViewContext';
 
 const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
@@ -70,7 +71,7 @@ export default function CoachHome() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
-  const [view, setView] = useState<'coaching' | 'school'>('coaching');
+  const { view, setView } = useSchoolView();
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
@@ -129,11 +130,8 @@ export default function CoachHome() {
             </button>
           </div>
 
-          {/* School management links */}
+          {/* School management */}
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
-            <button onClick={() => navigate('/school/calendar')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
-              <Calendar className="h-4 w-4 text-muted-foreground" /> School Calendar
-            </button>
             <button onClick={() => navigate('/school/coaches')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
               <Users className="h-4 w-4 text-muted-foreground" /> Manage Coaches
             </button>

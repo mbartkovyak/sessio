@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolView } from '@/contexts/SchoolViewContext';
+import { useMySchool } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 const SPORT_ICONS: Record<string, string> = {
@@ -32,6 +34,27 @@ function useCoachSessions(coachId: string | undefined) {
   });
 }
 
+function useSchoolSessions(schoolId: string | undefined) {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const endDate = format(addDays(new Date(), 28), 'yyyy-MM-dd');
+  return useQuery({
+    queryKey: ['school-calendar-sessions', schoolId, today],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('training_sessions' as any)
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, coach:profiles(full_name))')
+        .eq('trainings.school_id', schoolId!)
+        .gte('session_date', today)
+        .lte('session_date', endDate)
+        .order('session_date', { ascending: true })
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
 function dayLabel(date: Date) {
   if (isToday(date)) return 'Today';
   if (isTomorrow(date)) return 'Tomorrow';
@@ -40,8 +63,14 @@ function dayLabel(date: Date) {
 
 export default function CoachCalendar() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: sessions = [], isLoading } = useCoachSessions(user?.id);
+  const { user, profile } = useAuth();
+  const { view } = useSchoolView();
+  const isSchoolView = profile?.role === 'school_owner' && view === 'school';
+  const { data: school } = useMySchool();
+  const { data: coachSessions = [], isLoading: coachLoading } = useCoachSessions(user?.id);
+  const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolView ? school?.id : undefined);
+  const sessions = isSchoolView ? schoolSessions : coachSessions;
+  const isLoading = isSchoolView ? schoolLoading : coachLoading;
 
   const today = new Date();
   const days = Array.from({ length: 28 }, (_, i) => addDays(today, i));
@@ -56,7 +85,7 @@ export default function CoachCalendar() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
+          <h1 className="text-lg font-semibold text-foreground">{isSchoolView ? 'School Calendar' : 'Calendar'}</h1>
         </div>
       </header>
 

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
 import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SchoolViewProvider } from "@/contexts/SchoolViewContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 
 // Auth pages
@@ -54,6 +55,7 @@ const App = () => (
         <NavigationLoadingBar />
         <InstallPWA />
         <AuthProvider>
+        <SchoolViewProvider>
           <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />
@@ -93,6 +95,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+        </SchoolViewProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
