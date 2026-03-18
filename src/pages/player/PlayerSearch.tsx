@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star, MapPin } from 'lucide-react';
+import { Search, Star, MapPin, ChevronDown } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useDiscoverableCoaches } from '@/hooks/school/useSchools';
 
-const SPORTS = ['All', 'Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing'];
-const CITIES = ['All cities', 'Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
+const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing'];
+const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
 
 export default function PlayerSearch() {
   const navigate = useNavigate();
@@ -27,38 +27,32 @@ export default function PlayerSearch() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by name..."
-              className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {SPORTS.map(sport => (
-              <button
-                key={sport}
-                onClick={() => setSelectedSport(sport === 'All' ? '' : sport)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  (sport === 'All' && !selectedSport) || selectedSport === sport
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="relative">
+              <select
+                value={selectedSport}
+                onChange={e => setSelectedSport(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-2.5 pr-9 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
               >
-                {sport}
-              </button>
-            ))}
-          </div>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {CITIES.map(city => (
-              <button
-                key={city}
-                onClick={() => setSelectedCity(city === 'All cities' ? '' : city)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  (city === 'All cities' && !selectedCity) || selectedCity === city
-                    ? 'bg-foreground text-background'
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
+                <option value="">All sports</option>
+                {SPORTS.map(sport => <option key={sport} value={sport}>{sport}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="relative">
+              <select
+                value={selectedCity}
+                onChange={e => setSelectedCity(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-2.5 pr-9 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
               >
-                {city}
-              </button>
-            ))}
+                <option value="">All cities</option>
+                {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
         </div>
       </header>
