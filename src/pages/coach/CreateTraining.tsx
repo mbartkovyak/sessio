@@ -31,7 +31,9 @@ export default function CreateTraining() {
   const [form, setForm] = useState({
     name:'', type:'group', sport:'Tennis', venue:'', day_of_week:0,
     start_time:'09:00', end_time:'10:00', max_players:6,
-    start_date:'', end_date:'', one_off_date:'',
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
+    one_off_date:'',
     confirmation_window_hours:48, no_response_behavior:'mark_absent',
     booking_mode:'instant', visibility:'private', notification_channel:'push_email',
   });
