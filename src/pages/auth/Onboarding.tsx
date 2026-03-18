@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown } from 'lucide-react';
 
 const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
+const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
 
 export default function Onboarding() {
   const { user, refreshProfile } = useAuth();
@@ -225,13 +226,17 @@ export default function Onboarding() {
                 {/* City */}
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">City</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Warsaw"
-                    value={city}
-                    onChange={e => setCity(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                  />
+                  <div className="relative">
+                    <select
+                      value={city}
+                      onChange={e => setCity(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    >
+                      <option value="">Select city</option>
+                      {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
 
                 {/* School name (optional) */}

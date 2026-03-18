@@ -4,7 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { User, MapPin, FileText, LogOut } from 'lucide-react';
+import { User, MapPin, FileText, LogOut, ChevronDown } from 'lucide-react';
+
+const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
+const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
 
 export default function CoachProfileEditor() {
   const navigate = useNavigate();
@@ -58,18 +61,31 @@ export default function CoachProfileEditor() {
             <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
               <MapPin className="h-3.5 w-3.5" /> City
             </label>
-            <input
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              value={city} onChange={e => setCity(e.target.value)}
-            />
+            <div className="relative">
+              <select
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">Select city</option>
+                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block text-sm font-medium">Sport</label>
-            <input
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              value={sport} onChange={e => setSport(e.target.value)}
-              placeholder="e.g. Tennis"
-            />
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Sport</label>
+            <div className="relative">
+              <select
+                value={sport}
+                onChange={e => setSport(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">Select sport</option>
+                {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
