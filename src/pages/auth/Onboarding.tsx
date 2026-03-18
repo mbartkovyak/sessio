@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
 import { SessioLogo } from '@/components/SessioLogo';
 
 const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
@@ -11,7 +11,7 @@ const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łód�
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
 export default function Onboarding() {
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('name');
   const [fullName, setFullName] = useState('');
@@ -105,6 +105,13 @@ export default function Onboarding() {
           </button>
         )}
         <SessioLogo size={28} />
+        <div className="flex-1" />
+        <button
+          onClick={async () => { await signOut(); navigate('/auth'); }}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Sign out
+        </button>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-4 pb-12">
