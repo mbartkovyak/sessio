@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const userRef = useRef<User | null>(null);
 
   async function fetchProfile(userId: string) {
     const { data } = await supabase
@@ -36,9 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(data as Profile | null);
   }
 
-  async function refreshProfile() {
-    if (user) await fetchProfile(user.id);
-  }
+  const refreshProfile = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (currentUser) await fetchProfile(currentUser.id);
+  }, []);
 
   useEffect(() => {
     // IMPORTANT: Do NOT await inside onAuthStateChange — it deadlocks Supabase auth.
@@ -48,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      userRef.current = session?.user ?? null;
       if (session?.user) {
         await fetchProfile(session.user.id);
       }
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        userRef.current = session?.user ?? null;
         if (session?.user) {
           // Set loading=true so any waiting components (e.g. AuthCallback) hold until profile is ready
           setLoading(true);

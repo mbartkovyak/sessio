@@ -44,97 +44,120 @@ export default function Onboarding() {
 
   // ── Submit: Athlete ──
   async function submitAthlete() {
+    if (!user) { setError('Not signed in — please reload and try again'); return; }
     setLoading(true);
     setError('');
-    const { error } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'player', onboarding_complete: true })
-      .eq('id', user!.id);
-    if (error) { setError(error.message); setLoading(false); return; }
-    await refreshProfile();
-    navigate('/player');
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'player', onboarding_complete: true })
+        .eq('id', user.id);
+      if (error) { setError(error.message); setLoading(false); return; }
+      await refreshProfile();
+      navigate('/player');
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong');
+      setLoading(false);
+    }
   }
 
   // ── Submit: Solo Coach ──
   async function submitSoloCoach() {
+    if (!user) { setError('Not signed in — please reload and try again'); return; }
     if (!city) return;
     setLoading(true);
     setError('');
-    const { error } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true } as any)
-      .eq('id', user!.id);
-    if (error) { setError(error.message); setLoading(false); return; }
-    await refreshProfile();
-    navigate('/coach');
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true } as any)
+        .eq('id', user.id);
+      if (error) { setError(error.message); setLoading(false); return; }
+      await refreshProfile();
+      navigate('/coach');
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong');
+      setLoading(false);
+    }
   }
 
   // ── Submit: Open School ──
   async function submitSchoolOwner() {
+    if (!user) { setError('Not signed in — please reload and try again'); return; }
     if (!city || !schoolName.trim()) return;
     setLoading(true);
     setError('');
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport, city, onboarding_complete: true } as any)
-      .eq('id', user!.id);
-    if (profileError) { setError(profileError.message); setLoading(false); return; }
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport, city, onboarding_complete: true } as any)
+        .eq('id', user.id);
+      if (profileError) { setError(profileError.message); setLoading(false); return; }
 
-    const { error: schoolError } = await supabase
-      .from('schools' as any)
-      .insert({ name: schoolName.trim(), sport, city, owner_id: user!.id });
-    if (schoolError) { setError(schoolError.message); setLoading(false); return; }
+      const { error: schoolError } = await supabase
+        .from('schools' as any)
+        .insert({ name: schoolName.trim(), sport, city, owner_id: user.id });
+      if (schoolError) { setError(schoolError.message); setLoading(false); return; }
 
-    await refreshProfile();
-    navigate('/coach');
+      await refreshProfile();
+      navigate('/coach');
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong');
+      setLoading(false);
+    }
   }
 
   // ── Submit: Join School (via invite link — sport/city inherited from school) ──
   async function submitJoinSchool() {
+    if (!user) { setError('Not signed in — please reload and try again'); return; }
     if (!inviteCode.trim()) return;
     setLoading(true);
     setError('');
+    try {
+      // Extract code from full URL if pasted (e.g. https://…/join-school/ABC123)
+      const raw = inviteCode.trim();
+      const codeMatch = raw.match(/join-school\/([A-Za-z0-9]+)/);
+      const code = (codeMatch ? codeMatch[1] : raw).toUpperCase();
 
-    // Extract code from full URL if pasted (e.g. https://…/join-school/ABC123)
-    const raw = inviteCode.trim();
-    const codeMatch = raw.match(/join-school\/([A-Za-z0-9]+)/);
-    const code = (codeMatch ? codeMatch[1] : raw).toUpperCase();
+      // Look up school by invite code
+      const { data: school, error: lookupError } = await supabase
+        .from('schools' as any)
+        .select('id, name, sport, city')
+        .eq('invite_code', code)
+        .maybeSingle();
 
-    // Look up school by invite code
-    const { data: school, error: lookupError } = await supabase
-      .from('schools' as any)
-      .select('id, name, sport, city')
-      .eq('invite_code', code)
-      .maybeSingle();
+      if (lookupError || !school) {
+        setError('Invalid invite code — check with your school owner');
+        setLoading(false);
+        return;
+      }
 
-    if (lookupError || !school) {
-      setError('Invalid invite code — check with your school owner');
+      const s = school as any;
+
+      // Update profile as coach — inherit sport/city from school
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true } as any)
+        .eq('id', user.id);
+      if (profileError) { setError(profileError.message); setLoading(false); return; }
+
+      // Request to join school (pending approval)
+      const { error: memberError } = await supabase
+        .from('school_members' as any)
+        .insert({ school_id: s.id, coach_id: user.id, status: 'pending' });
+      if (memberError && !memberError.message.includes('duplicate')) {
+        setError(memberError.message);
+        setLoading(false);
+        return;
+      }
+
+      await refreshProfile();
+      toast.success(`Request sent to ${s.name}! The owner will approve you.`);
+      navigate('/coach');
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong');
       setLoading(false);
-      return;
     }
-
-    const s = school as any;
-
-    // Update profile as coach — inherit sport/city from school
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true } as any)
-      .eq('id', user!.id);
-    if (profileError) { setError(profileError.message); setLoading(false); return; }
-
-    // Request to join school (pending approval)
-    const { error: memberError } = await supabase
-      .from('school_members' as any)
-      .insert({ school_id: s.id, coach_id: user!.id, status: 'pending' });
-    if (memberError && !memberError.message.includes('duplicate')) {
-      setError(memberError.message);
-      setLoading(false);
-      return;
-    }
-
-    await refreshProfile();
-    toast.success(`Request sent to ${s.name}! The owner will approve you.`);
-    navigate('/coach');
   }
 
   const showBack = step !== 'name';
