@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail } from 'lucide-react';
+import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function JoinSchool() {
@@ -13,6 +13,7 @@ export default function JoinSchool() {
   const [school, setSchool] = useState<any>(null);
   const [schoolLoading, setSchoolLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -32,7 +33,7 @@ export default function JoinSchool() {
       });
   }, [code]);
 
-  // Auto-join once auth resolves
+  // Check status once auth resolves
   useEffect(() => {
     if (!session || !profile || !school) return;
     if (loading) return;
@@ -46,37 +47,38 @@ export default function JoinSchool() {
       navigate(profile.role === 'player' ? '/player' : '/coach');
       return;
     }
-    autoJoin();
+    checkExisting();
   }, [loading, session, profile, school]);
 
-  async function autoJoin() {
+  async function checkExisting() {
+    if (!school || !profile) return;
+    const { data: existing } = await supabase
+      .from('school_members' as any)
+      .select('id, status')
+      .eq('school_id', school.id)
+      .eq('coach_id', profile.id)
+      .maybeSingle();
+
+    if (existing?.status === 'approved') {
+      toast.info("You're already in this school");
+      navigate('/coach');
+    } else if (existing?.status === 'pending') {
+      setRequestSent(true);
+    }
+  }
+
+  async function requestJoin() {
     if (!school || !profile) return;
     setJoining(true);
     try {
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('school_members' as any)
-        .select('id')
-        .eq('school_id', school.id)
-        .eq('coach_id', profile.id)
-        .maybeSingle();
-
-      if (existing) {
-        toast.info("You're already in this school");
-        navigate('/coach');
-        return;
-      }
-
       const { error } = await supabase
         .from('school_members' as any)
-        .insert({ school_id: school.id, coach_id: profile.id });
-
+        .insert({ school_id: school.id, coach_id: profile.id, status: 'pending' });
       if (error) throw error;
-      toast.success(`Joined ${school.name}!`);
-      navigate('/coach');
+      setRequestSent(true);
     } catch (err: any) {
-      toast.error(err.message ?? 'Failed to join school');
-      navigate('/coach');
+      toast.error(err.message ?? 'Failed to send request');
+      setJoining(false);
     }
   }
 
@@ -133,7 +135,32 @@ export default function JoinSchool() {
     </div>
   );
 
-  // Logged-in coach view
+  // Request sent — pending approval
+  if (requestSent) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
+          <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
+        </header>
+        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
+          <SchoolCard />
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-5 text-center">
+            <Clock className="mx-auto h-8 w-8 text-amber-500 mb-2" />
+            <p className="font-semibold text-foreground">Request sent</p>
+            <p className="mt-1 text-sm text-muted-foreground">The school owner will review your request. You'll be added once approved.</p>
+          </div>
+          <button
+            onClick={() => navigate('/coach')}
+            className="w-full rounded-2xl border border-border py-3.5 text-sm font-medium text-foreground min-h-[44px]"
+          >
+            Go to dashboard
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  // Logged-in coach — request to join
   if (session && profile?.onboarding_complete && profile?.role === 'coach') {
     return (
       <div className="flex min-h-screen flex-col bg-background">
@@ -144,12 +171,13 @@ export default function JoinSchool() {
           <p className="text-center text-sm text-muted-foreground">You've been invited to join</p>
           <SchoolCard />
           <button
-            onClick={autoJoin}
+            onClick={requestJoin}
             disabled={joining}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? 'Joining...' : `Join ${school.name}`}
+            {joining ? 'Sending request...' : `Request to Join`}
           </button>
+          <p className="text-center text-xs text-muted-foreground">The school owner will approve your request</p>
         </main>
       </div>
     );
@@ -164,7 +192,7 @@ export default function JoinSchool() {
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
         <p className="text-center text-sm text-muted-foreground">You've been invited to join</p>
         <SchoolCard />
-        <p className="text-center text-sm text-muted-foreground">Sign in to join as a coach</p>
+        <p className="text-center text-sm text-muted-foreground">Sign in to request to join as a coach</p>
 
         {emailSent ? (
           <div className="rounded-2xl bg-success/10 border border-success/20 p-5 text-center">

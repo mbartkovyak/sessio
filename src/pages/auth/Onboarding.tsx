@@ -122,10 +122,10 @@ export default function Onboarding() {
       .eq('id', user!.id);
     if (profileError) { setError(profileError.message); setLoading(false); return; }
 
-    // Add to school_members
+    // Request to join school (pending approval)
     const { error: memberError } = await supabase
       .from('school_members' as any)
-      .insert({ school_id: s.id, coach_id: user!.id });
+      .insert({ school_id: s.id, coach_id: user!.id, status: 'pending' });
     if (memberError && !memberError.message.includes('duplicate')) {
       setError(memberError.message);
       setLoading(false);
@@ -133,7 +133,7 @@ export default function Onboarding() {
     }
 
     await refreshProfile();
-    toast.success(`Welcome to ${s.name}!`);
+    toast.success(`Request sent to ${s.name}! The owner will approve you.`);
     navigate('/coach');
   }
 

@@ -6,6 +6,7 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { useMyTrainings } from '@/hooks/training/useTrainings';
+import { useMyFavouriteSchools } from '@/hooks/school/useSchools';
 import { toast } from 'sonner';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -154,6 +155,38 @@ function OpenSpotsSection() {
   );
 }
 
+function FavouriteSchoolsSection() {
+  const navigate = useNavigate();
+  const { data: favs = [] } = useMyFavouriteSchools();
+  if (!favs.length) return null;
+
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">My Schools</h2>
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+        {favs.map((f: any) => {
+          const school = f.school;
+          if (!school) return null;
+          return (
+            <button
+              key={f.id}
+              onClick={() => navigate(`/s/${school.id}`)}
+              className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 min-w-[100px] shrink-0 active:bg-secondary/50 shadow-sm"
+            >
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary overflow-hidden">
+                {school.logo_url
+                  ? <img src={school.logo_url} alt="" className="h-full w-full object-cover" />
+                  : school.name?.[0] ?? '?'}
+              </div>
+              <p className="text-xs font-medium text-foreground text-center truncate w-full">{school.name}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function PlayerHome() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -241,6 +274,9 @@ export default function PlayerHome() {
 
           {/* Open spots */}
           <OpenSpotsSection />
+
+          {/* Favourite schools */}
+          <FavouriteSchoolsSection />
 
           {/* This week confirmed sessions */}
           {confirmedSessions.length > 0 && (

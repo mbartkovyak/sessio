@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+/** School owner — fetch my school with approved coaches only */
 export function useMySchool() {
   const { user } = useAuth();
   return useQuery({
@@ -11,15 +12,20 @@ export function useMySchool() {
     queryFn: async () => {
       const { data } = await supabase
         .from('schools' as any)
-        .select('*, school_members(id, coach_id, coach:profiles(id, full_name, avatar_url, sport, city))')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
         .eq('owner_id', user!.id)
         .maybeSingle();
+      if (!data) return data;
+      // Split approved vs pending in JS (supabase can't filter nested)
+      const all = (data as any).school_members ?? [];
+      (data as any).school_members = all.filter((m: any) => m.status === 'approved');
+      (data as any).pending_members = all.filter((m: any) => m.status === 'pending');
       return data as any;
     },
   });
 }
 
-/** For coaches who joined a school (not owners) — returns the school they belong to */
+/** Coach (not owner) — fetch the school I belong to (approved only) */
 export function useMySchoolMembership() {
   const { user } = useAuth();
   return useQuery({
@@ -28,14 +34,16 @@ export function useMySchoolMembership() {
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members' as any)
-        .select('id, school_id, schools:school_id(id, name, sport, city, logo_url)')
+        .select('id, school_id, status, schools:school_id(id, name, sport, city, logo_url)')
         .eq('coach_id', user!.id)
+        .eq('status', 'approved')
         .maybeSingle();
       return data as any;
     },
   });
 }
 
+/** Fetch a single school by ID (public) */
 export function useSchool(id: string | undefined) {
   return useQuery({
     queryKey: ['school', id],
@@ -43,14 +51,128 @@ export function useSchool(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('schools' as any)
-        .select('*')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
         .eq('id', id!)
         .single();
       if (error) throw error;
+      // Only return approved coaches
+      if (data) {
+        const all = (data as any).school_members ?? [];
+        (data as any).school_members = all.filter((m: any) => m.status === 'approved');
+      }
       return data as any;
     },
   });
 }
+
+/** Group trainings for a school (public-facing — group + discoverable only) */
+export function useSchoolPublicTrainings(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-public-trainings', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings' as any)
+        .select('*, coach:profiles!trainings_coach_id_fkey(id, full_name, avatar_url)')
+        .eq('school_id', schoolId!)
+        .eq('is_active', true)
+        .eq('type', 'group')
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
+/** School owner — approve or decline a pending coach */
+export function useRespondSchoolMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ memberId, accept }: { memberId: string; accept: boolean }) => {
+      if (accept) {
+        const { error } = await supabase
+          .from('school_members' as any)
+          .update({ status: 'approved' })
+          .eq('id', memberId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('school_members' as any)
+          .delete()
+          .eq('id', memberId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { accept }) => {
+      toast.success(accept ? 'Coach approved!' : 'Request declined');
+      qc.invalidateQueries({ queryKey: ['my-school'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}
+
+// ── Favourites ──
+
+export function useIsFavouriteSchool(schoolId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['fav-school', user?.id, schoolId],
+    enabled: !!user && !!schoolId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('favourite_schools' as any)
+        .select('id')
+        .eq('user_id', user!.id)
+        .eq('school_id', schoolId!)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+}
+
+export function useToggleFavouriteSchool() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ schoolId, isFav }: { schoolId: string; isFav: boolean }) => {
+      if (isFav) {
+        const { error } = await supabase
+          .from('favourite_schools' as any)
+          .delete()
+          .eq('user_id', user!.id)
+          .eq('school_id', schoolId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('favourite_schools' as any)
+          .insert({ user_id: user!.id, school_id: schoolId });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { schoolId, isFav }) => {
+      qc.invalidateQueries({ queryKey: ['fav-school'] });
+      qc.invalidateQueries({ queryKey: ['favourite-schools'] });
+      toast.success(isFav ? 'Removed from favourites' : 'Added to favourites');
+    },
+  });
+}
+
+export function useMyFavouriteSchools() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['favourite-schools', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('favourite_schools' as any)
+        .select('*, school:school_id(id, name, sport, city, logo_url)')
+        .eq('user_id', user!.id);
+      return (data ?? []) as any[];
+    },
+  });
+}
+
+// ── Existing hooks (unchanged) ──
 
 export function useCreateSchool() {
   const qc = useQueryClient();

@@ -65,6 +65,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/join/:inviteCode" element={<JoinTraining />} />
             <Route path="/join-school/:code" element={<JoinSchool />} />
+            <Route path="/s/:id" element={<SchoolPublicProfile />} />
 
             {/* Player routes */}
             <Route path="/player" element={<ProtectedRoute requiredRole="player"><PlayerHome /></ProtectedRoute>} />

@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useMySchool } from '@/hooks/school/useSchools';
+import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { Users, Share2, Copy, UserPlus, ArrowLeft, Check } from 'lucide-react';
+import { Users, Share2, Copy, UserPlus, ArrowLeft, Check, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -13,9 +13,11 @@ export default function SchoolCoaches() {
   const { data: school, isLoading } = useMySchool();
   const { profile } = useAuth();
   const qc = useQueryClient();
+  const respond = useRespondSchoolMember();
   const [copied, setCopied] = useState(false);
 
   const coaches = (school as any)?.school_members ?? [];
+  const pendingMembers = (school as any)?.pending_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === profile?.id);
   const inviteCode = school?.invite_code;
   const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
@@ -25,7 +27,7 @@ export default function SchoolCoaches() {
     if (!school?.id || !profile?.id) return;
     const { error } = await supabase
       .from('school_members' as any)
-      .insert({ school_id: school.id, coach_id: profile.id });
+      .insert({ school_id: school.id, coach_id: profile.id, status: 'approved' });
     if (error) toast.error(error.message);
     else {
       toast.success("Added!");
@@ -73,7 +75,7 @@ export default function SchoolCoaches() {
         {/* Invite section */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <h2 className="font-semibold text-foreground text-sm">Invite a coach</h2>
-          <p className="text-xs text-muted-foreground">Share this link — coaches sign up and join your school automatically.</p>
+          <p className="text-xs text-muted-foreground">Share this link — coaches request to join and you approve them.</p>
 
           <div className="flex items-center gap-2">
             <div className="flex-1 rounded-lg bg-secondary px-3 py-2 text-sm text-foreground font-mono truncate">
@@ -95,6 +97,51 @@ export default function SchoolCoaches() {
             Share invite link
           </button>
         </div>
+
+        {/* Pending requests */}
+        {pendingMembers.length > 0 && (
+          <div>
+            <h2 className="font-semibold text-foreground text-sm mb-3">
+              Pending Requests ({pendingMembers.length})
+            </h2>
+            <div className="space-y-2">
+              {pendingMembers.map((m: any) => {
+                const coach = m.coach;
+                return (
+                  <div key={m.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                        {coach?.avatar_url
+                          ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
+                          : (coach?.full_name?.[0] ?? '?')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? 'Coach'}</p>
+                        <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => respond.mutate({ memberId: m.id, accept: true })}
+                        disabled={respond.isPending}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                      </button>
+                      <button
+                        onClick={() => respond.mutate({ memberId: m.id, accept: false })}
+                        disabled={respond.isPending}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
+                      >
+                        <X className="h-3.5 w-3.5" /> Decline
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Add self */}
         {!isSelfCoach && (
