@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
 import { SessioLogo } from '@/components/SessioLogo';
+import { toast } from 'sonner';
 
 const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
 const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
@@ -23,6 +24,16 @@ export default function Onboarding() {
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Pre-fill invite code from pending school invite (via /join-school/:code link)
+  useEffect(() => {
+    const pending = sessionStorage.getItem('pending_school_invite');
+    if (pending) {
+      sessionStorage.removeItem('pending_school_invite');
+      setInviteCode(pending.toUpperCase());
+      setCoachType('join');
+    }
+  }, []);
 
   function goBack() {
     setError('');
@@ -83,14 +94,44 @@ export default function Onboarding() {
     if (!inviteCode.trim()) return;
     setLoading(true);
     setError('');
-    // TODO: resolve invite code → school_id, add to school_members
-    // For now, just set up as coach
-    const { error } = await supabase
+
+    // Extract code from full URL if pasted (e.g. https://…/join-school/ABC123)
+    const raw = inviteCode.trim();
+    const codeMatch = raw.match(/join-school\/([A-Za-z0-9]+)/);
+    const code = (codeMatch ? codeMatch[1] : raw).toUpperCase();
+
+    // Look up school by invite code
+    const { data: school, error: lookupError } = await supabase
+      .from('schools' as any)
+      .select('id, name')
+      .eq('invite_code', code)
+      .maybeSingle();
+
+    if (lookupError || !school) {
+      setError('Invalid invite code — check with your school owner');
+      setLoading(false);
+      return;
+    }
+
+    // Update profile as coach
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true } as any)
       .eq('id', user!.id);
-    if (error) { setError(error.message); setLoading(false); return; }
+    if (profileError) { setError(profileError.message); setLoading(false); return; }
+
+    // Add to school_members
+    const { error: memberError } = await supabase
+      .from('school_members' as any)
+      .insert({ school_id: (school as any).id, coach_id: user!.id });
+    if (memberError && !memberError.message.includes('duplicate')) {
+      setError(memberError.message);
+      setLoading(false);
+      return;
+    }
+
     await refreshProfile();
+    toast.success(`Welcome to ${(school as any).name}!`);
     navigate('/coach');
   }
 

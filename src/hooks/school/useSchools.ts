@@ -19,6 +19,23 @@ export function useMySchool() {
   });
 }
 
+/** For coaches who joined a school (not owners) — returns the school they belong to */
+export function useMySchoolMembership() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-school-membership', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('school_members' as any)
+        .select('id, school_id, schools:school_id(id, name, sport, city, logo_url)')
+        .eq('coach_id', user!.id)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+}
+
 export function useSchool(id: string | undefined) {
   return useQuery({
     queryKey: ['school', id],

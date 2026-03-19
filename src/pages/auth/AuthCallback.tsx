@@ -17,7 +17,13 @@ export default function AuthCallback() {
       return;
     }
 
-    // Check for pending invite
+    // Check for pending invites
+    const pendingSchoolInvite = sessionStorage.getItem('pending_school_invite');
+    if (pendingSchoolInvite) {
+      sessionStorage.removeItem('pending_school_invite');
+      navigate(`/join-school/${pendingSchoolInvite}`);
+      return;
+    }
     const pendingInvite = sessionStorage.getItem('pending_invite');
     if (pendingInvite) {
       sessionStorage.removeItem('pending_invite');

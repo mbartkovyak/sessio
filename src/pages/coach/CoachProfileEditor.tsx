@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { User, MapPin, FileText, LogOut, ChevronDown } from 'lucide-react';
+import { User, MapPin, FileText, LogOut, ChevronDown, Trash2 } from 'lucide-react';
 
 const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
 const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
@@ -13,6 +13,7 @@ export default function CoachProfileEditor() {
   const navigate = useNavigate();
   const { profile, user, signOut } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
@@ -112,6 +113,21 @@ export default function CoachProfileEditor() {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
         >
           <LogOut className="h-4 w-4" /> Sign Out
+        </button>
+
+        <button
+          onClick={async () => {
+            if (!confirm('Delete all your data and start over? This cannot be undone.')) return;
+            setDeleting(true);
+            const { error } = await supabase.rpc('delete_my_account' as any);
+            if (error) { toast.error(error.message); setDeleting(false); return; }
+            await signOut();
+            navigate('/auth');
+          }}
+          disabled={deleting}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 py-3 text-sm font-medium text-destructive disabled:opacity-60"
+        >
+          <Trash2 className="h-4 w-4" /> {deleting ? 'Deleting…' : 'Delete Account'}
         </button>
       </main>
       <CoachBottomNav />

@@ -8,7 +8,7 @@ import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
-import { useMySchool } from '@/hooks/school/useSchools';
+import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import { toast } from 'sonner';
 
@@ -82,6 +82,7 @@ export default function CoachHome() {
   const { data: todaySessions = [] } = useTodaySessions(profile?.id);
   const { data: school } = useMySchoolBasic(profile?.id);
   const { data: fullSchool } = useMySchool();
+  const { data: schoolMembership } = useMySchoolMembership();
   const schoolMembers = (fullSchool as any)?.school_members ?? [];
   const isSelfCoach = schoolMembers.some((m: any) => m.coach_id === profile?.id);
 
@@ -176,6 +177,23 @@ export default function CoachHome() {
             <h1 className="text-2xl font-bold text-foreground">Hey, {profile?.full_name?.split(' ')[0] ?? 'Coach'} 👋</h1>
             <p className="text-sm text-muted-foreground">Your training overview</p>
           </div>
+
+          {/* School membership banner */}
+          {!isSchoolOwner && schoolMembership?.schools && (
+            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary overflow-hidden shrink-0">
+                {(schoolMembership.schools as any).logo_url
+                  ? <img src={(schoolMembership.schools as any).logo_url} alt="" className="h-full w-full object-cover" />
+                  : (schoolMembership.schools as any).name?.[0] ?? '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-foreground text-sm truncate">{(schoolMembership.schools as any).name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {[(schoolMembership.schools as any).sport, (schoolMembership.schools as any).city].filter(Boolean).join(' · ')}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3">

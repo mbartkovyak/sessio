@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMySchool, useUpdateSchool } from '@/hooks/school/useSchools';
-import { ChevronDown } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { ChevronDown, LogOut, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
 const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
 
 export default function SchoolProfileEditor() {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { data: school, isLoading } = useMySchool();
   const update = useUpdateSchool(school?.id ?? '');
+  const [deleting, setDeleting] = useState(false);
 
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
@@ -82,6 +89,28 @@ export default function SchoolProfileEditor() {
           className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
           {update.isPending ? 'Saving…' : 'Save Changes'}
+        </button>
+
+        <button
+          onClick={async () => { await signOut(); navigate('/auth'); }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
+        >
+          <LogOut className="h-4 w-4" /> Sign Out
+        </button>
+
+        <button
+          onClick={async () => {
+            if (!confirm('Delete all your data? This cannot be undone.')) return;
+            setDeleting(true);
+            const { error } = await supabase.rpc('delete_my_account' as any);
+            if (error) { toast.error(error.message); setDeleting(false); return; }
+            await signOut();
+            navigate('/auth');
+          }}
+          disabled={deleting}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 py-3 text-sm font-medium text-destructive disabled:opacity-60"
+        >
+          <Trash2 className="h-4 w-4" /> {deleting ? 'Deleting…' : 'Delete Account'}
         </button>
       </main>
       <CoachBottomNav />

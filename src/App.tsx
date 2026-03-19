@@ -17,6 +17,7 @@ import Onboarding from "./pages/auth/Onboarding";
 
 // Shared pages
 import JoinTraining from "./pages/shared/JoinTraining";
+import JoinSchool from "./pages/shared/JoinSchool";
 import NotFound from "./pages/shared/NotFound";
 
 // Player pages
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/join/:inviteCode" element={<JoinTraining />} />
+            <Route path="/join-school/:code" element={<JoinSchool />} />
 
             {/* Player routes */}
             <Route path="/player" element={<ProtectedRoute requiredRole="player"><PlayerHome /></ProtectedRoute>} />

@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Mail } from 'lucide-react';
+import { LogOut, Mail, Trash2 } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function PlayerProfile() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
 
   const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? '?';
 
@@ -46,6 +50,21 @@ export default function PlayerProfile() {
             >
               <LogOut className="h-4 w-4" />
               Sign Out
+            </button>
+            <button
+              onClick={async () => {
+                if (!confirm('Delete all your data and start over? This cannot be undone.')) return;
+                setDeleting(true);
+                const { error } = await supabase.rpc('delete_my_account' as any);
+                if (error) { toast.error(error.message); setDeleting(false); return; }
+                await signOut();
+                navigate('/auth');
+              }}
+              disabled={deleting}
+              className="flex w-full items-center gap-2 px-4 py-3.5 text-sm font-medium text-destructive min-h-[44px] disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleting ? 'Deleting…' : 'Delete Account'}
             </button>
           </div>
         </div>
