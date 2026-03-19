@@ -43,6 +43,24 @@ export function useMySchoolMembership() {
   });
 }
 
+/** Coach — check if has a pending school request (blocking screen) */
+export function useMyPendingSchoolRequest() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-pending-school-request', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('school_members' as any)
+        .select('id, school_id, status, schools:school_id(id, name, sport, city, logo_url)')
+        .eq('coach_id', user!.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+      return data as any;
+    },
+  });
+}
+
 /** Fetch a single school by ID (public) */
 export function useSchool(id: string | undefined) {
   return useQuery({

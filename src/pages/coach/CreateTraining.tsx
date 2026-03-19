@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,8 +25,11 @@ export default function CreateTraining() {
   const create = useCreateTraining();
   const { profile } = useAuth();
   const { data: school } = useMySchool();
+  const isSchoolOwner = profile?.role === 'school_owner';
   const hasSchool = !!school;
+  const schoolCoaches = (school as any)?.school_members ?? [];
   const [isSchoolTraining, setIsSchoolTraining] = useState(true);
+  const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [isRecurring, setIsRecurring] = useState(true);
   const [selectedDays, setSelectedDays] = useState<number[]>([0]);
   const [form, setForm] = useState({
@@ -62,7 +65,10 @@ export default function CreateTraining() {
       };
       delete payload.one_off_date;
       if (form.type === 'individual') delete payload.max_players;
-      if (hasSchool && isSchoolTraining) payload.school_id = school.id;
+      if (hasSchool && isSchoolTraining) {
+        payload.school_id = school.id;
+        if (isSchoolOwner && selectedCoachId) payload.coach_id = selectedCoachId;
+      }
       if (!isRecurring) {
         const d = new Date(form.one_off_date + 'T00:00:00');
         payload.day_of_week = (d.getDay() + 6) % 7;
@@ -188,18 +194,45 @@ export default function CreateTraining() {
             </div></div>
           {/* School association */}
           {hasSchool && (
-            <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
-              <p className="text-sm font-medium text-foreground">{school.name}</p>
-              <button
-                type="button"
-                onClick={() => setIsSchoolTraining(v => !v)}
-                className={`relative h-7 w-12 rounded-full transition-colors ${isSchoolTraining ? 'bg-primary' : 'bg-muted'}`}
-              >
-                <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${isSchoolTraining ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+                <p className="text-sm font-medium text-foreground">{school.name}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsSchoolTraining(v => !v)}
+                  className={`relative h-7 w-12 rounded-full transition-colors ${isSchoolTraining ? 'bg-primary' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${isSchoolTraining ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              {/* Coach picker — school owner must assign a coach */}
+              {isSchoolOwner && isSchoolTraining && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Coach</label>
+                  {schoolCoaches.length === 0 ? (
+                    <p className="text-sm text-destructive">No coaches in your school yet. Add coaches before creating trainings.</p>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        value={selectedCoachId}
+                        onChange={e => setSelectedCoachId(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+                      >
+                        <option value="">Select coach</option>
+                        {schoolCoaches.map((m: any) => (
+                          <option key={m.coach_id} value={m.coach_id}>
+                            {m.coach?.full_name ?? 'Coach'}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
-          <button type="submit" disabled={create.isPending || !form.name || !form.venue || (!isRecurring && !form.one_off_date)}
+          <button type="submit" disabled={create.isPending || !form.name || !form.venue || (!isRecurring && !form.one_off_date) || (isSchoolOwner && hasSchool && isSchoolTraining && !selectedCoachId)}
             className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
             {create.isPending ? 'Creating...' : 'Create Lesson'}
           </button>

@@ -77,7 +77,7 @@ export function useCreateTraining() {
     mutationFn: async (values: Record<string, any>) => {
       const { data, error } = await supabase
         .from('trainings' as any)
-        .insert({ ...values, coach_id: user!.id })
+        .insert({ ...values, coach_id: values.coach_id || user!.id })
         .select()
         .single();
       if (error) throw error;

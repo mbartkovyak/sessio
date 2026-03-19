@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CheckCircle2, Users, Settings, UserPlus, Calendar } from 'lucide-react';
+import { Plus, CheckCircle2, Users, Settings, UserPlus, Calendar, Clock, LogOut } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,7 @@ import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
-import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
+import { useMySchool, useMySchoolMembership, useMyPendingSchoolRequest } from '@/hooks/school/useSchools';
 import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import { toast } from 'sonner';
 
@@ -71,11 +71,12 @@ function TodaySessionRow({ session }: { session: any }) {
 }
 
 export default function CoachHome() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { view, setView } = useSchoolView();
   const qc = useQueryClient();
+  const { data: pendingRequest, isLoading: pendingLoading } = useMyPendingSchoolRequest();
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
@@ -85,6 +86,53 @@ export default function CoachHome() {
   const { data: schoolMembership } = useMySchoolMembership();
   const schoolMembers = (fullSchool as any)?.school_members ?? [];
   const isSelfCoach = schoolMembers.some((m: any) => m.coach_id === profile?.id);
+
+  // Block coach with pending school request
+  if (!isSchoolOwner && !pendingLoading && pendingRequest) {
+    const pendingSchool = pendingRequest.schools as any;
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+          <div className="max-w-md mx-auto flex items-center gap-2">
+            <SessioLogoCompact />
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="max-w-sm w-full text-center space-y-5">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+              <Clock className="h-8 w-8 text-amber-500" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Waiting for approval</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Your request to join <span className="font-semibold text-foreground">{pendingSchool?.name}</span> is being reviewed by the school owner.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary overflow-hidden">
+                  {pendingSchool?.logo_url
+                    ? <img src={pendingSchool.logo_url} alt="" className="h-full w-full object-cover" />
+                    : pendingSchool?.name?.[0] ?? '?'}
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground text-sm">{pendingSchool?.name}</p>
+                  <p className="text-xs text-muted-foreground">{[pendingSchool?.sport, pendingSchool?.city].filter(Boolean).join(' · ')}</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">You'll get access once the owner approves your request.</p>
+            <button
+              onClick={async () => { await signOut(); navigate('/auth'); }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
+            >
+              <LogOut className="h-4 w-4" /> Sign Out
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   async function addSelfAsCoach() {
     if (!fullSchool?.id || !profile?.id) return;
