@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
+import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 
 const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -22,7 +23,12 @@ export default function CoachTrainings() {
   const trainings = isSchoolView ? schoolTrainings : myTrainings;
   const isLoading = isSchoolView ? schoolLoading : myLoading;
   const [search, setSearch] = useState('');
-  const filtered = trainings.filter((t: any) => t.name?.toLowerCase().includes(search.toLowerCase()));
+  const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
+  const hasSchoolTrainings = !isSchoolView && myTrainings.some((t: any) => t.school_id);
+  const afterOwnership = isSchoolView ? trainings : trainings.filter((t: any) =>
+    ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !t.school_id : !!t.school_id
+  );
+  const filtered = afterOwnership.filter((t: any) => t.name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -37,6 +43,9 @@ export default function CoachTrainings() {
               </button>
             </div>
           </div>
+          {hasSchoolTrainings && (
+            <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..." className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
@@ -59,7 +68,8 @@ export default function CoachTrainings() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">{(t.days_of_week ?? [t.day_of_week]).map((d: number) => DAYS[d]).filter(Boolean).join(', ')} · {t.start_time?.slice(0,5)} · {t.venue}</p>
                 {isSchoolView && t.coach?.full_name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.coach.full_name}</span>}
-                {!isSchoolView && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
+                {!isSchoolView && ownershipTab === 'all' && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
+                {!isSchoolView && ownershipTab === 'all' && !t.school_id && hasSchoolTrainings && <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Personal</span>}
               </div>
             </button>
           ))}

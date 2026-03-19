@@ -1,5 +1,6 @@
 import { format, addDays, isToday, isTomorrow } from 'date-fns';
 import { MapPin } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSchoolView } from '@/contexts/SchoolViewContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
+import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 const SPORT_ICONS: Record<string, string> = {
@@ -23,7 +25,7 @@ function useCoachSessions(coachId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions' as any)
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players)')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, schools(name))')
         .eq('trainings.coach_id', coachId!)
         .gte('session_date', today)
         .lte('session_date', endDate)
@@ -70,8 +72,13 @@ export default function CoachCalendar() {
   const { data: school } = useMySchool();
   const { data: coachSessions = [], isLoading: coachLoading } = useCoachSessions(user?.id);
   const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolView ? school?.id : undefined);
-  const sessions = isSchoolView ? schoolSessions : coachSessions;
+  const allSessions = isSchoolView ? schoolSessions : coachSessions;
   const isLoading = isSchoolView ? schoolLoading : coachLoading;
+  const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
+  const hasSchoolTrainings = !isSchoolView && coachSessions.some((s: any) => s.trainings?.school_id);
+  const sessions = isSchoolView ? allSessions : allSessions.filter((s: any) =>
+    ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !s.trainings?.school_id : !!s.trainings?.school_id
+  );
 
   const today = new Date();
   const days = Array.from({ length: 28 }, (_, i) => addDays(today, i));
@@ -85,9 +92,14 @@ export default function CoachCalendar() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
-          <SchoolViewToggle />
+        <div className="max-w-md mx-auto space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
+            <SchoolViewToggle />
+          </div>
+          {hasSchoolTrainings && (
+            <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
+          )}
         </div>
       </header>
 
@@ -144,6 +156,11 @@ export default function CoachCalendar() {
                                 )}
                               </div>
                             </div>
+                            {!isSchoolView && ownershipTab === 'all' && hasSchoolTrainings && (
+                              training?.school_id
+                                ? <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground shrink-0">{training.schools?.name ?? 'School'}</span>
+                                : <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground shrink-0">Personal</span>
+                            )}
                             {session.status === 'cancelled' && (
                               <span className="text-xs font-medium text-destructive shrink-0">Cancelled</span>
                             )}
