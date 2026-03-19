@@ -235,7 +235,7 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
       let q = supabase
         .from('profiles' as any)
         .select('id, full_name, avatar_url, sport, city, bio')
-        .eq('role', 'coach')
+        .in('role', ['coach', 'school_owner'])
         .not('full_name', 'is', null);
       if (search) q = q.ilike('full_name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
