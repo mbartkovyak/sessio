@@ -94,10 +94,19 @@ export default function Onboarding() {
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
-      const { error: schoolError } = await supabase
+      const { data: newSchool, error: schoolError } = await supabase
         .from('schools' as any)
-        .insert({ name: schoolName.trim(), sport, city, owner_id: user.id });
+        .insert({ name: schoolName.trim(), sport, city, owner_id: user.id })
+        .select('id')
+        .single();
       if (schoolError) { setError(schoolError.message); setLoading(false); return; }
+
+      // Auto-add owner as coach in the school
+      if (newSchool) {
+        await supabase
+          .from('school_members' as any)
+          .insert({ school_id: (newSchool as any).id, coach_id: user.id, status: 'approved' });
+      }
 
       await refreshProfile();
       navigate('/coach');

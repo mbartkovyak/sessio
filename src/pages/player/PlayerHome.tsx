@@ -192,13 +192,7 @@ export default function PlayerHome() {
   const navigate = useNavigate();
   const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
 
-  const threeDaysFromNow = new Date();
-  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-  const threeDaysStr = threeDaysFromNow.toISOString().split('T')[0];
-
-  const pendingConfirmations = upcoming.filter((a: any) =>
-    a.status === 'pending' && a.training_sessions?.session_date <= threeDaysStr
-  );
+  const pendingConfirmations = upcoming.filter((a: any) => a.status === 'pending');
   const confirmedSessions = upcoming.filter((a: any) => a.status === 'confirmed');
   const nextConfirmed = confirmedSessions[0];
   const allConfirmed = pendingConfirmations.length === 0 && upcoming.length > 0;

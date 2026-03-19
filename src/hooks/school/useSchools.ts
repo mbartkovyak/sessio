@@ -228,6 +228,24 @@ export function useUpdateSchool(schoolId: string) {
   });
 }
 
+export function useDiscoverableSchools(search?: string, sport?: string, city?: string) {
+  return useQuery({
+    queryKey: ['schools-discover', search, sport, city],
+    queryFn: async () => {
+      let q = supabase
+        .from('schools' as any)
+        .select('id, name, sport, city, logo_url')
+        .not('name', 'is', null);
+      if (search) q = q.ilike('name', `%${search}%`);
+      if (sport) q = q.eq('sport', sport);
+      if (city) q = q.ilike('city', `%${city}%`);
+      const { data, error } = await q.limit(50);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
 export function useDiscoverableCoaches(search?: string, sport?: string, city?: string) {
   return useQuery({
     queryKey: ['coaches-discover', search, sport, city],

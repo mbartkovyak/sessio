@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTrainings } from '@/hooks/training/useTrainings';
+import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
+import { useMySchool } from '@/hooks/school/useSchools';
+import { useAuth } from '@/contexts/AuthContext';
 import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 
 const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
@@ -10,11 +12,23 @@ const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 export default function CoachTrainings() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isSchoolOwner = profile?.role === 'school_owner';
+  const { data: school } = useMySchool();
   const { data: myTrainings = [], isLoading } = useTrainings();
+  const { data: schoolTrainings = [] } = useSchoolTrainings(isSchoolOwner ? school?.id : undefined);
   const [search, setSearch] = useState('');
   const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
-  const hasSchoolTrainings = myTrainings.some((t: any) => t.school_id);
-  const afterOwnership = myTrainings.filter((t: any) =>
+
+  // Merge personal + school trainings (deduplicate)
+  const allTrainings = useMemo(() => {
+    if (!isSchoolOwner) return myTrainings;
+    const ids = new Set(myTrainings.map((t: any) => t.id));
+    return [...myTrainings, ...schoolTrainings.filter((t: any) => !ids.has(t.id))];
+  }, [myTrainings, schoolTrainings, isSchoolOwner]);
+
+  const hasSchoolTrainings = allTrainings.some((t: any) => t.school_id);
+  const afterOwnership = allTrainings.filter((t: any) =>
     ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !t.school_id : !!t.school_id
   );
   const filtered = afterOwnership.filter((t: any) => t.name?.toLowerCase().includes(search.toLowerCase()));
@@ -53,6 +67,7 @@ export default function CoachTrainings() {
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{t.type}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">{(t.days_of_week ?? [t.day_of_week]).map((d: number) => DAYS[d]).filter(Boolean).join(', ')} · {t.start_time?.slice(0,5)} · {t.venue}</p>
+                {t.school_id && t.coach?.full_name && t.coach_id !== profile?.id && <span className="mt-1 inline-block text-xs text-primary font-medium">Coach {t.coach.full_name}</span>}
                 {ownershipTab === 'all' && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
                 {ownershipTab === 'all' && !t.school_id && hasSchoolTrainings && <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Personal</span>}
               </div>

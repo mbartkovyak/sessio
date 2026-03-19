@@ -123,6 +123,12 @@ export default function CoachHome() {
             </div>
             <p className="text-xs text-muted-foreground">You'll get access once the owner approves your request.</p>
             <button
+              onClick={() => qc.invalidateQueries({ queryKey: ['my-pending-school-request'] })}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px]"
+            >
+              Check status
+            </button>
+            <button
               onClick={async () => { await signOut(); navigate('/auth'); }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
             >
