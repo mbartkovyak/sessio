@@ -138,7 +138,7 @@ export default function CoachHome() {
     if (!fullSchool?.id || !profile?.id) return;
     const { error } = await supabase
       .from('school_members' as any)
-      .insert({ school_id: fullSchool.id, coach_id: profile.id });
+      .insert({ school_id: fullSchool.id, coach_id: profile.id, status: 'approved' });
     if (error) toast.error(error.message);
     else {
       toast.success("Added! You can now create trainings.");

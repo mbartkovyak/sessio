@@ -73,21 +73,13 @@ export default function Landing() {
             Sessio automates training confirmations, reminders, and waitlist backfill for sports coaches.
             Your athletes confirm in one tap. You just show up.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <button
-              onClick={() => navigate('/auth')}
-              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
-            >
-              Join as Coach
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => navigate('/auth')}
-              className="flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-white/15 min-h-[44px]"
-            >
-              Join as Athlete
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/auth')}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
+          >
+            Get Started Free
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star, MapPin, ChevronDown } from 'lucide-react';
+import { Search, MapPin, ChevronDown } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useDiscoverableCoaches } from '@/hooks/school/useSchools';
 
@@ -94,10 +94,7 @@ export default function PlayerSearch() {
                     </div>
                     {coach.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{coach.bio}</p>}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-                    <span className="text-xs font-medium text-foreground">—</span>
-                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">New</span>
                 </button>
               ))}
             </div>

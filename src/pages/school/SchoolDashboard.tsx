@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, UserPlus, LogOut, Calendar, Settings } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import { toast } from 'sonner';
@@ -18,12 +18,52 @@ export default function SchoolDashboard() {
   const coaches = (school as any)?.school_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === user?.id);
 
+  const { data: trainingsCount = 0 } = useQuery({
+    queryKey: ['school-trainings-count', school?.id],
+    enabled: !!school?.id,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('trainings' as any)
+        .select('*', { count: 'exact', head: true })
+        .eq('school_id', school!.id)
+        .eq('is_active', true);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: athletesCount = 0 } = useQuery({
+    queryKey: ['school-athletes-count', school?.id],
+    enabled: !!school?.id,
+    queryFn: async () => {
+      // Get all active training IDs for this school
+      const { data: trainings, error: tErr } = await supabase
+        .from('trainings' as any)
+        .select('id')
+        .eq('school_id', school!.id)
+        .eq('is_active', true);
+      if (tErr) throw tErr;
+      if (!trainings || trainings.length === 0) return 0;
+
+      const trainingIds = trainings.map((t: any) => t.id);
+      const { data: members, error: mErr } = await supabase
+        .from('training_members' as any)
+        .select('user_id')
+        .in('training_id', trainingIds);
+      if (mErr) throw mErr;
+
+      // Count unique athletes
+      const uniqueIds = new Set((members ?? []).map((m: any) => m.user_id));
+      return uniqueIds.size;
+    },
+  });
+
   async function addSelfAsCoach() {
     if (!school?.id || !user) return;
     setAddingSelf(true);
     const { error } = await supabase
       .from('school_members' as any)
-      .insert({ school_id: school.id, coach_id: user.id });
+      .insert({ school_id: school.id, coach_id: user.id, status: 'approved' });
     setAddingSelf(false);
     if (error) {
       toast.error(error.message);
@@ -61,11 +101,11 @@ export default function SchoolDashboard() {
             <p className="text-xs text-muted-foreground mt-0.5">Coaches</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-3 text-center">
-            <p className="text-xl font-bold text-foreground">0</p>
+            <p className="text-xl font-bold text-foreground">{trainingsCount}</p>
             <p className="text-xs text-muted-foreground mt-0.5">Trainings</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-3 text-center">
-            <p className="text-xl font-bold text-foreground">0</p>
+            <p className="text-xl font-bold text-foreground">{athletesCount}</p>
             <p className="text-xs text-muted-foreground mt-0.5">Athletes</p>
           </div>
         </div>

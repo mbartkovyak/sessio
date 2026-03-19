@@ -1,15 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Mail, Trash2 } from 'lucide-react';
+import { LogOut, Mail, Trash2, User } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function PlayerProfile() {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState(profile?.full_name ?? '');
+
+  async function handleSave() {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: name })
+      .eq('id', user.id);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else toast.success('Profile updated');
+  }
 
   const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? '?';
 
@@ -30,17 +44,28 @@ export default function PlayerProfile() {
                 ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
                 : initials}
             </div>
-            <h2 className="text-xl font-bold text-foreground">{profile?.full_name ?? 'Athlete'}</h2>
+            <p className="text-sm text-muted-foreground">{profile?.email}</p>
             <span className="mt-1 rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">Athlete</span>
           </div>
 
-          {/* Contact */}
-          <div className="rounded-xl border border-border bg-card divide-y divide-border shadow-sm">
-            <div className="flex items-center gap-3 px-4 py-3">
-              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-sm text-foreground truncate">{profile?.email}</span>
-            </div>
+          {/* Name */}
+          <div>
+            <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
+              <User className="h-3.5 w-3.5" /> Full Name
+            </label>
+            <input
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              value={name} onChange={e => setName(e.target.value)}
+            />
           </div>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
 
           {/* Actions */}
           <div className="rounded-xl border border-border bg-card divide-y divide-border shadow-sm">
