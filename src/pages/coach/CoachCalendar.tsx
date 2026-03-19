@@ -5,9 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSchoolView } from '@/contexts/SchoolViewContext';
-import { useMySchool } from '@/hooks/school/useSchools';
-import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
@@ -37,27 +34,6 @@ function useCoachSessions(coachId: string | undefined) {
   });
 }
 
-function useSchoolSessions(schoolId: string | undefined) {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const endDate = format(addDays(new Date(), 28), 'yyyy-MM-dd');
-  return useQuery({
-    queryKey: ['school-calendar-sessions', schoolId, today],
-    enabled: !!schoolId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('training_sessions' as any)
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, coach:profiles(full_name))')
-        .eq('trainings.school_id', schoolId!)
-        .gte('session_date', today)
-        .lte('session_date', endDate)
-        .order('session_date', { ascending: true })
-        .order('start_time', { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as any[];
-    },
-  });
-}
-
 function dayLabel(date: Date) {
   if (isToday(date)) return 'Today';
   if (isTomorrow(date)) return 'Tomorrow';
@@ -66,17 +42,11 @@ function dayLabel(date: Date) {
 
 export default function CoachCalendar() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
-  const { view } = useSchoolView();
-  const isSchoolView = profile?.role === 'school_owner' && view === 'school';
-  const { data: school } = useMySchool();
-  const { data: coachSessions = [], isLoading: coachLoading } = useCoachSessions(user?.id);
-  const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolView ? school?.id : undefined);
-  const allSessions = isSchoolView ? schoolSessions : coachSessions;
-  const isLoading = isSchoolView ? schoolLoading : coachLoading;
+  const { user } = useAuth();
+  const { data: coachSessions = [], isLoading } = useCoachSessions(user?.id);
   const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
-  const hasSchoolTrainings = !isSchoolView && coachSessions.some((s: any) => s.trainings?.school_id);
-  const sessions = isSchoolView ? allSessions : allSessions.filter((s: any) =>
+  const hasSchoolTrainings = coachSessions.some((s: any) => s.trainings?.school_id);
+  const sessions = coachSessions.filter((s: any) =>
     ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !s.trainings?.school_id : !!s.trainings?.school_id
   );
 
@@ -93,10 +63,7 @@ export default function CoachCalendar() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
-            <SchoolViewToggle />
-          </div>
+          <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
           {hasSchoolTrainings && (
             <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
           )}
@@ -156,7 +123,7 @@ export default function CoachCalendar() {
                                 )}
                               </div>
                             </div>
-                            {!isSchoolView && ownershipTab === 'all' && hasSchoolTrainings && (
+                            {ownershipTab === 'all' && hasSchoolTrainings && (
                               training?.school_id
                                 ? <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground shrink-0">{training.schools?.name ?? 'School'}</span>
                                 : <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground shrink-0">Personal</span>

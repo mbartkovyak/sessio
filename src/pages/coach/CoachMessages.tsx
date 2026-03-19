@@ -2,11 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
+import { useTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSchoolView } from '@/contexts/SchoolViewContext';
-import { useMySchool } from '@/hooks/school/useSchools';
-import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
 import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,17 +41,11 @@ function unreadCount(trainingId: string, lastMsg: any, userId: string): boolean 
 }
 
 export default function CoachMessages() {
-  const { user, profile } = useAuth();
-  const { view } = useSchoolView();
-  const isSchoolView = profile?.role === 'school_owner' && view === 'school';
-  const { data: school } = useMySchool();
-  const { data: myTrainings = [], isLoading: myLoading } = useTrainings();
-  const { data: schoolTrainings = [], isLoading: schoolLoading } = useSchoolTrainings(isSchoolView ? school?.id : undefined);
-  const allTrainings = isSchoolView ? schoolTrainings : myTrainings;
-  const isLoading = isSchoolView ? schoolLoading : myLoading;
+  const { user } = useAuth();
+  const { data: myTrainings = [], isLoading } = useTrainings();
   const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
-  const hasSchoolTrainings = !isSchoolView && myTrainings.some((t: any) => t.school_id);
-  const trainings = isSchoolView ? allTrainings : allTrainings.filter((t: any) =>
+  const hasSchoolTrainings = myTrainings.some((t: any) => t.school_id);
+  const trainings = myTrainings.filter((t: any) =>
     ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !t.school_id : !!t.school_id
   );
   const trainingIds = trainings.map((t: any) => t.id);
@@ -75,10 +66,7 @@ export default function CoachMessages() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-foreground">Messages</h1>
-            <SchoolViewToggle />
-          </div>
+          <h1 className="text-lg font-semibold text-foreground">Messages</h1>
           {hasSchoolTrainings && (
             <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
           )}
@@ -118,7 +106,7 @@ export default function CoachMessages() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
-                        {!isSchoolView && ownershipTab === 'all' && hasSchoolTrainings && (
+                        {ownershipTab === 'all' && hasSchoolTrainings && (
                           t.school_id
                             ? <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-secondary-foreground shrink-0">{t.schools?.name ?? 'School'}</span>
                             : <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground shrink-0">Personal</span>

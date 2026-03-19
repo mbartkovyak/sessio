@@ -2,11 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSchoolView } from '@/contexts/SchoolViewContext';
-import { useMySchool } from '@/hooks/school/useSchools';
-import SchoolViewToggle from '@/components/coach/SchoolViewToggle';
+import { useTrainings } from '@/hooks/training/useTrainings';
 import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 
 const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
@@ -14,18 +10,11 @@ const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 export default function CoachTrainings() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const { view } = useSchoolView();
-  const isSchoolView = profile?.role === 'school_owner' && view === 'school';
-  const { data: school } = useMySchool();
-  const { data: myTrainings = [], isLoading: myLoading } = useTrainings();
-  const { data: schoolTrainings = [], isLoading: schoolLoading } = useSchoolTrainings(isSchoolView ? school?.id : undefined);
-  const trainings = isSchoolView ? schoolTrainings : myTrainings;
-  const isLoading = isSchoolView ? schoolLoading : myLoading;
+  const { data: myTrainings = [], isLoading } = useTrainings();
   const [search, setSearch] = useState('');
   const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
-  const hasSchoolTrainings = !isSchoolView && myTrainings.some((t: any) => t.school_id);
-  const afterOwnership = isSchoolView ? trainings : trainings.filter((t: any) =>
+  const hasSchoolTrainings = myTrainings.some((t: any) => t.school_id);
+  const afterOwnership = myTrainings.filter((t: any) =>
     ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !t.school_id : !!t.school_id
   );
   const filtered = afterOwnership.filter((t: any) => t.name?.toLowerCase().includes(search.toLowerCase()));
@@ -36,12 +25,9 @@ export default function CoachTrainings() {
         <div className="max-w-md mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-foreground">Lessons</h1>
-            <div className="flex items-center gap-2">
-              <SchoolViewToggle />
-              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
-                <Plus className="h-4 w-4" /> New
-              </button>
-            </div>
+            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
+              <Plus className="h-4 w-4" /> New
+            </button>
           </div>
           {hasSchoolTrainings && (
             <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
@@ -67,9 +53,8 @@ export default function CoachTrainings() {
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{t.type}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">{(t.days_of_week ?? [t.day_of_week]).map((d: number) => DAYS[d]).filter(Boolean).join(', ')} · {t.start_time?.slice(0,5)} · {t.venue}</p>
-                {isSchoolView && t.coach?.full_name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.coach.full_name}</span>}
-                {!isSchoolView && ownershipTab === 'all' && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
-                {!isSchoolView && ownershipTab === 'all' && !t.school_id && hasSchoolTrainings && <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Personal</span>}
+                {ownershipTab === 'all' && t.schools?.name && <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.schools.name}</span>}
+                {ownershipTab === 'all' && !t.school_id && hasSchoolTrainings && <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Personal</span>}
               </div>
             </button>
           ))}
