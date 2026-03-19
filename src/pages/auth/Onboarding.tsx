@@ -89,7 +89,7 @@ export default function Onboarding() {
     navigate('/coach');
   }
 
-  // ── Submit: Join School ──
+  // ── Submit: Join School (via invite link — sport/city inherited from school) ──
   async function submitJoinSchool() {
     if (!inviteCode.trim()) return;
     setLoading(true);
@@ -103,7 +103,7 @@ export default function Onboarding() {
     // Look up school by invite code
     const { data: school, error: lookupError } = await supabase
       .from('schools' as any)
-      .select('id, name')
+      .select('id, name, sport, city')
       .eq('invite_code', code)
       .maybeSingle();
 
@@ -113,17 +113,19 @@ export default function Onboarding() {
       return;
     }
 
-    // Update profile as coach
+    const s = school as any;
+
+    // Update profile as coach — inherit sport/city from school
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true } as any)
+      .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true } as any)
       .eq('id', user!.id);
     if (profileError) { setError(profileError.message); setLoading(false); return; }
 
     // Add to school_members
     const { error: memberError } = await supabase
       .from('school_members' as any)
-      .insert({ school_id: (school as any).id, coach_id: user!.id });
+      .insert({ school_id: s.id, coach_id: user!.id });
     if (memberError && !memberError.message.includes('duplicate')) {
       setError(memberError.message);
       setLoading(false);
@@ -131,7 +133,7 @@ export default function Onboarding() {
     }
 
     await refreshProfile();
-    toast.success(`Welcome to ${(school as any).name}!`);
+    toast.success(`Welcome to ${s.name}!`);
     navigate('/coach');
   }
 
@@ -180,12 +182,14 @@ export default function Onboarding() {
                   className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                 />
                 <button
-                  onClick={() => setStep('train-or-coach')}
-                  disabled={!fullName.trim()}
-                  className="w-full rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
+                  onClick={() => coachType === 'join' ? submitJoinSchool() : setStep('train-or-coach')}
+                  disabled={!fullName.trim() || loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
-                  Continue
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {coachType === 'join' ? 'Join School' : 'Continue'}
                 </button>
+                {error && <p className="text-sm text-destructive mt-2">{error}</p>}
               </div>
             </div>
           )}
