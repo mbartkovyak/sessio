@@ -234,14 +234,17 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
     queryFn: async () => {
       let q = supabase
         .from('schools' as any)
-        .select('id, name, sport, city, logo_url')
+        .select('id, name, sport, city, logo_url, description, school_members(id, status)')
         .not('name', 'is', null);
       if (search) q = q.ilike('name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
       if (city) q = q.ilike('city', `%${city}%`);
       const { data, error } = await q.limit(50);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return ((data ?? []) as any[]).map(s => ({
+        ...s,
+        coach_count: s.school_members?.filter((m: any) => m.status === 'approved').length ?? 0,
+      }));
     },
   });
 }
