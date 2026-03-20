@@ -8,6 +8,7 @@ import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SchoolViewProvider } from "@/contexts/SchoolViewContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 // Auth pages
 import Landing from "./pages/auth/Landing";
@@ -55,6 +56,7 @@ const App = () => (
       <BrowserRouter>
         <NavigationLoadingBar />
         <InstallPWA />
+        <ErrorBoundary>
         <AuthProvider>
         <SchoolViewProvider>
           <Routes>
@@ -100,6 +102,7 @@ const App = () => (
           </Routes>
         </SchoolViewProvider>
         </AuthProvider>
+        </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

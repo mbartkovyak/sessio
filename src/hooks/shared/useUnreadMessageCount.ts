@@ -31,13 +31,13 @@ export function useUnreadMessageCount() {
 
       if (profile?.role === 'coach') {
         const { data } = await supabase
-          .from('trainings' as any)
+          .from('trainings')
           .select('id')
           .eq('coach_id', user!.id);
         trainingIds = (data ?? []).map((t: any) => t.id);
       } else {
         const { data } = await supabase
-          .from('training_members' as any)
+          .from('training_members')
           .select('training_id')
           .eq('user_id', user!.id);
         trainingIds = (data ?? []).map((m: any) => m.training_id);
@@ -49,7 +49,7 @@ export function useUnreadMessageCount() {
       for (const tid of trainingIds) {
         const since = lastSeen[tid];
         let q = supabase
-          .from('training_messages' as any)
+          .from('training_messages')
           .select('*', { count: 'exact', head: true })
           .eq('training_id', tid)
           .neq('sender_id', user!.id);

@@ -1,14 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Heart, Calendar, Clock, Users } from 'lucide-react';
+import { ArrowLeft, MapPin, Heart, Calendar, Users } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useSchool, useSchoolPublicTrainings, useIsFavouriteSchool, useToggleFavouriteSchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
-
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+import TrainingCard from '@/components/shared/TrainingCard';
+import Avatar from '@/components/shared/Avatar';
 
 export default function SchoolPublicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -66,45 +62,26 @@ export default function SchoolPublicProfile() {
             <div>
               <h3 className="font-semibold text-foreground mb-3">Group Trainings</h3>
               <div className="space-y-2">
-                {trainings.map((t: any) => {
-                  const icon = SPORT_ICONS[t.sport] ?? '🎯';
-                  const days = (t.days_of_week ?? [t.day_of_week])
-                    .map((d: number) => DAYS[d]).filter(Boolean).join(', ');
-                  const coachName = t.coach?.full_name;
-                  return (
-                    <button
+                {trainings.map((t: any) => (
+                    <TrainingCard
                       key={t.id}
+                      training={t}
                       onClick={() => navigate(`/join/${t.invite_code}`)}
-                      className="w-full flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 shadow-sm"
-                    >
-                      <span className="text-2xl mt-0.5">{icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground truncate">{t.name}</p>
-                        <div className="mt-1 space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3 shrink-0" />
-                            <span>{days} · {t.start_time?.slice(0, 5)}</span>
-                          </div>
-                          {t.venue && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <MapPin className="h-3 w-3 shrink-0" />
-                              <span className="truncate">{t.venue}</span>
-                            </div>
-                          )}
+                      extra={
+                        <>
                           {t.max_players && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <Users className="h-3 w-3 shrink-0" />
                               <span>{t.max_players} spots</span>
                             </div>
                           )}
-                        </div>
-                        {coachName && (
-                          <p className="mt-1.5 text-xs text-primary font-medium">Coach {coachName}</p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                          {t.coach?.full_name && (
+                            <p className="mt-1.5 text-xs text-primary font-medium">Coach {t.coach.full_name}</p>
+                          )}
+                        </>
+                      }
+                    />
+                ))}
               </div>
             </div>
           )}
@@ -130,9 +107,7 @@ export default function SchoolPublicProfile() {
                       onClick={() => navigate(`/search/coach/${coach.id}`)}
                       className="w-full flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 shadow-sm"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary overflow-hidden">
-                        {coach.avatar_url ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" /> : (coach.full_name?.[0] ?? '?')}
-                      </div>
+                      <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-foreground truncate">{coach.full_name}</p>
                         <p className="text-xs text-muted-foreground">{coach.sport}</p>

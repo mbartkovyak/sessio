@@ -5,7 +5,9 @@ import { useTrainingMessages, useSendTrainingMessage } from '@/hooks/training/us
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO, isToday, isYesterday } from 'date-fns';
+import { format, parseISO, isToday } from 'date-fns';
+
+import Avatar from '@/components/shared/Avatar';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
@@ -17,13 +19,13 @@ function useMessageReactions(trainingId: string) {
     enabled: !!trainingId,
     queryFn: async () => {
       const msgResult = await supabase
-        .from('training_messages' as any)
+        .from('training_messages')
         .select('id')
         .eq('training_id', trainingId);
       const msgIds = (msgResult.data ?? []).map((m: any) => m.id);
       if (!msgIds.length) return {};
       const { data } = await supabase
-        .from('message_reactions' as any)
+        .from('message_reactions')
         .select('*, profiles:user_id(full_name)')
         .in('message_id', msgIds);
       const grouped: Record<string, any[]> = {};
@@ -41,16 +43,16 @@ function useToggleReaction() {
   return useMutation({
     mutationFn: async ({ messageId, emoji, userId }: { messageId: string; emoji: string; userId: string }) => {
       const { data: existing } = await supabase
-        .from('message_reactions' as any)
+        .from('message_reactions')
         .select('id')
         .eq('message_id', messageId)
         .eq('user_id', userId)
         .eq('emoji', emoji)
         .maybeSingle();
       if (existing) {
-        await supabase.from('message_reactions' as any).delete().eq('id', existing.id);
+        await supabase.from('message_reactions').delete().eq('id', existing.id);
       } else {
-        await supabase.from('message_reactions' as any).insert({ message_id: messageId, user_id: userId, emoji });
+        await supabase.from('message_reactions').insert({ message_id: messageId, user_id: userId, emoji });
       }
     },
     onSuccess: () => {
@@ -74,14 +76,7 @@ function formatTime(dateStr: string) {
   return format(parseISO(dateStr), 'HH:mm');
 }
 
-function Avatar({ url, name }: { url?: string; name: string }) {
-  const initials = name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
-  return (
-    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary overflow-hidden">
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : initials}
-    </div>
-  );
-}
+
 
 // ── Reaction bar (appears on long-press) ──
 
@@ -287,7 +282,7 @@ export default function ChatView({ trainingId, className, style }: ChatViewProps
                         <div className={`flex items-end gap-[6px] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                           {!isMe && (
                             showAvatar
-                              ? <Avatar url={sender?.avatar_url} name={sender?.full_name ?? ''} />
+                              ? <Avatar url={sender?.avatar_url} name={sender?.full_name} size="xs" />
                               : <div className="w-7 shrink-0" />
                           )}
 

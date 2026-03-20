@@ -1,17 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Star, MapPin } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import TrainingCard from '@/components/shared/TrainingCard';
 
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import Avatar from '@/components/shared/Avatar';
 
 export default function CoachPublicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +17,7 @@ export default function CoachPublicProfile() {
     queryKey: ['profile', id],
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles' as any).select('*').eq('id', id!).single();
+      const { data } = await supabase.from('profiles').select('*').eq('id', id!).single();
       return data as any;
     },
   });
@@ -32,8 +28,6 @@ export default function CoachPublicProfile() {
   const avgRating = reviews.length >= 3
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : null;
-
-  const initials = profile?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? '?';
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -48,10 +42,8 @@ export default function CoachPublicProfile() {
         <div className="max-w-md mx-auto">
           {/* Hero */}
           <div className="bg-card border-b border-border p-6 text-center">
-            <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary overflow-hidden">
-              {profile?.avatar_url
-                ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                : initials}
+            <div className="mx-auto mb-3">
+              <Avatar url={profile?.avatar_url} name={profile?.full_name} size="2xl" />
             </div>
             <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
             <div className="flex items-center justify-center gap-3 mt-1">
@@ -86,22 +78,23 @@ export default function CoachPublicProfile() {
                 <h3 className="font-semibold text-foreground mb-3">Available Trainings</h3>
                 <div className="space-y-2">
                   {trainings.map((t: any) => (
-                    <div key={t.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span>{SPORT_ICONS[t.sport] ?? '🎯'}</span>
-                        <span className="font-semibold text-foreground text-sm">{t.name}</span>
+                    <TrainingCard
+                      key={t.id}
+                      training={t}
+                      badge={
                         <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${
                           t.type === 'individual' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'
                         }`}>{t.type}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{DAYS[t.day_of_week]} · {t.start_time?.slice(0, 5)} · {t.venue}</p>
-                      <button
-                        onClick={() => navigate(`/join/${t.invite_code}`)}
-                        className="mt-3 w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground min-h-[36px]"
-                      >
-                        {t.booking_mode === 'approval' ? 'Request to Join' : 'Join Training'}
-                      </button>
-                    </div>
+                      }
+                      extra={
+                        <button
+                          onClick={() => navigate(`/join/${t.invite_code}`)}
+                          className="mt-3 w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground min-h-[36px]"
+                        >
+                          {t.booking_mode === 'approval' ? 'Request to Join' : 'Join Training'}
+                        </button>
+                      }
+                    />
                   ))}
                 </div>
               </div>

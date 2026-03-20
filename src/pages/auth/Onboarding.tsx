@@ -5,9 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
 import { SessioLogo } from '@/components/SessioLogo';
 import { toast } from 'sonner';
-
-const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'];
-const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
+import { SPORTS, CITIES } from '@/lib/constants';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -70,7 +68,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true } as any)
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(error.message); setLoading(false); return; }
       await refreshProfile();
@@ -90,12 +88,12 @@ export default function Onboarding() {
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport, city, onboarding_complete: true } as any)
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
       const { data: newSchool, error: schoolError } = await supabase
-        .from('schools' as any)
+        .from('schools')
         .insert({ name: schoolName.trim(), sport, city, owner_id: user.id })
         .select('id')
         .single();
@@ -104,8 +102,8 @@ export default function Onboarding() {
       // Auto-add owner as coach in the school
       if (newSchool) {
         await supabase
-          .from('school_members' as any)
-          .insert({ school_id: (newSchool as any).id, coach_id: user.id, status: 'approved' });
+          .from('school_members')
+          .insert({ school_id: (newSchool).id, coach_id: user.id, status: 'approved' });
       }
 
       await refreshProfile();
@@ -130,7 +128,7 @@ export default function Onboarding() {
 
       // Look up school by invite code
       const { data: school, error: lookupError } = await supabase
-        .from('schools' as any)
+        .from('schools')
         .select('id, name, sport, city')
         .eq('invite_code', code)
         .maybeSingle();
@@ -146,13 +144,13 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true } as any)
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
       // Request to join school (pending approval)
       const { error: memberError } = await supabase
-        .from('school_members' as any)
+        .from('school_members')
         .insert({ school_id: s.id, coach_id: user.id, status: 'pending' });
       if (memberError && !memberError.message.includes('duplicate')) {
         setError(memberError.message);

@@ -1,16 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Trash2, Settings, MapPin, Clock, CalendarDays, Edit3, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Settings, MapPin, Clock, CalendarDays, Edit3, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining } from '@/hooks/training/useTrainings';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { DAYS_FULL as DAYS, DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
-const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const DAYS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const SPORTS = ['Tennis','Swimming','Running','Fitness','Yoga','Football','Badminton','Boxing','Other'];
-const SPORT_ICONS: Record<string, string> = { Tennis:'🎾',Swimming:'🏊',Running:'🏃',Fitness:'💪',Yoga:'🧘',Football:'⚽',Badminton:'🏸',Boxing:'🥊',Other:'🎯' };
+import Avatar from '@/components/shared/Avatar';
+import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +27,7 @@ export default function TrainingDetail() {
   if (!training) return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-3 px-6">
       <p className="text-muted-foreground">Training not found</p>
-      {trainingError && <p className="text-xs text-destructive text-center max-w-sm">{(trainingError as any).message}</p>}
+      {trainingError && <p className="text-xs text-destructive text-center max-w-sm">{(trainingError).message}</p>}
       <button onClick={() => navigate('/coach/trainings')} className="text-sm text-primary font-medium">Back to Trainings</button>
     </div>
   );
@@ -118,13 +117,10 @@ export default function TrainingDetail() {
                 <div className="rounded-xl border border-border bg-card divide-y divide-border">
                   {members.map((m: any) => {
                     const p = m.profiles;
-                    const initials = p?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0,2) ?? '?';
                     return (
                       <div key={m.id} className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary overflow-hidden">
-                            {p?.avatar_url ? <img src={p.avatar_url} alt="" className="h-full w-full object-cover" /> : initials}
-                          </div>
+                          <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                           <div>
                             <p className="text-sm font-medium text-foreground">{p?.full_name ?? p?.email}</p>
                           </div>
@@ -173,32 +169,35 @@ export default function TrainingDetail() {
 
 function EditSection({ training, onClose, onDelete }: { training: any; onClose: () => void; onDelete: () => void }) {
   const update = useUpdateTraining(training.id);
-  const [name, setName] = useState('');
-  const [sport, setSport] = useState('');
-  const [venue, setVenue] = useState('');
-  const [selectedDays, setSelectedDays] = useState<number[]>([0]);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [maxPlayers, setMaxPlayers] = useState(6);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  useEffect(() => {
-    if (training) {
-      setName(training.name ?? '');
-      setSport(training.sport ?? '');
-      setVenue(training.venue ?? '');
-      setSelectedDays(training.days_of_week ?? [training.day_of_week ?? 0]);
-      setStartTime(training.start_time?.slice(0, 5) ?? '09:00');
-      setEndTime(training.end_time?.slice(0, 5) ?? '10:00');
-      setMaxPlayers(training.max_players ?? 6);
-    }
-  }, [training]);
+  const initialValues: Partial<TrainingFormValues> = training ? {
+    name: training.name ?? '',
+    type: training.type ?? 'group',
+    sport: training.sport ?? 'Tennis',
+    venue: training.venue ?? '',
+    start_time: training.start_time?.slice(0, 5) ?? '09:00',
+    end_time: training.end_time?.slice(0, 5) ?? '10:00',
+    max_players: training.max_players ?? 6,
+    is_recurring: training.is_recurring ?? true,
+    days_of_week: training.days_of_week ?? [training.day_of_week ?? 0],
+    start_date: training.start_date ?? '',
+    end_date: training.end_date ?? '',
+    booking_mode: training.booking_mode ?? 'instant',
+    visibility: training.visibility ?? 'private',
+    confirmation_window_hours: training.confirmation_window_hours ?? 48,
+    no_response_behavior: training.no_response_behavior ?? 'mark_absent',
+  } : undefined;
 
-  async function handleSave() {
+  async function handleSave(form: TrainingFormValues) {
     await update.mutateAsync({
-      name, sport, venue, day_of_week: selectedDays[0], days_of_week: selectedDays,
-      start_time: startTime + ':00', end_time: endTime + ':00',
-      max_players: training.type === 'group' ? maxPlayers : undefined,
+      name: form.name, sport: form.sport, venue: form.venue,
+      type: form.type,
+      day_of_week: form.days_of_week[0], days_of_week: form.days_of_week,
+      start_time: form.start_time + ':00', end_time: form.end_time + ':00',
+      max_players: form.type === 'group' ? form.max_players : undefined,
+      booking_mode: form.booking_mode, visibility: form.visibility,
+      confirmation_window_hours: form.confirmation_window_hours,
+      no_response_behavior: form.no_response_behavior,
     });
     toast.success('Training updated');
     onClose();
@@ -206,7 +205,7 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
 
   async function handleDelete() {
     const { error } = await supabase
-      .from('trainings' as any)
+      .from('trainings')
       .update({ is_active: false })
       .eq('id', training.id);
     if (error) toast.error(error.message);
@@ -214,71 +213,15 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-5 space-y-5">
-      <div>
-        <label className="text-sm font-medium text-foreground mb-1 block">Name</label>
-        <input value={name} onChange={e => setName(e.target.value)}
-          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
-      </div>
-      <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
-        <div className="flex flex-wrap gap-2">
-          {SPORTS.map(s => (
-            <button key={s} type="button" onClick={() => setSport(s)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${sport === s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{s}</button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium text-foreground mb-1 block">Venue</label>
-        <input value={venue} onChange={e => setVenue(e.target.value)}
-          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
-      </div>
-      <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Days</label>
-        <div className="flex gap-1 flex-wrap">
-          {DAYS.map((d, i) => (
-            <button key={d} type="button" onClick={() => setSelectedDays(prev => prev.includes(i) ? (prev.length > 1 ? prev.filter(x => x !== i) : prev) : [...prev, i].sort())}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${selectedDays.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0,3)}</button>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Start</label>
-          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-        <div><label className="text-sm font-medium text-foreground mb-1 block">End</label>
-          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-      </div>
-      {training.type === 'group' && (
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes</label>
-          <input type="number" min={1} max={50} value={maxPlayers} onChange={e => setMaxPlayers(Number(e.target.value))}
-            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-      )}
-      <div className="flex gap-2">
-        <button onClick={onClose} className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
-        <button onClick={handleSave} disabled={update.isPending || !name || !venue}
-          className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60 min-h-[44px]">
-          {update.isPending ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-      <div className="border-t border-border pt-5">
-        {!confirmDelete ? (
-          <button onClick={() => setConfirmDelete(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]">
-            <Trash2 className="h-4 w-4" /> Delete Training
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm text-destructive text-center font-medium">Are you sure? This can't be undone.</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
-              <button onClick={handleDelete} className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]">Delete</button>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="max-w-md mx-auto px-4 py-5">
+      <TrainingForm
+        mode="edit"
+        initialValues={initialValues}
+        onSubmit={handleSave}
+        submitting={update.isPending}
+        onCancel={onClose}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

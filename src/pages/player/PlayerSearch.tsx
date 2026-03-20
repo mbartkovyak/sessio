@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, ChevronDown, Users, Building2 } from 'lucide-react';
+import { Search, MapPin, Users, Building2 } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-
-const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing'];
-const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'];
+import { SPORTS, CITIES } from '@/lib/constants';
+import Avatar from '@/components/shared/Avatar';
+import SelectField from '@/components/shared/SelectField';
 
 export default function PlayerSearch() {
   const navigate = useNavigate();
@@ -23,9 +23,6 @@ export default function PlayerSearch() {
     const coachItems = coaches.map((c: any) => ({ ...c, _type: 'coach' as const }));
     return [...schoolItems, ...coachItems];
   }, [schools, coaches]);
-
-  const initials = (name: string) =>
-    name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
 
   // Result summary
   const summary = !isLoading && results.length > 0
@@ -50,28 +47,8 @@ export default function PlayerSearch() {
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="relative">
-              <select
-                value={selectedSport}
-                onChange={e => setSelectedSport(e.target.value)}
-                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-2.5 pr-9 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
-              >
-                <option value="">All sports</option>
-                {SPORTS.map(sport => <option key={sport} value={sport}>{sport}</option>)}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="relative">
-              <select
-                value={selectedCity}
-                onChange={e => setSelectedCity(e.target.value)}
-                className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-2.5 pr-9 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
-              >
-                <option value="">All cities</option>
-                {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
+            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder="All sports" />
+            <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={CITIES} placeholder="All cities" />
           </div>
         </div>
       </header>
@@ -135,11 +112,7 @@ export default function PlayerSearch() {
                     onClick={() => navigate(`/search/coach/${item.id}`)}
                     className="w-full flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary overflow-hidden">
-                      {item.avatar_url
-                        ? <img src={item.avatar_url} alt="" className="h-full w-full object-cover" />
-                        : initials(item.full_name ?? '')}
-                    </div>
+                    <Avatar url={item.avatar_url} name={item.full_name} size="lg" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-foreground truncate">{item.full_name}</p>
                       <div className="flex items-center gap-3 mt-0.5">

@@ -1,15 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { SPORT_ICONS, DAYS_FULL as DAYS } from '@/lib/constants';
 
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import Avatar from '@/components/shared/Avatar';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -23,12 +20,13 @@ export default function JoinTraining() {
   const [email, setEmail] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const joiningRef = useRef(false);
 
   // Fetch training from invite_code
   useEffect(() => {
     if (!inviteCode) return;
     supabase
-      .from('trainings' as any)
+      .from('trainings')
       .select('*, coach:profiles(full_name, avatar_url)')
       .eq('invite_code', inviteCode.toUpperCase())
       .eq('is_active', true)
@@ -59,6 +57,8 @@ export default function JoinTraining() {
 
   async function autoJoin() {
     if (!training || !profile) return;
+    if (joiningRef.current) return;
+    joiningRef.current = true;
     setJoining(true);
     try {
       if (training._type === 'training') {
@@ -76,7 +76,7 @@ export default function JoinTraining() {
         }
 
         const { count: activeCount } = await supabase
-          .from('training_members' as any)
+          .from('training_members')
           .select('*', { count: 'exact', head: true })
           .eq('training_id', training.id)
           .eq('role', 'regular');
@@ -91,7 +91,7 @@ export default function JoinTraining() {
         // If approval required, create a join request instead
         if (training.booking_mode === 'approval') {
           const { error } = await supabase
-            .from('join_requests' as any)
+            .from('join_requests')
             .upsert({ user_id: profile.id, training_id: training.id, status: 'pending' }, { onConflict: 'user_id,training_id' });
           if (error) throw error;
           toast.success('Join request sent! The coach will review it.');
@@ -101,9 +101,16 @@ export default function JoinTraining() {
 
         const memberRole = isFull ? 'waitlist' : 'regular';
         const { error } = await supabase
-          .from('training_members' as any)
+          .from('training_members')
           .insert({ training_id: training.id, user_id: profile.id, role: memberRole });
-        if (error) throw error;
+        if (error) {
+          if (error.code === '23505') {
+            toast.info("You're already in this training");
+            navigate('/player');
+            return;
+          }
+          throw error;
+        }
         toast.success(memberRole === 'waitlist' ? "Added to waitlist!" : `Joined ${training.name}! 🎉`);
         navigate('/player');
       } else {
@@ -121,6 +128,8 @@ export default function JoinTraining() {
     } catch (err: any) {
       toast.error(err.message ?? 'Failed to join');
       navigate('/player');
+    } finally {
+      joiningRef.current = false;
     }
   }
 
@@ -164,7 +173,6 @@ export default function JoinTraining() {
   }
 
   const coach = training.coach;
-  const coachInitials = coach?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? '?';
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
 
   const TrainingCard = () => (
@@ -223,8 +231,8 @@ export default function JoinTraining() {
       </header>
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary overflow-hidden">
-            {coach?.avatar_url ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" /> : coachInitials}
+          <div className="mx-auto mb-3">
+            <Avatar url={coach?.avatar_url} name={coach?.full_name} size="xl" />
           </div>
           <p className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{coach?.full_name ?? 'Your coach'}</span> invited you to join

@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { Users, Share2, Copy, UserPlus, ArrowLeft, Check, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import Avatar from '@/components/shared/Avatar';
 import { useState } from 'react';
 
 export default function SchoolCoaches() {
@@ -16,8 +17,8 @@ export default function SchoolCoaches() {
   const respond = useRespondSchoolMember();
   const [copied, setCopied] = useState(false);
 
-  const coaches = (school as any)?.school_members ?? [];
-  const pendingMembers = (school as any)?.pending_members ?? [];
+  const coaches = (school)?.school_members ?? [];
+  const pendingMembers = (school)?.pending_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === profile?.id);
   const inviteCode = school?.invite_code;
   const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
@@ -26,7 +27,7 @@ export default function SchoolCoaches() {
   async function addSelfAsCoach() {
     if (!school?.id || !profile?.id) return;
     const { error } = await supabase
-      .from('school_members' as any)
+      .from('school_members')
       .insert({ school_id: school.id, coach_id: profile.id, status: 'approved' });
     if (error) toast.error(error.message);
     else {
@@ -110,11 +111,7 @@ export default function SchoolCoaches() {
                 return (
                   <div key={m.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                        {coach?.avatar_url
-                          ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
-                          : (coach?.full_name?.[0] ?? '?')}
-                      </div>
+                      <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? 'Coach'}</p>
                         <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
@@ -171,11 +168,7 @@ export default function SchoolCoaches() {
                 const isMe = m.coach_id === profile?.id;
                 return (
                   <div key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                      {coach?.avatar_url
-                        ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
-                        : (coach?.full_name?.[0] ?? '?')}
-                    </div>
+                    <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">
                         {coach?.full_name ?? 'Coach'}

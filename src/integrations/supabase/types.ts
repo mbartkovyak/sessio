@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -48,7 +48,15 @@ export type Database = {
           user_id?: string
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coaches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       confirmations: {
         Row: {
@@ -88,6 +96,35 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favourite_schools: {
+        Row: {
+          created_at: string
+          id: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favourite_schools_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -253,6 +290,52 @@ export type Database = {
             columns: ["training_id"]
             isOneToOne: false
             referencedRelation: "trainings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "training_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -463,6 +546,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "reviews_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_training_id_fkey"
             columns: ["training_id"]
             isOneToOne: false
@@ -477,20 +574,30 @@ export type Database = {
           id: string
           joined_at: string
           school_id: string
+          status: string
         }
         Insert: {
           coach_id: string
           id?: string
           joined_at?: string
           school_id: string
+          status?: string
         }
         Update: {
           coach_id?: string
           id?: string
           joined_at?: string
           school_id?: string
+          status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "school_members_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "school_members_school_id_fkey"
             columns: ["school_id"]
@@ -506,6 +613,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          invite_code: string
           logo_url: string | null
           name: string
           owner_id: string
@@ -517,6 +625,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_code?: string
           logo_url?: string | null
           name: string
           owner_id: string
@@ -528,13 +637,22 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_code?: string
           logo_url?: string | null
           name?: string
           owner_id?: string
           sport?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schools_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       session_attendance: {
         Row: {
@@ -570,6 +688,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -645,6 +770,13 @@ export type Database = {
             referencedRelation: "trainings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "training_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       training_messages: {
@@ -670,6 +802,13 @@ export type Database = {
           training_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "training_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "training_messages_training_id_fkey"
             columns: ["training_id"]
@@ -708,6 +847,13 @@ export type Database = {
           training_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "training_open_spots_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "training_open_spots_session_id_fkey"
             columns: ["session_id"]
@@ -775,10 +921,13 @@ export type Database = {
           confirmation_window_hours: number
           created_at: string
           day_of_week: number
+          days_of_week: number[] | null
+          end_date: string | null
           end_time: string
           id: string
           invite_code: string
           is_active: boolean
+          is_recurring: boolean | null
           max_players: number | null
           name: string
           no_response_behavior: string
@@ -786,6 +935,7 @@ export type Database = {
           recurrence_pattern: string
           school_id: string | null
           sport: string
+          start_date: string | null
           start_time: string
           type: string
           updated_at: string
@@ -801,10 +951,13 @@ export type Database = {
           confirmation_window_hours?: number
           created_at?: string
           day_of_week: number
+          days_of_week?: number[] | null
+          end_date?: string | null
           end_time: string
           id?: string
           invite_code?: string
           is_active?: boolean
+          is_recurring?: boolean | null
           max_players?: number | null
           name: string
           no_response_behavior?: string
@@ -812,6 +965,7 @@ export type Database = {
           recurrence_pattern?: string
           school_id?: string | null
           sport: string
+          start_date?: string | null
           start_time: string
           type?: string
           updated_at?: string
@@ -827,10 +981,13 @@ export type Database = {
           confirmation_window_hours?: number
           created_at?: string
           day_of_week?: number
+          days_of_week?: number[] | null
+          end_date?: string | null
           end_time?: string
           id?: string
           invite_code?: string
           is_active?: boolean
+          is_recurring?: boolean | null
           max_players?: number | null
           name?: string
           no_response_behavior?: string
@@ -838,6 +995,7 @@ export type Database = {
           recurrence_pattern?: string
           school_id?: string | null
           sport?: string
+          start_date?: string | null
           start_time?: string
           type?: string
           updated_at?: string
@@ -845,6 +1003,13 @@ export type Database = {
           visibility?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trainings_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trainings_school_id_fkey"
             columns: ["school_id"]
@@ -867,6 +1032,7 @@ export type Database = {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json
       }
+      delete_my_account: { Args: never; Returns: undefined }
       generate_sessions_for_group: {
         Args: { p_group_id: string }
         Returns: Json
@@ -880,10 +1046,15 @@ export type Database = {
         Args: { _group_id: string; _player_id: string }
         Returns: boolean
       }
+      is_school_owner_of_training: {
+        Args: { p_training_id: string }
+        Returns: boolean
+      }
       is_training_member: {
         Args: { _player_id: string; _training_id: string }
         Returns: boolean
       }
+      owns_school: { Args: { p_school_id: string }; Returns: boolean }
       process_confirmation_window: { Args: never; Returns: Json }
     }
     Enums: {
@@ -1017,3 +1188,5 @@ export const Constants = {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.78.1 (currently installed v2.75.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

@@ -1,191 +1,14 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageCircle, Bell, CheckCircle2, XCircle, MapPin, Clock, Users } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
-import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
-import { useMyTrainings } from '@/hooks/training/useTrainings';
-import { useMyFavouriteSchools } from '@/hooks/school/useSchools';
-import { toast } from 'sonner';
-import { format, parseISO, isToday, isTomorrow } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-
-function relativeTime(dateStr: string, startTime: string) {
-  const date = parseISO(dateStr);
-  if (isToday(date)) return `Today at ${startTime.slice(0, 5)}`;
-  if (isTomorrow(date)) return `Tomorrow at ${startTime.slice(0, 5)}`;
-  return `${format(date, 'EEE d MMM')} at ${startTime.slice(0, 5)}`;
-}
-
-function ConfirmationCard({ attendance }: { attendance: any }) {
-  const session = attendance.training_sessions;
-  const training = session?.trainings;
-  const upsert = useUpsertAttendance();
-  const [dismissed, setDismissed] = useState(false);
-  const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
-
-  if (dismissed || attendance.status !== 'pending') return null;
-
-  async function confirm() {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'confirmed' });
-    setDismissed(true);
-    toast.success("You're in! 🎉");
-  }
-
-  async function decline() {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'declined' });
-    setDismissed(true);
-    toast.success("Marked as can't make it");
-  }
-
-  return (
-    <div className="card-elevated-lg rounded-2xl p-5">
-      <div className="mb-4 flex items-start gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-          {sportIcon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-foreground text-base leading-tight">{training?.name}</h3>
-          <p className="text-sm font-semibold text-primary mt-0.5">
-            {relativeTime(session?.session_date, session?.start_time)}
-          </p>
-        </div>
-      </div>
-      <div className="mb-4 space-y-1.5 pl-0.5">
-        <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-          {training?.venue}
-        </div>
-        {training?.coach?.full_name && (
-          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-            {training.coach.full_name}
-          </div>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={confirm}
-          disabled={upsert.isPending}
-          className="flex items-center justify-center gap-2 rounded-xl bg-success py-3.5 text-sm font-bold text-success-foreground min-h-[48px] active:scale-[0.97] transition-transform disabled:opacity-60"
-        >
-          <CheckCircle2 className="h-4.5 w-4.5" />
-          I'm coming
-        </button>
-        <button
-          onClick={decline}
-          disabled={upsert.isPending}
-          className="flex items-center justify-center gap-2 rounded-xl border border-destructive/25 bg-destructive/8 py-3.5 text-sm font-bold text-destructive min-h-[48px] active:scale-[0.97] transition-transform disabled:opacity-60"
-        >
-          <XCircle className="h-4.5 w-4.5" />
-          Can't make it
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function OpenSpotsSection() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
-  const { data: spots = [] } = useQuery({
-    queryKey: ['training-open-spots', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('training_open_spots' as any)
-        .select('*, trainings(id, name, sport, venue, coach:profiles(full_name)), training_sessions(session_date, start_time)')
-        .eq('status', 'open')
-        .limit(5);
-      return (data ?? []) as any[];
-    },
-  });
-
-  if (!spots.length) return null;
-
-  return (
-    <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Open Spots</h2>
-      <div className="space-y-3">
-        {spots.map((spot: any) => {
-          const training = spot.trainings;
-          const session = spot.training_sessions;
-          const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
-          return (
-            <div key={spot.id} className="card-elevated rounded-xl p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-xl">
-                  {sportIcon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground text-sm truncate">{training?.name}</p>
-                  {session && (
-                    <p className="text-xs text-muted-foreground">
-                      {relativeTime(session.session_date, session.start_time)}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  const { data } = await supabase.rpc('claim_training_spot' as any, { p_spot_id: spot.id, p_player_id: user!.id });
-                  if (data?.success) {
-                    toast.success("Spot claimed! 🎉");
-                    qc.invalidateQueries({ queryKey: ['training-open-spots'] });
-                  } else {
-                    toast.error(data?.error === 'already_claimed' ? 'Someone was faster!' : 'Failed to claim spot');
-                  }
-                }}
-                className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground min-h-[44px] active:scale-[0.97] transition-transform"
-              >
-                Claim Spot
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function FavouriteSchoolsSection() {
-  const navigate = useNavigate();
-  const { data: favs = [] } = useMyFavouriteSchools();
-  if (!favs.length) return null;
-
-  return (
-    <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">My Schools</h2>
-      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
-        {favs.map((f: any) => {
-          const school = f.school;
-          if (!school) return null;
-          return (
-            <button
-              key={f.id}
-              onClick={() => navigate(`/s/${school.id}`)}
-              className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 min-w-[100px] shrink-0 active:bg-secondary/50 shadow-sm"
-            >
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary overflow-hidden">
-                {school.logo_url
-                  ? <img src={school.logo_url} alt="" className="h-full w-full object-cover" />
-                  : school.name?.[0] ?? '?'}
-              </div>
-              <p className="text-xs font-medium text-foreground text-center truncate w-full">{school.name}</p>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
+import { relativeTime } from '@/components/player/home/relativeTime';
+import ConfirmationCard from '@/components/player/home/ConfirmationCard';
+import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
+import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
+import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 
 export default function PlayerHome() {
   const { profile } = useAuth();
@@ -273,27 +96,7 @@ export default function PlayerHome() {
           <FavouriteSchoolsSection />
 
           {/* This week confirmed sessions */}
-          {confirmedSessions.length > 0 && (
-            <div>
-              <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">This Week</h2>
-              <div className="card-elevated rounded-xl divide-y divide-border">
-                {confirmedSessions.slice(0, 5).map((a: any) => {
-                  const session = a.training_sessions;
-                  const training = session?.trainings;
-                  return (
-                    <div key={a.id} className="flex items-center gap-3 px-4 py-3.5">
-                      <div className="h-2 w-2 rounded-full shrink-0 bg-success" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{training?.name}</p>
-                        <p className="text-xs text-muted-foreground">{relativeTime(session?.session_date, session?.start_time)}</p>
-                      </div>
-                      <span className="text-xs text-success font-semibold bg-success/8 px-2 py-0.5 rounded-full">Confirmed</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <ThisWeekSection confirmedSessions={confirmedSessions} />
         </div>
       </main>
 

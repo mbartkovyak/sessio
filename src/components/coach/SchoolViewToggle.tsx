@@ -10,7 +10,7 @@ function useMySchoolName() {
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase
-        .from('schools' as any)
+        .from('schools')
         .select('name')
         .eq('owner_id', user!.id)
         .maybeSingle();

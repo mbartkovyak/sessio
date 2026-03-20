@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import Avatar from '@/components/shared/Avatar';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
@@ -23,7 +24,7 @@ export default function JoinSchool() {
   useEffect(() => {
     if (!code) return;
     supabase
-      .from('schools' as any)
+      .from('schools')
       .select('id, name, sport, city, logo_url, invite_code')
       .eq('invite_code', code.toUpperCase())
       .maybeSingle()
@@ -53,7 +54,7 @@ export default function JoinSchool() {
   async function checkExisting() {
     if (!school || !profile) return;
     const { data: existing } = await supabase
-      .from('school_members' as any)
+      .from('school_members')
       .select('id, status')
       .eq('school_id', school.id)
       .eq('coach_id', profile.id)
@@ -72,7 +73,7 @@ export default function JoinSchool() {
     setJoining(true);
     try {
       const { error } = await supabase
-        .from('school_members' as any)
+        .from('school_members')
         .insert({ school_id: school.id, coach_id: profile.id, status: 'pending' });
       if (error) throw error;
       setRequestSent(true);
@@ -123,10 +124,8 @@ export default function JoinSchool() {
 
   const SchoolCard = () => (
     <div className="rounded-2xl border border-border bg-card p-5 text-center">
-      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary overflow-hidden">
-        {school.logo_url
-          ? <img src={school.logo_url} alt="" className="h-full w-full object-cover" />
-          : school.name?.[0] ?? '?'}
+      <div className="mx-auto mb-3">
+        <Avatar url={school.logo_url} name={school.name} size="2xl" />
       </div>
       <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
       <p className="text-sm text-muted-foreground mt-1">

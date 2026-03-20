@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, UserPlus, LogOut, Calendar, Settings } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import { toast } from 'sonner';
+import Avatar from '@/components/shared/Avatar';
 import { useState } from 'react';
 
 export default function SchoolDashboard() {
@@ -15,7 +16,7 @@ export default function SchoolDashboard() {
   const qc = useQueryClient();
   const [addingSelf, setAddingSelf] = useState(false);
 
-  const coaches = (school as any)?.school_members ?? [];
+  const coaches = (school)?.school_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === user?.id);
 
   const { data: trainingsCount = 0 } = useQuery({
@@ -23,7 +24,7 @@ export default function SchoolDashboard() {
     enabled: !!school?.id,
     queryFn: async () => {
       const { count, error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('*', { count: 'exact', head: true })
         .eq('school_id', school!.id)
         .eq('is_active', true);
@@ -38,7 +39,7 @@ export default function SchoolDashboard() {
     queryFn: async () => {
       // Get all active training IDs for this school
       const { data: trainings, error: tErr } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('id')
         .eq('school_id', school!.id)
         .eq('is_active', true);
@@ -47,7 +48,7 @@ export default function SchoolDashboard() {
 
       const trainingIds = trainings.map((t: any) => t.id);
       const { data: members, error: mErr } = await supabase
-        .from('training_members' as any)
+        .from('training_members')
         .select('user_id')
         .in('training_id', trainingIds);
       if (mErr) throw mErr;
@@ -62,7 +63,7 @@ export default function SchoolDashboard() {
     if (!school?.id || !user) return;
     setAddingSelf(true);
     const { error } = await supabase
-      .from('school_members' as any)
+      .from('school_members')
       .insert({ school_id: school.id, coach_id: user.id, status: 'approved' });
     setAddingSelf(false);
     if (error) {
@@ -153,11 +154,7 @@ export default function SchoolDashboard() {
                 const isMe = m.coach_id === user?.id;
                 return (
                   <div key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                      {coach?.avatar_url
-                        ? <img src={coach.avatar_url} alt="" className="h-full w-full object-cover" />
-                        : (coach?.full_name?.[0] ?? '?')}
-                    </div>
+                    <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">
                         {coach?.full_name ?? 'Coach'}

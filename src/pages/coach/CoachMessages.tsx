@@ -5,40 +5,10 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
+import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
-
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-
-function useLatestMessages(trainingIds: string[]) {
-  return useQuery({
-    queryKey: ['latest-messages', ...trainingIds],
-    enabled: trainingIds.length > 0,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('training_messages' as any)
-        .select('training_id, content, created_at, profiles:sender_id(full_name)')
-        .in('training_id', trainingIds)
-        .order('created_at', { ascending: false });
-      const map: Record<string, any> = {};
-      for (const msg of data ?? []) {
-        if (!map[msg.training_id]) map[msg.training_id] = msg;
-      }
-      return map;
-    },
-  });
-}
-
-function unreadCount(trainingId: string, lastMsg: any, userId: string): boolean {
-  if (!lastMsg || lastMsg.sender_id === userId) return false;
-  const seen = getConversationLastSeen(trainingId);
-  return !seen || lastMsg.created_at > seen;
-}
+import { SPORT_ICONS } from '@/lib/constants';
+import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
 
 export default function CoachMessages() {
   const { user } = useAuth();
@@ -89,7 +59,7 @@ export default function CoachMessages() {
           <div className="divide-y divide-border">
             {sorted.map((t: any) => {
               const lastMsg = latestMessages[t.id];
-              const hasUnread = unreadCount(t.id, lastMsg, user!.id);
+              const hasUnread = isUnread(t.id, lastMsg, user!.id);
               return (
                 <button
                   key={t.id}

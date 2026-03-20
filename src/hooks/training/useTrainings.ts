@@ -2,6 +2,36 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import type { Tables } from '@/integrations/supabase/types';
+
+type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
+type CoachProfileExtended = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'bio' | 'sport' | 'city'>;
+type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name'>;
+type MemberProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'email'>;
+
+type TrainingWithSchool = Tables<'trainings'> & { schools: SchoolBasic | null };
+type TrainingWithSchoolAndCoach = Tables<'trainings'> & { schools: SchoolBasic | null; coach: CoachProfile | null };
+type TrainingDetail = Tables<'trainings'> & { schools: SchoolBasic | null; coach: CoachProfileExtended | null };
+
+type TrainingMemberWithTraining = Tables<'training_members'> & {
+  trainings: (Tables<'trainings'> & { coach: CoachProfile | null }) | null;
+};
+type TrainingMemberWithProfile = Tables<'training_members'> & { profiles: MemberProfile | null };
+
+type SessionAttendanceWithProfile = Tables<'session_attendance'> & {
+  profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null;
+};
+
+type TrainingBasic = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue'> & { coach: CoachProfile | null };
+type SessionAttendanceWithSession = Tables<'session_attendance'> & {
+  training_sessions: (Tables<'training_sessions'> & { trainings: TrainingBasic | null }) | null;
+};
+
+type JoinRequestWithProfile = Tables<'join_requests'> & { profiles: MemberProfile | null };
+type JoinRequestWithProfileAndTraining = Tables<'join_requests'> & {
+  profiles: MemberProfile | null;
+  trainings: Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'coach_id'>;
+};
 
 export function useTrainings() {
   const { user } = useAuth();
@@ -10,13 +40,13 @@ export function useTrainings() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('*, schools(id, name)')
         .eq('coach_id', user!.id)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as TrainingWithSchool[];
     },
   });
 }
@@ -27,13 +57,13 @@ export function useSchoolTrainings(schoolId: string | undefined) {
     enabled: !!schoolId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('*, schools(id, name), coach:profiles(id, full_name, avatar_url)')
         .eq('school_id', schoolId!)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as TrainingWithSchoolAndCoach[];
     },
   });
 }
@@ -44,12 +74,12 @@ export function useTraining(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('*, schools(id, name), coach:profiles(id, full_name, avatar_url, bio, sport, city)')
         .eq('id', id!)
         .single();
       if (error) throw error;
-      return data as any;
+      return data as TrainingDetail;
     },
   });
 }
@@ -61,11 +91,11 @@ export function useMyTrainings() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_members' as any)
+        .from('training_members')
         .select('*, trainings(*, coach:profiles(id, full_name, avatar_url))')
         .eq('user_id', user!.id);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as TrainingMemberWithTraining[];
     },
   });
 }
@@ -76,12 +106,12 @@ export function useCreateTraining() {
   return useMutation({
     mutationFn: async (values: Record<string, any>) => {
       const { data, error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .insert({ ...values, coach_id: values.coach_id || user!.id })
         .select()
         .single();
       if (error) throw error;
-      return data as any;
+      return data as Tables<'trainings'>;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trainings'] });
@@ -96,7 +126,7 @@ export function useUpdateTraining(trainingId: string) {
   return useMutation({
     mutationFn: async (values: Record<string, any>) => {
       const { error } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .update(values)
         .eq('id', trainingId);
       if (error) throw error;
@@ -115,11 +145,11 @@ export function useTrainingMembers(trainingId: string | undefined) {
     enabled: !!trainingId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_members' as any)
+        .from('training_members')
         .select('*, profiles:user_id(id, full_name, avatar_url, email)')
         .eq('training_id', trainingId!);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as TrainingMemberWithProfile[];
     },
   });
 }
@@ -129,7 +159,7 @@ export function useRemoveTrainingMember(trainingId: string) {
   return useMutation({
     mutationFn: async (memberId: string) => {
       const { error } = await supabase
-        .from('training_members' as any)
+        .from('training_members')
         .delete()
         .eq('id', memberId);
       if (error) throw error;
@@ -147,12 +177,12 @@ export function useTrainingSessions(trainingId: string | undefined) {
     enabled: !!trainingId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_sessions' as any)
+        .from('training_sessions')
         .select('*')
         .eq('training_id', trainingId!)
         .order('session_date', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as Tables<'training_sessions'>[];
     },
   });
 }
@@ -163,11 +193,11 @@ export function useSessionAttendance(sessionId: string | undefined) {
     enabled: !!sessionId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('session_attendance' as any)
+        .from('session_attendance')
         .select('*, profiles:user_id(id, full_name, avatar_url)')
         .eq('session_id', sessionId!);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as SessionAttendanceWithProfile[];
     },
   });
 }
@@ -181,7 +211,7 @@ export function useMyUpcomingSessions() {
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
-        .from('session_attendance' as any)
+        .from('session_attendance')
         .select('*, training_sessions(*, trainings(id, name, sport, venue, coach:profiles(id, full_name, avatar_url)))')
         .eq('user_id', user!.id)
         .limit(50);
@@ -189,7 +219,7 @@ export function useMyUpcomingSessions() {
       return (data ?? [])
         .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today)
         .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
-        .slice(0, 20) as any[];
+        .slice(0, 20) as SessionAttendanceWithSession[];
     },
   });
 }
@@ -203,7 +233,7 @@ export function useUpsertAttendance() {
       if (status === 'confirmed') update.confirmed_at = new Date().toISOString();
       if (status === 'declined') update.declined_at = new Date().toISOString();
       const { error } = await supabase
-        .from('session_attendance' as any)
+        .from('session_attendance')
         .upsert(update, { onConflict: 'session_id,user_id' });
       if (error) throw error;
     },
@@ -221,12 +251,12 @@ export function useJoinRequests(trainingId: string | undefined) {
     enabled: !!trainingId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('join_requests' as any)
+        .from('join_requests')
         .select('*, profiles:user_id(id, full_name, avatar_url, email)')
         .eq('training_id', trainingId!)
         .eq('status', 'pending');
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as JoinRequestWithProfile[];
     },
   });
 }
@@ -238,12 +268,12 @@ export function useAllCoachJoinRequests() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('join_requests' as any)
+        .from('join_requests')
         .select('*, profiles:user_id(id, full_name, avatar_url, email), trainings!inner(id, name, sport, coach_id)')
         .eq('status', 'pending')
         .eq('trainings.coach_id', user!.id);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as JoinRequestWithProfileAndTraining[];
     },
   });
 }
@@ -254,9 +284,9 @@ export function useRespondJoinRequest() {
     mutationFn: async ({ requestId, trainingId, userId, accept }: {
       requestId: string; trainingId: string; userId: string; accept: boolean;
     }) => {
-      await supabase.from('join_requests' as any).update({ status: accept ? 'accepted' : 'declined' }).eq('id', requestId);
+      await supabase.from('join_requests').update({ status: accept ? 'accepted' : 'declined' }).eq('id', requestId);
       if (accept) {
-        await supabase.from('training_members' as any).upsert({ training_id: trainingId, user_id: userId, role: 'regular' }, { onConflict: 'training_id,user_id' });
+        await supabase.from('training_members').upsert({ training_id: trainingId, user_id: userId, role: 'regular' }, { onConflict: 'training_id,user_id' });
       }
     },
     onSuccess: () => {

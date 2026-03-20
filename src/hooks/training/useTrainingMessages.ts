@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables } from '@/integrations/supabase/types';
+
+type SenderProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
+type TrainingMessageWithSender = Tables<'training_messages'> & { profiles: SenderProfile | null };
 
 export function useTrainingMessages(trainingId: string | undefined) {
   const qc = useQueryClient();
@@ -12,12 +16,12 @@ export function useTrainingMessages(trainingId: string | undefined) {
     placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('training_messages' as any)
+        .from('training_messages')
         .select('*, profiles:sender_id(id, full_name, avatar_url)')
         .eq('training_id', trainingId!)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as TrainingMessageWithSender[];
     },
   });
 
@@ -41,12 +45,12 @@ export function useSendTrainingMessage(trainingId: string) {
   return useMutation({
     mutationFn: async ({ content, senderId }: { content: string; senderId: string }) => {
       const { data, error } = await supabase
-        .from('training_messages' as any)
+        .from('training_messages')
         .insert({ training_id: trainingId, sender_id: senderId, content })
         .select('*, profiles:sender_id(id, full_name, avatar_url)')
         .single();
       if (error) throw error;
-      return data as any;
+      return data as TrainingMessageWithSender;
     },
     onMutate: async ({ content, senderId }) => {
       await qc.cancelQueries({ queryKey: ['training-messages', trainingId] });

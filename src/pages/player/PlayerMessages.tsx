@@ -3,34 +3,10 @@ import { MessageCircle } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
+import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
-
-const SPORT_ICONS: Record<string, string> = {
-  Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
-  Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
-};
-
-function useLatestMessages(trainingIds: string[]) {
-  return useQuery({
-    queryKey: ['latest-messages', ...trainingIds],
-    enabled: trainingIds.length > 0,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('training_messages' as any)
-        .select('training_id, content, created_at, profiles:sender_id(full_name)')
-        .in('training_id', trainingIds)
-        .order('created_at', { ascending: false });
-      const map: Record<string, any> = {};
-      for (const msg of data ?? []) {
-        if (!map[msg.training_id]) map[msg.training_id] = msg;
-      }
-      return map;
-    },
-  });
-}
+import { SPORT_ICONS } from '@/lib/constants';
+import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
 
 export default function PlayerMessages() {
   const { user } = useAuth();
@@ -74,8 +50,7 @@ export default function PlayerMessages() {
           <div className="divide-y divide-border">
             {sorted.map((t: any) => {
               const lastMsg = latestMessages[t.id];
-              const seen = getConversationLastSeen(t.id);
-              const hasUnread = lastMsg && lastMsg.sender_id !== user?.id && (!seen || lastMsg.created_at > seen);
+              const hasUnread = isUnread(t.id, lastMsg, user!.id);
               return (
                 <button
                   key={t.id}

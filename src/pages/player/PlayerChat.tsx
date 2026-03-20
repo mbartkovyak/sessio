@@ -10,7 +10,7 @@ function useTrainingName(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data } = await supabase
-        .from('trainings' as any)
+        .from('trainings')
         .select('name, sport')
         .eq('id', id!)
         .single();
