@@ -10,14 +10,28 @@ import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
 import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 export default function PlayerHome() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
 
-  const pendingConfirmations = upcoming.filter((a: any) => a.status === 'pending');
-  const confirmedSessions = upcoming.filter((a: any) => a.status === 'confirmed');
-  const nextConfirmed = confirmedSessions[0];
+  // Only show pending confirmations for sessions within next 7 days
+  const pendingConfirmations = upcoming.filter((a: any) => {
+    if (a.status !== 'pending') return false;
+    const sessionDate = new Date(a.training_sessions?.session_date + 'T00:00:00');
+    return sessionDate.getTime() - Date.now() < SEVEN_DAYS_MS;
+  });
+
+  // Responded sessions (confirmed + declined) within next 7 days — can be changed
+  const respondedSessions = upcoming.filter((a: any) => {
+    if (a.status !== 'confirmed' && a.status !== 'declined') return false;
+    const sessionDate = new Date(a.training_sessions?.session_date + 'T00:00:00');
+    return sessionDate.getTime() - Date.now() < SEVEN_DAYS_MS;
+  });
+
+  const nextConfirmed = respondedSessions.find((a: any) => a.status === 'confirmed');
   const allConfirmed = pendingConfirmations.length === 0 && upcoming.length > 0;
 
   return (
@@ -95,8 +109,8 @@ export default function PlayerHome() {
           {/* Favourite schools */}
           <FavouriteSchoolsSection />
 
-          {/* This week confirmed sessions */}
-          <ThisWeekSection confirmedSessions={confirmedSessions} />
+          {/* This week — responded sessions with change option */}
+          <ThisWeekSection sessions={respondedSessions} />
         </div>
       </main>
 

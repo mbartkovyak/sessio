@@ -119,16 +119,22 @@ export default function TrainingDetail() {
                     const p = m.profiles;
                     return (
                       <div key={m.id} className="flex items-center justify-between px-4 py-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                           <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{p?.full_name ?? p?.email}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                            {m.role === 'waitlist' && (
+                              <span className="text-xs text-warning font-medium">Waitlist</span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${m.role === 'waitlist' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}`}>{m.role}</span>
-                          <button onClick={() => removeMember.mutate(m.id)} className="text-xs text-destructive font-medium min-h-[36px] px-2">Remove</button>
-                        </div>
+                        <button
+                          onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10 shrink-0 ml-2"
+                          title="Remove member"
+                        >
+                          <span className="text-destructive text-sm">✕</span>
+                        </button>
                       </div>
                     );
                   })}
@@ -136,11 +142,11 @@ export default function TrainingDetail() {
               )}
             </div>
 
-            {/* Upcoming sessions */}
+            {/* Upcoming lessons */}
             <div>
-              <h2 className="font-semibold text-foreground text-sm mb-3">Upcoming Sessions</h2>
+              <h2 className="font-semibold text-foreground text-sm mb-3">Upcoming Lessons</h2>
               {upcoming.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No upcoming sessions</p>
+                <p className="text-sm text-muted-foreground">No upcoming lessons</p>
               ) : (
                 <div className="space-y-2">
                   {upcoming.map((s: any) => (

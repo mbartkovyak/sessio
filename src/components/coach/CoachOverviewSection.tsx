@@ -52,7 +52,7 @@ export default function CoachOverviewSection() {
         ))}
       </div>
 
-      {/* Today's Sessions */}
+      {/* Today's Lessons */}
       {todaySessions.length > 0 && (
         <div>
           <h2 className="mb-3 font-semibold text-foreground">Today's Trainings</h2>

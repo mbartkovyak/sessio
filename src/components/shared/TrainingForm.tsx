@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronDown, Trash2 } from 'lucide-react';
 import { SPORTS, DAYS_FULL } from '@/lib/constants';
 
 export interface TrainingFormValues {
@@ -46,7 +46,6 @@ interface Props {
 
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot }: Props) {
   const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
@@ -173,43 +172,29 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {schoolSlot}
 
-      {/* Advanced settings */}
+      {/* Confirmation settings */}
       <div>
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(v => !v)}
-          className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
-        >
-          <span className="text-sm font-medium text-foreground">Advanced settings</span>
-          <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
-        </button>
-        {showAdvanced && (
-          <div className="mt-3 space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Confirmation deadline</label>
-              <p className="text-xs text-muted-foreground mb-2">How many hours before the session athletes must confirm</p>
-              <div className="grid grid-cols-4 gap-2">
-                {[12, 24, 48, 72].map(h => (
-                  <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
-                    className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-                    {h}h
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">If athlete doesn't respond</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[{ v: 'mark_absent', l: 'Mark absent' }, { v: 'keep_pending', l: 'Keep pending' }].map(({ v, l }) => (
-                  <button type="button" key={v} onClick={() => set('no_response_behavior', v)}
-                    className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.no_response_behavior === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <label className="text-sm font-medium text-foreground mb-2 block">Confirmation deadline</label>
+        <p className="text-xs text-muted-foreground mb-2">How many hours before the lesson athletes must confirm</p>
+        <div className="grid grid-cols-4 gap-2">
+          {[12, 24, 48, 72].map(h => (
+            <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
+              className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+              {h}h
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-foreground mb-2 block">If athlete doesn't respond</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[{ v: 'mark_absent', l: 'Mark absent' }, { v: 'keep_pending', l: 'Keep pending' }].map(({ v, l }) => (
+            <button type="button" key={v} onClick={() => set('no_response_behavior', v)}
+              className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.no_response_behavior === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Actions */}

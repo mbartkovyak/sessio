@@ -22,7 +22,7 @@ type SessionAttendanceWithProfile = Tables<'session_attendance'> & {
   profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null;
 };
 
-type TrainingBasic = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue'> & { coach: CoachProfile | null };
+type TrainingBasic = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'cancel_deadline_hours'> & { coach: CoachProfile | null };
 type SessionAttendanceWithSession = Tables<'session_attendance'> & {
   training_sessions: (Tables<'training_sessions'> & { trainings: TrainingBasic | null }) | null;
 };
@@ -212,7 +212,7 @@ export function useMyUpcomingSessions() {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('session_attendance')
-        .select('*, training_sessions(*, trainings(id, name, sport, venue, coach:profiles(id, full_name, avatar_url)))')
+        .select('*, training_sessions(*, trainings(id, name, sport, venue, cancel_deadline_hours, coach:profiles(id, full_name, avatar_url)))')
         .eq('user_id', user!.id)
         .limit(50);
       if (error) throw error;
