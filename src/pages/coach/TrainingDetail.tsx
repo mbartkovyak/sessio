@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2 } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -11,11 +11,14 @@ import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
+import ChatView from '@/components/shared/ChatView';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') === 'chat' ? 'chat' : 'detail';
   const { data: training, isLoading, error: trainingError } = useTraining(id);
   const { data: members = [] } = useTrainingMembers(id);
   const { data: sessions = [] } = useTrainingSessions(id);
@@ -70,25 +73,51 @@ export default function TrainingDetail() {
     else { toast.success('Training deleted — members notified'); navigate('/coach/trainings'); }
   }
 
+  const isDeleted = !training.is_active;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center gap-3">
+      <header className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-foreground truncate">{training.name}</h1>
-            <p className="text-xs text-muted-foreground">{training.sport} · {daysLabel} · {training.start_time?.slice(0,5)}</p>
+            <p className="text-xs text-muted-foreground">
+              {isDeleted ? 'Deleted' : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
+            </p>
           </div>
-          <button onClick={() => setShowEdit(!showEdit)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary shrink-0">
-            <Settings className="h-4.5 w-4.5 text-muted-foreground" />
-          </button>
+          {!isDeleted && (
+            <button onClick={() => { setShowEdit(!showEdit); setSearchParams({}); }} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary shrink-0">
+              <Settings className="h-4.5 w-4.5 text-muted-foreground" />
+            </button>
+          )}
         </div>
+        {!showEdit && (
+          <div className="max-w-md mx-auto px-4 pb-2 flex gap-1">
+            <button
+              onClick={() => setSearchParams({})}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'detail' ? 'bg-secondary text-foreground' : 'text-muted-foreground'}`}
+            >
+              Details
+            </button>
+            <button
+              onClick={() => setSearchParams({ tab: 'chat' })}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'chat' ? 'bg-secondary text-foreground' : 'text-muted-foreground'}`}
+            >
+              <MessageCircle className="h-3.5 w-3.5" /> Chat
+            </button>
+          </div>
+        )}
       </header>
 
-      <main className="flex-1 pb-24">
-        {showEdit ? (
+      {activeTab === 'chat' && !showEdit ? (
+        <ChatView trainingId={training.id} className="flex-1" style={{ height: 'calc(100vh - 140px)' }} />
+      ) : showEdit ? (
+        <main className="flex-1 pb-24">
           <EditSection training={training} onClose={() => setShowEdit(false)} />
-        ) : (
+        </main>
+      ) : (
+        <main className="flex-1 pb-24">
           <div className="max-w-md mx-auto px-4 py-5 space-y-6">
 
             {/* Training info card */}
@@ -108,110 +137,121 @@ export default function TrainingDetail() {
               </div>
             </div>
 
-            {/* Invite */}
-            <div>
-              <h2 className="font-semibold text-foreground text-sm mb-3">Invite Athletes</h2>
-              <div className="flex gap-2">
-                <button onClick={handleShare}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform">
-                  <Share2 className="h-4 w-4" /> Share link
-                </button>
-                <button onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Copied!'); }}
-                  className="flex h-[44px] w-[44px] items-center justify-center rounded-xl border border-border hover:bg-secondary shrink-0">
-                  <Copy className="h-4 w-4" />
-                </button>
+            {isDeleted && (
+              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-center">
+                <p className="text-sm font-medium text-destructive">This training has been cancelled</p>
+                <p className="text-xs text-muted-foreground mt-1">Chat is still available for members</p>
               </div>
-              <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366]/10 py-3 text-sm font-semibold text-[#25D366] min-h-[44px] mt-2">
-                💬 WhatsApp
-              </a>
-            </div>
+            )}
 
-            {/* Members */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-foreground text-sm">Members <span className="text-muted-foreground font-normal">({members.length})</span></h2>
-              </div>
-              {members.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                  <p className="text-sm text-muted-foreground">No members yet — share the invite link</p>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-border bg-card divide-y divide-border">
-                  {members.map((m: any) => {
-                    const p = m.profiles;
-                    return (
-                      <div key={m.id} className="flex items-center justify-between px-4 py-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
-                            {m.role === 'waitlist' && (
-                              <span className="text-xs text-warning font-medium">Waitlist</span>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
-                          className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10 shrink-0 ml-2"
-                          title="Remove member"
-                        >
-                          <span className="text-destructive text-sm">✕</span>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Upcoming lessons */}
-            <div>
-              <h2 className="font-semibold text-foreground text-sm mb-3">Upcoming Lessons</h2>
-              {upcoming.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No upcoming lessons</p>
-              ) : (
-                <div className="space-y-2">
-                  {upcoming.map((s: any) => (
-                    <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}</p>
-                        <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
-                      </div>
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>{s.status}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Delete */}
-            <div className="space-y-2 border-t border-border pt-6">
-              {!confirmDelete ? (
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]"
-                >
-                  <Trash2 className="h-4 w-4" /> Delete training
-                </button>
-              ) : (
-                <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
-                  <p className="text-sm text-destructive text-center font-medium">Delete this training? All members will be notified.</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
-                    <button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-destructive py-2.5 text-sm font-bold text-destructive-foreground min-h-[44px] disabled:opacity-60">
-                      {deleting ? 'Deleting...' : 'Delete'}
+            {!isDeleted && (
+              <>
+                {/* Invite */}
+                <div>
+                  <h2 className="font-semibold text-foreground text-sm mb-3">Invite Athletes</h2>
+                  <div className="flex gap-2">
+                    <button onClick={handleShare}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform">
+                      <Share2 className="h-4 w-4" /> Share link
+                    </button>
+                    <button onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Copied!'); }}
+                      className="flex h-[44px] w-[44px] items-center justify-center rounded-xl border border-border hover:bg-secondary shrink-0">
+                      <Copy className="h-4 w-4" />
                     </button>
                   </div>
+                  <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366]/10 py-3 text-sm font-semibold text-[#25D366] min-h-[44px] mt-2">
+                    💬 WhatsApp
+                  </a>
                 </div>
-              )}
-            </div>
+
+                {/* Members */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-semibold text-foreground text-sm">Members <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                  </div>
+                  {members.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                      <p className="text-sm text-muted-foreground">No members yet — share the invite link</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-border bg-card divide-y divide-border">
+                      {members.map((m: any) => {
+                        const p = m.profiles;
+                        return (
+                          <div key={m.id} className="flex items-center justify-between px-4 py-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                                {m.role === 'waitlist' && (
+                                  <span className="text-xs text-warning font-medium">Waitlist</span>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10 shrink-0 ml-2"
+                              title="Remove member"
+                            >
+                              <span className="text-destructive text-sm">✕</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Upcoming lessons */}
+                <div>
+                  <h2 className="font-semibold text-foreground text-sm mb-3">Upcoming Lessons</h2>
+                  {upcoming.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No upcoming lessons</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {upcoming.map((s: any) => (
+                        <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}</p>
+                            <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
+                          </div>
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>{s.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Delete */}
+                <div className="space-y-2 border-t border-border pt-6">
+                  {!confirmDelete ? (
+                    <button
+                      onClick={() => setConfirmDelete(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]"
+                    >
+                      <Trash2 className="h-4 w-4" /> Delete training
+                    </button>
+                  ) : (
+                    <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
+                      <p className="text-sm text-destructive text-center font-medium">Delete this training? All members will be notified.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
+                        <button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-destructive py-2.5 text-sm font-bold text-destructive-foreground min-h-[44px] disabled:opacity-60">
+                          {deleting ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
           </div>
-        )}
-      </main>
+        </main>
+      )}
 
-      <CoachBottomNav />
+      {activeTab !== 'chat' && <CoachBottomNav />}
     </div>
   );
 }

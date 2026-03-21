@@ -51,6 +51,24 @@ export function useTrainings() {
   });
 }
 
+/** All trainings including deleted — for messages (chat persists after deletion) */
+export function useAllTrainings() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['all-trainings', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings')
+        .select('*, schools(id, name)')
+        .eq('coach_id', user!.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as TrainingWithSchool[];
+    },
+  });
+}
+
 export function useSchoolTrainings(schoolId: string | undefined) {
   return useQuery({
     queryKey: ['school-trainings', schoolId],

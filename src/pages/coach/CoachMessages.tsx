@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTrainings } from '@/hooks/training/useTrainings';
+import { useAllTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,7 +10,7 @@ import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
 
 export default function CoachMessages() {
   const { user } = useAuth();
-  const { data: myTrainings = [], isLoading } = useTrainings();
+  const { data: myTrainings = [], isLoading } = useAllTrainings();
   const trainingIds = myTrainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
   const navigate = useNavigate();
