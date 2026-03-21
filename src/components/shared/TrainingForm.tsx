@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
-import { DAYS_FULL } from '@/lib/constants';
+import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
+
+export type DaySchedule = { start_time: string; end_time: string };
+export type DaySchedules = Record<string, DaySchedule>;
 
 export interface TrainingFormValues {
   name: string;
@@ -19,6 +22,7 @@ export interface TrainingFormValues {
   visibility: string;
   confirmation_window_hours: number;
   no_response_behavior: string;
+  day_schedules: DaySchedules | null;
 }
 
 const defaults: TrainingFormValues = {
@@ -30,6 +34,7 @@ const defaults: TrainingFormValues = {
   one_off_date: '',
   confirmation_window_hours: 48, no_response_behavior: 'mark_absent',
   booking_mode: 'instant', visibility: 'private',
+  day_schedules: null,
 };
 
 export type VenueOption = { name: string; address: string };
@@ -51,9 +56,13 @@ interface Props {
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions }: Props) {
   const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [sameTime, setSameTime] = useState(() => !initialValues?.day_schedules);
 
   useEffect(() => {
-    if (initialValues) setForm(f => ({ ...defaults, ...initialValues }));
+    if (initialValues) {
+      setForm(f => ({ ...defaults, ...initialValues }));
+      setSameTime(!initialValues.day_schedules);
+    }
   }, [initialValues?.name]); // re-sync when training data loads
 
   // Auto-fill venue if school has exactly one venue
@@ -67,12 +76,40 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const set = (k: keyof TrainingFormValues, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   function toggleDay(day: number) {
-    setForm(f => ({
-      ...f,
-      days_of_week: f.days_of_week.includes(day)
+    setForm(f => {
+      const newDays = f.days_of_week.includes(day)
         ? (f.days_of_week.length > 1 ? f.days_of_week.filter(d => d !== day) : f.days_of_week)
-        : [...f.days_of_week, day].sort(),
-    }));
+        : [...f.days_of_week, day].sort();
+      // Clean up day_schedules for removed days
+      let ds = f.day_schedules ? { ...f.day_schedules } : null;
+      if (ds) {
+        for (const key of Object.keys(ds)) {
+          if (!newDays.includes(Number(key))) delete ds[key];
+        }
+      }
+      return { ...f, days_of_week: newDays, day_schedules: ds };
+    });
+  }
+
+  function setDayTime(day: number, field: 'start_time' | 'end_time', value: string) {
+    setForm(f => {
+      const schedules = { ...(f.day_schedules ?? {}) };
+      schedules[day] = { start_time: schedules[day]?.start_time ?? f.start_time, end_time: schedules[day]?.end_time ?? f.end_time, [field]: value };
+      return { ...f, day_schedules: schedules };
+    });
+  }
+
+  function handleSameTimeToggle(on: boolean) {
+    setSameTime(on);
+    if (on) {
+      set('day_schedules', null);
+    } else {
+      const schedules: DaySchedules = {};
+      for (const day of form.days_of_week) {
+        schedules[day] = { start_time: form.start_time, end_time: form.end_time };
+      }
+      set('day_schedules', schedules);
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -138,15 +175,53 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {form.is_recurring ? (
         <>
           {/* Days — multi-select */}
-          <div><label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-muted-foreground font-normal">(tap multiple)</span></label>
-            <div className="flex gap-1 flex-wrap">{DAYS_FULL.map((d, i) => (
+          <div><label className="text-sm font-medium text-foreground mb-2 block">Days</label>
+            <div className="flex gap-1.5 flex-wrap">{DAYS_FULL.map((d, i) => (
               <button type="button" key={d} onClick={() => toggleDay(i)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
+                className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
             ))}</div>
-            {form.days_of_week.length > 1 && (
-              <p className="text-xs text-muted-foreground mt-1.5">{form.days_of_week.length} days/week — {form.days_of_week.map(d => DAYS_FULL[d].slice(0, 3)).join(', ')}</p>
+          </div>
+
+          {/* Schedule — time per day */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-foreground">Schedule</label>
+              {form.days_of_week.length > 1 && (
+                <button type="button" onClick={() => handleSameTimeToggle(!sameTime)}
+                  className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Same time</span>
+                  <div className={`relative h-5 w-9 rounded-full transition-colors ${sameTime ? 'bg-primary' : 'bg-muted'}`}>
+                    <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${sameTime ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </div>
+                </button>
+              )}
+            </div>
+            {sameTime ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-xs text-muted-foreground mb-1 block">Start</label>
+                  <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                <div><label className="text-xs text-muted-foreground mb-1 block">End</label>
+                  <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {form.days_of_week.map(day => {
+                  const sched = form.day_schedules?.[day] ?? { start_time: form.start_time, end_time: form.end_time };
+                  return (
+                    <div key={day} className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground w-10 shrink-0">{DAYS_SHORT[day]}</span>
+                      <input type="time" value={sched.start_time} onChange={e => setDayTime(day, 'start_time', e.target.value)}
+                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                      <span className="text-muted-foreground text-xs">–</span>
+                      <input type="time" value={sched.end_time} onChange={e => setDayTime(day, 'end_time', e.target.value)}
+                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
+
           {/* Start / End dates */}
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
@@ -159,18 +234,18 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           {!form.end_date && <p className="text-xs text-muted-foreground -mt-3">No end date = ongoing, sessions generated rolling</p>}
         </>
       ) : (
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
-          <input type="date" required value={form.one_off_date} onChange={e => set('one_off_date', e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+        <>
+          <div><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
+            <input type="date" required value={form.one_off_date} onChange={e => set('one_off_date', e.target.value)}
+              className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
+              <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
+              <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+          </div>
+        </>
       )}
-
-      {/* Times */}
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
-          <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-        <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
-          <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-      </div>
       {/* Capacity */}
       {form.type === 'group' && (
         <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes</label>

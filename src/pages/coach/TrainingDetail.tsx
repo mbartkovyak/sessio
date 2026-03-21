@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining } from '@/hooks/training/useTrainings';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { DAYS_FULL as DAYS, DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
+import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -20,6 +20,8 @@ export default function TrainingDetail() {
   const { data: sessions = [] } = useTrainingSessions(id);
   const removeMember = useRemoveTrainingMember(id!);
   const [showEdit, setShowEdit] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
   const shareText = training ? `Join ${training.name} on Sessio!\n${inviteLink}` : '';
@@ -193,6 +195,7 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
     visibility: training.visibility ?? 'private',
     confirmation_window_hours: training.confirmation_window_hours ?? 48,
     no_response_behavior: training.no_response_behavior ?? 'mark_absent',
+    day_schedules: training.day_schedules ?? null,
   } : undefined;
 
   async function handleSave(form: TrainingFormValues) {
@@ -205,6 +208,7 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
       booking_mode: form.booking_mode, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
       no_response_behavior: form.no_response_behavior,
+      day_schedules: form.day_schedules || null,
     });
     toast.success('Training updated');
     onClose();

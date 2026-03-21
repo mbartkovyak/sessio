@@ -45,6 +45,8 @@ export default function CreateTraining() {
         end_date: form.is_recurring ? (form.end_date || null) : form.one_off_date,
       };
       delete payload.one_off_date;
+      // Per-day schedules (null when same time for all)
+      payload.day_schedules = form.day_schedules || null;
       if (form.type === 'individual') delete payload.max_players;
       // Sport inherited from school or coach profile
       payload.sport = (isSchoolOwner && school) ? school.sport : (profile?.sport ?? 'Tennis');
