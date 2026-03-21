@@ -230,12 +230,12 @@ export function useMyUpcomingSessions() {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('session_attendance')
-        .select('*, training_sessions(*, trainings(id, name, sport, venue, cancel_deadline_hours, coach:profiles(id, full_name, avatar_url)))')
+        .select('*, training_sessions(*, trainings(id, name, sport, venue, cancel_deadline_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
         .eq('user_id', user!.id)
         .limit(50);
       if (error) throw error;
       return (data ?? [])
-        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today)
+        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active !== false)
         .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
         .slice(0, 20) as SessionAttendanceWithSession[];
     },

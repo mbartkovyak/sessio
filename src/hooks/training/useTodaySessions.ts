@@ -15,6 +15,7 @@ export function useTodaySessions(coachId: string | undefined) {
         .from('training_sessions')
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
         .eq('trainings.coach_id', coachId!)
+        .eq('trainings.is_active', true)
         .eq('session_date', today)
         .order('start_time', { ascending: true });
       if (error) throw error;
