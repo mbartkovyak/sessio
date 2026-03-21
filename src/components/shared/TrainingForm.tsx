@@ -1,32 +1,28 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 
-/** Generate time options in 5-minute increments (00:00 – 23:55) */
-function useTimeOptions() {
-  return useMemo(() => {
-    const opts: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 5) {
-        opts.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      }
-    }
-    return opts;
-  }, []);
-}
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
 function TimeSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
-  const options = useTimeOptions();
+  const [h, m] = (value || '09:00').split(':');
+  const selectCls = 'appearance-none bg-transparent text-sm font-medium text-foreground text-center focus:outline-none';
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className={className ?? 'w-full appearance-none rounded-xl border border-input bg-background px-3 py-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]'}
-      >
-        {options.map(t => <option key={t} value={t}>{t}</option>)}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+    <div className={className ?? 'flex items-center gap-0.5 rounded-xl border border-input bg-background px-3 py-3 min-h-[44px]'}>
+      <div className="relative flex-1">
+        <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={`${selectCls} w-full pr-4`}>
+          {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+      </div>
+      <span className="text-sm font-medium text-muted-foreground">:</span>
+      <div className="relative flex-1">
+        <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={`${selectCls} w-full pr-4`}>
+          {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+      </div>
     </div>
   );
 }

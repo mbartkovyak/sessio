@@ -235,7 +235,7 @@ export function useMyUpcomingSessions() {
         .limit(50);
       if (error) throw error;
       return (data ?? [])
-        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active !== false)
+        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true)
         .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
         .slice(0, 20) as SessionAttendanceWithSession[];
     },
