@@ -32,12 +32,20 @@ class ErrorBoundary extends React.Component<
             <p className="mb-6 text-sm text-muted-foreground">
               An unexpected error occurred. Please reload and try again.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Reload
-            </button>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { window.location.href = '/'; }}
+                className="rounded-lg border border-border px-5 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+              >
+                Go Home
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Reload
+              </button>
+            </div>
           </div>
         </div>
       );
