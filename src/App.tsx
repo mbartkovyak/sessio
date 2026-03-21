@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
 import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { SchoolViewProvider } from "@/contexts/SchoolViewContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
@@ -58,7 +57,6 @@ const App = () => (
         <InstallPWA />
         <ErrorBoundary>
         <AuthProvider>
-        <SchoolViewProvider>
           <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />
@@ -100,7 +98,6 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </SchoolViewProvider>
         </AuthProvider>
         </ErrorBoundary>
       </BrowserRouter>

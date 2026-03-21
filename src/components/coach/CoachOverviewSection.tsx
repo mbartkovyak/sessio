@@ -17,6 +17,8 @@ export default function CoachOverviewSection() {
   const respond = useRespondJoinRequest();
   const { data: todaySessions = [] } = useTodaySessions(profile?.id);
   const { data: schoolMembership } = useMySchoolMembership();
+  // Coaches in a school cannot create lessons
+  const canCreate = isSchoolOwner || !schoolMembership;
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
@@ -106,20 +108,24 @@ export default function CoachOverviewSection() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-foreground">My Lessons</h2>
-          <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 text-sm font-medium text-primary min-h-[44px] px-2">
-            <Plus className="h-4 w-4" /> New
-          </button>
+          {canCreate && (
+            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 text-sm font-medium text-primary min-h-[44px] px-2">
+              <Plus className="h-4 w-4" /> New
+            </button>
+          )}
         </div>
         {isLoading ? (
           <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}</div>
         ) : trainings.length === 0 ? (
           <div className="rounded-2xl bg-primary p-5 text-primary-foreground">
             <Users className="h-6 w-6 opacity-80 mb-2" />
-            <h3 className="font-bold text-lg mb-1">Create your first lesson</h3>
-            <p className="text-sm opacity-80 mb-4">Add a recurring lesson and invite your athletes</p>
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-primary-foreground/15 px-4 py-2.5 text-sm font-semibold min-h-[48px]">
-              <Plus className="h-4 w-4" /> New Training
-            </button>
+            <h3 className="font-bold text-lg mb-1">{canCreate ? 'Create your first lesson' : 'No lessons yet'}</h3>
+            <p className="text-sm opacity-80 mb-4">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
+            {canCreate && (
+              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-primary-foreground/15 px-4 py-2.5 text-sm font-semibold min-h-[48px]">
+                <Plus className="h-4 w-4" /> New Training
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -134,11 +140,13 @@ export default function CoachOverviewSection() {
                 }
               />
             ))}
-            <button onClick={() => navigate('/coach/trainings/new')}
-              className="rounded-xl border-2 border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors min-h-[100px]">
-              <Plus className="h-6 w-6" />
-              <span className="text-sm font-medium">New Training</span>
-            </button>
+            {canCreate && (
+              <button onClick={() => navigate('/coach/trainings/new')}
+                className="rounded-xl border-2 border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors min-h-[100px]">
+                <Plus className="h-6 w-6" />
+                <span className="text-sm font-medium">New Training</span>
+              </button>
+            )}
           </div>
         )}
       </div>

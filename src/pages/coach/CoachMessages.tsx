@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
-import OwnershipFilter, { type OwnershipTab } from '@/components/coach/OwnershipFilter';
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -13,17 +11,12 @@ import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
 export default function CoachMessages() {
   const { user } = useAuth();
   const { data: myTrainings = [], isLoading } = useTrainings();
-  const [ownershipTab, setOwnershipTab] = useState<OwnershipTab>('all');
-  const hasSchoolTrainings = myTrainings.some((t: any) => t.school_id);
-  const trainings = myTrainings.filter((t: any) =>
-    ownershipTab === 'all' ? true : ownershipTab === 'personal' ? !t.school_id : !!t.school_id
-  );
-  const trainingIds = trainings.map((t: any) => t.id);
+  const trainingIds = myTrainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
   const navigate = useNavigate();
 
   // Sort by latest message (most recent first), trainings without messages last
-  const sorted = [...trainings].sort((a: any, b: any) => {
+  const sorted = [...myTrainings].sort((a: any, b: any) => {
     const ma = latestMessages[a.id];
     const mb = latestMessages[b.id];
     if (!ma && !mb) return 0;
@@ -35,11 +28,8 @@ export default function CoachMessages() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto space-y-3">
+        <div className="max-w-md mx-auto">
           <h1 className="text-lg font-semibold text-foreground">Messages</h1>
-          {hasSchoolTrainings && (
-            <OwnershipFilter value={ownershipTab} onChange={setOwnershipTab} />
-          )}
         </div>
       </header>
 
@@ -74,14 +64,7 @@ export default function CoachMessages() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
-                        {ownershipTab === 'all' && hasSchoolTrainings && (
-                          t.school_id
-                            ? <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-secondary-foreground shrink-0">{t.schools?.name ?? 'School'}</span>
-                            : <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground shrink-0">Personal</span>
-                        )}
-                      </div>
+                      <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
                       {lastMsg && (
                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
                           {formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: false })}
