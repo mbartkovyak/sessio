@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, MapPin, Clock, CalendarDays, Edit3, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { DAYS_FULL as DAYS, DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
 import Avatar from '@/components/shared/Avatar';
+import VenueLink from '@/components/shared/VenueLink';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
@@ -80,7 +81,7 @@ export default function TrainingDetail() {
               <div className="space-y-1.5 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5 shrink-0" /> {daysLabel}</div>
                 <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /> {training.start_time?.slice(0,5)} – {training.end_time?.slice(0,5)}</div>
-                {training.venue && <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /> {training.venue}</div>}
+                {training.venue && <div className="flex items-center gap-2"><VenueLink venue={training.venue} className="text-sm text-muted-foreground" /></div>}
                 {training.type === 'group' && <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 shrink-0" /> {regularMembers.length}/{training.max_players ?? '∞'} athletes</div>}
               </div>
             </div>

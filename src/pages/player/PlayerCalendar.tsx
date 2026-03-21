@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MapPin, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import VenueLink from '@/components/shared/VenueLink';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -101,9 +102,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
               {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
             </span>
             {training?.venue && (
-              <span className="flex items-center gap-0.5 text-xs text-muted-foreground truncate">
-                <MapPin className="h-2.5 w-2.5 shrink-0" />{training.venue}
-              </span>
+              <VenueLink venue={training.venue} className="text-xs text-muted-foreground truncate" />
             )}
           </div>
         </div>

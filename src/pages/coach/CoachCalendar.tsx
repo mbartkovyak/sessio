@@ -1,5 +1,5 @@
 import { format, addDays } from 'date-fns';
-import { MapPin } from 'lucide-react';
+import VenueLink from '@/components/shared/VenueLink';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -125,9 +125,7 @@ export default function CoachCalendar() {
                         {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
                       </span>
                       {training?.venue && (
-                        <span className="flex items-center gap-0.5 text-xs text-muted-foreground truncate">
-                          <MapPin className="h-2.5 w-2.5 shrink-0" />{training.venue}
-                        </span>
+                        <VenueLink venue={training.venue} className="text-xs text-muted-foreground truncate" />
                       )}
                     </div>
                     {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && (

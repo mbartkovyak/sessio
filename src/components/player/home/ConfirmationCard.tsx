@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { CheckCircle2, XCircle, MapPin, Users } from 'lucide-react';
+import { CheckCircle2, XCircle, Users } from 'lucide-react';
 import { useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
+import VenueLink from '@/components/shared/VenueLink';
 
 export default function ConfirmationCard({ attendance }: { attendance: any }) {
   const session = attendance.training_sessions;
@@ -40,10 +41,11 @@ export default function ConfirmationCard({ attendance }: { attendance: any }) {
         </div>
       </div>
       <div className="mb-4 space-y-1.5 pl-0.5">
-        <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-          {training?.venue}
-        </div>
+        {training?.venue && (
+          <div className="text-sm">
+            <VenueLink venue={training.venue} className="text-muted-foreground" />
+          </div>
+        )}
         {training?.coach?.full_name && (
           <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
             <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />

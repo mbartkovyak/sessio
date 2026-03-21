@@ -16,10 +16,13 @@ export default function Onboarding() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [coachType, setCoachType] = useState<'solo' | 'school' | 'join' | null>(null);
-  const [sport, setSport] = useState('Tennis');
+  const [sport, setSport] = useState('');
+  const [schoolSports, setSchoolSports] = useState<string[]>([]);
   const [city, setCity] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [venueName, setVenueName] = useState('');
+  const [venueAddress, setVenueAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +65,7 @@ export default function Onboarding() {
   // ── Submit: Solo Coach ──
   async function submitSoloCoach() {
     if (!user) { setError('Not signed in — please reload and try again'); return; }
-    if (!city) return;
+    if (!city || !sport) return;
     setLoading(true);
     setError('');
     try {
@@ -82,19 +85,23 @@ export default function Onboarding() {
   // ── Submit: Open School ──
   async function submitSchoolOwner() {
     if (!user) { setError('Not signed in — please reload and try again'); return; }
-    if (!city || !schoolName.trim()) return;
+    if (!city || !schoolName.trim() || schoolSports.length === 0) return;
     setLoading(true);
     setError('');
+    const primarySport = schoolSports[0];
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport, city, onboarding_complete: true })
+        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
+      const venues = venueName.trim() && venueAddress.trim()
+        ? [{ name: venueName.trim(), address: venueAddress.trim() }]
+        : [];
       const { data: newSchool, error: schoolError } = await supabase
         .from('schools')
-        .insert({ name: schoolName.trim(), sport, city, owner_id: user.id })
+        .insert({ name: schoolName.trim(), sport: primarySport, city, owner_id: user.id, venues })
         .select('id')
         .single();
       if (schoolError) { setError(schoolError.message); setLoading(false); return; }
@@ -298,14 +305,14 @@ export default function Onboarding() {
               <p className="mb-6 text-muted-foreground">Almost there</p>
               <div className="space-y-5">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
-                  <div className="flex flex-wrap gap-2">
-                    {SPORTS.map(s => (
-                      <button key={s} type="button" onClick={() => setSport(s)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors min-h-[36px] ${
-                          sport === s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-                        }`}>{s}</button>
-                    ))}
+                  <label className="text-sm font-medium text-foreground mb-1 block">Sport</label>
+                  <div className="relative">
+                    <select value={sport} onChange={e => setSport(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
+                      <option value="">Select sport</option>
+                      {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
                 <div>
@@ -334,7 +341,7 @@ export default function Onboarding() {
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={coachType === 'join' ? submitJoinSchool : submitSoloCoach}
-                  disabled={!city || loading || (coachType === 'join' && !inviteCode.trim())}
+                  disabled={!city || !sport || loading || (coachType === 'join' && !inviteCode.trim())}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -362,14 +369,30 @@ export default function Onboarding() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
-                  <div className="flex flex-wrap gap-2">
-                    {SPORTS.map(s => (
-                      <button key={s} type="button" onClick={() => setSport(s)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors min-h-[36px] ${
-                          sport === s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-                        }`}>{s}</button>
-                    ))}
+                  <label className="text-sm font-medium text-foreground mb-1 block">Sport</label>
+                  {schoolSports.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {schoolSports.map(s => (
+                        <span key={s} className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                          {s}
+                          <button type="button" onClick={() => setSchoolSports(prev => prev.filter(x => x !== s))} className="ml-0.5 text-primary/60 hover:text-primary">✕</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="relative">
+                    <select
+                      value=""
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val && !schoolSports.includes(val)) setSchoolSports(prev => [...prev, val]);
+                      }}
+                      className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    >
+                      <option value="">{schoolSports.length === 0 ? 'Select sport' : '+ Add sport'}</option>
+                      {SPORTS.filter(s => !schoolSports.includes(s)).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
                 <div>
@@ -383,10 +406,31 @@ export default function Onboarding() {
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Main venue <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Venue name (e.g. Court 3)"
+                      value={venueName}
+                      onChange={e => setVenueName(e.target.value)}
+                      className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    />
+                    {venueName && (
+                      <input
+                        type="text"
+                        placeholder="Address (e.g. ul. Marszałkowska 12, Warszawa)"
+                        value={venueAddress}
+                        onChange={e => setVenueAddress(e.target.value)}
+                        className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                      />
+                    )}
+                  </div>
+                </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={submitSchoolOwner}
-                  disabled={!city || !schoolName.trim() || loading}
+                  disabled={!city || !schoolName.trim() || schoolSports.length === 0 || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

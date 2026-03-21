@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Clock, Users, Mail, Calendar } from 'lucide-react';
+import { Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { SPORT_ICONS, DAYS_FULL as DAYS } from '@/lib/constants';
 
 import Avatar from '@/components/shared/Avatar';
+import VenueLink from '@/components/shared/VenueLink';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -189,10 +190,11 @@ export default function JoinTraining() {
           <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
           <span>{DAYS[(training.day_of_week ?? 0)]}s at {(training.start_time ?? '').slice(0, 5)}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-foreground">
-          <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span>{training.venue ?? training.location}</span>
-        </div>
+        {(training.venue || training.location) && (
+          <div className="text-sm">
+            <VenueLink venue={training.venue ?? training.location} className="text-foreground" />
+          </div>
+        )}
         {training.max_players && (
           <div className="flex items-center gap-2 text-sm text-foreground">
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />

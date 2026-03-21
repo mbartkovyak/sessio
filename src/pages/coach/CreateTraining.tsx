@@ -46,6 +46,8 @@ export default function CreateTraining() {
       };
       delete payload.one_off_date;
       if (form.type === 'individual') delete payload.max_players;
+      // Sport inherited from school or coach profile
+      payload.sport = (isSchoolOwner && school) ? school.sport : (profile?.sport ?? 'Tennis');
       // School owner: always a school lesson with assigned coach
       if (isSchoolOwner && school) {
         payload.school_id = school.id;
@@ -112,6 +114,7 @@ export default function CreateTraining() {
             onSubmit={handleSubmit}
             submitting={create.isPending}
             schoolSlot={schoolSlot}
+            venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
           />
         </div>
       </main>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
-import { SPORTS, DAYS_FULL } from '@/lib/constants';
+import { DAYS_FULL } from '@/lib/constants';
 
 export interface TrainingFormValues {
   name: string;
@@ -32,6 +32,8 @@ const defaults: TrainingFormValues = {
   booking_mode: 'instant', visibility: 'private',
 };
 
+export type VenueOption = { name: string; address: string };
+
 interface Props {
   mode: 'create' | 'edit';
   initialValues?: Partial<TrainingFormValues>;
@@ -42,15 +44,25 @@ interface Props {
   onDelete?: () => void;
   /** School-related: render below visibility */
   schoolSlot?: React.ReactNode;
+  /** School venues for dropdown selection */
+  venueOptions?: VenueOption[];
 }
 
-export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot }: Props) {
+export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions }: Props) {
   const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (initialValues) setForm(f => ({ ...defaults, ...initialValues }));
   }, [initialValues?.name]); // re-sync when training data loads
+
+  // Auto-fill venue if school has exactly one venue
+  useEffect(() => {
+    if (venueOptions?.length === 1 && !form.venue) {
+      const v = venueOptions[0];
+      set('venue', `${v.name}, ${v.address}`);
+    }
+  }, [venueOptions]);
 
   const set = (k: keyof TrainingFormValues, v: any) => setForm(f => ({ ...f, [k]: v }));
 
@@ -77,7 +89,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
         <div className="grid grid-cols-2 gap-2">
           {['group', 'individual'].map(t => (
-            <button type="button" key={t} onClick={() => set('type', t)}
+            <button type="button" key={t} onClick={() => { set('type', t); if (t === 'individual') set('visibility', 'private'); }}
               className={`rounded-xl border-2 py-3 text-sm font-semibold capitalize transition-colors ${form.type === t ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
               {t}
             </button>
@@ -87,15 +99,26 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {/* Name */}
       <div><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name</label>
         <input required value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Wednesday Tennis" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-      {/* Sport */}
-      <div><label className="text-sm font-medium text-foreground mb-2 block">Sport</label>
-        <div className="flex flex-wrap gap-2">{SPORTS.map(s => (
-          <button type="button" key={s} onClick={() => set('sport', s)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${form.sport === s ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{s}</button>
-        ))}</div></div>
       {/* Venue */}
       <div><label className="text-sm font-medium text-foreground mb-1 block">Venue</label>
-        <input required value={form.venue} onChange={e => set('venue', e.target.value)} placeholder="Court 3, City Sports Center" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+        {venueOptions && venueOptions.length > 0 ? (
+          <div className="relative">
+            <select
+              value={form.venue}
+              onChange={e => set('venue', e.target.value)}
+              className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+            >
+              {venueOptions.length > 1 && <option value="">Select venue</option>}
+              {venueOptions.map(v => {
+                const val = `${v.name}, ${v.address}`;
+                return <option key={val} value={val}>{v.name} — {v.address}</option>;
+              })}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+        ) : (
+          <input required value={form.venue} onChange={e => set('venue', e.target.value)} placeholder="Court 3, City Sports Center" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
+        )}</div>
 
       {/* Frequency */}
       <div>
@@ -161,14 +184,17 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.booking_mode === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
           ))}
         </div></div>
-      {/* Visibility */}
-      <div><label className="text-sm font-medium text-foreground mb-2 block">Visibility</label>
-        <div className="grid grid-cols-2 gap-2">
-          {[{ v: 'private', l: 'Invite Only' }, { v: 'discoverable', l: 'Discoverable' }].map(({ v, l }) => (
-            <button type="button" key={v} onClick={() => set('visibility', v)}
-              className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.visibility === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
-          ))}
-        </div></div>
+      {/* Visibility — only for group trainings (individual is always private) */}
+      {form.type === 'group' && (
+        <div><label className="text-sm font-medium text-foreground mb-2 block">Visibility</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[{ v: 'private', l: 'Invite Only' }, { v: 'discoverable', l: 'Discoverable' }].map(({ v, l }) => (
+              <button type="button" key={v} onClick={() => set('visibility', v)}
+                className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.visibility === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {schoolSlot}
 
