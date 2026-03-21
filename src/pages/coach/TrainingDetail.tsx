@@ -111,7 +111,7 @@ export default function TrainingDetail() {
       </header>
 
       {activeTab === 'chat' && !showEdit ? (
-        <ChatView trainingId={training.id} className="flex-1" style={{ height: 'calc(100vh - 196px)' }} />
+        <ChatView trainingId={training.id} className="flex-1 pb-16" />
       ) : showEdit ? (
         <main className="flex-1 pb-24">
           <EditSection training={training} onClose={() => setShowEdit(false)} />
