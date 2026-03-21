@@ -50,6 +50,24 @@ export default function TrainingDetail() {
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    const { error } = await supabase
+      .from('trainings')
+      .update({ is_active: false })
+      .eq('id', training.id);
+    if (error) { toast.error(error.message); setDeleting(false); }
+    else { toast.success('Training deleted'); navigate('/coach/trainings'); }
+  }
+
+  function handleNotifyMembers() {
+    if (members.length === 0) {
+      toast.error('No members to notify');
+      return;
+    }
+    navigate(`/coach/trainings/${id}?tab=chat`);
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
@@ -67,7 +85,7 @@ export default function TrainingDetail() {
 
       <main className="flex-1 pb-24">
         {showEdit ? (
-          <EditSection training={training} onClose={() => setShowEdit(false)} onDelete={() => navigate('/coach/trainings')} />
+          <EditSection training={training} onClose={() => setShowEdit(false)} />
         ) : (
           <div className="max-w-md mx-auto px-4 py-5 space-y-6">
 
@@ -165,6 +183,34 @@ export default function TrainingDetail() {
               )}
             </div>
 
+            {/* Quick actions */}
+            <div className="space-y-2 border-t border-border pt-6">
+              <button
+                onClick={handleNotifyMembers}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px] active:bg-secondary/50"
+              >
+                <MessageCircle className="h-4 w-4" /> Message members
+              </button>
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete training
+                </button>
+              ) : (
+                <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
+                  <p className="text-sm text-destructive text-center font-medium">Delete this training? This can't be undone.</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
+                    <button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-destructive py-2.5 text-sm font-bold text-destructive-foreground min-h-[44px] disabled:opacity-60">
+                      {deleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         )}
       </main>
@@ -176,7 +222,7 @@ export default function TrainingDetail() {
 
 // ── Edit Section ──
 
-function EditSection({ training, onClose, onDelete }: { training: any; onClose: () => void; onDelete: () => void }) {
+function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
   const update = useUpdateTraining(training.id);
 
   const initialValues: Partial<TrainingFormValues> = training ? {
@@ -214,15 +260,6 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
     onClose();
   }
 
-  async function handleDelete() {
-    const { error } = await supabase
-      .from('trainings')
-      .update({ is_active: false })
-      .eq('id', training.id);
-    if (error) toast.error(error.message);
-    else { toast.success('Training deleted'); onDelete(); }
-  }
-
   return (
     <div className="max-w-md mx-auto px-4 py-5">
       <TrainingForm
@@ -231,7 +268,6 @@ function EditSection({ training, onClose, onDelete }: { training: any; onClose: 
         onSubmit={handleSave}
         submitting={update.isPending}
         onCancel={onClose}
-        onDelete={handleDelete}
       />
     </div>
   );
