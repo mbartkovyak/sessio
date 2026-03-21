@@ -1,6 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
+
+/** Generate time options in 5-minute increments (00:00 – 23:55) */
+function useTimeOptions() {
+  return useMemo(() => {
+    const opts: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 5) {
+        opts.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+    }
+    return opts;
+  }, []);
+}
+
+function TimeSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const options = useTimeOptions();
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className={className ?? 'w-full appearance-none rounded-xl border border-input bg-background px-3 py-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]'}
+      >
+        {options.map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+    </div>
+  );
+}
 
 export type DaySchedule = { start_time: string; end_time: string };
 export type DaySchedules = Record<string, DaySchedule>;
@@ -199,9 +228,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             {sameTime ? (
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs text-muted-foreground mb-1 block">Start</label>
-                  <input type="time" step={300} value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                  <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} /></div>
                 <div><label className="text-xs text-muted-foreground mb-1 block">End</label>
-                  <input type="time" step={300} value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                  <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} /></div>
               </div>
             ) : (
               <div className="space-y-2">
@@ -210,11 +239,11 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                   return (
                     <div key={day} className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground w-10 shrink-0">{DAYS_SHORT[day]}</span>
-                      <input type="time" step={300} value={sched.start_time} onChange={e => setDayTime(day, 'start_time', e.target.value)}
-                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                      <TimeSelect value={sched.start_time} onChange={v => setDayTime(day, 'start_time', v)}
+                        className="flex-1 appearance-none rounded-lg border border-input bg-background px-2.5 py-2 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
                       <span className="text-muted-foreground text-xs">–</span>
-                      <input type="time" step={300} value={sched.end_time} onChange={e => setDayTime(day, 'end_time', e.target.value)}
-                        className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                      <TimeSelect value={sched.end_time} onChange={v => setDayTime(day, 'end_time', v)}
+                        className="flex-1 appearance-none rounded-lg border border-input bg-background px-2.5 py-2 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
                     </div>
                   );
                 })}
@@ -240,9 +269,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
-              <input type="time" step={300} value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} /></div>
             <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
-              <input type="time" step={300} value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} /></div>
           </div>
         </>
       )}
