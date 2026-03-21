@@ -76,7 +76,7 @@ export default function TrainingDetail() {
   const isDeleted = !training.is_active;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className={`flex flex-col bg-background ${activeTab === 'chat' && !showEdit ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
       <header className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => navigate('/coach/trainings')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
@@ -111,7 +111,10 @@ export default function TrainingDetail() {
       </header>
 
       {activeTab === 'chat' && !showEdit ? (
-        <ChatView trainingId={training.id} className="flex-1 pb-14" />
+        <>
+        <ChatView trainingId={training.id} className="flex-1 min-h-0" />
+        <div className="shrink-0 h-14" />
+        </>
       ) : showEdit ? (
         <main className="flex-1 pb-24">
           <EditSection training={training} onClose={() => setShowEdit(false)} />
