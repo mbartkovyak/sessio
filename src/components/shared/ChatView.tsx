@@ -144,9 +144,11 @@ interface ChatViewProps {
   trainingId: string;
   className?: string;
   style?: React.CSSProperties;
+  /** When rendered above a bottom nav, skip safe-area padding on input (spacer handles it) */
+  hideBottomSafeArea?: boolean;
 }
 
-export default function ChatView({ trainingId, className, style }: ChatViewProps) {
+export default function ChatView({ trainingId, className, style, hideBottomSafeArea }: ChatViewProps) {
   const { user } = useAuth();
   const { data: messages = [] } = useTrainingMessages(trainingId);
   const { data: allReactions = {} } = useMessageReactions(trainingId);
@@ -368,7 +370,7 @@ export default function ChatView({ trainingId, className, style }: ChatViewProps
       )}
 
       {/* ── Input bar ── */}
-      <div className="shrink-0 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
+      <div className={`shrink-0 border-t border-border bg-card ${hideBottomSafeArea ? '' : 'pb-[env(safe-area-inset-bottom)]'}`}>
         <div className="max-w-lg mx-auto px-2 py-1.5 flex items-end gap-1">
           <button
             onClick={() => setShowEmojis(prev => !prev)}

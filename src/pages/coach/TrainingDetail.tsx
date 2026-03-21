@@ -112,8 +112,8 @@ export default function TrainingDetail() {
 
       {activeTab === 'chat' && !showEdit ? (
         <>
-        <ChatView trainingId={training.id} className="flex-1 min-h-0" />
-        <div className="shrink-0 h-14" />
+        <ChatView trainingId={training.id} className="flex-1 min-h-0" hideBottomSafeArea />
+        <div className="shrink-0 h-14 safe-area-bottom" />
         </>
       ) : showEdit ? (
         <main className="flex-1 pb-24">
