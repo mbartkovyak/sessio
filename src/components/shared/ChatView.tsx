@@ -5,7 +5,7 @@ import { useTrainingMessages, useSendTrainingMessage } from '@/hooks/training/us
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO, isToday } from 'date-fns';
+import { format, parseISO, isToday, isYesterday } from 'date-fns';
 
 import Avatar from '@/components/shared/Avatar';
 import data from '@emoji-mart/data';
