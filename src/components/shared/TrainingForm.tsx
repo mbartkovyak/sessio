@@ -199,9 +199,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             {sameTime ? (
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs text-muted-foreground mb-1 block">Start</label>
-                  <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                  <input type="time" step={300} value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
                 <div><label className="text-xs text-muted-foreground mb-1 block">End</label>
-                  <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                  <input type="time" step={300} value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
               </div>
             ) : (
               <div className="space-y-2">
@@ -210,10 +210,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                   return (
                     <div key={day} className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground w-10 shrink-0">{DAYS_SHORT[day]}</span>
-                      <input type="time" value={sched.start_time} onChange={e => setDayTime(day, 'start_time', e.target.value)}
+                      <input type="time" step={300} value={sched.start_time} onChange={e => setDayTime(day, 'start_time', e.target.value)}
                         className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
                       <span className="text-muted-foreground text-xs">–</span>
-                      <input type="time" value={sched.end_time} onChange={e => setDayTime(day, 'end_time', e.target.value)}
+                      <input type="time" step={300} value={sched.end_time} onChange={e => setDayTime(day, 'end_time', e.target.value)}
                         className="flex-1 rounded-lg border border-input bg-background px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
                     </div>
                   );
@@ -240,9 +240,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
-              <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              <input type="time" step={300} value={form.start_time} onChange={e => set('start_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
             <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
-              <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              <input type="time" step={300} value={form.end_time} onChange={e => set('end_time', e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           </div>
         </>
       )}
