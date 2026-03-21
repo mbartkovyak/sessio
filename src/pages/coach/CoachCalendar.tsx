@@ -19,8 +19,9 @@ function useCoachSessions(coachId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, schools(name))')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name))')
         .eq('trainings.coach_id', coachId!)
+        .eq('trainings.is_active', true)
         .gte('session_date', today)
         .lte('session_date', endDate)
         .order('session_date', { ascending: true })
@@ -40,8 +41,9 @@ function useSchoolSessions(schoolId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, schools(name), coach:profiles(full_name))')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name), coach:profiles(full_name))')
         .eq('trainings.school_id', schoolId!)
+        .eq('trainings.is_active', true)
         .gte('session_date', today)
         .lte('session_date', endDate)
         .order('session_date', { ascending: true })
