@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining } from '@/hooks/training/useTrainings';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
@@ -18,6 +19,7 @@ export default function TrainingDetail() {
   const { data: training, isLoading, error: trainingError } = useTraining(id);
   const { data: members = [] } = useTrainingMembers(id);
   const { data: sessions = [] } = useTrainingSessions(id);
+  const { user } = useAuth();
   const removeMember = useRemoveTrainingMember(id!);
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -52,20 +54,20 @@ export default function TrainingDetail() {
 
   async function handleDelete() {
     setDeleting(true);
+    // Notify members via training chat before deleting
+    if (members.length > 0 && user) {
+      await supabase.from('training_messages').insert({
+        training_id: training.id,
+        sender_id: user.id,
+        content: `⚠️ "${training.name}" has been cancelled and will no longer take place. Contact your coach for more information.`,
+      });
+    }
     const { error } = await supabase
       .from('trainings')
       .update({ is_active: false })
       .eq('id', training.id);
     if (error) { toast.error(error.message); setDeleting(false); }
-    else { toast.success('Training deleted'); navigate('/coach/trainings'); }
-  }
-
-  function handleNotifyMembers() {
-    if (members.length === 0) {
-      toast.error('No members to notify');
-      return;
-    }
-    navigate(`/coach/trainings/${id}?tab=chat`);
+    else { toast.success('Training deleted — members notified'); navigate('/coach/trainings'); }
   }
 
   return (
@@ -183,14 +185,8 @@ export default function TrainingDetail() {
               )}
             </div>
 
-            {/* Quick actions */}
+            {/* Delete */}
             <div className="space-y-2 border-t border-border pt-6">
-              <button
-                onClick={handleNotifyMembers}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px] active:bg-secondary/50"
-              >
-                <MessageCircle className="h-4 w-4" /> Message members
-              </button>
               {!confirmDelete ? (
                 <button
                   onClick={() => setConfirmDelete(true)}
@@ -200,7 +196,7 @@ export default function TrainingDetail() {
                 </button>
               ) : (
                 <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
-                  <p className="text-sm text-destructive text-center font-medium">Delete this training? This can't be undone.</p>
+                  <p className="text-sm text-destructive text-center font-medium">Delete this training? All members will be notified.</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
                     <button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-destructive py-2.5 text-sm font-bold text-destructive-foreground min-h-[44px] disabled:opacity-60">
