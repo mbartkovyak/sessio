@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Home, MessageCircle, Dumbbell, CalendarDays, User } from 'lucide-react';
 import { useUnreadMessageCount } from '@/hooks/shared/useUnreadMessageCount';
 
@@ -13,7 +13,9 @@ const tabs = [
 export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const unreadCount = useUnreadMessageCount();
+  const isChatTab = searchParams.get('tab') === 'chat';
 
   return (
     <nav
@@ -22,7 +24,10 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
     >
       <div className="flex max-w-md mx-auto">
         {tabs.map(({ icon: Icon, label, path }) => {
-          const active = location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
+          const onTrainingChat = isChatTab && location.pathname.startsWith('/coach/trainings/');
+          const active = onTrainingChat
+            ? path === '/coach/messages'
+            : location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
           const isMessages = label === 'Messages';
           return (
             <button
