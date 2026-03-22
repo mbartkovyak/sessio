@@ -19,8 +19,12 @@ export default function SchoolProfileEditor() {
   const [sport, setSport] = useState('');
   const [description, setDescription] = useState('');
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [newVenueName, setNewVenueName] = useState('');
-  const [newVenueAddress, setNewVenueAddress] = useState('');
+  // Persist in-progress venue to sessionStorage (survives app-switch to Maps)
+  const [newVenueName, setNewVenueName] = useState(() => sessionStorage.getItem('_newVenueName') ?? '');
+  const [newVenueAddress, setNewVenueAddress] = useState(() => sessionStorage.getItem('_newVenueAddress') ?? '');
+
+  function updateNewVenueName(v: string) { setNewVenueName(v); sessionStorage.setItem('_newVenueName', v); }
+  function updateNewVenueAddress(v: string) { setNewVenueAddress(v); sessionStorage.setItem('_newVenueAddress', v); }
 
   useEffect(() => {
     if (school) {
@@ -34,9 +38,12 @@ export default function SchoolProfileEditor() {
 
   function addVenue() {
     if (!newVenueName.trim() || !newVenueAddress.trim()) return;
-    setVenues(v => [...v, { name: newVenueName.trim(), address: newVenueAddress.trim() }]);
-    setNewVenueName('');
-    setNewVenueAddress('');
+    const updated = [...venues, { name: newVenueName.trim(), address: newVenueAddress.trim() }];
+    setVenues(updated);
+    updateNewVenueName('');
+    updateNewVenueAddress('');
+    // Auto-save
+    if (school) update.mutate({ venues: updated });
   }
 
   function removeVenue(idx: number) {
@@ -110,12 +117,12 @@ export default function SchoolProfileEditor() {
             <input
               placeholder="Venue name (e.g. Court 3)"
               value={newVenueName}
-              onChange={e => setNewVenueName(e.target.value)}
+              onChange={e => updateNewVenueName(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <PlaceAutocompleteInput
               value={newVenueAddress}
-              onChange={setNewVenueAddress}
+              onChange={updateNewVenueAddress}
               placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
