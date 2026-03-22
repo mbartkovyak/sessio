@@ -5,6 +5,13 @@ import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
+/** Add 1 hour to a time string, capped at 23:55 */
+function bumpHour(time: string): string {
+  const [h, m] = time.split(':').map(Number);
+  const nh = Math.min(h + 1, 23);
+  return `${String(nh).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 function TimeSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
   const [h, m] = (value || '09:00').split(':');
   const selectCls = 'appearance-none bg-transparent text-sm font-medium text-foreground text-center focus:outline-none';
@@ -98,7 +105,17 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }, [venueOptions]);
 
-  const set = (k: keyof TrainingFormValues, v: any) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k: keyof TrainingFormValues, v: any) => setForm(f => {
+    const next = { ...f, [k]: v };
+    // Auto-fix: if start >= end, bump end to start + 1h
+    if (k === 'start_time' && next.start_time >= next.end_time) {
+      next.end_time = bumpHour(v as string);
+    }
+    if (k === 'end_time' && next.end_time <= next.start_time) {
+      next.end_time = bumpHour(next.start_time);
+    }
+    return next;
+  });
 
   function toggleDay(day: number) {
     setForm(f => {
@@ -119,7 +136,13 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   function setDayTime(day: number, field: 'start_time' | 'end_time', value: string) {
     setForm(f => {
       const schedules = { ...(f.day_schedules ?? {}) };
-      schedules[day] = { start_time: schedules[day]?.start_time ?? f.start_time, end_time: schedules[day]?.end_time ?? f.end_time, [field]: value };
+      const prev = schedules[day] ?? { start_time: f.start_time, end_time: f.end_time };
+      const updated = { ...prev, [field]: value };
+      // Auto-fix: end must be after start
+      if (updated.end_time <= updated.start_time) {
+        updated.end_time = bumpHour(updated.start_time);
+      }
+      schedules[day] = updated;
       return { ...f, day_schedules: schedules };
     });
   }
