@@ -25,7 +25,9 @@ type DiscoverableSchoolRow = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | '
 };
 type DiscoverableSchool = DiscoverableSchoolRow & { coach_count: number };
 
-type DiscoverableCoach = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city' | 'bio'>;
+type DiscoverableCoach = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city' | 'bio'> & {
+  schools: Pick<Tables<'schools'>, 'id' | 'name'> | null;
+};
 
 /** School owner — fetch my school with approved coaches only */
 export function useMySchool() {
@@ -279,7 +281,7 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
     queryFn: async () => {
       let q = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, sport, city, bio')
+        .select('id, full_name, avatar_url, sport, city, bio, schools(id, name)')
         .in('role', ['coach', 'school_owner'])
         .not('full_name', 'is', null);
       if (search) q = q.ilike('full_name', `%${search}%`);

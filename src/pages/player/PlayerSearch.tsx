@@ -114,7 +114,9 @@ export default function PlayerSearch() {
                   >
                     <Avatar url={item.avatar_url} name={item.full_name} size="lg" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate">{item.full_name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-foreground truncate">{item.full_name}</p>
+                      </div>
                       <div className="flex items-center gap-3 mt-0.5">
                         {item.sport && <span className="text-xs text-muted-foreground">{item.sport}</span>}
                         {item.city && (
@@ -123,6 +125,13 @@ export default function PlayerSearch() {
                           </span>
                         )}
                       </div>
+                      {item.schools?.name ? (
+                        <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                          <Building2 className="h-2.5 w-2.5" />{item.schools.name}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">Independent coach</p>
+                      )}
                       {item.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.bio}</p>}
                     </div>
                   </button>
