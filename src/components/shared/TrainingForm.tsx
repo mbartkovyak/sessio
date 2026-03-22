@@ -289,9 +289,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             />
             <PlaceAutocompleteInput
               value={newVenueAddress}
-              onChange={addr => {
-                setNewVenueAddress(addr);
-                // Auto-save as soon as both name and address are filled
+              onChange={setNewVenueAddress}
+              onPlaceSelect={addr => {
+                // Auto-save when place is picked from autocomplete dropdown
                 if (newVenueName.trim() && addr.trim()) {
                   const venue = { name: newVenueName.trim(), address: addr.trim() };
                   set('venue', `${venue.name}, ${venue.address}`);

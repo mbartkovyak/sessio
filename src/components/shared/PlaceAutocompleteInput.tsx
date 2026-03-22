@@ -22,11 +22,13 @@ function loadGoogleMaps(): Promise<void> {
 interface Props {
   value: string;
   onChange: (address: string) => void;
+  /** Fires only when a place is selected from autocomplete dropdown (not on typing) */
+  onPlaceSelect?: (address: string) => void;
   placeholder?: string;
   className?: string;
 }
 
-export default function PlaceAutocompleteInput({ value, onChange, placeholder, className }: Props) {
+export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect, placeholder, className }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
@@ -59,6 +61,7 @@ export default function PlaceAutocompleteInput({ value, onChange, placeholder, c
       if (addr) {
         setLocal(addr);
         onChange(addr);
+        onPlaceSelect?.(addr);
       }
     });
 
