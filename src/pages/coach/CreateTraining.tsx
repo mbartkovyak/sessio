@@ -88,7 +88,7 @@ export default function CreateTraining() {
 
   // School owner: show coach selector
   const schoolSlot = isSchoolOwner && school ? (
-    <div id="field-coach">
+    <div {...(!selectedCoachId ? { 'data-field-error': true } : {})}>
       <label className="text-sm font-medium text-foreground mb-1 block">Coach <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
