@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
@@ -150,11 +150,17 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(new Set(['name', 'venue', 'time']));
     setShowErrors(true);
-    if (!isValid) return;
+    if (!isValid) {
+      // Scroll to top of form so user sees the errors
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     onSubmit(form);
   }
 
@@ -177,7 +183,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const [showErrors, setShowErrors] = useState(false);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
       {/* Type */}
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
@@ -419,19 +425,21 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         </div>
       </div>
 
-      {/* Actions */}
-      {showErrors && errors.length > 0 && mode === 'edit' && (
+      {/* Validation errors */}
+      {showErrors && errors.length > 0 && (
         <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
           {errors.map((err, i) => (
             <p key={i} className="text-sm text-destructive">{err}</p>
           ))}
         </div>
       )}
+
+      {/* Actions */}
       {mode === 'edit' ? (
         <>
           <div className="flex gap-2">
             <button type="button" onClick={onCancel} className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
-            <button type="submit" disabled={submitting || !isValid}
+            <button type="submit" disabled={submitting}
               className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60 min-h-[44px]">
               {submitting ? 'Saving...' : (submitLabel ?? 'Save')}
             </button>
@@ -456,19 +464,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           )}
         </>
       ) : (
-        <>
-          {showErrors && errors.length > 0 && (
-            <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
-              {errors.map((err, i) => (
-                <p key={i} className="text-sm text-destructive">{err}</p>
-              ))}
-            </div>
-          )}
-          <button type="submit" disabled={submitting || !isValid}
-            className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
-            {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
-          </button>
-        </>
+        <button type="submit" disabled={submitting}
+          className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
+          {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
+        </button>
       )}
     </form>
   );
