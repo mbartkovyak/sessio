@@ -45,7 +45,7 @@ export default function CreateTraining() {
     return <Navigate to="/coach/trainings" replace />;
   }
 
-  const extraErrors = isSchoolOwner && !selectedCoachId ? ['Select a coach for this lesson'] : [];
+  const extraErrors = isSchoolOwner && !selectedCoachId ? ['Coach is required'] : [];
 
   async function handleSubmit(form: TrainingFormValues) {
     try {
