@@ -7,6 +7,7 @@ import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
 import { SPORT_ICONS } from '@/lib/constants';
 import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
+import { useUnreadPerChat } from '@/hooks/shared/useUnreadPerChat';
 
 export default function PlayerMessages() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function PlayerMessages() {
   const trainings = memberships.map((m: any) => m.trainings).filter(Boolean);
   const trainingIds = trainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
+  const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
 
   const sorted = [...trainings].sort((a: any, b: any) => {
     const ma = latestMessages[a.id];
@@ -50,7 +52,8 @@ export default function PlayerMessages() {
           <div className="divide-y divide-border">
             {sorted.map((t: any) => {
               const lastMsg = latestMessages[t.id];
-              const hasUnread = isUnread(t.id, lastMsg, user!.id);
+              const unreadCount = unreadCounts[t.id] ?? 0;
+              const hasUnread = unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
               return (
                 <button
                   key={t.id}
@@ -78,7 +81,11 @@ export default function PlayerMessages() {
                         : 'No messages yet'}
                     </p>
                   </div>
-                  {hasUnread && <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />}
+                  {hasUnread && (
+                    <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
+                      <span className="text-[10px] font-bold text-primary-foreground">{unreadCount || '!'}</span>
+                    </div>
+                  )}
                 </button>
               );
             })}

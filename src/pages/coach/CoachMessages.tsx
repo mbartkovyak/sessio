@@ -4,10 +4,11 @@ import { MessageCircle, MoreVertical } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useAllTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
-import { markConversationSeen, getConversationLastSeen } from '@/hooks/shared/useUnreadMessageCount';
+import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
 import { SPORT_ICONS } from '@/lib/constants';
 import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
+import { useUnreadPerChat } from '@/hooks/shared/useUnreadPerChat';
 
 function getHiddenChats(): string[] {
   try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
@@ -27,6 +28,7 @@ export default function CoachMessages() {
   const { data: myTrainings = [], isLoading } = useAllTrainings();
   const trainingIds = myTrainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
+  const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState(() => getHiddenChats());
@@ -66,7 +68,8 @@ export default function CoachMessages() {
           <div className="divide-y divide-border">
             {sorted.map((t: any) => {
               const lastMsg = latestMessages[t.id];
-              const hasUnread = isUnread(t.id, lastMsg, user!.id);
+              const unreadCount = unreadCounts[t.id] ?? 0;
+              const hasUnread = unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
               return (
                 <div key={t.id} className="relative flex items-center">
                   <button
@@ -94,7 +97,11 @@ export default function CoachMessages() {
                           : 'No messages yet'}
                       </p>
                     </div>
-                    {hasUnread && <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />}
+                    {hasUnread && (
+                      <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
+                        <span className="text-[10px] font-bold text-primary-foreground">{unreadCount || '!'}</span>
+                      </div>
+                    )}
                   </button>
 
                   {/* Three-dot menu */}
