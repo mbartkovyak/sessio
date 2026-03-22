@@ -32,8 +32,13 @@ export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect,
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
-  // Track local input value so it's fully controlled
   const [local, setLocal] = useState(value);
+
+  // Keep refs to latest callbacks so the Google listener never goes stale
+  const onChangeRef = useRef(onChange);
+  const onPlaceSelectRef = useRef(onPlaceSelect);
+  onChangeRef.current = onChange;
+  onPlaceSelectRef.current = onPlaceSelect;
 
   // Sync from parent when value changes externally (e.g. draft restore)
   useEffect(() => {
@@ -60,8 +65,8 @@ export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect,
       const addr = place.formatted_address || place.name || '';
       if (addr) {
         setLocal(addr);
-        onChange(addr);
-        onPlaceSelect?.(addr);
+        onChangeRef.current(addr);
+        onPlaceSelectRef.current?.(addr);
       }
     });
 
