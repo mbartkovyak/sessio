@@ -46,6 +46,10 @@ export default function CreateTraining() {
   }
 
   async function handleSubmit(form: TrainingFormValues) {
+    if (isSchoolOwner && !selectedCoachId) {
+      toast.error('Please select a coach for this lesson');
+      return;
+    }
     try {
       const payload: any = {
         ...form,
