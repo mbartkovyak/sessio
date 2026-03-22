@@ -79,10 +79,22 @@ export function useUnreadMessageCount() {
         .in('training_id', trainingIds)
         .neq('sender_id', user!.id);
 
+      // Count real unread messages
+      const chatsWithUnread = new Set<string>();
       let total = 0;
       for (const msg of messages ?? []) {
         const seen = lastSeen[msg.training_id];
-        if (!seen || msg.created_at > seen) total++;
+        if (!seen || msg.created_at > seen) {
+          total++;
+          chatsWithUnread.add(msg.training_id);
+        }
+      }
+      // Count manually-marked-unread chats that don't already have real unreads
+      const manualUnread: string[] = (() => {
+        try { return JSON.parse(localStorage.getItem('manual_unread') ?? '[]'); } catch { return []; }
+      })();
+      for (const id of manualUnread) {
+        if (trainingIds.includes(id) && !chatsWithUnread.has(id)) total++;
       }
       setCount(total);
     }
