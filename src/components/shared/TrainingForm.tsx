@@ -189,14 +189,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   }
 
   const formRef = useRef<HTMLFormElement>(null);
+  const errorsRef = useRef<HTMLDivElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(new Set(['name', 'venue', 'time']));
     setShowErrors(true);
     if (!isValid) {
-      // Scroll to top of form so user sees the errors
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Scroll to the error list so user sees what's wrong
+      setTimeout(() => errorsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
@@ -471,7 +472,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {/* Validation errors */}
       {showErrors && errors.length > 0 && (
-        <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
+        <div ref={errorsRef} className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
           {errors.map((err, i) => (
             <p key={i} className="text-sm text-destructive">{err}</p>
           ))}
