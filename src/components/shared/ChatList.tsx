@@ -101,9 +101,13 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
                 </p>
               </div>
               {hasUnread && (
-                <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
-                  <span className="text-[10px] font-bold text-primary-foreground">{unreadCount || '!'}</span>
-                </div>
+                unreadCount > 0 ? (
+                  <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
+                    <span className="text-[10px] font-bold text-primary-foreground">{unreadCount}</span>
+                  </div>
+                ) : (
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
+                )
               )}
             </button>
 
