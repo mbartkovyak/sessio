@@ -8,6 +8,9 @@ import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
+
+function PushRegistrar() { useAutoRegisterPush(); return null; }
 
 // Auth pages
 import Landing from "./pages/auth/Landing";
@@ -57,6 +60,7 @@ const App = () => (
         <InstallPWA />
         <ErrorBoundary>
         <AuthProvider>
+          <PushRegistrar />
           <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />
