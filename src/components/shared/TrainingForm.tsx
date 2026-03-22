@@ -193,11 +193,22 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setTouched(new Set(['name', 'venue', 'time']));
+    setTouched(new Set(['name', 'venue', 'time', 'max_players']));
     setShowErrors(true);
     if (!isValid) {
-      // Scroll to the error list so user sees what's wrong
-      setTimeout(() => errorsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+      // Scroll to the first field with an error
+      const firstError = !form.name ? 'field-name'
+        : !form.venue ? 'field-venue'
+        : (!form.is_recurring && !form.one_off_date) ? 'field-date'
+        : (form.type === 'group' && !form.max_players) ? 'field-max-players'
+        : hasTimeError ? 'field-schedule'
+        : extraErrors?.length ? 'field-coach'
+        : null;
+      if (firstError) {
+        setTimeout(() => {
+          document.getElementById(firstError)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+      }
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
@@ -243,13 +254,13 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         </div>
       </div>
       {/* Name */}
-      <div><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
+      <div id="field-name"><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
         <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
           className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('name') && !form.name ? 'border-destructive' : 'border-input'}`} />
         {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">Lesson name is required</p>}
       </div>
       {/* Venue */}
-      <div><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
+      <div id="field-venue"><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
         {venueOptions && !addingNewVenue ? (
           <div className="space-y-2">
             <div className="relative">
@@ -354,7 +365,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           </div>
 
           {/* Schedule — time per day */}
-          <div>
+          <div id="field-schedule">
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">Schedule</label>
               {form.days_of_week.length > 1 && (
@@ -405,7 +416,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         </>
       ) : (
         <>
-          <div><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
+          <div id="field-date"><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
             <input type="date" required value={form.one_off_date} onChange={e => set('one_off_date', e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           <div className="grid grid-cols-2 gap-3">
@@ -419,7 +430,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       )}
       {/* Capacity */}
       {form.type === 'group' && (
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
+        <div id="field-max-players"><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
           <input
             type="number" min={1} max={50}
             value={form.max_players || ''}
