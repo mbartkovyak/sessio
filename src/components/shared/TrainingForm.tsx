@@ -55,7 +55,7 @@ const defaults: TrainingFormValues = {
   start_date: new Date().toISOString().split('T')[0],
   end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
   one_off_date: '',
-  confirmation_window_hours: 48,
+  confirmation_window_hours: 24,
   booking_mode: 'instant', visibility: 'private',
   day_schedules: null,
 };
@@ -289,35 +289,29 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             />
             <PlaceAutocompleteInput
               value={newVenueAddress}
-              onChange={setNewVenueAddress}
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={!newVenueName.trim() || !newVenueAddress.trim()}
-                onClick={() => {
-                  const venue = { name: newVenueName.trim(), address: newVenueAddress.trim() };
+              onChange={addr => {
+                setNewVenueAddress(addr);
+                // Auto-save as soon as both name and address are filled
+                if (newVenueName.trim() && addr.trim()) {
+                  const venue = { name: newVenueName.trim(), address: addr.trim() };
                   set('venue', `${venue.name}, ${venue.address}`);
                   touch('venue');
                   onNewVenue?.(venue);
                   setAddingNewVenue(false);
                   setNewVenueName('');
                   setNewVenueAddress('');
-                }}
-                className="text-xs font-medium text-primary disabled:opacity-40"
-              >
-                Save
-              </button>
-            </div>
+                }
+              }}
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="button"
+              onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Back to venue list
+            </button>
           </div>
         ) : (
           <PlaceAutocompleteInput
