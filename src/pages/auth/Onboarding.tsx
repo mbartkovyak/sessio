@@ -407,7 +407,7 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Main venue <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Main venue</label>
                   <div className="space-y-2">
                     <input
                       type="text"
@@ -417,13 +417,25 @@ export default function Onboarding() {
                       className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                     />
                     {venueName && (
-                      <input
-                        type="text"
-                        placeholder="Address (e.g. ul. Marszałkowska 12, Warszawa)"
-                        value={venueAddress}
-                        onChange={e => setVenueAddress(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                      />
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+                          value={venueAddress}
+                          onChange={e => setVenueAddress(e.target.value)}
+                          className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                        />
+                        {venueAddress.trim().length > 5 && (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueAddress)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Verify on Google Maps ↗
+                          </a>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

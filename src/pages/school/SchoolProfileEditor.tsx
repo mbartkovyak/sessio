@@ -84,7 +84,14 @@ export default function SchoolProfileEditor() {
                   <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{v.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{v.address}</p>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline truncate block"
+                    >
+                      {v.address} ↗
+                    </a>
                   </div>
                   <button onClick={() => removeVenue(i)} className="shrink-0 p-1 rounded hover:bg-destructive/10">
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -101,11 +108,21 @@ export default function SchoolProfileEditor() {
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <input
-              placeholder="Address (e.g. ul. Marszałkowska 12, Warszawa)"
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
               value={newVenueAddress}
               onChange={e => setNewVenueAddress(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
+            {newVenueAddress.trim().length > 5 && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(newVenueAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline"
+              >
+                Verify on Google Maps ↗
+              </a>
+            )}
             <button
               type="button"
               onClick={addVenue}

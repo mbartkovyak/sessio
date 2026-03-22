@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
 import { getHoursUntilSession } from './sessionUtils';
+import VenueLink from '@/components/shared/VenueLink';
 
 export default function ThisWeekSection({ sessions }: { sessions: any[] }) {
   if (sessions.length === 0) return null;
@@ -54,6 +55,7 @@ function SessionRow({ attendance }: { attendance: any }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{training?.name}</p>
           <p className="text-xs text-muted-foreground">{relativeTime(session?.session_date, session?.start_time)}</p>
+          {training?.venue && <VenueLink venue={training.venue} className="text-xs text-muted-foreground" />}
         </div>
 
         {/* Segmented control — Google Calendar style */}
