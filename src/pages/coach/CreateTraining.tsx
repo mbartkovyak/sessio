@@ -120,9 +120,11 @@ export default function CreateTraining() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-4">
-        <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"><ArrowLeft className="h-5 w-5" /></button>
-        <h1 className="font-semibold text-foreground">New Lesson</h1>
+      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"><ArrowLeft className="h-5 w-5" /></button>
+          <h1 className="font-semibold text-foreground">New Lesson</h1>
+        </div>
       </header>
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6">
