@@ -9,8 +9,15 @@ export default function PushNotificationPrompt() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Don't show if: not supported, already subscribed, denied, or dismissed
-  if (!supported || subscribed || permission === 'denied' || dismissed) return null;
+  // Debug: show state so we can see why it's hidden
+  if (!supported || subscribed || permission === 'denied' || dismissed) {
+    // Temporary: show debug info
+    return (
+      <div className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+        Push: supported={String(supported)} perm={permission} subscribed={String(subscribed)} dismissed={String(dismissed)}
+      </div>
+    );
+  }
 
   async function handleEnable() {
     setLoading(true);
