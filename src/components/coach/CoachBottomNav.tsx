@@ -4,7 +4,7 @@ import { useUnreadMessageCount } from '@/hooks/shared/useUnreadMessageCount';
 
 const tabs = [
   { icon: Home, label: 'Home', path: '/coach' },
-  { icon: MessageCircle, label: 'Messages', path: '/coach/messages' },
+  { icon: MessageCircle, label: 'Chats', path: '/coach/messages' },
   { icon: Dumbbell, label: 'Lessons', path: '/coach/trainings' },
   { icon: CalendarDays, label: 'Calendar', path: '/coach/calendar' },
   { icon: User, label: 'Profile', path: '/coach/profile' },
@@ -28,7 +28,7 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
           const active = onTrainingChat
             ? path === '/coach/messages'
             : location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
-          const isMessages = label === 'Messages';
+          const isMessages = label === 'Chats';
           return (
             <button
               key={label}

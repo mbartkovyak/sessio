@@ -9,7 +9,7 @@ export default function PlayerBottomNav() {
 
   const tabs = [
     { icon: Home, label: 'Home', path: '/player' },
-    { icon: MessageCircle, label: 'Messages', path: '/player/messages' },
+    { icon: MessageCircle, label: 'Chats', path: '/player/messages' },
     { icon: Search, label: 'Search', path: '/search' },
     { icon: CalendarDays, label: 'Calendar', path: '/calendar' },
     { icon: User, label: 'Profile', path: '/profile' },
@@ -20,7 +20,7 @@ export default function PlayerBottomNav() {
       <div className="flex max-w-md mx-auto">
         {tabs.map(({ icon: Icon, label, path }) => {
           const active = pathname === path || (path !== '/player' && pathname.startsWith(path));
-          const isMessages = label === 'Messages';
+          const isMessages = label === 'Chats';
           return (
             <button
               key={label}

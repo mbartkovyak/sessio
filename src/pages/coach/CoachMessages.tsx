@@ -29,7 +29,7 @@ export default function CoachMessages() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Messages</h1>
+          <h1 className="text-lg font-semibold text-foreground">Chats</h1>
         </div>
       </header>
 
@@ -42,7 +42,7 @@ export default function CoachMessages() {
         ) : sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-20 text-center px-6">
             <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
-            <p className="font-medium text-foreground">No conversations yet</p>
+            <p className="font-medium text-foreground">No chats yet</p>
             <p className="text-sm text-muted-foreground mt-1">Create a lesson and invite athletes to start chatting</p>
           </div>
         ) : (
