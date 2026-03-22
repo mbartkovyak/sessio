@@ -81,14 +81,25 @@ interface Props {
 }
 
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors }: Props) {
-  // Persist create-mode form to sessionStorage so it survives app-switch (Maps etc.)
+  // Persist create-mode form to localStorage so it survives app-switch (Maps etc.)
+  // iOS Safari clears sessionStorage when it evicts background tabs — localStorage is reliable.
   const STORAGE_KEY = '_trainingFormDraft';
+  const DRAFT_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
+
+  function loadDraft(): TrainingFormValues | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const { form: saved, ts } = JSON.parse(raw);
+      if (Date.now() - ts > DRAFT_MAX_AGE_MS) { localStorage.removeItem(STORAGE_KEY); return null; }
+      return { ...defaults, ...saved };
+    } catch { return null; }
+  }
+
   const [form, setForm] = useState<TrainingFormValues>(() => {
     if (mode === 'create') {
-      try {
-        const saved = sessionStorage.getItem(STORAGE_KEY);
-        if (saved) return { ...defaults, ...JSON.parse(saved) };
-      } catch {}
+      const draft = loadDraft();
+      if (draft) return draft;
     }
     return { ...defaults, ...initialValues };
   });
@@ -96,12 +107,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
-  const [sameTime, setSameTime] = useState(() => !initialValues?.day_schedules);
+  const [sameTime, setSameTime] = useState(() => {
+    if (mode === 'create') { const d = loadDraft(); if (d) return !d.day_schedules; }
+    return !initialValues?.day_schedules;
+  });
 
-  // Save form to sessionStorage on every change (create mode only)
+  // Save form to localStorage on every change (create mode only)
   useEffect(() => {
     if (mode === 'create') {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ form, ts: Date.now() }));
     }
   }, [form, mode]);
 
@@ -174,7 +188,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     onSubmit(form);
   }
 

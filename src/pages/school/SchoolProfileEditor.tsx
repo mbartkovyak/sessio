@@ -28,12 +28,12 @@ export default function SchoolProfileEditor() {
   const [sport, setSport] = useState('');
   const [description, setDescription] = useState('');
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [newVenueName, setNewVenueName] = useState(() => sessionStorage.getItem('_newVenueName') ?? '');
-  const [newVenueAddress, setNewVenueAddress] = useState(() => sessionStorage.getItem('_newVenueAddress') ?? '');
+  const [newVenueName, setNewVenueName] = useState(() => localStorage.getItem('_newVenueName') ?? '');
+  const [newVenueAddress, setNewVenueAddress] = useState(() => localStorage.getItem('_newVenueAddress') ?? '');
   const [copied, setCopied] = useState(false);
 
-  function updateNewVenueName(v: string) { setNewVenueName(v); sessionStorage.setItem('_newVenueName', v); }
-  function updateNewVenueAddress(v: string) { setNewVenueAddress(v); sessionStorage.setItem('_newVenueAddress', v); }
+  function updateNewVenueName(v: string) { setNewVenueName(v); localStorage.setItem('_newVenueName', v); }
+  function updateNewVenueAddress(v: string) { setNewVenueAddress(v); localStorage.setItem('_newVenueAddress', v); }
 
   useEffect(() => {
     if (school) {
