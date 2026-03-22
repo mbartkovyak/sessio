@@ -15,7 +15,7 @@ export default function SchoolPublicProfile() {
   const { data: isFav } = useIsFavouriteSchool(id);
   const toggleFav = useToggleFavouriteSchool();
 
-  const coaches = (school as any)?.school_members ?? [];
+  const coaches = ((school as any)?.school_members ?? []).filter((m: any) => m.coach);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
