@@ -45,11 +45,9 @@ export default function CreateTraining() {
     return <Navigate to="/coach/trainings" replace />;
   }
 
+  const extraErrors = isSchoolOwner && !selectedCoachId ? ['Select a coach for this lesson'] : [];
+
   async function handleSubmit(form: TrainingFormValues) {
-    if (isSchoolOwner && !selectedCoachId) {
-      toast.error('Please select a coach for this lesson');
-      return;
-    }
     try {
       const payload: any = {
         ...form,
@@ -129,6 +127,7 @@ export default function CreateTraining() {
             schoolSlot={schoolSlot}
             venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
             onNewVenue={isSchoolOwner ? handleNewVenue : undefined}
+            extraErrors={extraErrors}
           />
         </div>
       </main>

@@ -80,9 +80,11 @@ interface Props {
   venueOptions?: VenueOption[];
   /** Called when user creates a new venue inline (saves to school) */
   onNewVenue?: (venue: VenueOption) => void;
+  /** Extra validation errors from parent (e.g. "Select a coach") */
+  extraErrors?: string[];
 }
 
-export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue }: Props) {
+export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors }: Props) {
   const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
@@ -150,8 +152,8 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Touch all required fields to show errors
     setTouched(new Set(['name', 'venue', 'time']));
+    setShowErrors(true);
     if (!isValid) return;
     onSubmit(form);
   }
@@ -164,7 +166,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     return form.end_time <= form.start_time;
   })();
 
-  const isValid = !!form.name && !!form.venue && (form.is_recurring || !!form.one_off_date) && !hasTimeError;
+  // Collect all validation errors
+  const errors: string[] = [];
+  if (!form.name) errors.push('Lesson name is required');
+  if (!form.venue) errors.push('Venue is required');
+  if (!form.is_recurring && !form.one_off_date) errors.push('Date is required for one-time lessons');
+  if (hasTimeError) errors.push('End time must be after start time');
+  if (extraErrors) errors.push(...extraErrors);
+  const isValid = errors.length === 0;
+  const [showErrors, setShowErrors] = useState(false);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -410,6 +420,13 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       </div>
 
       {/* Actions */}
+      {showErrors && errors.length > 0 && mode === 'edit' && (
+        <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
+          {errors.map((err, i) => (
+            <p key={i} className="text-sm text-destructive">{err}</p>
+          ))}
+        </div>
+      )}
       {mode === 'edit' ? (
         <>
           <div className="flex gap-2">
@@ -439,10 +456,19 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           )}
         </>
       ) : (
-        <button type="submit" disabled={submitting || !isValid}
-          className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
-          {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
-        </button>
+        <>
+          {showErrors && errors.length > 0 && (
+            <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
+              {errors.map((err, i) => (
+                <p key={i} className="text-sm text-destructive">{err}</p>
+              ))}
+            </div>
+          )}
+          <button type="submit" disabled={submitting || !isValid}
+            className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
+            {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
+          </button>
+        </>
       )}
     </form>
   );
