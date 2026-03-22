@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, UserPlus } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
@@ -91,7 +91,13 @@ export default function CreateTraining() {
     <div>
       <label className="text-sm font-medium text-foreground mb-1 block">Coach <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
-        <p className="text-sm text-destructive">No coaches in your school yet. Add coaches before creating trainings.</p>
+        <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+          <p className="text-sm text-muted-foreground">No coaches in your school yet</p>
+          <button type="button" onClick={() => navigate('/school/profile')}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+            <UserPlus className="h-4 w-4" /> Add coaches
+          </button>
+        </div>
       ) : (
         <div className="relative">
           <select
