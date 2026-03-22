@@ -11,12 +11,15 @@ export default function CoachHome() {
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: pendingRequest, isLoading: pendingLoading } = useMyPendingSchoolRequest();
-  const { data: school } = useMySchoolBasic(profile?.id);
+  const { data: school, isLoading: schoolLoading } = useMySchoolBasic(profile?.id);
 
   // Block coach with pending school request
   if (!isSchoolOwner && !pendingLoading && pendingRequest) {
     return <PendingApprovalScreen pendingRequest={pendingRequest} />;
   }
+
+  // Wait for school data before rendering (prevents flash between coach/school views)
+  const showLoading = isSchoolOwner && schoolLoading;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -27,7 +30,11 @@ export default function CoachHome() {
       </header>
 
       <main className="flex-1 pb-24">
-        {isSchoolOwner && school ? (
+        {showLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : isSchoolOwner && school ? (
           <SchoolOverviewSection school={school} />
         ) : (
           <CoachOverviewSection />

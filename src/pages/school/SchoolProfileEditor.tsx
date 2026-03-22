@@ -82,6 +82,13 @@ export default function SchoolProfileEditor() {
     }
   }
 
+  async function removeCoach(memberId: string, coachName: string) {
+    if (!confirm(`Remove ${coachName} from the school?`)) return;
+    const { error } = await supabase.from('school_members').delete().eq('id', memberId);
+    if (error) toast.error(error.message);
+    else { toast.success('Coach removed'); qc.invalidateQueries({ queryKey: ['my-school'] }); }
+  }
+
   async function addSelfAsCoach() {
     if (!school?.id || !profile?.id) return;
     const { error } = await supabase
@@ -181,6 +188,12 @@ export default function SchoolProfileEditor() {
                     <p className="font-medium text-foreground text-sm truncate flex-1">
                       {m.coach?.full_name ?? 'Coach'}{isMe && <span className="text-primary ml-1">(you)</span>}
                     </p>
+                    {!isMe && (
+                      <button onClick={() => removeCoach(m.id, m.coach?.full_name ?? 'this coach')}
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10 shrink-0">
+                        <X className="h-3.5 w-3.5 text-destructive" />
+                      </button>
+                    )}
                   </div>
                 );
               })}
