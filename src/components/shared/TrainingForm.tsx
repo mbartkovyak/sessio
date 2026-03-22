@@ -81,12 +81,29 @@ interface Props {
 }
 
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors }: Props) {
-  const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
+  // Persist create-mode form to sessionStorage so it survives app-switch (Maps etc.)
+  const STORAGE_KEY = '_trainingFormDraft';
+  const [form, setForm] = useState<TrainingFormValues>(() => {
+    if (mode === 'create') {
+      try {
+        const saved = sessionStorage.getItem(STORAGE_KEY);
+        if (saved) return { ...defaults, ...JSON.parse(saved) };
+      } catch {}
+    }
+    return { ...defaults, ...initialValues };
+  });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
   const [sameTime, setSameTime] = useState(() => !initialValues?.day_schedules);
+
+  // Save form to sessionStorage on every change (create mode only)
+  useEffect(() => {
+    if (mode === 'create') {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    }
+  }, [form, mode]);
 
   useEffect(() => {
     if (initialValues) {
@@ -157,6 +174,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
+    sessionStorage.removeItem(STORAGE_KEY);
     onSubmit(form);
   }
 
