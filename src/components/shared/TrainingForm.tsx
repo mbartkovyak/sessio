@@ -177,6 +177,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   if (!form.name) errors.push('Lesson name is required');
   if (!form.venue) errors.push('Venue is required');
   if (!form.is_recurring && !form.one_off_date) errors.push('Date is required for one-time lessons');
+  if (form.type === 'group' && !form.max_players) errors.push('Max athletes is required');
   if (hasTimeError) errors.push('End time must be after start time');
   if (extraErrors) errors.push(...extraErrors);
   const isValid = errors.length === 0;
@@ -375,8 +376,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       )}
       {/* Capacity */}
       {form.type === 'group' && (
-        <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes</label>
-          <input type="number" min={1} max={50} value={form.max_players} onChange={e => set('max_players', Number(e.target.value))} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+        <div><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
+          <input
+            type="number" min={1} max={50}
+            value={form.max_players || ''}
+            onChange={e => set('max_players', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+            onBlur={() => { if (!form.max_players) set('max_players', 6); }}
+            placeholder="6"
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+          /></div>
       )}
       {/* Booking Mode */}
       <div><label className="text-sm font-medium text-foreground mb-2 block">Joining</label>
