@@ -381,16 +381,21 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           /></div>
       )}
       {/* Booking Mode */}
-      <div><label className="text-sm font-medium text-foreground mb-2 block">Joining</label>
+      <div>
+        <label className="text-sm font-medium text-foreground mb-1 block">Joining</label>
+        <p className="text-xs text-muted-foreground mb-2">How athletes join when they open the invite link</p>
         <div className="grid grid-cols-2 gap-2">
           {[{ v: 'instant', l: 'Instant Join' }, { v: 'approval', l: 'Approval Required' }].map(({ v, l }) => (
             <button type="button" key={v} onClick={() => set('booking_mode', v)}
               className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.booking_mode === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
           ))}
-        </div></div>
+        </div>
+      </div>
       {/* Visibility — only for group trainings (individual is always private) */}
       {form.type === 'group' && (
-        <div><label className="text-sm font-medium text-foreground mb-2 block">Visibility</label>
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">Visibility</label>
+          <p className="text-xs text-muted-foreground mb-2">Whether athletes can find this lesson in search</p>
           <div className="grid grid-cols-2 gap-2">
             {[{ v: 'private', l: 'Invite Only' }, { v: 'discoverable', l: 'Discoverable' }].map(({ v, l }) => (
               <button type="button" key={v} onClick={() => set('visibility', v)}
