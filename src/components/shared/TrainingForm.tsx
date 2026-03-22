@@ -45,7 +45,6 @@ export interface TrainingFormValues {
   booking_mode: string;
   visibility: string;
   confirmation_window_hours: number;
-  no_response_behavior: string;
   day_schedules: DaySchedules | null;
 }
 
@@ -56,7 +55,7 @@ const defaults: TrainingFormValues = {
   start_date: new Date().toISOString().split('T')[0],
   end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
   one_off_date: '',
-  confirmation_window_hours: 48, no_response_behavior: 'mark_absent',
+  confirmation_window_hours: 48,
   booking_mode: 'instant', visibility: 'private',
   day_schedules: null,
 };
@@ -403,26 +402,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {schoolSlot}
 
-      {/* Confirmation settings */}
+      {/* Cancellation deadline */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Confirmation deadline</label>
-        <p className="text-xs text-muted-foreground mb-2">How many hours before the lesson athletes must confirm</p>
+        <label className="text-sm font-medium text-foreground mb-2 block">Cancellation deadline</label>
+        <p className="text-xs text-muted-foreground mb-2">How many hours before the lesson athletes can cancel for free</p>
         <div className="grid grid-cols-4 gap-2">
           {[12, 24, 48, 72].map(h => (
             <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
               className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
               {h}h
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">If athlete doesn't respond</label>
-        <div className="grid grid-cols-2 gap-2">
-          {[{ v: 'mark_absent', l: 'Mark absent' }, { v: 'keep_pending', l: 'Keep pending' }].map(({ v, l }) => (
-            <button type="button" key={v} onClick={() => set('no_response_behavior', v)}
-              className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.no_response_behavior === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-              {l}
             </button>
           ))}
         </div>

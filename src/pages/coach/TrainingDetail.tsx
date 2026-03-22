@@ -279,7 +279,6 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     booking_mode: training.booking_mode ?? 'instant',
     visibility: training.visibility ?? 'private',
     confirmation_window_hours: training.confirmation_window_hours ?? 48,
-    no_response_behavior: training.no_response_behavior ?? 'mark_absent',
     day_schedules: training.day_schedules ?? null,
   } : undefined;
 
@@ -292,7 +291,6 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       max_players: form.type === 'group' ? form.max_players : undefined,
       booking_mode: form.booking_mode, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
-      no_response_behavior: form.no_response_behavior,
       day_schedules: form.day_schedules || null,
     });
     toast.success('Training updated');
