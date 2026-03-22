@@ -81,42 +81,53 @@ interface Props {
 }
 
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors }: Props) {
-  // Persist create-mode form to localStorage so it survives app-switch (Maps etc.)
-  // iOS Safari clears sessionStorage when it evicts background tabs — localStorage is reliable.
-  const STORAGE_KEY = '_trainingFormDraft';
-  const DRAFT_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
+  // Persist create-mode form to localStorage so it survives app-switch.
+  // Save synchronously on every change (useEffect might not fire before page kill).
+  const DRAFT_KEY = '_trainingFormDraft';
+  const DRAFT_TTL = 60 * 60 * 1000; // 1 hour
 
   function loadDraft(): TrainingFormValues | null {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return null;
-      const { form: saved, ts } = JSON.parse(raw);
-      if (Date.now() - ts > DRAFT_MAX_AGE_MS) { localStorage.removeItem(STORAGE_KEY); return null; }
-      return { ...defaults, ...saved };
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.ts > DRAFT_TTL) { localStorage.removeItem(DRAFT_KEY); return null; }
+      return { ...defaults, ...parsed.form };
     } catch { return null; }
   }
 
-  const [form, setForm] = useState<TrainingFormValues>(() => {
+  function saveDraft(f: TrainingFormValues) {
     if (mode === 'create') {
-      const draft = loadDraft();
-      if (draft) return draft;
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ form: f, ts: Date.now() })); } catch {}
     }
-    return { ...defaults, ...initialValues };
-  });
+  }
+
+  const restoredDraft = mode === 'create' ? loadDraft() : null;
+  const [draftRestored] = useState(() => !!restoredDraft);
+
+  const [form, setFormRaw] = useState<TrainingFormValues>(restoredDraft ?? { ...defaults, ...initialValues });
+  // Wrap setForm to save synchronously on every change
+  const setForm = (updater: TrainingFormValues | ((prev: TrainingFormValues) => TrainingFormValues)) => {
+    setFormRaw(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveDraft(next);
+      return next;
+    });
+  };
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
-  const [sameTime, setSameTime] = useState(() => {
-    if (mode === 'create') { const d = loadDraft(); if (d) return !d.day_schedules; }
-    return !initialValues?.day_schedules;
-  });
+  const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
-  // Save form to localStorage on every change (create mode only)
+  // Also save when page goes to background (iOS fires this before killing)
   useEffect(() => {
-    if (mode === 'create') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ form, ts: Date.now() }));
-    }
+    if (mode !== 'create') return;
+    const save = () => saveDraft(form);
+    document.addEventListener('visibilitychange', save);
+    window.addEventListener('pagehide', save);
+    return () => { document.removeEventListener('visibilitychange', save); window.removeEventListener('pagehide', save); };
   }, [form, mode]);
 
   useEffect(() => {
@@ -188,7 +199,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(DRAFT_KEY);
     onSubmit(form);
   }
 
@@ -213,6 +224,11 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+      {draftRestored && (
+        <div className="rounded-lg bg-primary/5 border border-primary/15 px-3 py-2 text-xs text-primary font-medium">
+          Draft restored
+        </div>
+      )}
       {/* Type */}
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
@@ -296,7 +312,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 }}
                 className="text-xs font-medium text-primary disabled:opacity-40"
               >
-                Add venue
+                Save
               </button>
             </div>
           </div>
