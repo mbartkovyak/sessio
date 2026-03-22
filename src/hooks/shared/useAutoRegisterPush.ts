@@ -11,8 +11,8 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 }
 
 /**
- * Call this once at app root. If push permission is granted,
- * ensures the subscription is registered in Supabase.
+ * Call at app root. Ensures the browser's push subscription
+ * is saved to Supabase whenever permission is granted.
  */
 export function useAutoRegisterPush() {
   const { user } = useAuth();
@@ -36,10 +36,18 @@ export function useAutoRegisterPush() {
           });
         }
         const json = sub.toJSON();
-        await supabase.from('push_subscriptions').upsert(
+        const { error } = await supabase.from('push_subscriptions').upsert(
           { user_id: user.id, endpoint: json.endpoint!, keys: json.keys },
           { onConflict: 'user_id,endpoint' }
         );
+        if (error) {
+          console.error('Push DB save failed:', error.message);
+          // Retry without upsert — maybe the constraint doesn't exist yet
+          const { error: insertErr } = await supabase.from('push_subscriptions').insert({
+            user_id: user.id, endpoint: json.endpoint!, keys: json.keys,
+          });
+          if (insertErr) console.error('Push DB insert also failed:', insertErr.message);
+        }
       } catch (e) {
         console.error('Auto push registration failed:', e);
       }
