@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
+import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
+import { useQueryClient } from '@tanstack/react-query';
 
 function getNextDayDate(dayOfWeek: number): string {
   const today = new Date();
@@ -27,6 +28,17 @@ export default function CreateTraining() {
   const isSchoolOwner = profile?.role === 'school_owner';
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
+  const qc = useQueryClient();
+
+  async function handleNewVenue(venue: VenueOption) {
+    if (!school) return;
+    const currentVenues = ((school as any).venues ?? []) as VenueOption[];
+    await supabase
+      .from('schools')
+      .update({ venues: [...currentVenues, venue] })
+      .eq('id', school.id);
+    qc.invalidateQueries({ queryKey: ['my-school'] });
+  }
 
   // Coaches in a school cannot create lessons — only school owners can
   if (!isSchoolOwner && schoolMembership) {
@@ -112,6 +124,7 @@ export default function CreateTraining() {
             submitting={create.isPending}
             schoolSlot={schoolSlot}
             venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
+            onNewVenue={isSchoolOwner ? handleNewVenue : undefined}
           />
         </div>
       </main>

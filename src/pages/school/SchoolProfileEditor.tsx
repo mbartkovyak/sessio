@@ -6,6 +6,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { SPORTS, CITIES } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
+import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 
 type Venue = { name: string; address: string };
 
@@ -107,22 +108,12 @@ export default function SchoolProfileEditor() {
               onChange={e => setNewVenueName(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <input
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+            <PlaceAutocompleteInput
               value={newVenueAddress}
-              onChange={e => setNewVenueAddress(e.target.value)}
+              onChange={setNewVenueAddress}
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            {newVenueAddress.trim().length > 5 && (
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(newVenueAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline"
-              >
-                Verify on Google Maps ↗
-              </a>
-            )}
             <button
               type="button"
               onClick={addVenue}

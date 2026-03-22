@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
+import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -77,11 +78,16 @@ interface Props {
   schoolSlot?: React.ReactNode;
   /** School venues for dropdown selection */
   venueOptions?: VenueOption[];
+  /** Called when user creates a new venue inline (saves to school) */
+  onNewVenue?: (venue: VenueOption) => void;
 }
 
-export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions }: Props) {
+export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue }: Props) {
   const [form, setForm] = useState<TrainingFormValues>({ ...defaults, ...initialValues });
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [addingNewVenue, setAddingNewVenue] = useState(false);
+  const [newVenueName, setNewVenueName] = useState('');
+  const [newVenueAddress, setNewVenueAddress] = useState('');
   const [sameTime, setSameTime] = useState(() => !initialValues?.day_schedules);
 
   useEffect(() => {
@@ -182,25 +188,80 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       </div>
       {/* Venue */}
       <div><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
-        {venueOptions && venueOptions.length > 0 ? (
-          <div className="relative">
-            <select
-              value={form.venue}
-              onChange={e => { set('venue', e.target.value); touch('venue'); }}
-              onBlur={() => touch('venue')}
-              className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
-            >
-              {venueOptions.length > 1 && <option value="">Select venue</option>}
-              {venueOptions.map(v => {
-                const val = `${v.name}, ${v.address}`;
-                return <option key={val} value={val}>{v.name} — {v.address}</option>;
-              })}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {venueOptions && !addingNewVenue ? (
+          <div className="space-y-2">
+            <div className="relative">
+              <select
+                value={form.venue}
+                onChange={e => {
+                  if (e.target.value === '__new__') {
+                    setAddingNewVenue(true);
+                    set('venue', '');
+                  } else {
+                    set('venue', e.target.value);
+                    touch('venue');
+                  }
+                }}
+                onBlur={() => touch('venue')}
+                className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
+              >
+                {(venueOptions.length !== 1 || !form.venue) && <option value="">Select venue</option>}
+                {venueOptions.map(v => {
+                  const val = `${v.name}, ${v.address}`;
+                  return <option key={val} value={val}>{v.name} — {v.address}</option>;
+                })}
+                <option value="__new__">+ Add new venue</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        ) : addingNewVenue ? (
+          <div className="space-y-2 rounded-xl border border-dashed border-border p-3">
+            <input
+              value={newVenueName}
+              onChange={e => setNewVenueName(e.target.value)}
+              placeholder="Venue name (e.g. Court 3)"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <PlaceAutocompleteInput
+              value={newVenueAddress}
+              onChange={setNewVenueAddress}
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!newVenueName.trim() || !newVenueAddress.trim()}
+                onClick={() => {
+                  const venue = { name: newVenueName.trim(), address: newVenueAddress.trim() };
+                  set('venue', `${venue.name}, ${venue.address}`);
+                  touch('venue');
+                  onNewVenue?.(venue);
+                  setAddingNewVenue(false);
+                  setNewVenueName('');
+                  setNewVenueAddress('');
+                }}
+                className="text-xs font-medium text-primary disabled:opacity-40"
+              >
+                Add venue
+              </button>
+            </div>
           </div>
         ) : (
-          <input value={form.venue} onChange={e => { set('venue', e.target.value); touch('venue'); }} onBlur={() => touch('venue')} placeholder="Court 3, City Sports Center"
-            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`} />
+          <PlaceAutocompleteInput
+            value={form.venue}
+            onChange={v => { set('venue', v); touch('venue'); }}
+            placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
+          />
         )}
         {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">Venue is required</p>}
       </div>

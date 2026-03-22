@@ -6,6 +6,7 @@ import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
 import { SessioLogo } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import { SPORTS, CITIES } from '@/lib/constants';
+import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -417,25 +418,12 @@ export default function Onboarding() {
                       className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                     />
                     {venueName && (
-                      <>
-                        <input
-                          type="text"
-                          placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+                        <PlaceAutocompleteInput
                           value={venueAddress}
-                          onChange={e => setVenueAddress(e.target.value)}
+                          onChange={setVenueAddress}
+                          placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
                           className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                         />
-                        {venueAddress.trim().length > 5 && (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueAddress)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline"
-                          >
-                            Verify on Google Maps ↗
-                          </a>
-                        )}
-                      </>
                     )}
                   </div>
                 </div>
