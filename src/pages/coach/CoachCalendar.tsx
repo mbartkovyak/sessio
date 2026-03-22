@@ -1,5 +1,5 @@
 import { format, addDays } from 'date-fns';
-import VenueLink from '@/components/shared/VenueLink';
+import { MapPin } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -111,33 +111,37 @@ export default function CoachCalendar() {
               const statusColor = session.status === 'cancelled' ? 'bg-destructive/10 border-destructive/20' : 'bg-card';
 
               return (
-                <button
-                  key={session.id}
-                  onClick={() => navigate(`/coach/trainings/${training?.id}`)}
-                  className={`w-full flex items-center gap-3 rounded-xl border border-border ${statusColor} px-4 py-3 text-left shadow-sm active:bg-secondary/50 transition-colors`}
-                >
-                  <span className="text-xl shrink-0">{sportIcon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-foreground text-sm truncate">{training?.name}</p>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs text-muted-foreground">
+                <div key={session.id} className={`rounded-xl border border-border ${statusColor} shadow-sm overflow-hidden`}>
+                  <button
+                    onClick={() => navigate(`/coach/trainings/${training?.id}`)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-secondary/50 transition-colors"
+                  >
+                    <span className="text-xl shrink-0">{sportIcon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-foreground text-sm truncate">{training?.name}</p>
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground mt-0.5 block">
                         {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
+                        {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · Coach ${training.coach.full_name}`}
                       </span>
-                      {training?.venue && (
-                        <VenueLink venue={training.venue} className="text-xs text-muted-foreground truncate" />
-                      )}
                     </div>
-                    {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && (
-                      <span className="text-xs text-primary font-medium mt-0.5 inline-block">Coach {training.coach.full_name}</span>
+                    {session.status === 'cancelled' && (
+                      <span className="text-xs font-medium text-destructive shrink-0">Cancelled</span>
                     )}
-                  </div>
-                  {session.status === 'cancelled' && (
-                    <span className="text-xs font-medium text-destructive shrink-0">Cancelled</span>
+                  </button>
+                  {training?.venue && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                    >
+                      <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+                    </a>
                   )}
-                </button>
+                </div>
               );
             }}
           />

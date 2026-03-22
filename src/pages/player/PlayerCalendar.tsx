@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import VenueLink from '@/components/shared/VenueLink';
+import { AlertTriangle, MapPin } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -97,20 +96,25 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
         <span className="text-xl shrink-0">{sportIcon}</span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">{training?.name}</p>
-          <div className="flex items-center gap-3 mt-0.5">
-            <span className="text-xs text-muted-foreground">
-              {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
-            </span>
-            {training?.venue && (
-              <VenueLink venue={training.venue} className="text-xs text-muted-foreground truncate" />
-            )}
-          </div>
+          <span className="text-xs text-muted-foreground mt-0.5 block">
+            {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
+          </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <div className={`h-2 w-2 rounded-full ${style.dot}`} />
           <span className={`text-xs font-medium capitalize ${style.label}`}>{attendance.status}</span>
         </div>
       </button>
+      {training?.venue && (
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+        >
+          <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+        </a>
+      )}
 
       {isExpanded && (
         <div className="px-4 pb-3.5 border-t border-border pt-3">
