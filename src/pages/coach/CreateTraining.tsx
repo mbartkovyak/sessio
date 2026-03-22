@@ -89,7 +89,7 @@ export default function CreateTraining() {
   // School owner: show coach selector
   const schoolSlot = isSchoolOwner && school ? (
     <div>
-      <label className="text-sm font-medium text-foreground mb-1 block">Coach</label>
+      <label className="text-sm font-medium text-foreground mb-1 block">Coach <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
         <p className="text-sm text-destructive">No coaches in your school yet. Add coaches before creating trainings.</p>
       ) : (
