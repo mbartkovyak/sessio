@@ -79,7 +79,7 @@ export default function TrainingDetail() {
     <div className={`flex flex-col bg-background ${activeTab === 'chat' && !showEdit ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
       <header className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
-          <button onClick={() => navigate('/coach/trainings')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-foreground truncate">{training.name}</h1>
             <p className="text-xs text-muted-foreground">
