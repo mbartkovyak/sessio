@@ -30,6 +30,16 @@ export default function PlaceAutocompleteInput({ value, onChange, placeholder, c
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
+  // Track local input value so it's fully controlled
+  const [local, setLocal] = useState(value);
+
+  // Sync from parent when value changes externally (e.g. draft restore)
+  useEffect(() => {
+    setLocal(value);
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
+    }
+  }, [value]);
 
   useEffect(() => {
     if (!API_KEY) return;
@@ -46,7 +56,10 @@ export default function PlaceAutocompleteInput({ value, onChange, placeholder, c
     ac.addListener('place_changed', () => {
       const place = ac.getPlace();
       const addr = place.formatted_address || place.name || '';
-      if (addr) onChange(addr);
+      if (addr) {
+        setLocal(addr);
+        onChange(addr);
+      }
     });
 
     autocompleteRef.current = ac;
@@ -56,19 +69,24 @@ export default function PlaceAutocompleteInput({ value, onChange, placeholder, c
     };
   }, [loaded]);
 
-  // Fallback: no API key → plain text input with maps preview
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setLocal(e.target.value);
+    onChange(e.target.value);
+  }
+
+  // No API key → plain controlled input
   if (!API_KEY) {
     return (
       <div className="space-y-1">
         <input
-          value={value}
-          onChange={e => onChange(e.target.value)}
+          value={local}
+          onChange={handleChange}
           placeholder={placeholder}
           className={className}
         />
-        {value.trim().length > 5 && (
+        {local.trim().length > 5 && (
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`}
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline"
@@ -84,14 +102,14 @@ export default function PlaceAutocompleteInput({ value, onChange, placeholder, c
     <div className="space-y-1">
       <input
         ref={inputRef}
-        defaultValue={value}
-        onChange={e => onChange(e.target.value)}
+        defaultValue={local}
+        onChange={handleChange}
         placeholder={placeholder}
         className={className}
       />
-      {value && (
+      {local && (
         <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`}
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-primary hover:underline inline-flex items-center gap-1"
