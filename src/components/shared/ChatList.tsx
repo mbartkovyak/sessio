@@ -15,10 +15,16 @@ function hideChat(id: string) {
   const hidden = getHiddenChats();
   if (!hidden.includes(id)) localStorage.setItem('hidden_chats', JSON.stringify([...hidden, id]));
 }
+function getManualUnread(): string[] {
+  try { return JSON.parse(localStorage.getItem('manual_unread') ?? '[]'); } catch { return []; }
+}
 function markAsUnread(id: string) {
-  const map = JSON.parse(localStorage.getItem('msg_last_seen') ?? '{}');
-  delete map[id];
-  localStorage.setItem('msg_last_seen', JSON.stringify(map));
+  const list = getManualUnread();
+  if (!list.includes(id)) localStorage.setItem('manual_unread', JSON.stringify([...list, id]));
+}
+function clearManualUnread(id: string) {
+  const list = getManualUnread().filter(x => x !== id);
+  localStorage.setItem('manual_unread', JSON.stringify(list));
 }
 
 interface Props {
@@ -37,6 +43,7 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
   const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState(() => getHiddenChats());
+  const [manualUnread, setManualUnread] = useState(() => getManualUnread());
 
   const visible = trainings.filter((t: any) => !hiddenIds.includes(t.id));
 
@@ -72,12 +79,15 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
       {sorted.map((t: any) => {
         const lastMsg = latestMessages[t.id];
         const unreadCount = unreadCounts[t.id] ?? 0;
-        const hasUnread = unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
+        const isManual = manualUnread.includes(t.id);
+        const hasUnread = isManual || unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
         return (
           <div key={t.id} className="relative flex items-center">
             <button
               onClick={() => {
                 markConversationSeen(t.id);
+                clearManualUnread(t.id);
+                setManualUnread(getManualUnread());
                 navigate(getChatPath(t.id));
               }}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
@@ -101,7 +111,7 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
                 </p>
               </div>
               {hasUnread && (
-                unreadCount > 0 ? (
+                !isManual && unreadCount > 0 ? (
                   <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
                     <span className="text-[10px] font-bold text-primary-foreground">{unreadCount}</span>
                   </div>
@@ -124,7 +134,7 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
                 onClick={e => e.stopPropagation()}
               >
                 <button
-                  onClick={() => { markAsUnread(t.id); setMenuOpen(null); window.location.reload(); }}
+                  onClick={() => { markAsUnread(t.id); setManualUnread(getManualUnread()); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
                 >
                   Mark as unread
