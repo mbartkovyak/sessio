@@ -27,15 +27,39 @@ export function useUnreadMessageCount() {
 
     async function fetchCount() {
       const lastSeen = getLastSeen();
+      const hiddenChats: string[] = (() => {
+        try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
+      })();
       let trainingIds: string[] = [];
 
-      if (profile?.role === 'coach') {
-        const { data } = await supabase
+      if (profile?.role === 'coach' || profile?.role === 'school_owner') {
+        // Own trainings
+        const { data: own } = await supabase
           .from('trainings')
           .select('id')
           .eq('coach_id', user!.id);
-        trainingIds = (data ?? []).map((t: any) => t.id);
+        trainingIds = (own ?? []).map((t: any) => t.id);
+
+        // School owner: also include school trainings
+        if (profile?.role === 'school_owner') {
+          const { data: school } = await supabase
+            .from('schools')
+            .select('id')
+            .eq('owner_id', user!.id)
+            .maybeSingle();
+          if (school) {
+            const { data: schoolTrainings } = await supabase
+              .from('trainings')
+              .select('id')
+              .eq('school_id', school.id);
+            const ids = new Set(trainingIds);
+            for (const t of schoolTrainings ?? []) {
+              if (!ids.has(t.id)) trainingIds.push(t.id);
+            }
+          }
+        }
       } else {
+        // Player: trainings they're a member of
         const { data } = await supabase
           .from('training_members')
           .select('training_id')
@@ -43,19 +67,22 @@ export function useUnreadMessageCount() {
         trainingIds = (data ?? []).map((m: any) => m.training_id);
       }
 
+      // Filter out hidden chats
+      trainingIds = trainingIds.filter(id => !hiddenChats.includes(id));
+
       if (trainingIds.length === 0) { setCount(0); return; }
 
+      // Single query: get all unread messages across all trainings
+      const { data: messages } = await supabase
+        .from('training_messages')
+        .select('training_id, created_at')
+        .in('training_id', trainingIds)
+        .neq('sender_id', user!.id);
+
       let total = 0;
-      for (const tid of trainingIds) {
-        const since = lastSeen[tid];
-        let q = supabase
-          .from('training_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('training_id', tid)
-          .neq('sender_id', user!.id);
-        if (since) q = q.gt('created_at', since);
-        const { count: c } = await q;
-        total += c ?? 0;
+      for (const msg of messages ?? []) {
+        const seen = lastSeen[msg.training_id];
+        if (!seen || msg.created_at > seen) total++;
       }
       setCount(total);
     }
