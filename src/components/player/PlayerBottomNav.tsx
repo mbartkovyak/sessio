@@ -32,8 +32,8 @@ export default function PlayerBottomNav() {
               <div className="relative">
                 <Icon className="h-5 w-5" />
                 {isMessages && unreadCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                  <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-bold text-destructive-foreground">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </div>
