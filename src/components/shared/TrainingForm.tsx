@@ -381,7 +381,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             type="number" min={1} max={50}
             value={form.max_players || ''}
             onChange={e => set('max_players', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-            onBlur={() => { if (!form.max_players) set('max_players', 6); }}
+            onBlur={() => touch('max_players')}
             placeholder="6"
             className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
           /></div>
