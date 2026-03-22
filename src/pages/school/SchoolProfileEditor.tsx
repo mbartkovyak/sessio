@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMySchool, useUpdateSchool } from '@/hooks/school/useSchools';
 import { toast } from 'sonner';
-import { Plus, Trash2, MapPin } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, MapPin } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { SPORTS, CITIES } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
@@ -11,6 +12,7 @@ import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 type Venue = { name: string; address: string };
 
 export default function SchoolProfileEditor() {
+  const navigate = useNavigate();
   const { data: school, isLoading } = useMySchool();
   const update = useUpdateSchool(school?.id ?? '');
 
@@ -66,7 +68,10 @@ export default function SchoolProfileEditor() {
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <h1 className="text-lg font-bold text-foreground">School Profile</h1>
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => navigate('/coach')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+          <h1 className="text-lg font-bold text-foreground">School Profile</h1>
+        </div>
       </header>
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-4">
         <div>

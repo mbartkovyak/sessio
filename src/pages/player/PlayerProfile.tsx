@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, User } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +9,7 @@ import Avatar from '@/components/shared/Avatar';
 import AccountActions from '@/components/shared/AccountActions';
 
 export default function PlayerProfile() {
+  const navigate = useNavigate();
   const { profile, user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
@@ -27,7 +29,8 @@ export default function PlayerProfile() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center justify-between">
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={() => navigate('/player')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
           <h1 className="font-semibold text-foreground">Profile</h1>
         </div>
       </header>
