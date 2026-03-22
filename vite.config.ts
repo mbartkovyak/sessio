@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/, /^\/auth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
+        skipWaiting: true,
+        clientsClaim: true,
       },
       includeAssets: ["favicon.ico", "icons/*.svg"],
       manifest: {
