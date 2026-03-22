@@ -5,12 +5,6 @@ import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
-/** Add 1 hour to a time string, capped at 23:55 */
-function bumpHour(time: string): string {
-  const [h, m] = time.split(':').map(Number);
-  const nh = Math.min(h + 1, 23);
-  return `${String(nh).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
 
 function TimeSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
   const [h, m] = (value || '09:00').split(':');
@@ -105,17 +99,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }, [venueOptions]);
 
-  const set = (k: keyof TrainingFormValues, v: any) => setForm(f => {
-    const next = { ...f, [k]: v };
-    // Auto-fix: if start >= end, bump end to start + 1h
-    if (k === 'start_time' && next.start_time >= next.end_time) {
-      next.end_time = bumpHour(v as string);
-    }
-    if (k === 'end_time' && next.end_time <= next.start_time) {
-      next.end_time = bumpHour(next.start_time);
-    }
-    return next;
-  });
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const touch = (field: string) => setTouched(t => new Set(t).add(field));
+
+  const set = (k: keyof TrainingFormValues, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   function toggleDay(day: number) {
     setForm(f => {
@@ -137,12 +124,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     setForm(f => {
       const schedules = { ...(f.day_schedules ?? {}) };
       const prev = schedules[day] ?? { start_time: f.start_time, end_time: f.end_time };
-      const updated = { ...prev, [field]: value };
-      // Auto-fix: end must be after start
-      if (updated.end_time <= updated.start_time) {
-        updated.end_time = bumpHour(updated.start_time);
-      }
-      schedules[day] = updated;
+      schedules[day] = { ...prev, [field]: value };
       return { ...f, day_schedules: schedules };
     });
   }
@@ -162,10 +144,21 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Touch all required fields to show errors
+    setTouched(new Set(['name', 'venue', 'time']));
+    if (!isValid) return;
     onSubmit(form);
   }
 
-  const isValid = !!form.name && !!form.venue && (form.is_recurring || !!form.one_off_date);
+  // Check if any time slot has end <= start
+  const hasTimeError = (() => {
+    if (form.day_schedules) {
+      return Object.values(form.day_schedules).some(s => s.end_time <= s.start_time);
+    }
+    return form.end_time <= form.start_time;
+  })();
+
+  const isValid = !!form.name && !!form.venue && (form.is_recurring || !!form.one_off_date) && !hasTimeError;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -182,16 +175,20 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         </div>
       </div>
       {/* Name */}
-      <div><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name</label>
-        <input required value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Wednesday Tennis" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+      <div><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
+        <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
+          className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('name') && !form.name ? 'border-destructive' : 'border-input'}`} />
+        {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">Lesson name is required</p>}
+      </div>
       {/* Venue */}
-      <div><label className="text-sm font-medium text-foreground mb-1 block">Venue</label>
+      <div><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
         {venueOptions && venueOptions.length > 0 ? (
           <div className="relative">
             <select
               value={form.venue}
-              onChange={e => set('venue', e.target.value)}
-              className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+              onChange={e => { set('venue', e.target.value); touch('venue'); }}
+              onBlur={() => touch('venue')}
+              className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
             >
               {venueOptions.length > 1 && <option value="">Select venue</option>}
               {venueOptions.map(v => {
@@ -202,8 +199,11 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
         ) : (
-          <input required value={form.venue} onChange={e => set('venue', e.target.value)} placeholder="Court 3, City Sports Center" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" />
-        )}</div>
+          <input value={form.venue} onChange={e => { set('venue', e.target.value); touch('venue'); }} onBlur={() => touch('venue')} placeholder="Court 3, City Sports Center"
+            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`} />
+        )}
+        {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">Venue is required</p>}
+      </div>
 
       {/* Frequency */}
       <div>
@@ -268,6 +268,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 })}
               </div>
             )}
+            {hasTimeError && <p className="text-xs text-destructive mt-2">End time must be after start time</p>}
           </div>
 
           {/* Start / End dates */}
@@ -292,6 +293,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
               <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} /></div>
           </div>
+          {hasTimeError && <p className="text-xs text-destructive">End time must be after start time</p>}
         </>
       )}
       {/* Capacity */}
