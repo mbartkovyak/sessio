@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -11,68 +11,67 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
 }
 
-async function registerSubscription(userId: string): Promise<boolean> {
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-    }
-
-    const sub = subscription.toJSON();
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
-        user_id: userId,
-        endpoint: sub.endpoint!,
-        keys: sub.keys,
-      }, { onConflict: 'user_id,endpoint' });
-
-    if (error) console.error('Failed to save push subscription:', error);
-    return !error;
-  } catch (err) {
-    console.error('Push subscription failed:', err);
-    return false;
-  }
-}
-
 export function usePushNotifications() {
   const { user } = useAuth();
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
   const [supported, setSupported] = useState(false);
-  const autoRegistered = useRef(false);
+  const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    setSupported('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY);
+    const ok = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY;
+    setSupported(ok);
+
+    // Check if already subscribed
+    if (ok && Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(reg =>
+        reg.pushManager.getSubscription().then(sub => {
+          if (sub) setSubscribed(true);
+        })
+      ).catch(() => {});
+    }
   }, []);
 
-  // Auto-register subscription if permission is already granted (e.g. user granted via iOS dialog but subscription wasn't saved)
-  useEffect(() => {
-    if (!user || !supported || autoRegistered.current) return;
-    if (Notification.permission === 'granted') {
-      autoRegistered.current = true;
-      registerSubscription(user.id);
-    }
-  }, [user, supported]);
+  const subscribe = useCallback(async (): Promise<true | string> => {
+    if (!user) return 'Not signed in';
+    if (!supported) return 'Push not supported on this device';
 
-  const subscribe = useCallback(async () => {
-    if (!user || !supported) return false;
     try {
-      const perm = await Notification.requestPermission();
-      setPermission(perm);
-      if (perm !== 'granted') return false;
-      return await registerSubscription(user.id);
-    } catch (err) {
-      console.error('Push subscription failed:', err);
-      return false;
+      // Request permission if not yet granted
+      if (Notification.permission !== 'granted') {
+        const perm = await Notification.requestPermission();
+        setPermission(perm);
+        if (perm !== 'granted') return 'Permission denied';
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+
+      const sub = subscription.toJSON();
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: user.id,
+          endpoint: sub.endpoint!,
+          keys: sub.keys,
+        }, { onConflict: 'user_id,endpoint' });
+
+      if (error) return `DB error: ${error.message}`;
+
+      setSubscribed(true);
+      return true;
+    } catch (err: any) {
+      return `Error: ${err?.message ?? String(err)}`;
     }
   }, [user, supported]);
 
-  return { supported, permission, subscribe };
+  return { supported, permission, subscribed, subscribe };
 }
