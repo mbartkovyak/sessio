@@ -7,24 +7,21 @@ const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
 
-function TimeSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+function TimeSelect({ value, onChange, compact }: { value: string; onChange: (v: string) => void; compact?: boolean }) {
   const [h, m] = (value || '09:00').split(':');
-  const selectCls = 'appearance-none bg-transparent text-sm font-medium text-foreground text-center focus:outline-none';
+  const sel = 'appearance-none bg-transparent text-sm font-medium text-foreground text-center focus:outline-none w-9';
   return (
-    <div className={className ?? 'flex items-center gap-0.5 rounded-xl border border-input bg-background px-3 py-3 min-h-[44px]'}>
-      <div className="relative flex-1">
-        <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={`${selectCls} w-full pr-4`}>
-          {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-      </div>
+    <div className={compact
+      ? 'inline-flex items-center rounded-lg border border-input bg-background px-1.5 py-2 min-h-[40px]'
+      : 'inline-flex items-center rounded-xl border border-input bg-background px-3 py-3 min-h-[44px]'
+    }>
+      <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={sel}>
+        {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
+      </select>
       <span className="text-sm font-medium text-muted-foreground">:</span>
-      <div className="relative flex-1">
-        <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={`${selectCls} w-full pr-4`}>
-          {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-      </div>
+      <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={sel}>
+        {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
+      </select>
     </div>
   );
 }
@@ -336,11 +333,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                   return (
                     <div key={day} className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground w-10 shrink-0">{DAYS_SHORT[day]}</span>
-                      <TimeSelect value={sched.start_time} onChange={v => setDayTime(day, 'start_time', v)}
-                        className="flex-1 appearance-none rounded-lg border border-input bg-background px-2.5 py-2 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                      <TimeSelect value={sched.start_time} onChange={v => setDayTime(day, 'start_time', v)} compact />
                       <span className="text-muted-foreground text-xs">–</span>
-                      <TimeSelect value={sched.end_time} onChange={v => setDayTime(day, 'end_time', v)}
-                        className="flex-1 appearance-none rounded-lg border border-input bg-background px-2.5 py-2 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[40px]" />
+                      <TimeSelect value={sched.end_time} onChange={v => setDayTime(day, 'end_time', v)} compact />
                     </div>
                   );
                 })}
