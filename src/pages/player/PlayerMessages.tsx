@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, MoreVertical } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,17 +10,34 @@ import { SPORT_ICONS } from '@/lib/constants';
 import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
 import { useUnreadPerChat } from '@/hooks/shared/useUnreadPerChat';
 
+function getHiddenChats(): string[] {
+  try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
+}
+function hideChat(id: string) {
+  const hidden = getHiddenChats();
+  if (!hidden.includes(id)) localStorage.setItem('hidden_chats', JSON.stringify([...hidden, id]));
+}
+function markAsUnread(id: string) {
+  const map = JSON.parse(localStorage.getItem('msg_last_seen') ?? '{}');
+  delete map[id];
+  localStorage.setItem('msg_last_seen', JSON.stringify(map));
+}
+
 export default function PlayerMessages() {
   const { user } = useAuth();
   const { data: memberships = [], isLoading } = useMyTrainings();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [hiddenIds, setHiddenIds] = useState(() => getHiddenChats());
 
   const trainings = memberships.map((m: any) => m.trainings).filter(Boolean);
   const trainingIds = trainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
   const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
 
-  const sorted = [...trainings].sort((a: any, b: any) => {
+  const visible = trainings.filter((t: any) => !hiddenIds.includes(t.id));
+
+  const sorted = [...visible].sort((a: any, b: any) => {
     const ma = latestMessages[a.id];
     const mb = latestMessages[b.id];
     if (!ma && !mb) return 0;
@@ -29,7 +47,7 @@ export default function PlayerMessages() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" onClick={() => menuOpen && setMenuOpen(null)}>
       <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-lg font-semibold text-foreground">Chats</h1>
@@ -55,38 +73,66 @@ export default function PlayerMessages() {
               const unreadCount = unreadCounts[t.id] ?? 0;
               const hasUnread = unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
               return (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    markConversationSeen(t.id);
-                    navigate(`/player/messages/${t.id}`);
-                  }}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl shrink-0">
-                    {SPORT_ICONS[t.sport] ?? '🎯'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
-                      {lastMsg && (
-                        <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                          {formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: false })}
-                        </span>
-                      )}
+                <div key={t.id} className="relative flex items-center">
+                  <button
+                    onClick={() => {
+                      markConversationSeen(t.id);
+                      navigate(`/player/messages/${t.id}`);
+                    }}
+                    className="flex flex-1 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl shrink-0">
+                      {SPORT_ICONS[t.sport] ?? '🎯'}
                     </div>
-                    <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                      {lastMsg
-                        ? `${lastMsg.profiles?.full_name ?? 'Someone'}: ${lastMsg.content}`
-                        : 'No messages yet'}
-                    </p>
-                  </div>
-                  {hasUnread && (
-                    <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
-                      <span className="text-[10px] font-bold text-primary-foreground">{unreadCount || '!'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
+                        {lastMsg && (
+                          <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                            {formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: false })}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                        {lastMsg
+                          ? `${lastMsg.profiles?.full_name ?? 'Someone'}: ${lastMsg.content}`
+                          : 'No messages yet'}
+                      </p>
+                    </div>
+                    {hasUnread && (
+                      <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
+                        <span className="text-[10px] font-bold text-primary-foreground">{unreadCount || '!'}</span>
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === t.id ? null : t.id); }}
+                    className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary mr-1"
+                  >
+                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                  </button>
+
+                  {menuOpen === t.id && (
+                    <div
+                      className="absolute right-12 top-2 z-20 rounded-xl border border-border bg-card shadow-lg py-1 min-w-[160px]"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => { markAsUnread(t.id); setMenuOpen(null); window.location.reload(); }}
+                        className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
+                      >
+                        Mark as unread
+                      </button>
+                      <button
+                        onClick={() => { hideChat(t.id); setHiddenIds(getHiddenChats()); setMenuOpen(null); }}
+                        className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
+                      >
+                        Delete chat
+                      </button>
                     </div>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
