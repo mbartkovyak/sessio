@@ -14,12 +14,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
-      workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/auth/],
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
-        skipWaiting: true,
-        clientsClaim: true,
       },
       includeAssets: ["favicon.ico", "icons/*.svg"],
       manifest: {

@@ -9,6 +9,7 @@ import ConfirmationCard from '@/components/player/home/ConfirmationCard';
 import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
 import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
+import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -102,6 +103,9 @@ export default function PlayerHome() {
               </button>
             </div>
           ) : null}
+
+          {/* Push notification prompt */}
+          <PushNotificationPrompt />
 
           {/* Open spots */}
           <OpenSpotsSection />
