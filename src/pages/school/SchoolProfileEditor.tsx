@@ -40,7 +40,12 @@ export default function SchoolProfileEditor() {
   }
 
   function removeVenue(idx: number) {
-    setVenues(v => v.filter((_, i) => i !== idx));
+    const updated = venues.filter((_, i) => i !== idx);
+    setVenues(updated);
+    // Auto-save immediately so deletion persists
+    if (school) {
+      update.mutate({ venues: updated });
+    }
   }
 
   if (isLoading) {
@@ -94,8 +99,8 @@ export default function SchoolProfileEditor() {
                       {v.address} ↗
                     </a>
                   </div>
-                  <button onClick={() => removeVenue(i)} className="shrink-0 p-1 rounded hover:bg-destructive/10">
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <button onClick={() => removeVenue(i)} className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </button>
                 </div>
               ))}

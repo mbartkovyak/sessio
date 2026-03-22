@@ -14,8 +14,10 @@ export default function Onboarding() {
   const { user, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('name');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   const [coachType, setCoachType] = useState<'solo' | 'school' | 'join' | null>(null);
   const [sport, setSport] = useState('');
   const [schoolSports, setSchoolSports] = useState<string[]>([]);
@@ -206,10 +208,17 @@ export default function Onboarding() {
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Full name"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
                   autoFocus
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                />
+                <input
+                  type="text"
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
                   className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                 />
                 <input
@@ -221,7 +230,7 @@ export default function Onboarding() {
                 />
                 <button
                   onClick={() => coachType === 'join' ? submitJoinSchool() : setStep('train-or-coach')}
-                  disabled={!fullName.trim() || loading}
+                  disabled={!firstName.trim() || !lastName.trim() || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

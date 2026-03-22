@@ -116,6 +116,7 @@ export default function PlayerSearch() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.full_name}</p>
+                        <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">Coach</span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
                         {item.sport && <span className="text-xs text-muted-foreground">{item.sport}</span>}
