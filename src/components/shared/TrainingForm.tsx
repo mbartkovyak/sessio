@@ -311,7 +311,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               {form.days_of_week.length > 1 && (
                 <button type="button" onClick={() => handleSameTimeToggle(!sameTime)}
                   className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Same time all days</span>
+                  <span>Same time on days selected</span>
                   <div className={`relative h-5 w-9 rounded-full transition-colors ${sameTime ? 'bg-primary' : 'bg-muted'}`}>
                     <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${sameTime ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </div>
