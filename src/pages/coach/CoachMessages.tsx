@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, MoreVertical } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useAllTrainings } from '@/hooks/training/useTrainings';
+import { useAllTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMySchool } from '@/hooks/school/useSchools';
 import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
 import { formatDistanceToNow } from 'date-fns';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -24,16 +25,27 @@ function markAsUnread(id: string) {
 }
 
 export default function CoachMessages() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isSchoolOwner = profile?.role === 'school_owner';
+  const { data: school } = useMySchool();
   const { data: myTrainings = [], isLoading } = useAllTrainings();
-  const trainingIds = myTrainings.map((t: any) => t.id);
+  const { data: schoolTrainings = [] } = useSchoolTrainings(isSchoolOwner ? school?.id : undefined);
+
+  // Merge own + school trainings (deduplicate)
+  const allTrainings = (() => {
+    if (!isSchoolOwner) return myTrainings;
+    const ids = new Set(myTrainings.map((t: any) => t.id));
+    return [...myTrainings, ...schoolTrainings.filter((t: any) => !ids.has(t.id))];
+  })();
+
+  const trainingIds = allTrainings.map((t: any) => t.id);
   const { data: latestMessages = {} } = useLatestMessages(trainingIds);
   const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState(() => getHiddenChats());
 
-  const visible = myTrainings.filter((t: any) => !hiddenIds.includes(t.id));
+  const visible = allTrainings.filter((t: any) => !hiddenIds.includes(t.id));
 
   const sorted = [...visible].sort((a: any, b: any) => {
     const ma = latestMessages[a.id];
