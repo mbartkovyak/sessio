@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Plus, CheckCircle2, Users, ChevronRight } from 'lucide-react';
+import NewLessonButton from '@/components/coach/NewLessonButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
@@ -118,11 +119,7 @@ export default function CoachOverviewSection() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">My Lessons</h2>
-          {canCreate && (
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1.5 text-sm font-bold text-accent-foreground bg-accent rounded-xl px-3.5 min-h-[36px] shadow-sm transition-all active:scale-[0.97]">
-              <Plus className="h-4 w-4" /> New
-            </button>
-          )}
+          {canCreate && <NewLessonButton />}
         </div>
         {isLoading ? (
           <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />)}</div>

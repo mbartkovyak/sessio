@@ -1,4 +1,5 @@
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import CoachHeader from '@/components/coach/CoachHeader';
 import ChatList from '@/components/shared/ChatList';
 import { useMyConversations, type ConversationInfo } from '@/hooks/shared/useConversations';
 
@@ -7,11 +8,7 @@ export default function CoachMessages() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-white">Chats</h1>
-        </div>
-      </header>
+      <CoachHeader title="Chats" />
       <div className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="rounded-2xl bg-white shadow-sm overflow-hidden" style={{ border: '1px solid hsl(203 20% 90%)' }}>

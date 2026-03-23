@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import CoachHeader from '@/components/coach/CoachHeader';
 import { CITIES, SPORTS } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
@@ -32,11 +33,7 @@ export default function CoachProfileEditor() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-bold text-white">Profile</h1>
-        </div>
-      </header>
+      <CoachHeader title="Profile" />
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">
         <div className="rounded-2xl bg-white p-5 shadow-sm space-y-5" style={{ border: '1px solid hsl(203 20% 90%)' }}>
           <div className="flex flex-col items-center gap-3">

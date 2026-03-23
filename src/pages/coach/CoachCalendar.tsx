@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import CoachHeader from '@/components/coach/CoachHeader';
 import { SPORT_ICONS } from '@/lib/constants';
 import CalendarGrid from '@/components/shared/CalendarGrid';
 
@@ -76,11 +77,7 @@ export default function CoachCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-white">Calendar</h1>
-        </div>
-      </header>
+      <CoachHeader title="Calendar" />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">

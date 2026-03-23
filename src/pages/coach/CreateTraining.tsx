@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, UserPlus } from 'lucide-react';
+import { ChevronDown, UserPlus } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import CoachHeader from '@/components/coach/CoachHeader';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
@@ -124,12 +125,7 @@ export default function CreateTraining() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white"><ArrowLeft className="h-5 w-5" /></button>
-          <h1 className="font-semibold text-white">New Lesson</h1>
-        </div>
-      </header>
+      <CoachHeader title="New Lesson" back />
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="rounded-2xl bg-white p-4 shadow-sm overflow-visible" style={{ border: '1px solid hsl(203 20% 90%)' }}>

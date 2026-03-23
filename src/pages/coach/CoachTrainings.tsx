@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import NewLessonButton from '@/components/coach/NewLessonButton';
+import CoachHeader from '@/components/coach/CoachHeader';
 import { useState, useMemo } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
@@ -31,16 +33,7 @@ export default function CoachTrainings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <h1 className="text-lg font-bold text-white">Lessons</h1>
-          {canCreate && (
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground">
-              <Plus className="h-4 w-4" /> New
-            </button>
-          )}
-        </div>
-      </header>
+      <CoachHeader title="Lessons" right={canCreate ? <NewLessonButton /> : undefined} />
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="relative">
