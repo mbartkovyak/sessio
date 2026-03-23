@@ -23,7 +23,7 @@ export default function PlayerBottomNav() {
         background: 'linear-gradient(to bottom, hsl(var(--background) / 0), hsl(var(--background) / 1))',
       }} />
       {/* Pill area */}
-      <div className="px-4 pointer-events-auto bg-background" style={{
+      <div className="px-4 pointer-events-auto" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav

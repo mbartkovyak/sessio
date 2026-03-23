@@ -26,7 +26,7 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
         height: '6px',
         background: 'linear-gradient(to bottom, hsl(var(--background) / 0), hsl(var(--background) / 1))',
       }} />
-      <div className="px-4 bg-background" style={{
+      <div className="px-4" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
