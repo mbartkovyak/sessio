@@ -19,12 +19,8 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
-      {/* Fade zone above pill */}
-      <div className="pointer-events-none h-3" style={{
-        background: 'linear-gradient(to bottom, hsl(var(--background) / 0) 0%, hsl(var(--background) / 0.6) 50%, hsl(var(--background) / 1) 100%)',
-      }} />
-      {/* Pill area */}
-      <div className="px-4 pointer-events-auto bg-background" style={{
+      {/* Pill area — no solid background, just the pill floats */}
+      <div className="px-4 pointer-events-auto" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
