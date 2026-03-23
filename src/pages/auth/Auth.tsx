@@ -66,7 +66,7 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center px-6 py-5">
+      <div className="flex items-center px-6 py-5 header-gradient text-white">
         <SessioLogo />
       </div>
 
