@@ -34,6 +34,14 @@ const SEEN_KEY = 'msg_last_seen';
 const MANUAL_UNREAD_KEY = 'manual_unread';
 const HIDDEN_KEY = 'hidden_chats';
 
+// One-time migration: clear old training-ID-keyed data (now uses conversation IDs)
+if (!localStorage.getItem('_msg_migrated_v2')) {
+  localStorage.removeItem(SEEN_KEY);
+  localStorage.removeItem(MANUAL_UNREAD_KEY);
+  localStorage.removeItem(HIDDEN_KEY);
+  localStorage.setItem('_msg_migrated_v2', '1');
+}
+
 function getSeenMap(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) ?? '{}'); } catch { return {}; }
 }
@@ -366,7 +374,7 @@ export function useMyConversations() {
       const { data: allMessages } = await supabase
         .from('messages')
         .select('conversation_id, content, created_at, sender_id, profiles:sender_id(full_name)')
-        .in('conversation_id', convIds)
+        .in('conversation_id', allConvIds)
         .order('created_at', { ascending: false });
 
       const latestMap = new Map<string, any>();
