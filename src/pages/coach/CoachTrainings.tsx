@@ -42,6 +42,13 @@ export default function CoachTrainings() {
         </div>
       </header>
       <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 py-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..."
+              className="w-full rounded-xl border border-border bg-white pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+        </div>
         <div className="max-w-md mx-auto px-4 pb-4 space-y-2">
           {isLoading ? [1,2,3].map(i => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />) :
           filtered.length === 0 ? (
