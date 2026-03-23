@@ -1,9 +1,9 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -24,6 +24,8 @@ export default function TrainingDetail() {
   const { data: sessions = [] } = useTrainingSessions(id);
   const { user } = useAuth();
   const removeMember = useRemoveTrainingMember(id!);
+  const { data: joinRequests = [] } = useJoinRequests(id);
+  const respond = useRespondJoinRequest();
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -168,12 +170,48 @@ export default function TrainingDetail() {
                   </a>
                 </div>
 
+                {/* Join Requests */}
+                {joinRequests.length > 0 && (
+                  <div>
+                    <h2 className="font-semibold text-foreground text-sm mb-3">Join Requests <span className="text-muted-foreground font-normal">({joinRequests.length})</span></h2>
+                    <div className="space-y-2">
+                      {joinRequests.map((req: any) => {
+                        const p = req.profiles;
+                        return (
+                          <div key={req.id} className="rounded-xl border border-border bg-card p-3 shadow-sm">
+                            <div className="flex items-center gap-3 mb-2.5">
+                              <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: true })}
+                                className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                              </button>
+                              <button
+                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: false })}
+                                className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Members */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-foreground text-sm">Members <span className="text-muted-foreground font-normal">({members.length})</span></h2>
                   </div>
-                  {members.length === 0 ? (
+                  {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
                       <p className="text-sm text-muted-foreground">No members yet — share the invite link</p>
                     </div>
