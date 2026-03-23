@@ -20,14 +20,13 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   return (
     <div
       className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}
-      style={{
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
-      }}
     >
-      <div className="px-4 pt-6" style={{
+      {/* Tiny fade — just 6px feather at the very top edge */}
+      <div className="pointer-events-none" style={{
+        height: '6px',
+        background: 'linear-gradient(to bottom, hsl(var(--background) / 0), hsl(var(--background) / 1))',
+      }} />
+      <div className="px-4 bg-background" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
