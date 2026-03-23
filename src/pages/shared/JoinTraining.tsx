@@ -91,9 +91,21 @@ export default function JoinTraining() {
 
         // If approval required, create a join request instead
         if (training.booking_mode === 'approval') {
+          // Check if request already exists
+          const { data: existingReq } = await supabase
+            .from('join_requests')
+            .select('id, status')
+            .eq('user_id', profile.id)
+            .eq('training_id', training.id)
+            .maybeSingle();
+          if (existingReq) {
+            toast.info(existingReq.status === 'pending' ? 'Request already sent — waiting for approval' : 'You already have a request for this training');
+            navigate('/player');
+            return;
+          }
           const { error } = await supabase
             .from('join_requests')
-            .upsert({ user_id: profile.id, training_id: training.id, status: 'pending' }, { onConflict: 'user_id,training_id' });
+            .insert({ user_id: profile.id, training_id: training.id, status: 'pending' });
           if (error) throw error;
           toast.success('Join request sent! The coach will review it.');
           navigate('/player');

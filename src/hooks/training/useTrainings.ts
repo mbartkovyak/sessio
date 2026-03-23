@@ -280,41 +280,19 @@ export function useJoinRequests(trainingId: string | undefined) {
 }
 
 export function useAllCoachJoinRequests() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['all-join-requests', user?.id, profile?.role],
+    queryKey: ['all-join-requests', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Own trainings
-      const { data: own, error: ownErr } = await supabase
+      // RLS handles access — coaches see their trainings' requests,
+      // school owners see all school trainings' requests
+      const { data, error } = await supabase
         .from('join_requests')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email), trainings!inner(id, name, sport, coach_id, school_id)')
-        .eq('status', 'pending')
-        .eq('trainings.coach_id', user!.id);
-      if (ownErr) throw ownErr;
-      const results = [...(own ?? [])] as JoinRequestWithProfileAndTraining[];
-
-      // School owner: also fetch requests for school trainings
-      if (profile?.role === 'school_owner') {
-        const { data: school } = await supabase
-          .from('schools')
-          .select('id')
-          .eq('owner_id', user!.id)
-          .maybeSingle();
-        if (school) {
-          const { data: schoolReqs } = await supabase
-            .from('join_requests')
-            .select('*, profiles:user_id(id, full_name, avatar_url, email), trainings!inner(id, name, sport, coach_id, school_id)')
-            .eq('status', 'pending')
-            .eq('trainings.school_id', school.id);
-          const ids = new Set(results.map(r => r.id));
-          for (const r of schoolReqs ?? []) {
-            if (!ids.has(r.id)) results.push(r as any);
-          }
-        }
-      }
-
-      return results;
+        .select('*, profiles:user_id(id, full_name, avatar_url, email), trainings!inner(id, name, sport, coach_id)')
+        .eq('status', 'pending');
+      if (error) throw error;
+      return (data ?? []) as JoinRequestWithProfileAndTraining[];
     },
   });
 }
