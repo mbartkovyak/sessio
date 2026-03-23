@@ -12,8 +12,8 @@ function TimeSelect({ value, onChange, compact }: { value: string; onChange: (v:
   const sel = 'appearance-none !bg-transparent text-sm font-semibold text-foreground text-center focus:outline-none w-9';
   return (
     <div className={compact
-      ? 'inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2.5 py-1.5 min-h-[38px]'
-      : 'inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 min-h-[44px]'
+      ? 'inline-flex items-center justify-center rounded-full border border-border/60 bg-muted/40 px-2.5 py-1.5 min-h-[38px] w-full'
+      : 'inline-flex items-center justify-center rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 min-h-[44px] w-full'
     }>
       <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={sel}>
         {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
@@ -388,12 +388,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
           {/* Start / End dates */}
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
+            <div className="min-w-0"><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
               <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-                className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Ends <span className="text-muted-foreground font-normal">(optional)</span></label>
+                className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+            <div className="min-w-0"><label className="text-sm font-medium text-foreground mb-1 block truncate">Ends <span className="text-muted-foreground font-normal">(opt.)</span></label>
               <input type="date" value={form.end_date} onChange={e => set('end_date', e.target.value)}
-                className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+                className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           </div>
           {!form.end_date && <p className="text-xs text-muted-foreground -mt-3">No end date = ongoing, sessions generated rolling</p>}
         </>
@@ -401,7 +401,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         <>
           <div {...(!form.one_off_date && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
             <input type="date" required value={form.one_off_date} onChange={e => set('one_off_date', e.target.value)}
-              className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
+              className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
               <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} /></div>
