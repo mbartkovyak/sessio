@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import PendingApprovalScreen from '@/components/coach/PendingApprovalScreen';
@@ -9,7 +8,6 @@ import { useMyPendingSchoolRequest } from '@/hooks/school/useSchools';
 import { useMySchoolBasic } from '@/hooks/coach/useMySchoolBasic';
 
 export default function CoachHome() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: pendingRequest, isLoading: pendingLoading } = useMyPendingSchoolRequest();

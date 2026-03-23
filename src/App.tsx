@@ -9,8 +9,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 function PushRegistrar() { useAutoRegisterPush(); return null; }
+function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
 
 // Auth pages
 import Landing from "./pages/auth/Landing";
@@ -59,6 +62,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <NavigationLoadingBar />
+        <ScrollToTop />
         <InstallPWA />
         <ErrorBoundary>
         <AuthProvider>
