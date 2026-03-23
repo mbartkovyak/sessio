@@ -17,12 +17,6 @@ export default function PlayerBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
-      {/* Tiny fade — just 6px feather at the very top edge */}
-      <div className="pointer-events-none" style={{
-        height: '6px',
-        background: 'linear-gradient(to bottom, hsl(var(--background) / 0), hsl(var(--background) / 1))',
-      }} />
-      {/* Pill area */}
       <div className="px-4 pointer-events-auto" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>

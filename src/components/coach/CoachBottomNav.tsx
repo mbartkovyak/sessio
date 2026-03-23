@@ -18,17 +18,8 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const isChatTab = searchParams.get('tab') === 'chat';
 
   return (
-    <div
-      className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}
-    >
-      {/* Tiny fade — just 6px feather at the very top edge */}
-      <div className="pointer-events-none" style={{
-        height: '6px',
-        background: 'linear-gradient(to bottom, hsl(var(--background) / 0), hsl(var(--background) / 1))',
-      }} />
-      <div className="px-4" style={{
-        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-      }}>
+    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}>
+      <div className="px-4" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))' }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
           style={{
