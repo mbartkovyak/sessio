@@ -60,6 +60,20 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
             );
           })}
         </nav>
+        {/* Fade below the pill */}
+        {!inline && (
+          <div
+            className="pointer-events-none"
+            style={{
+              height: 'max(10px, env(safe-area-inset-bottom, 10px))',
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.85))',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              marginLeft: '-1rem',
+              marginRight: '-1rem',
+            }}
+          />
+        )}
       </div>
     </div>
   );

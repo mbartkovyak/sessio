@@ -57,6 +57,18 @@ export default function PlayerBottomNav() {
             );
           })}
         </nav>
+        {/* Fade below the pill */}
+        <div
+          className="pointer-events-none"
+          style={{
+            height: 'max(10px, env(safe-area-inset-bottom, 10px))',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.85))',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            marginLeft: '-1rem',
+            marginRight: '-1rem',
+          }}
+        />
       </div>
     </div>
   );
