@@ -100,22 +100,24 @@ export default function CreateTraining() {
           </button>
         </div>
       ) : (
-        <div className="relative">
-          <select
-            value={selectedCoachId}
-            onChange={e => setSelectedCoachId(e.target.value)}
-            className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${attempted && !selectedCoachId ? 'border-destructive' : 'border-input'}`}
-          >
-            <option value="">Select coach</option>
-            {schoolCoaches.map((m: any) => (
-              <option key={m.coach_id} value={m.coach_id}>
-                {m.coach?.full_name ?? 'Coach'}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        </div>
-        {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">Coach is required</p>}
+        <>
+          <div className="relative">
+            <select
+              value={selectedCoachId}
+              onChange={e => setSelectedCoachId(e.target.value)}
+              className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${attempted && !selectedCoachId ? 'border-destructive' : 'border-input'}`}
+            >
+              <option value="">Select coach</option>
+              {schoolCoaches.map((m: any) => (
+                <option key={m.coach_id} value={m.coach_id}>
+                  {m.coach?.full_name ?? 'Coach'}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+          {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">Coach is required</p>}
+        </>
       )}
     </div>
   ) : undefined;
