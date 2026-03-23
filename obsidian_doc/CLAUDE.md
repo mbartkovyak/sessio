@@ -140,3 +140,5 @@ These rules exist because we've been burned repeatedly by RLS policies that sile
 4. **When dropping and recreating tables:** verify the new tables have data after migration. Query with service role key. If migration runs on an empty source table, that's expected — but say so explicitly.
 
 5. **When changing import paths:** grep the entire `src/` directory for the old import path. Don't rely on memory — files you didn't edit may still reference old paths.
+
+6. **Never create cross-referencing RLS policies.** If table A's policy queries table B, table B's policy must NOT query table A — this creates infinite recursion and returns 500 on every query. Test with the anon key (`curl`) after every RLS change to catch this immediately.
