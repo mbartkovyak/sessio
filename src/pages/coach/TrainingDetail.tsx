@@ -234,9 +234,9 @@ export default function TrainingDetail() {
                             </button>
                             <div className="flex items-center gap-1 shrink-0">
                               <button
-                                onClick={() => setViewProfile(p)}
+                                onClick={() => setSearchParams({ tab: 'chat' }, { replace: true })}
                                 className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary"
-                                title="Contact"
+                                title="Message in chat"
                               >
                                 <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
                               </button>
