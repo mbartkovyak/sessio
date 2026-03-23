@@ -18,7 +18,7 @@ export default function PlayerBottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
       {/* Fade zone above pill */}
-      <div className="pointer-events-none h-6" style={{
+      <div className="pointer-events-none h-3" style={{
         background: 'linear-gradient(to bottom, hsl(var(--background) / 0) 0%, hsl(var(--background) / 0.6) 50%, hsl(var(--background) / 1) 100%)',
       }} />
       {/* Pill area */}

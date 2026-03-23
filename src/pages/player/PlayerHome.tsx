@@ -38,7 +38,7 @@ export default function PlayerHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3.5">
+      <header className="sticky top-0 z-10 bg-card border-b border-border px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <SessioLogoCompact />
         </div>
