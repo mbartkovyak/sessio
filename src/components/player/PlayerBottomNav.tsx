@@ -18,9 +18,9 @@ export default function PlayerBottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
       <div className="px-4 pointer-events-auto" style={{
-        paddingTop: '24px',
+        paddingTop: '48px',
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        background: 'linear-gradient(to bottom, transparent 0%, rgba(250,251,252,0.4) 30%, rgba(250,251,252,0.85) 60%, rgba(250,251,252,0.95) 100%)',
+        background: 'linear-gradient(to bottom, hsla(193,25%,88%,0) 0%, hsla(193,25%,88%,0.08) 15%, hsla(193,25%,88%,0.35) 40%, hsla(193,25%,88%,0.75) 65%, hsla(193,25%,88%,0.95) 85%, hsla(193,25%,88%,1) 100%)',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
