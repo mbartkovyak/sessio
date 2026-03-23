@@ -23,7 +23,10 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
       <div className="px-4 pointer-events-auto" style={{
         paddingTop: '48px',
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        background: 'linear-gradient(to bottom, hsla(193,25%,88%,0) 0%, hsla(193,25%,88%,0.08) 15%, hsla(193,25%,88%,0.35) 40%, hsla(193,25%,88%,0.75) 65%, hsla(193,25%,88%,0.95) 85%, hsla(193,25%,88%,1) 100%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 15%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 65%, rgba(0,0,0,0.95) 85%, black 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 15%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 65%, rgba(0,0,0,0.95) 85%, black 100%)',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
