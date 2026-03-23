@@ -99,7 +99,17 @@ export default function JoinTraining() {
             .eq('training_id', training.id)
             .maybeSingle();
           if (existingReq) {
-            toast.info(existingReq.status === 'pending' ? 'Request already sent — waiting for approval' : 'You already have a request for this training');
+            if (existingReq.status === 'pending') {
+              toast.info('Request already sent — waiting for approval');
+              navigate('/player');
+              return;
+            }
+            // Declined or accepted — allow re-requesting
+            await supabase
+              .from('join_requests')
+              .update({ status: 'pending', created_at: new Date().toISOString() })
+              .eq('id', existingReq.id);
+            toast.success('Join request sent again!');
             navigate('/player');
             return;
           }
