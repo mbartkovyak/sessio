@@ -18,9 +18,16 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const isChatTab = searchParams.get('tab') === 'chat';
 
   return (
-    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
-      {/* Pill area — no solid background, just the pill floats */}
-      <div className="px-4 pointer-events-auto" style={{
+    <div
+      className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}
+      style={{
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+      }}
+    >
+      <div className="px-4 pt-6" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
