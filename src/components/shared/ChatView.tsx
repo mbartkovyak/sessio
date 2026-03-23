@@ -1,8 +1,7 @@
 import { Send, Smile, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTrainingMessages, useSendTrainingMessage } from '@/hooks/training/useTrainingMessages';
-import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
+import { useMessages, useSendMessage, useTrainingConversation, useDMConversation, getOrCreateTrainingConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
@@ -13,15 +12,15 @@ import Picker from '@emoji-mart/react';
 
 // ── Hooks ──
 
-function useMessageReactions(trainingId: string) {
+function useMessageReactions(conversationId: string | undefined) {
   return useQuery({
-    queryKey: ['message-reactions', trainingId],
-    enabled: !!trainingId,
+    queryKey: ['message-reactions', conversationId],
+    enabled: !!conversationId,
     queryFn: async () => {
       const msgResult = await supabase
-        .from('training_messages')
+        .from('messages')
         .select('id')
-        .eq('training_id', trainingId);
+        .eq('conversation_id', conversationId!);
       const msgIds = (msgResult.data ?? []).map((m: any) => m.id);
       if (!msgIds.length) return {};
       const { data } = await supabase
@@ -141,18 +140,26 @@ function ReactionsDisplay({ reactions, userId, messageId }: { reactions: any[]; 
 // ── Main component ──
 
 interface ChatViewProps {
-  trainingId: string;
+  trainingId?: string;
+  otherUserId?: string;
+  conversationId?: string;
   className?: string;
   style?: React.CSSProperties;
-  /** When rendered above a bottom nav, skip safe-area padding on input (spacer handles it) */
   hideBottomSafeArea?: boolean;
 }
 
-export default function ChatView({ trainingId, className, style, hideBottomSafeArea }: ChatViewProps) {
+export default function ChatView({ trainingId, otherUserId, conversationId: directConvId, className, style, hideBottomSafeArea }: ChatViewProps) {
   const { user } = useAuth();
-  const { data: messages = [] } = useTrainingMessages(trainingId);
-  const { data: allReactions = {} } = useMessageReactions(trainingId);
-  const send = useSendTrainingMessage(trainingId);
+  const qc = useQueryClient();
+
+  // Resolve conversation ID from either training or DM
+  const { data: trainingConvId } = useTrainingConversation(trainingId);
+  const { data: dmConvId } = useDMConversation(otherUserId);
+  const conversationId = directConvId ?? trainingConvId ?? dmConvId ?? undefined;
+
+  const { data: messages = [] } = useMessages(conversationId);
+  const { data: allReactions = {} } = useMessageReactions(conversationId);
+  const sendMutation = useSendMessage(conversationId);
   const [text, setText] = useState('');
   const [showEmojis, setShowEmojis] = useState(false);
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
@@ -186,14 +193,36 @@ export default function ChatView({ trainingId, className, style, hideBottomSafeA
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   }, [text]);
 
-  useEffect(() => { if (trainingId) markConversationSeen(trainingId); }, [trainingId]);
+  useEffect(() => { if (conversationId) markConversationSeen(conversationId); }, [conversationId]);
 
-  function handleSend() {
+  async function handleSend() {
     if (!text.trim() || !user) return;
-    send.mutate({ content: text.trim(), senderId: user.id });
+    const content = text.trim();
     setText('');
     setShowEmojis(false);
     userScrolled.current = false;
+
+    // Create conversation if needed
+    let convId = conversationId;
+    if (!convId) {
+      try {
+        if (trainingId) {
+          convId = await getOrCreateTrainingConversation(trainingId);
+          qc.invalidateQueries({ queryKey: ['conversation-for-training', trainingId] });
+        } else if (otherUserId) {
+          convId = await getOrCreateDMConversation(user.id, otherUserId);
+          qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
+        }
+      } catch { toast.error('Failed to start conversation'); return; }
+    }
+    if (!convId) return;
+
+    // Send using direct insert (since conversationId may have just been created)
+    const { error } = await supabase
+      .from('messages')
+      .insert({ conversation_id: convId, sender_id: user.id, content });
+    if (error) toast.error('Failed to send');
+    else qc.invalidateQueries({ queryKey: ['messages', convId] });
   }
 
   // Long-press handlers
@@ -398,7 +427,7 @@ export default function ChatView({ trainingId, className, style, hideBottomSafeA
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim() || send.isPending}
+            disabled={!text.trim() || sendMutation.isPending}
             className={`flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${
               text.trim()
                 ? 'bg-primary text-primary-foreground'

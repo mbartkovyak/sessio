@@ -1,60 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, MoreVertical } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { markConversationSeen } from '@/hooks/shared/useUnreadMessageCount';
-import { formatDistanceToNow } from 'date-fns';
 import { SPORT_ICONS } from '@/lib/constants';
-import { useLatestMessages, isUnread } from '@/hooks/shared/useLatestMessages';
-import { useUnreadPerChat } from '@/hooks/shared/useUnreadPerChat';
-
-function getHiddenChats(): string[] {
-  try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
-}
-function hideChat(id: string) {
-  const hidden = getHiddenChats();
-  if (!hidden.includes(id)) localStorage.setItem('hidden_chats', JSON.stringify([...hidden, id]));
-}
-function getManualUnread(): string[] {
-  try { return JSON.parse(localStorage.getItem('manual_unread') ?? '[]'); } catch { return []; }
-}
-function markAsUnread(id: string) {
-  const list = getManualUnread();
-  if (!list.includes(id)) localStorage.setItem('manual_unread', JSON.stringify([...list, id]));
-}
-function clearManualUnread(id: string) {
-  const list = getManualUnread().filter(x => x !== id);
-  localStorage.setItem('manual_unread', JSON.stringify(list));
-}
+import { formatDistanceToNow } from 'date-fns';
+import Avatar from './Avatar';
+import { type ConversationInfo, markConversationSeen, markAsUnread, hideChat, isManuallyUnread } from '@/hooks/shared/useConversations';
 
 interface Props {
-  trainings: any[];
+  conversations: ConversationInfo[];
   isLoading: boolean;
-  /** Path builder: given training id, return the chat URL */
-  getChatPath: (trainingId: string) => string;
+  getChatPath: (conv: ConversationInfo) => string;
   emptyText?: string;
 }
 
-export default function ChatList({ trainings, isLoading, getChatPath, emptyText }: Props) {
-  const { user } = useAuth();
+export default function ChatList({ conversations, isLoading, getChatPath, emptyText }: Props) {
   const navigate = useNavigate();
-  const trainingIds = trainings.map((t: any) => t.id);
-  const { data: latestMessages = {} } = useLatestMessages(trainingIds);
-  const { data: unreadCounts = {} } = useUnreadPerChat(trainingIds);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  const [hiddenIds, setHiddenIds] = useState(() => getHiddenChats());
-  const [manualUnread, setManualUnread] = useState(() => getManualUnread());
-
-  const visible = trainings.filter((t: any) => !hiddenIds.includes(t.id));
-
-  const sorted = [...visible].sort((a: any, b: any) => {
-    const ma = latestMessages[a.id];
-    const mb = latestMessages[b.id];
-    if (!ma && !mb) return 0;
-    if (!ma) return 1;
-    if (!mb) return -1;
-    return mb.created_at.localeCompare(ma.created_at);
+  const [hiddenIds, setHiddenIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
   });
+
+  const visible = conversations.filter(c => !hiddenIds.includes(c.id));
 
   if (isLoading) {
     return (
@@ -64,7 +30,7 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
     );
   }
 
-  if (sorted.length === 0) {
+  if (visible.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center pt-20 text-center px-6">
         <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
@@ -76,44 +42,46 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
 
   return (
     <div className="divide-y divide-border" onClick={() => menuOpen && setMenuOpen(null)}>
-      {sorted.map((t: any) => {
-        const lastMsg = latestMessages[t.id];
-        const unreadCount = unreadCounts[t.id] ?? 0;
-        const isManual = manualUnread.includes(t.id);
-        const hasUnread = isManual || unreadCount > 0 || isUnread(t.id, lastMsg, user!.id);
+      {visible.map(conv => {
+        const isManual = isManuallyUnread(conv.id);
+        const hasUnread = isManual || conv.unreadCount > 0;
+        const icon = conv.type === 'training' ? (SPORT_ICONS[conv.sport ?? ''] ?? '🎯') : null;
+
         return (
-          <div key={t.id} className="relative flex items-center">
+          <div key={conv.id} className="relative flex items-center">
             <button
               onClick={() => {
-                markConversationSeen(t.id);
-                clearManualUnread(t.id);
-                setManualUnread(getManualUnread());
-                navigate(getChatPath(t.id));
+                markConversationSeen(conv.id);
+                navigate(getChatPath(conv));
               }}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl shrink-0">
-                {SPORT_ICONS[t.sport] ?? '🎯'}
-              </div>
+              {conv.type === 'dm' ? (
+                <Avatar url={conv.avatarUrl} name={conv.name} size="md" />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-xl shrink-0">
+                  {icon}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{t.name}</p>
-                  {lastMsg && (
+                  <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{conv.name}</p>
+                  {conv.lastMessage && (
                     <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                      {formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: false })}
+                      {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: false })}
                     </span>
                   )}
                 </div>
                 <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                  {lastMsg
-                    ? `${lastMsg.profiles?.full_name ?? 'Someone'}: ${lastMsg.content}`
+                  {conv.lastMessage
+                    ? `${conv.lastMessage.senderName ?? 'Someone'}: ${conv.lastMessage.content}`
                     : 'No messages yet'}
                 </p>
               </div>
               {hasUnread && (
-                !isManual && unreadCount > 0 ? (
+                !isManual && conv.unreadCount > 0 ? (
                   <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
-                    <span className="text-[10px] font-bold text-primary-foreground">{unreadCount}</span>
+                    <span className="text-[10px] font-bold text-primary-foreground">{conv.unreadCount}</span>
                   </div>
                 ) : (
                   <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
@@ -122,25 +90,25 @@ export default function ChatList({ trainings, isLoading, getChatPath, emptyText 
             </button>
 
             <button
-              onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === t.id ? null : t.id); }}
+              onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === conv.id ? null : conv.id); }}
               className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary mr-1"
             >
               <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </button>
 
-            {menuOpen === t.id && (
+            {menuOpen === conv.id && (
               <div
                 className="absolute right-12 top-2 z-20 rounded-xl border border-border bg-card shadow-lg py-1 min-w-[160px]"
                 onClick={e => e.stopPropagation()}
               >
                 <button
-                  onClick={() => { markAsUnread(t.id); setManualUnread(getManualUnread()); setMenuOpen(null); }}
+                  onClick={() => { markAsUnread(conv.id); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
                 >
                   Mark as unread
                 </button>
                 <button
-                  onClick={() => { hideChat(t.id); setHiddenIds(getHiddenChats()); setMenuOpen(null); }}
+                  onClick={() => { hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
                 >
                   Delete chat

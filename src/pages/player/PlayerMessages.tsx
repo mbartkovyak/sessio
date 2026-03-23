@@ -1,10 +1,9 @@
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import ChatList from '@/components/shared/ChatList';
-import { useMyTrainings } from '@/hooks/training/useTrainings';
+import { useMyConversations, type ConversationInfo } from '@/hooks/shared/useConversations';
 
 export default function PlayerMessages() {
-  const { data: memberships = [], isLoading } = useMyTrainings();
-  const trainings = memberships.map((m: any) => m.trainings).filter(Boolean);
+  const { data: conversations = [], isLoading } = useMyConversations();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -16,9 +15,11 @@ export default function PlayerMessages() {
       <div className="flex-1 pb-24">
         <div className="max-w-md mx-auto">
           <ChatList
-            trainings={trainings}
+            conversations={conversations}
             isLoading={isLoading}
-            getChatPath={id => `/player/messages/${id}`}
+            getChatPath={(conv: ConversationInfo) =>
+              conv.type === 'dm' ? `/player/messages/${conv.otherUserId}` : `/player/messages/${conv.trainingId}`
+            }
             emptyText="Join a training to start chatting with your group"
           />
         </div>

@@ -63,11 +63,15 @@ export default function TrainingDetail() {
     setDeleting(true);
     // Notify members via training chat before deleting
     if (members.length > 0 && user) {
-      await supabase.from('training_messages').insert({
-        training_id: training.id,
-        sender_id: user.id,
-        content: `⚠️ "${training.name}" has been cancelled and will no longer take place. Contact your coach for more information.`,
-      });
+      const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
+      try {
+        const convId = await getOrCreateTrainingConversation(training.id);
+        await supabase.from('messages').insert({
+          conversation_id: convId,
+          sender_id: user.id,
+          content: `⚠️ "${training.name}" has been cancelled and will no longer take place. Contact your coach for more information.`,
+        });
+      } catch {}
     }
     const { error } = await supabase
       .from('trainings')

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, MessageCircle, CalendarDays, User } from 'lucide-react';
-import { useUnreadMessageCount } from '@/hooks/shared/useUnreadMessageCount';
+import { useUnreadMessageCount } from '@/hooks/shared/useConversations';
 
 export default function PlayerBottomNav() {
   const navigate = useNavigate();
