@@ -132,7 +132,7 @@ export default function CreateTraining() {
       </header>
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6">
-          <div className="rounded-2xl bg-white p-5 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+          <div className="rounded-2xl bg-white p-4 shadow-sm overflow-visible" style={{ border: '1px solid hsl(203 20% 90%)' }}>
           <TrainingForm
             mode="create"
             onSubmit={handleSubmit}
