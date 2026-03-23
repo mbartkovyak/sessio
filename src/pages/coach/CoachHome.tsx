@@ -25,7 +25,7 @@ export default function CoachHome() {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header with teal gradient */}
       <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center gap-2 text-white">
+        <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
       </header>
