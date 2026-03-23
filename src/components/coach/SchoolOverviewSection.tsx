@@ -58,7 +58,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-foreground">Lessons</h2>
-          <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 text-sm font-medium text-primary min-h-[44px] px-2">
+          <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground min-h-[40px]">
             <Plus className="h-4 w-4" /> New
           </button>
         </div>
@@ -81,11 +81,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
                 }
               />
             ))}
-            <button onClick={() => navigate('/coach/trainings/new')}
-              className="rounded-xl border-2 border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors min-h-[100px]">
-              <Plus className="h-6 w-6" />
-              <span className="text-sm font-medium">New Lesson</span>
-            </button>
           </div>
         )}
       </div>
