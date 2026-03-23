@@ -20,8 +20,8 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
       {/* Gradient fade — starts at pill midpoint */}
-      <div className="h-8" style={{
-        background: 'linear-gradient(to bottom, transparent 0%, hsl(193 27% 79% / 0.6) 60%, hsl(193 27% 79% / 0.9) 100%)',
+      <div className="h-5" style={{
+        background: 'linear-gradient(to bottom, transparent 0%, hsl(193 27% 79% / 0.4) 50%, hsl(193 27% 79% / 0.9) 100%)',
       }} />
 
       {/* Pill */}
