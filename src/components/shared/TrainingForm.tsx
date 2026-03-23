@@ -387,11 +387,11 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           </div>
 
           {/* Start / End dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="min-w-0"><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
+          <div className="space-y-3">
+            <div><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
               <input data-transparent type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
                 className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-            <div className="min-w-0"><label className="text-sm font-medium text-foreground mb-1 block truncate">Ends <span className="text-muted-foreground font-normal">(opt.)</span></label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">Ends <span className="text-muted-foreground font-normal">(optional)</span></label>
               <input data-transparent type="date" value={form.end_date} onChange={e => set('end_date', e.target.value)}
                 className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           </div>
