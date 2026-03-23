@@ -10,7 +10,7 @@
 @layer base {
   :root {
     /* Sessio Design System — warm sporty: deep navy, bright orange, clean whites */
-    --background: 220 14% 96%;
+    --background: 35 15% 94%;
     --foreground: 215 28% 14%;
 
     --card: 0 0% 100%;
@@ -59,9 +59,9 @@
     --header-from: 215 45% 18%;
     --header-to: 215 40% 25%;
 
-    /* Body — warm light grey, barely tinted */
-    --bg-from: 220 12% 95%;
-    --bg-to: 220 10% 93%;
+    /* Body — warm sand, subtle warmth against navy headers */
+    --bg-from: 35 20% 94%;
+    --bg-to: 30 15% 91%;
 
     /* Dark hero */
     --hero-bg: 215 40% 10%;
