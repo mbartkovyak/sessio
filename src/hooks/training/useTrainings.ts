@@ -164,7 +164,7 @@ export function useTrainingMembers(trainingId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_members')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city)')
         .eq('training_id', trainingId!);
       if (error) throw error;
       return (data ?? []) as TrainingMemberWithProfile[];
@@ -270,7 +270,7 @@ export function useJoinRequests(trainingId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('join_requests')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city)')
         .eq('training_id', trainingId!)
         .eq('status', 'pending');
       if (error) throw error;
@@ -308,7 +308,7 @@ export function useAllCoachJoinRequests() {
       // school owners see all school trainings' requests
       const { data, error } = await supabase
         .from('join_requests')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email), trainings!inner(id, name, sport, coach_id)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city), trainings!inner(id, name, sport, coach_id)')
         .eq('status', 'pending');
       if (error) throw error;
       return (data ?? []) as JoinRequestWithProfileAndTraining[];

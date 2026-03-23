@@ -12,6 +12,7 @@ import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
+import ProfileSheet from '@/components/shared/ProfileSheet';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
@@ -29,6 +30,7 @@ export default function TrainingDetail() {
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewProfile, setViewProfile] = useState<any>(null);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
   const shareText = training ? `Join ${training.name} on Sessio!\n${inviteLink}` : '';
@@ -179,12 +181,12 @@ export default function TrainingDetail() {
                         const p = req.profiles;
                         return (
                           <div key={req.id} className="rounded-xl border border-border bg-card p-3 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2.5">
+                            <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 mb-2.5 text-left w-full">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
                               </div>
-                            </div>
+                            </button>
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: true })}
@@ -220,8 +222,8 @@ export default function TrainingDetail() {
                       {members.map((m: any) => {
                         const p = m.profiles;
                         return (
-                          <div key={m.id} className="flex items-center justify-between px-4 py-3">
-                            <div className="flex items-center gap-3 min-w-0">
+                          <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+                            <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
@@ -229,14 +231,23 @@ export default function TrainingDetail() {
                                   <span className="text-xs text-warning font-medium">Waitlist</span>
                                 )}
                               </div>
-                            </div>
-                            <button
-                              onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
-                              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10 shrink-0 ml-2"
-                              title="Remove member"
-                            >
-                              <span className="text-destructive text-sm">✕</span>
                             </button>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => setViewProfile(p)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary"
+                                title="Contact"
+                              >
+                                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              </button>
+                              <button
+                                onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
+                                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10"
+                                title="Remove"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -293,6 +304,7 @@ export default function TrainingDetail() {
       )}
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
+      {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
     </div>
   );
 }
