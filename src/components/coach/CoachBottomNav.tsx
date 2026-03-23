@@ -18,15 +18,15 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const isChatTab = searchParams.get('tab') === 'chat';
 
   return (
-    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 px-4 safe-area-bottom`}
+    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 px-4`}
       style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
       <nav
-        className="max-w-md mx-auto flex rounded-2xl"
+        className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
         style={{
-          background: 'rgba(255, 255, 255, 0.75)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 2px 20px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+          background: 'rgba(255, 255, 255, 0.25)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow: '0 0 0 1px rgba(0,0,0,0.02)',
         }}
       >
         {tabs.map(({ icon: Icon, label, path }) => {
@@ -39,22 +39,23 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
             <button
               key={label}
               onClick={() => navigate(path)}
-              className={`relative flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all min-h-[52px] ${
-                active ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
             >
-              <div className="relative">
-                <Icon className={`h-5 w-5 transition-all ${active ? 'scale-110' : ''}`} strokeWidth={active ? 2.5 : 1.8} />
+              <div className={`relative flex items-center justify-center rounded-full transition-all ${
+                active
+                  ? 'h-10 w-10 bg-foreground text-white'
+                  : 'h-10 w-10 text-foreground/40'
+              }`}>
+                <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
                 {isMessages && unreadCount > 0 && (
-                  <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold text-accent-foreground">
+                  <span className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </div>
-              <span className={active ? 'font-semibold' : ''}>{label}</span>
-              {active && (
-                <span className="absolute bottom-1.5 h-1 w-5 rounded-full bg-accent" />
-              )}
+              <span className={`text-[10px] transition-all ${
+                active ? 'font-semibold text-foreground' : 'text-foreground/40'
+              }`}>{label}</span>
             </button>
           );
         })}

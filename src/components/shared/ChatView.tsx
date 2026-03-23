@@ -401,21 +401,21 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       {/* ── Floating input capsule ── */}
       <div className="shrink-0 px-4" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
         <div
-          className="max-w-md mx-auto flex items-end gap-1.5 rounded-2xl px-2.5 py-2 min-h-[52px]"
+          className="max-w-md mx-auto flex items-end gap-1 rounded-full px-2 py-1.5"
           style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 0 0 1px rgba(0,0,0,0.02)',
           }}
         >
           <button
             onClick={() => setShowEmojis(prev => !prev)}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors shrink-0 ${
-              showEmojis ? 'text-primary' : 'text-muted-foreground'
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors shrink-0 ${
+              showEmojis ? 'text-foreground' : 'text-foreground/40'
             }`}
           >
-            <Smile className="h-[22px] w-[22px]" />
+            <Smile className="h-5 w-5" />
           </button>
           <textarea
             ref={textareaRef}
@@ -431,18 +431,18 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
             }}
             placeholder="Message..."
             rows={1}
-            className="flex-1 resize-none bg-transparent px-2 py-2 text-[15px] leading-snug focus:outline-none overflow-hidden min-h-[40px]"
+            className="flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-snug focus:outline-none overflow-hidden min-h-[36px]"
           />
           <button
             onClick={handleSend}
             disabled={!text.trim() || sendMutation.isPending}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${
               text.trim()
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
+                ? 'bg-foreground text-white'
+                : 'text-foreground/30'
             }`}
           >
-            <Send className="h-[18px] w-[18px]" />
+            <Send className="h-[16px] w-[16px]" />
           </button>
         </div>
       </div>

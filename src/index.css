@@ -9,85 +9,85 @@
 
 @layer base {
   :root {
-    /* Sessio Design System — clean, structured, sporty */
-    --background: 220 16% 96%;
-    --foreground: 220 20% 10%;
+    /* Sessio Design System — #5996A6 teal, #F7A314 orange, #B8CEDC secondary, white cards */
+    --background: 193 25% 93%;
+    --foreground: 200 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card-foreground: 200 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover-foreground: 200 20% 12%;
 
-    --primary: 160 45% 40%;
+    --primary: 193 30% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 220 20% 15%;
+    --secondary: 203 34% 79%;
+    --secondary-foreground: 200 20% 15%;
 
-    --muted: 220 14% 93%;
-    --muted-foreground: 220 8% 46%;
+    --muted: 203 20% 93%;
+    --muted-foreground: 200 10% 46%;
 
-    --accent: 160 30% 93%;
-    --accent-foreground: 160 45% 28%;
+    --accent: 38 94% 52%;
+    --accent-foreground: 0 0% 100%;
 
     --success: 152 55% 34%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 94% 52%;
     --warning-foreground: 0 0% 100%;
 
     --destructive: 0 65% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 87%;
-    --input: 220 13% 87%;
-    --ring: 160 45% 40%;
+    --border: 203 20% 90%;
+    --input: 203 20% 88%;
+    --ring: 193 30% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 220 16% 96%;
-    --sidebar-foreground: 220 15% 20%;
-    --sidebar-primary: 220 15% 12%;
-    --sidebar-primary-foreground: 220 16% 96%;
-    --sidebar-accent: 220 14% 93%;
-    --sidebar-accent-foreground: 220 15% 12%;
-    --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 160 45% 40%;
+    --sidebar-background: 193 20% 96%;
+    --sidebar-foreground: 200 15% 20%;
+    --sidebar-primary: 193 30% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 203 20% 93%;
+    --sidebar-accent-foreground: 200 15% 12%;
+    --sidebar-border: 203 20% 90%;
+    --sidebar-ring: 193 30% 50%;
 
     /* Dark hero */
-    --hero-bg: 220 15% 8%;
+    --hero-bg: 200 15% 8%;
     --hero-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 220 15% 8%;
-    --foreground: 220 20% 95%;
-    --card: 220 14% 12%;
-    --card-foreground: 220 20% 95%;
-    --popover: 220 14% 12%;
-    --popover-foreground: 220 20% 95%;
-    --primary: 160 45% 48%;
+    --background: 200 15% 8%;
+    --foreground: 200 20% 95%;
+    --card: 200 14% 12%;
+    --card-foreground: 200 20% 95%;
+    --popover: 200 14% 12%;
+    --popover-foreground: 200 20% 95%;
+    --primary: 193 30% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 16%;
-    --secondary-foreground: 220 20% 95%;
-    --muted: 220 14% 16%;
-    --muted-foreground: 220 10% 60%;
-    --accent: 220 14% 16%;
-    --accent-foreground: 220 20% 95%;
+    --secondary: 200 14% 16%;
+    --secondary-foreground: 200 20% 95%;
+    --muted: 200 14% 16%;
+    --muted-foreground: 200 10% 60%;
+    --accent: 38 94% 55%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 63% 31%;
-    --destructive-foreground: 220 20% 95%;
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 160 45% 55%;
-    --sidebar-background: 220 14% 10%;
-    --sidebar-foreground: 220 15% 90%;
-    --sidebar-primary: 160 45% 48%;
+    --destructive-foreground: 200 20% 95%;
+    --border: 200 14% 18%;
+    --input: 200 14% 18%;
+    --ring: 193 30% 55%;
+    --sidebar-background: 200 14% 10%;
+    --sidebar-foreground: 200 15% 90%;
+    --sidebar-primary: 193 30% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 14%;
-    --sidebar-accent-foreground: 220 15% 90%;
-    --sidebar-border: 220 12% 14%;
-    --sidebar-ring: 160 45% 55%;
+    --sidebar-accent: 200 14% 14%;
+    --sidebar-accent-foreground: 200 15% 90%;
+    --sidebar-border: 200 12% 14%;
+    --sidebar-ring: 193 30% 55%;
   }
 }
 
@@ -97,7 +97,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 

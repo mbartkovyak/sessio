@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Avatar from '@/components/shared/Avatar';
 import ChatView from '@/components/shared/ChatView';
-import CoachBottomNav from '@/components/coach/CoachBottomNav';
 
 function useProfile(userId: string | undefined) {
   return useQuery({
@@ -41,8 +40,7 @@ export default function DirectChat() {
         </div>
       </header>
 
-      <ChatView otherUserId={userId} className="flex-1 min-h-0" hideBottomSafeArea />
-      <CoachBottomNav inline />
+      <ChatView otherUserId={userId} className="flex-1 min-h-0" />
     </div>
   );
 }

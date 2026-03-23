@@ -120,8 +120,7 @@ export default function TrainingDetail() {
 
       {activeTab === 'chat' && !showEdit ? (
         <>
-        <ChatView trainingId={training.id} className="flex-1 min-h-0" hideBottomSafeArea />
-        <CoachBottomNav inline />
+        <ChatView trainingId={training.id} className="flex-1 min-h-0" />
         </>
       ) : showEdit ? (
         <main className="flex-1 pb-24">

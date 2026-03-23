@@ -9,7 +9,7 @@ export default function TodaySessionRow({ session }: { session: any }) {
       training={{ ...training, start_time: session.start_time }}
       onClick={() => navigate(`/coach/trainings/${training?.id}`)}
       badge={
-        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+        <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent capitalize shrink-0">{training?.type}</span>
       }
     />
   );

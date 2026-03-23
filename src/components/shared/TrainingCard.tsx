@@ -43,14 +43,15 @@ export default function TrainingCard({
     return (
       <Tag
         onClick={onClick}
-        className={`rounded-xl border border-border bg-card p-4 text-left shadow-sm active:scale-[0.98] transition-transform ${className}`}
+        className={`rounded-2xl bg-white p-4 text-left shadow-sm transition-all active:scale-[0.97] ${className}`}
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
       >
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2.5 flex items-center justify-between">
           <span className="text-xl">{icon}</span>
           {badge}
         </div>
         <p className="font-semibold text-foreground text-sm leading-tight">{training.name}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{meta || '\u2014'}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{meta || '\u2014'}</p>
         {extra}
       </Tag>
     );
@@ -59,7 +60,8 @@ export default function TrainingCard({
   return (
     <Tag
       onClick={onClick}
-      className={`w-full flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left shadow-sm active:bg-secondary/50 ${className}`}
+      className={`w-full flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all active:scale-[0.98] ${className}`}
+      style={{ border: '1px solid hsl(203 20% 90%)' }}
     >
       <span className="text-2xl">{icon}</span>
       <div className="flex-1 min-w-0">
