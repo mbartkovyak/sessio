@@ -70,8 +70,8 @@ export default function Auth() {
         <SessioLogo />
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-4">
-        <div className="w-full max-w-sm">
+      <div className="flex-1 px-4 pt-12">
+        <div className="w-full max-w-sm mx-auto">
 
           {step === 'email' && (
             <>
