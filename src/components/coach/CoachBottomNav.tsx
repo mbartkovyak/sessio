@@ -19,20 +19,11 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
-      {/* Blur zone — covers area around and below the pill */}
-      <div className="pointer-events-none" style={{
-        height: '8px',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        maskImage: 'linear-gradient(to bottom, transparent, black)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
-      }} />
-
-      {/* Pill + area below */}
+      {/* Pill + area below — gradient blur starts gently at top, fully opaque at pill */}
       <div className="px-4 pointer-events-auto" style={{
+        paddingTop: '24px',
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(250,251,252,0.4) 30%, rgba(250,251,252,0.85) 60%, rgba(250,251,252,0.95) 100%)',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
