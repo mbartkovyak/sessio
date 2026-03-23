@@ -39,6 +39,15 @@ export default function Onboarding() {
     }
   }, []);
 
+  function getPostOnboardingPath(role: string) {
+    const pendingInvite = sessionStorage.getItem('pending_invite');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pending_invite');
+      return `/join/${pendingInvite}`;
+    }
+    return role === 'player' ? '/player' : '/coach';
+  }
+
   function goBack() {
     setError('');
     if (step === 'train-or-coach') setStep('name');
@@ -58,7 +67,7 @@ export default function Onboarding() {
         .eq('id', user.id);
       if (error) { setError(error.message); setLoading(false); return; }
       await refreshProfile();
-      navigate('/player');
+      navigate(getPostOnboardingPath('player'));
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong');
       setLoading(false);
@@ -78,7 +87,7 @@ export default function Onboarding() {
         .eq('id', user.id);
       if (error) { setError(error.message); setLoading(false); return; }
       await refreshProfile();
-      navigate('/coach');
+      navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong');
       setLoading(false);
@@ -117,7 +126,7 @@ export default function Onboarding() {
       }
 
       await refreshProfile();
-      navigate('/coach');
+      navigate(getPostOnboardingPath('school_owner'));
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong');
       setLoading(false);
@@ -170,7 +179,7 @@ export default function Onboarding() {
 
       await refreshProfile();
       toast.success(`Request sent to ${s.name}! The owner will approve you.`);
-      navigate('/coach');
+      navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
       setError(e.message ?? 'Something went wrong');
       setLoading(false);
