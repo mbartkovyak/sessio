@@ -441,24 +441,24 @@ export function useMyConversations() {
   });
 }
 
-// ── Unread total (for nav badge) — lightweight, no dependency on useMyConversations ──
+// ── Unread total (for nav badge) — fetches once, updates via realtime only ──
 
 export function useUnreadMessageCount() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
   const { data: count = 0 } = useQuery({
     queryKey: ['unread-total', user?.id],
     enabled: !!user,
-    refetchInterval: 30000,
+    staleTime: Infinity, // never refetch automatically — realtime handles updates
     queryFn: async () => {
-      // Get my conversation IDs (single fast query)
       const { data: parts } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
         .eq('user_id', user!.id);
       const convIds = (parts ?? []).map(p => p.conversation_id);
-      if (convIds.length === 0) return 0;
+      if (convIds.length === 0) return getManualUnread().length;
 
-      // Get unread messages in one query
       const seenMap = getSeenMap();
       const { data: msgs } = await supabase
         .from('messages')
@@ -469,23 +469,31 @@ export function useUnreadMessageCount() {
         .limit(200);
 
       let total = 0;
+      const counted = new Set<string>();
       for (const msg of msgs ?? []) {
         const seen = seenMap[msg.conversation_id];
-        if (!seen || msg.created_at > seen) total++;
+        if (!seen || msg.created_at > seen) { total++; counted.add(msg.conversation_id); }
       }
-
-      // Add manual unreads
-      const manual = getManualUnread();
-      const counted = new Set((msgs ?? []).filter(m => {
-        const seen = seenMap[m.conversation_id];
-        return !seen || m.created_at > seen;
-      }).map(m => m.conversation_id));
-      for (const id of manual) {
+      for (const id of getManualUnread()) {
         if (!counted.has(id)) total++;
       }
-
       return total;
     },
   });
+
+  // Realtime: bump count when a new message arrives
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('unread-badge')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload: any) => {
+        if (payload.new.sender_id !== user.id) {
+          qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, qc]);
+
   return count;
 }
