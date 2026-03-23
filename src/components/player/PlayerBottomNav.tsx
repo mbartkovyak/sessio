@@ -16,32 +16,50 @@ export default function PlayerBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card z-10 safe-area-bottom" style={{ boxShadow: '0 -1px 3px 0 rgba(0,0,0,0.06), 0 -1px 2px -1px rgba(0,0,0,0.04)' }}>
-      <div className="flex max-w-md mx-auto">
-        {tabs.map(({ icon: Icon, label, path }) => {
-          const active = pathname === path || (path !== '/player' && pathname.startsWith(path));
-          const isMessages = label === 'Chats';
-          return (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              className={`relative flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors min-h-[56px] ${
-                active ? 'text-primary' : 'text-muted-foreground'
-              }`}
-            >
-              <div className="relative">
-                <Icon className="h-5 w-5" />
-                {isMessages && unreadCount > 0 && (
-                  <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-bold text-destructive-foreground">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              {label}
-            </button>
-          );
-        })}
+    <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
+      <div className="px-4 pointer-events-auto" style={{
+        paddingTop: '24px',
+        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+        background: 'linear-gradient(to bottom, transparent 0%, rgba(250,251,252,0.4) 30%, rgba(250,251,252,0.85) 60%, rgba(250,251,252,0.95) 100%)',
+      }}>
+        <nav
+          className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
+          style={{
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 0 0 1px rgba(0,0,0,0.02)',
+          }}
+        >
+          {tabs.map(({ icon: Icon, label, path }) => {
+            const active = pathname === path || (path !== '/player' && pathname.startsWith(path));
+            const isMessages = label === 'Chats';
+            return (
+              <button
+                key={label}
+                onClick={() => navigate(path)}
+                className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
+              >
+                <div className={`relative flex items-center justify-center rounded-full transition-all ${
+                  active
+                    ? 'h-10 w-10 bg-foreground text-white'
+                    : 'h-10 w-10 text-foreground/40'
+                }`}>
+                  <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
+                  {isMessages && unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] transition-all ${
+                  active ? 'font-semibold text-foreground' : 'text-foreground/40'
+                }`}>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
-    </nav>
+    </div>
   );
 }
