@@ -17,13 +17,17 @@ export default function PlayerBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
+      {/* Gentle fade zone */}
+      <div className="pointer-events-none" style={{
+        height: '40px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)',
+      }} />
+      {/* Pill area */}
       <div className="px-4 pointer-events-auto" style={{
-        paddingTop: '48px',
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 15%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 65%, rgba(0,0,0,0.95) 85%, black 100%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.05) 15%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 65%, rgba(0,0,0,0.95) 85%, black 100%)',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"

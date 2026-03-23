@@ -1,18 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { User, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { User, FileText } from 'lucide-react';
 import { CITIES, SPORTS } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
 
 export default function CoachProfileEditor() {
-  const navigate = useNavigate();
+
   const { profile, user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
@@ -35,8 +33,7 @@ export default function CoachProfileEditor() {
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
       <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate('/coach')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+        <div className="max-w-md mx-auto">
           <h1 className="text-lg font-bold text-white">Profile</h1>
         </div>
       </header>

@@ -32,7 +32,7 @@ export default function CoachTrainings() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 header-gradient">
-        <div className="max-w-md mx-auto px-4 py-4 space-y-3">
+        <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-white">Lessons</h1>
             {canCreate && (
@@ -41,14 +41,17 @@ export default function CoachTrainings() {
               </button>
             )}
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..." className="w-full rounded-xl border-0 bg-white/20 text-white placeholder:text-white/50 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/30" />
-          </div>
         </div>
       </header>
       <main className="flex-1 pb-24">
-        <div className="max-w-md mx-auto px-4 py-4 space-y-2">
+        <div className="max-w-md mx-auto px-4 pt-3 pb-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..."
+              className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+        </div>
+        <div className="max-w-md mx-auto px-4 pb-4 space-y-2">
           {isLoading ? [1,2,3].map(i => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />) :
           filtered.length === 0 ? (
             <div className="text-center py-16">
