@@ -232,14 +232,18 @@ export default function JoinTraining() {
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
       </header>
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
-        <div className="text-center">
-          <div className="mx-auto mb-3">
-            <Avatar url={coach?.avatar_url} name={coach?.full_name} size="xl" />
+        {coach?.full_name ? (
+          <div className="text-center">
+            <div className="mx-auto mb-3">
+              <Avatar url={coach.avatar_url} name={coach.full_name} size="xl" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{coach.full_name}</span> invited you to join
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{coach?.full_name ?? 'Your coach'}</span> invited you to join
-          </p>
-        </div>
+        ) : (
+          <p className="text-center text-sm text-muted-foreground">You've been invited to join</p>
+        )}
 
         <TrainingCard />
 
