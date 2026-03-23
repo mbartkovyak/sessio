@@ -28,6 +28,7 @@ export default function CreateTraining() {
   const isSchoolOwner = profile?.role === 'school_owner';
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
+  const [attempted, setAttempted] = useState(false);
   const qc = useQueryClient();
 
   async function handleNewVenue(venue: VenueOption) {
@@ -103,7 +104,7 @@ export default function CreateTraining() {
           <select
             value={selectedCoachId}
             onChange={e => setSelectedCoachId(e.target.value)}
-            className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+            className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${attempted && !selectedCoachId ? 'border-destructive' : 'border-input'}`}
           >
             <option value="">Select coach</option>
             {schoolCoaches.map((m: any) => (
@@ -114,6 +115,7 @@ export default function CreateTraining() {
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
+        {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">Coach is required</p>}
       )}
     </div>
   ) : undefined;
@@ -136,6 +138,7 @@ export default function CreateTraining() {
             venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
             onNewVenue={isSchoolOwner ? handleNewVenue : undefined}
             extraErrors={extraErrors}
+            onAttemptSubmit={() => setAttempted(true)}
           />
         </div>
       </main>

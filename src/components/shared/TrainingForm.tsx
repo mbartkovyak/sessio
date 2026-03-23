@@ -78,9 +78,11 @@ interface Props {
   onNewVenue?: (venue: VenueOption) => void;
   /** Extra validation errors from parent (e.g. "Select a coach") */
   extraErrors?: string[];
+  /** Called when submit is attempted (even if invalid) — lets parent show its own errors */
+  onAttemptSubmit?: () => void;
 }
 
-export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors }: Props) {
+export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors, onAttemptSubmit }: Props) {
   // Persist create-mode form to localStorage so it survives app-switch.
   // Save synchronously on every change (useEffect might not fire before page kill).
   const DRAFT_KEY = '_trainingFormDraft';
@@ -194,6 +196,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     e.preventDefault();
     setTouched(new Set(['name', 'venue', 'time', 'max_players']));
     setShowErrors(true);
+    onAttemptSubmit?.();
     if (!isValid) {
       // Find the first field with data-field-error in DOM order — order-independent
       setTimeout(() => {
