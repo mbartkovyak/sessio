@@ -45,10 +45,10 @@ export default function PlayerBottomNav() {
               >
                 <div className={`relative flex items-center justify-center rounded-full transition-all ${
                   active
-                    ? 'h-10 w-10 bg-foreground text-white'
-                    : 'h-10 w-10 text-foreground/40'
+                    ? 'h-12 w-12 bg-foreground text-white'
+                    : 'h-12 w-12 text-foreground/40'
                 }`}>
-                  <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
+                  <Icon className="h-[24px] w-[24px]" strokeWidth={active ? 2 : 1.5} />
                   {isMessages && unreadCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground">
                       {unreadCount > 99 ? '99+' : unreadCount}
