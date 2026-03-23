@@ -441,21 +441,51 @@ export function useMyConversations() {
   });
 }
 
-// ── Unread total (for nav badge) ──
+// ── Unread total (for nav badge) — lightweight, no dependency on useMyConversations ──
 
 export function useUnreadMessageCount() {
-  const { data: conversations = [] } = useMyConversations();
-  const manual = getManualUnread();
-  let total = 0;
-  const counted = new Set<string>();
-  for (const c of conversations) {
-    if (c.unreadCount > 0) {
-      total += c.unreadCount;
-      counted.add(c.id);
-    }
-  }
-  for (const id of manual) {
-    if (!counted.has(id)) total++;
-  }
-  return total;
+  const { user } = useAuth();
+  const { data: count = 0 } = useQuery({
+    queryKey: ['unread-total', user?.id],
+    enabled: !!user,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      // Get my conversation IDs (single fast query)
+      const { data: parts } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user!.id);
+      const convIds = (parts ?? []).map(p => p.conversation_id);
+      if (convIds.length === 0) return 0;
+
+      // Get unread messages in one query
+      const seenMap = getSeenMap();
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('conversation_id, created_at, sender_id')
+        .in('conversation_id', convIds)
+        .neq('sender_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      let total = 0;
+      for (const msg of msgs ?? []) {
+        const seen = seenMap[msg.conversation_id];
+        if (!seen || msg.created_at > seen) total++;
+      }
+
+      // Add manual unreads
+      const manual = getManualUnread();
+      const counted = new Set((msgs ?? []).filter(m => {
+        const seen = seenMap[m.conversation_id];
+        return !seen || m.created_at > seen;
+      }).map(m => m.conversation_id));
+      for (const id of manual) {
+        if (!counted.has(id)) total++;
+      }
+
+      return total;
+    },
+  });
+  return count;
 }
