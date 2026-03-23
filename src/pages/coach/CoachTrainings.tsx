@@ -44,7 +44,7 @@ export default function CoachTrainings() {
               className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
           {canCreate && (
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shrink-0">
+            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold text-accent-foreground shrink-0">
               <Plus className="h-4 w-4" /> New
             </button>
           )}
