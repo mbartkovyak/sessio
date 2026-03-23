@@ -19,16 +19,12 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
-      {/* Gentle fade zone — separate from the pill so pill stays fully opaque */}
-      <div className="pointer-events-none" style={{
-        height: '40px',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%)',
+      {/* Fade zone above pill */}
+      <div className="pointer-events-none h-12" style={{
+        background: 'linear-gradient(to bottom, hsl(var(--background) / 0) 0%, hsl(var(--background) / 0.6) 50%, hsl(var(--background) / 1) 100%)',
       }} />
-      {/* Pill area — no mask, fully visible */}
-      <div className="px-4 pointer-events-auto" style={{
+      {/* Pill area */}
+      <div className="px-4 pointer-events-auto bg-background" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
