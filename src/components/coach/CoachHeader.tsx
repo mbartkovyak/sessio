@@ -20,7 +20,7 @@ export default function CoachHeader({ title, back, right, inline }: CoachHeaderP
             <ArrowLeft className="h-4.5 w-4.5" />
           </button>
         )}
-        <h1 className="text-lg font-bold text-white flex-1">{title}</h1>
+        <h1 className={`font-bold text-white flex-1 ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
         {right}
       </div>
     </header>
