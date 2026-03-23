@@ -19,7 +19,19 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}>
-      <div className="px-4" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))' }}>
+      {/* Progressive blur: transparent at top, full blur at bottom */}
+      {!inline && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            maskImage: 'linear-gradient(to bottom, transparent, black)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
+          }}
+        />
+      )}
+      <div className={`${!inline ? 'relative' : ''} px-4`} style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))' }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
           style={{
@@ -60,20 +72,6 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
             );
           })}
         </nav>
-        {/* Fade below the pill */}
-        {!inline && (
-          <div
-            className="pointer-events-none"
-            style={{
-              height: 'max(10px, env(safe-area-inset-bottom, 10px))',
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.85))',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              marginLeft: '-1rem',
-              marginRight: '-1rem',
-            }}
-          />
-        )}
       </div>
     </div>
   );

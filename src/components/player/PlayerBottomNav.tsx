@@ -17,7 +17,17 @@ export default function PlayerBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none">
-      <div className="px-4 pointer-events-auto" style={{
+      {/* Progressive blur: transparent at top, full blur at bottom */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          maskImage: 'linear-gradient(to bottom, transparent, black)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
+        }}
+      />
+      <div className="relative px-4 pointer-events-auto" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
       }}>
         <nav
@@ -57,18 +67,6 @@ export default function PlayerBottomNav() {
             );
           })}
         </nav>
-        {/* Fade below the pill */}
-        <div
-          className="pointer-events-none"
-          style={{
-            height: 'max(10px, env(safe-area-inset-bottom, 10px))',
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.85))',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            marginLeft: '-1rem',
-            marginRight: '-1rem',
-          }}
-        />
       </div>
     </div>
   );
