@@ -230,6 +230,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+      {/* Name */}
+      <div {...(!form.name && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
+        <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
+          className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('name') && !form.name ? 'border-destructive' : 'border-input'}`} />
+        {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">Lesson name is required</p>}
+      </div>
       {/* Type */}
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
@@ -254,12 +260,6 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
           /></div>
       )}
-      {/* Name */}
-      <div {...(!form.name && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
-        <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
-          className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('name') && !form.name ? 'border-destructive' : 'border-input'}`} />
-        {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">Lesson name is required</p>}
-      </div>
       {/* Venue */}
       <div {...(!form.venue && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
         {venueOptions && !addingNewVenue ? (
