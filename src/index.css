@@ -9,62 +9,62 @@
 
 @layer base {
   :root {
-    /* Sessio Design System — #5996A6 teal, #F7A314 orange, #B8CEDC soft blue, white cards */
-    --background: 200 15% 94%;
-    --foreground: 200 25% 10%;
+    /* Sessio Design System — warm sporty: deep navy, bright orange, clean whites */
+    --background: 220 14% 96%;
+    --foreground: 215 28% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 10%;
+    --card-foreground: 215 28% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 10%;
+    --popover-foreground: 215 28% 14%;
 
-    --primary: 193 35% 38%;
+    --primary: 215 50% 23%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 200 20% 92%;
-    --secondary-foreground: 200 25% 15%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 215 28% 18%;
 
-    --muted: 200 12% 90%;
-    --muted-foreground: 200 10% 42%;
+    --muted: 220 10% 90%;
+    --muted-foreground: 215 10% 46%;
 
-    --accent: 38 94% 52%;
+    --accent: 30 95% 52%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 155 60% 38%;
+    --success: 160 60% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 94% 52%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 15% 85%;
-    --input: 200 15% 85%;
-    --ring: 193 35% 38%;
+    --border: 220 12% 88%;
+    --input: 220 12% 88%;
+    --ring: 30 95% 52%;
 
     --radius: 0.875rem;
 
-    --sidebar-background: 200 15% 94%;
-    --sidebar-foreground: 200 15% 20%;
-    --sidebar-primary: 193 35% 38%;
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 215 15% 20%;
+    --sidebar-primary: 215 50% 23%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 15% 90%;
-    --sidebar-accent-foreground: 200 15% 12%;
-    --sidebar-border: 200 15% 85%;
-    --sidebar-ring: 193 35% 38%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 215 15% 12%;
+    --sidebar-border: 220 12% 88%;
+    --sidebar-ring: 30 95% 52%;
 
-    /* Header gradient — deep teal, strong contrast with white cards */
-    --header-from: 193 40% 32%;
-    --header-to: 193 35% 40%;
+    /* Header — deep navy, authoritative */
+    --header-from: 215 45% 18%;
+    --header-to: 215 40% 25%;
 
-    /* Body gradient — light neutral with subtle teal tint */
-    --bg-from: 200 18% 90%;
-    --bg-to: 200 15% 88%;
+    /* Body — warm light grey, barely tinted */
+    --bg-from: 220 12% 95%;
+    --bg-to: 220 10% 93%;
 
     /* Dark hero */
-    --hero-bg: 200 25% 8%;
+    --hero-bg: 215 40% 10%;
     --hero-foreground: 0 0% 100%;
   }
 
