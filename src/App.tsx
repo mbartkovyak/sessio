@@ -41,6 +41,7 @@ import CreateTraining from "./pages/coach/CreateTraining";
 import TrainingDetail from "./pages/coach/TrainingDetail";
 import CoachProfileEditor from "./pages/coach/CoachProfileEditor";
 import CoachMessages from "./pages/coach/CoachMessages";
+import DirectChat from "./pages/coach/DirectChat";
 
 // School pages
 import SchoolDashboard from "./pages/school/SchoolDashboard";
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachHome /></ProtectedRoute>} />
             <Route path="/coach/calendar" element={<ProtectedRoute requiredRole="coach"><CoachCalendar /></ProtectedRoute>} />
             <Route path="/coach/messages" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
+            <Route path="/coach/dm/:userId" element={<ProtectedRoute requiredRole="coach"><DirectChat /></ProtectedRoute>} />
             <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><CoachTrainings /></ProtectedRoute>} />
             <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><CreateTraining /></ProtectedRoute>} />
             <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><TrainingDetail /></ProtectedRoute>} />
