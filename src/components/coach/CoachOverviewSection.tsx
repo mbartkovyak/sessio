@@ -127,12 +127,12 @@ export default function CoachOverviewSection() {
         {isLoading ? (
           <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />)}</div>
         ) : trainings.length === 0 ? (
-          <div className="rounded-2xl bg-primary p-6 text-primary-foreground shadow-lg">
-            <Users className="h-6 w-6 opacity-80 mb-3" />
-            <h3 className="font-bold text-lg mb-1">{canCreate ? 'Create your first lesson' : 'No lessons yet'}</h3>
-            <p className="text-sm opacity-80 mb-5">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
+          <div className="rounded-2xl bg-white p-6 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+            <Users className="h-6 w-6 text-accent mb-3" />
+            <h3 className="font-bold text-lg text-foreground mb-1">{canCreate ? 'Create your first lesson' : 'No lessons yet'}</h3>
+            <p className="text-sm text-muted-foreground mb-5">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
             {canCreate && (
-              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-accent-foreground min-h-[48px] shadow-md transition-all active:scale-[0.97]">
+              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-accent-foreground min-h-[48px] shadow-sm transition-all active:scale-[0.97]">
                 <Plus className="h-4 w-4" /> New Training
               </button>
             )}
