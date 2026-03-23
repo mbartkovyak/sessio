@@ -9,16 +9,16 @@ const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '
 
 function TimeSelect({ value, onChange, compact }: { value: string; onChange: (v: string) => void; compact?: boolean }) {
   const [h, m] = (value || '09:00').split(':');
-  const sel = 'appearance-none bg-transparent text-sm font-medium text-foreground text-center focus:outline-none w-9';
+  const sel = 'appearance-none !bg-transparent text-sm font-semibold text-foreground text-center focus:outline-none w-9';
   return (
     <div className={compact
-      ? 'inline-flex items-center rounded-lg border border-input bg-background px-1.5 py-2 min-h-[40px]'
-      : 'inline-flex items-center rounded-xl border border-input bg-background px-3 py-3 min-h-[44px]'
+      ? 'inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2.5 py-1.5 min-h-[38px]'
+      : 'inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 min-h-[44px]'
     }>
       <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={sel}>
         {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
       </select>
-      <span className="text-sm font-medium text-muted-foreground">:</span>
+      <span className="text-sm font-bold text-muted-foreground/60">:</span>
       <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={sel}>
         {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
       </select>
@@ -230,11 +230,6 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
-      {draftRestored && (
-        <div className="rounded-lg bg-primary/5 border border-primary/15 px-3 py-2 text-xs text-primary font-medium">
-          Draft restored
-        </div>
-      )}
       {/* Type */}
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
