@@ -85,18 +85,21 @@ export default function TrainingDetail() {
 
   return (
     <div className={`flex flex-col bg-background ${activeTab === 'chat' && !showEdit ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
-      <header className="sticky top-0 z-10 border-b border-border bg-card">
+      <header className="sticky top-0 z-10" style={{
+        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
+        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
+      }}>
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"><ArrowLeft className="h-5 w-5" /></button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-foreground truncate">{training.name}</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className="font-semibold text-white truncate">{training.name}</h1>
+            <p className="text-xs text-white/60">
               {isDeleted ? 'Deleted' : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
             </p>
           </div>
           {!isDeleted && (
-            <button onClick={() => { setShowEdit(!showEdit); setSearchParams({}, { replace: true }); }} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary shrink-0">
-              <Settings className="h-4.5 w-4.5 text-muted-foreground" />
+            <button onClick={() => { setShowEdit(!showEdit); setSearchParams({}, { replace: true }); }} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 shrink-0">
+              <Settings className="h-4.5 w-4.5 text-white/70" />
             </button>
           )}
         </div>
@@ -104,13 +107,13 @@ export default function TrainingDetail() {
           <div className="max-w-md mx-auto px-4 pb-2 flex gap-1">
             <button
               onClick={() => setSearchParams({}, { replace: true })}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'detail' ? 'bg-secondary text-foreground' : 'text-muted-foreground'}`}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'detail' ? 'bg-white/20 text-white' : 'text-white/50'}`}
             >
               Details
             </button>
             <button
               onClick={() => setSearchParams({ tab: 'chat' }, { replace: true })}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'chat' ? 'bg-secondary text-foreground' : 'text-muted-foreground'}`}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'chat' ? 'bg-white/20 text-white' : 'text-white/50'}`}
             >
               <MessageCircle className="h-3.5 w-3.5" /> Chat
             </button>

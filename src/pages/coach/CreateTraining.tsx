@@ -124,10 +124,13 @@ export default function CreateTraining() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="sticky top-0 z-10 px-4 py-4" style={{
+        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
+        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
+      }}>
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"><ArrowLeft className="h-5 w-5" /></button>
-          <h1 className="font-semibold text-foreground">New Lesson</h1>
+          <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white"><ArrowLeft className="h-5 w-5" /></button>
+          <h1 className="font-semibold text-white">New Lesson</h1>
         </div>
       </header>
       <main className="flex-1 pb-24">

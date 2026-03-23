@@ -27,15 +27,18 @@ export default function DirectChat() {
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-background">
-      <header className="shrink-0 border-b border-border bg-card px-4 py-3">
+      <header className="shrink-0 px-4 py-3" style={{
+        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
+        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
+      }}>
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary shrink-0">
+          <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <Avatar url={otherProfile?.avatar_url} name={otherProfile?.full_name} size="sm" />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground text-sm truncate">{otherProfile?.full_name ?? 'Chat'}</p>
-            {otherProfile?.sport && <p className="text-xs text-muted-foreground">{otherProfile.sport}</p>}
+            <p className="font-semibold text-white text-sm truncate">{otherProfile?.full_name ?? 'Chat'}</p>
+            {otherProfile?.sport && <p className="text-xs text-white/60">{otherProfile.sport}</p>}
           </div>
         </div>
       </header>

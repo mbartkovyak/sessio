@@ -104,6 +104,11 @@
     min-height: 100dvh;
   }
 
+  /* Form inputs should be white, not the teal background */
+  input, textarea, select {
+    background-color: hsl(0 0% 100%) !important;
+  }
+
   /* Override Chrome autofill blue tint */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,

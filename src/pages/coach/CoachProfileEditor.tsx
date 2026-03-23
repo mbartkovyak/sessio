@@ -34,10 +34,13 @@ export default function CoachProfileEditor() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="sticky top-0 z-10 px-4 py-4" style={{
+        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
+        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
+      }}>
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate('/coach')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
-          <h1 className="text-lg font-bold text-foreground">Profile</h1>
+          <button onClick={() => navigate('/coach')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+          <h1 className="text-lg font-bold text-white">Profile</h1>
         </div>
       </header>
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">

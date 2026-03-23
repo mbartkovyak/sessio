@@ -19,15 +19,17 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
-      {/* Gradient fade — starts at pill midpoint */}
-      <div className="h-5" style={{
-        background: 'linear-gradient(to bottom, transparent 0%, hsl(193 27% 79% / 0.4) 50%, hsl(193 27% 79% / 0.9) 100%)',
+      {/* Gradient fade — subtle, just blurs content into bg */}
+      <div className="h-3" style={{
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        maskImage: 'linear-gradient(to bottom, transparent, black)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
       }} />
 
       {/* Pill */}
-      <div className="px-4 pointer-events-auto pb-3" style={{
+      <div className="px-4 pointer-events-auto" style={{
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        background: 'hsl(193 27% 79% / 0.9)',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"

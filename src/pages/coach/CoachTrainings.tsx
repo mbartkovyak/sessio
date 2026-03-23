@@ -31,19 +31,22 @@ export default function CoachTrainings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card">
+      <header className="sticky top-0 z-10" style={{
+        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
+        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
+      }}>
         <div className="max-w-md mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-foreground">Lessons</h1>
+            <h1 className="text-lg font-bold text-white">Lessons</h1>
             {canCreate && (
-              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground min-h-[40px]">
+              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground min-h-[40px]">
                 <Plus className="h-4 w-4" /> New
               </button>
             )}
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..." className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..." className="w-full rounded-xl border-0 bg-white/20 text-white placeholder:text-white/50 pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/30" />
           </div>
         </div>
       </header>
