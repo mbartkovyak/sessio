@@ -279,21 +279,55 @@ export function useMyConversations() {
     queryKey: ['my-conversations', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Get all conversations I'm in
+      // Get conversations I'm a participant of
       const { data: participations } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
         .eq('user_id', user!.id);
+      const participantConvIds = (participations ?? []).map(p => p.conversation_id);
 
-      if (!participations || participations.length === 0) return [];
+      // Also get conversations for trainings I coach
+      const { data: myTrainings } = await supabase
+        .from('trainings')
+        .select('id')
+        .eq('coach_id', user!.id);
+      const myTrainingIds = (myTrainings ?? []).map(t => t.id);
 
-      const convIds = participations.map(p => p.conversation_id);
+      // And trainings from my school (if school owner)
+      const { data: mySchool } = await supabase
+        .from('schools')
+        .select('id')
+        .eq('owner_id', user!.id)
+        .maybeSingle();
+      if (mySchool) {
+        const { data: schoolTrainings } = await supabase
+          .from('trainings')
+          .select('id')
+          .eq('school_id', mySchool.id);
+        for (const t of schoolTrainings ?? []) {
+          if (!myTrainingIds.includes(t.id)) myTrainingIds.push(t.id);
+        }
+      }
+
+      // Get conversations for those trainings
+      let trainingConvIds: string[] = [];
+      if (myTrainingIds.length > 0) {
+        const { data: trainingConvs } = await supabase
+          .from('conversations')
+          .select('id')
+          .in('training_id', myTrainingIds);
+        trainingConvIds = (trainingConvs ?? []).map(c => c.id);
+      }
+
+      // Merge all conversation IDs (deduplicate)
+      const allConvIds = [...new Set([...participantConvIds, ...trainingConvIds])];
+      if (allConvIds.length === 0) return [];
 
       // Get conversation details
       const { data: convos } = await supabase
         .from('conversations')
         .select('id, training_id, created_at')
-        .in('id', convIds);
+        .in('id', allConvIds);
 
       if (!convos) return [];
 
