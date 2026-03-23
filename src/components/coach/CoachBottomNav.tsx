@@ -18,48 +18,58 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const isChatTab = searchParams.get('tab') === 'chat';
 
   return (
-    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 px-4`}
-      style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
-      <nav
-        className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
-        style={{
-          background: 'rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: '0 0 0 1px rgba(0,0,0,0.02)',
-        }}
-      >
-        {tabs.map(({ icon: Icon, label, path }) => {
-          const onTrainingChat = isChatTab && location.pathname.startsWith('/coach/trainings/');
-          const active = onTrainingChat
-            ? path === '/coach/messages'
-            : location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
-          const isMessages = label === 'Chats';
-          return (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
-            >
-              <div className={`relative flex items-center justify-center rounded-full transition-all ${
-                active
-                  ? 'h-10 w-10 bg-foreground text-white'
-                  : 'h-10 w-10 text-foreground/40'
-              }`}>
-                <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
-                {isMessages && unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </div>
-              <span className={`text-[10px] transition-all ${
-                active ? 'font-semibold text-foreground' : 'text-foreground/40'
-              }`}>{label}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10 pointer-events-none`}>
+      {/* Gradient fade — starts at pill midpoint */}
+      <div className="h-8" style={{
+        background: 'linear-gradient(to bottom, transparent 0%, hsl(193 27% 79% / 0.6) 60%, hsl(193 27% 79% / 0.9) 100%)',
+      }} />
+
+      {/* Pill */}
+      <div className="px-4 pointer-events-auto pb-3" style={{
+        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+        background: 'hsl(193 27% 79% / 0.9)',
+      }}>
+        <nav
+          className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"
+          style={{
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 0 0 1px rgba(0,0,0,0.02)',
+          }}
+        >
+          {tabs.map(({ icon: Icon, label, path }) => {
+            const onTrainingChat = isChatTab && location.pathname.startsWith('/coach/trainings/');
+            const active = onTrainingChat
+              ? path === '/coach/messages'
+              : location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
+            const isMessages = label === 'Chats';
+            return (
+              <button
+                key={label}
+                onClick={() => navigate(path)}
+                className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
+              >
+                <div className={`relative flex items-center justify-center rounded-full transition-all ${
+                  active
+                    ? 'h-10 w-10 bg-foreground text-white'
+                    : 'h-10 w-10 text-foreground/40'
+                }`}>
+                  <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
+                  {isMessages && unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] transition-all ${
+                  active ? 'font-semibold text-foreground' : 'text-foreground/40'
+                }`}>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
     </div>
   );
 }

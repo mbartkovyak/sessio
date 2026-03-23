@@ -10,7 +10,7 @@
 @layer base {
   :root {
     /* Sessio Design System — #5996A6 teal, #F7A314 orange, #B8CEDC secondary, white cards */
-    --background: 193 25% 93%;
+    --background: 193 25% 88%;
     --foreground: 200 20% 12%;
 
     --card: 0 0% 100%;
@@ -96,9 +96,12 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    background: linear-gradient(165deg, hsl(193 30% 78%) 0%, hsl(193 25% 82%) 40%, hsl(200 20% 80%) 70%, hsl(193 28% 76%) 100%);
+    background-attachment: fixed;
+    min-height: 100dvh;
   }
 
   /* Override Chrome autofill blue tint */
