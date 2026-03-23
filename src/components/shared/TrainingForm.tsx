@@ -242,6 +242,18 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           ))}
         </div>
       </div>
+      {/* Capacity — right after type so user sees the difference */}
+      {form.type === 'group' && (
+        <div {...(form.type === 'group' && !form.max_players && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
+          <input
+            type="number" min={1} max={50}
+            value={form.max_players || ''}
+            onChange={e => set('max_players', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
+            onBlur={() => touch('max_players')}
+            placeholder=""
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+          /></div>
+      )}
       {/* Name */}
       <div {...(!form.name && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
         <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
@@ -410,18 +422,6 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           </div>
           {hasTimeError && <p className="text-xs text-destructive">End time must be after start time</p>}
         </>
-      )}
-      {/* Capacity */}
-      {form.type === 'group' && (
-        <div {...(form.type === 'group' && !form.max_players && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
-          <input
-            type="number" min={1} max={50}
-            value={form.max_players || ''}
-            onChange={e => set('max_players', e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0)}
-            onBlur={() => touch('max_players')}
-            placeholder=""
-            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
-          /></div>
       )}
       {/* Booking Mode */}
       <div>
