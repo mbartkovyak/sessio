@@ -227,13 +227,13 @@ export async function getOrCreateTrainingConversation(trainingId: string): Promi
     .maybeSingle();
   if (existing) return existing.id;
 
-  const { data: created, error } = await supabase
+  // Generate ID client-side to avoid SELECT-after-INSERT RLS issue
+  const id = crypto.randomUUID();
+  const { error } = await supabase
     .from('conversations')
-    .insert({ training_id: trainingId })
-    .select('id')
-    .single();
+    .insert({ id, training_id: trainingId });
   if (error) throw error;
-  return created.id;
+  return id;
 }
 
 /** Create a DM conversation if it doesn't exist, return the id */
@@ -263,20 +263,19 @@ export async function getOrCreateDMConversation(userId1: string, userId2: string
     }
   }
 
-  // Create new DM conversation
-  const { data: conv, error } = await supabase
+  // Create new DM conversation — generate ID client-side to avoid SELECT-after-INSERT RLS issue
+  const id = crypto.randomUUID();
+  const { error } = await supabase
     .from('conversations')
-    .insert({ training_id: null })
-    .select('id')
-    .single();
+    .insert({ id });
   if (error) throw error;
 
   await supabase.from('conversation_participants').insert([
-    { conversation_id: conv.id, user_id: userId1 },
-    { conversation_id: conv.id, user_id: userId2 },
+    { conversation_id: id, user_id: userId1 },
+    { conversation_id: id, user_id: userId2 },
   ]);
 
-  return conv.id;
+  return id;
 }
 
 // ── Conversation list (for Chats page) ──
