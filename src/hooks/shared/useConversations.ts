@@ -287,17 +287,19 @@ export function useMyConversations() {
     enabled: !!user,
     queryFn: async () => {
       // Get conversations I'm a participant of
-      const { data: participations } = await supabase
+      const { data: participations, error: partErr } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
         .eq('user_id', user!.id);
+      if (partErr) console.error('participations error:', partErr);
       const participantConvIds = (participations ?? []).map(p => p.conversation_id);
 
       // Also get conversations for trainings I coach
-      const { data: myTrainings } = await supabase
+      const { data: myTrainings, error: trainErr } = await supabase
         .from('trainings')
         .select('id')
         .eq('coach_id', user!.id);
+      if (trainErr) console.error('trainings error:', trainErr);
       const myTrainingIds = (myTrainings ?? []).map(t => t.id);
 
       // And trainings from my school (if school owner)
