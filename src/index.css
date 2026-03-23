@@ -55,6 +55,14 @@
     --sidebar-border: 203 20% 90%;
     --sidebar-ring: 193 30% 50%;
 
+    /* Header gradient — change these two to retheme all headers */
+    --header-from: 193 30% 44%;
+    --header-to: 193 25% 52%;
+
+    /* Body gradient — change these to retheme the page background */
+    --bg-from: 193 30% 78%;
+    --bg-to: 193 28% 76%;
+
     /* Dark hero */
     --hero-bg: 200 15% 8%;
     --hero-foreground: 0 0% 100%;
@@ -99,7 +107,7 @@
     @apply text-foreground;
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: linear-gradient(165deg, hsl(193 30% 78%) 0%, hsl(193 25% 82%) 40%, hsl(200 20% 80%) 70%, hsl(193 28% 76%) 100%);
+    background: linear-gradient(165deg, hsl(var(--bg-from)) 0%, hsl(var(--bg-from) / 0.7) 40%, hsl(var(--bg-to) / 0.8) 70%, hsl(var(--bg-to)) 100%);
     background-attachment: fixed;
     min-height: 100dvh;
   }
@@ -138,6 +146,10 @@
       0 0 0 1px hsl(var(--border)),
       0 4px 12px 0 rgba(0,0,0,0.06),
       0 2px 4px -2px rgba(0,0,0,0.04);
+  }
+  .header-gradient {
+    background: linear-gradient(135deg, hsl(var(--header-from)) 0%, hsl(var(--header-to)) 100%);
+    border-bottom: 1px solid hsl(var(--header-from) / 0.3);
   }
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);

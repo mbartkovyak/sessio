@@ -76,10 +76,7 @@ export default function CoachCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4" style={{
-        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
-        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
-      }}>
+      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
         <div className="max-w-md mx-auto">
           <h1 className="text-lg font-semibold text-white">Calendar</h1>
         </div>

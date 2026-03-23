@@ -31,10 +31,7 @@ export default function CoachTrainings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10" style={{
-        background: 'linear-gradient(135deg, hsl(193 30% 44%) 0%, hsl(193 25% 52%) 100%)',
-        borderBottom: '1px solid hsl(193 30% 40% / 0.3)',
-      }}>
+      <header className="sticky top-0 z-10 header-gradient">
         <div className="max-w-md mx-auto px-4 py-4 space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-white">Lessons</h1>
