@@ -1,17 +1,22 @@
-import { Clock, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMyJoinRequests } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
 
 export default function MyJoinRequests() {
   const { data: requests = [] } = useMyJoinRequests();
+  const [expanded, setExpanded] = useState(false);
 
   if (requests.length === 0) return null;
+
+  const visible = expanded ? requests : requests.slice(0, 3);
+  const hasMore = requests.length > 3;
 
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
       <div className="space-y-2">
-        {requests.map((req: any) => {
+        {visible.map((req: any) => {
           const training = req.trainings;
           const isPending = req.status === 'pending';
           const icon = SPORT_ICONS[training?.sport] ?? '🎯';
@@ -39,6 +44,14 @@ export default function MyJoinRequests() {
           );
         })}
       </div>
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1 mt-2 text-xs font-medium text-primary mx-auto"
+        >
+          {expanded ? <><ChevronUp className="h-3.5 w-3.5" /> Show less</> : <><ChevronDown className="h-3.5 w-3.5" /> Show all ({requests.length})</>}
+        </button>
+      )}
     </div>
   );
 }
