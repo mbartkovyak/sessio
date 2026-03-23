@@ -18,7 +18,7 @@ export default function PlayerMessages() {
             conversations={conversations}
             isLoading={isLoading}
             getChatPath={(conv: ConversationInfo) =>
-              conv.type === 'dm' ? `/player/messages/${conv.otherUserId}` : `/player/messages/${conv.trainingId}`
+              conv.type === 'dm' ? `/player/dm/${conv.otherUserId}` : `/player/messages/${conv.trainingId}`
             }
             emptyText="Join a training to start chatting with your group"
           />

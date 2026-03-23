@@ -32,6 +32,7 @@ import PlayerCalendar from "./pages/player/PlayerCalendar";
 import PlayerProfile from "./pages/player/PlayerProfile";
 import PlayerMessages from "./pages/player/PlayerMessages";
 import PlayerChat from "./pages/player/PlayerChat";
+import PlayerDirectChat from "./pages/player/PlayerDirectChat";
 
 // Coach pages
 import CoachHome from "./pages/coach/CoachHome";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><SchoolPublicProfile /></ProtectedRoute>} />
             <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
             <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><PlayerChat /></ProtectedRoute>} />
+            <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><PlayerDirectChat /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><PlayerCalendar /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
 
