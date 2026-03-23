@@ -112,9 +112,17 @@
     min-height: 100dvh;
   }
 
-  /* Form inputs should be white, not the teal background */
-  input, textarea, select {
+  /* Form inputs should be white, not the teal background.
+     Exclude inputs/selects that explicitly opt out with .bg-transparent or data attr */
+  input:not([data-transparent]),
+  textarea:not([data-transparent]),
+  select:not([data-transparent]) {
     background-color: hsl(0 0% 100%) !important;
+  }
+  [data-transparent],
+  [data-transparent] select,
+  [data-transparent] input {
+    background-color: transparent !important;
   }
 
   /* Override Chrome autofill blue tint */
