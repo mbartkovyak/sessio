@@ -279,6 +279,25 @@ export function useJoinRequests(trainingId: string | undefined) {
   });
 }
 
+/** Player's own join requests (pending + declined) */
+export function useMyJoinRequests() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-join-requests', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('join_requests')
+        .select('*, trainings(id, name, sport)')
+        .eq('user_id', user!.id)
+        .in('status', ['pending', 'declined'])
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+}
+
 export function useAllCoachJoinRequests() {
   const { user } = useAuth();
   return useQuery({
