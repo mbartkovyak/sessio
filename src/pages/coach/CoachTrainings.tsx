@@ -35,7 +35,7 @@ export default function CoachTrainings() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <h1 className="text-lg font-bold text-white">Lessons</h1>
           {canCreate && (
-            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground min-h-[40px]">
+            <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground">
               <Plus className="h-4 w-4" /> New
             </button>
           )}
