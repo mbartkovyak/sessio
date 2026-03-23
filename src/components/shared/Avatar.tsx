@@ -1,4 +1,5 @@
 import { getInitials } from '@/lib/utils';
+import { User } from 'lucide-react';
 
 const SIZES = {
   xs:  'h-7 w-7 text-[10px]',
@@ -20,7 +21,7 @@ export default function Avatar({
 }) {
   return (
     <div className={`flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary overflow-hidden ${SIZES[size]}`}>
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : getInitials(name)}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : getInitials(name) || <User className="h-1/2 w-1/2 text-primary/40" />}
     </div>
   );
 }

@@ -6,5 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getInitials(name: string | undefined | null): string {
-  return name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
+  if (!name?.trim()) return '';
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 }
