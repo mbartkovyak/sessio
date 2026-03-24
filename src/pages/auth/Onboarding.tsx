@@ -29,6 +29,9 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // If user arrived via a training invite link, they're an athlete — skip role selection
+  const hasTrainingInvite = !!sessionStorage.getItem('pending_invite');
+
   // Pre-fill invite code from pending school invite (via /join-school/:code link)
   useEffect(() => {
     const pending = sessionStorage.getItem('pending_school_invite');
@@ -238,12 +241,12 @@ export default function Onboarding() {
                   className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                 />
                 <button
-                  onClick={() => coachType === 'join' ? submitJoinSchool() : setStep('train-or-coach')}
+                  onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
                   disabled={!firstName.trim() || !lastName.trim() || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {coachType === 'join' ? 'Join School' : 'Continue'}
+                  {coachType === 'join' ? 'Join School' : hasTrainingInvite ? 'Join Training' : 'Continue'}
                 </button>
                 {error && <p className="text-sm text-destructive mt-2">{error}</p>}
               </div>
