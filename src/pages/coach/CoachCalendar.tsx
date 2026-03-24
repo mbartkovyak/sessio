@@ -1,4 +1,4 @@
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { MapPin, CalendarDays, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,6 @@ import CalendarGrid from '@/components/shared/CalendarGrid';
 
 function useCoachSessions(coachId: string | undefined) {
   const today = format(new Date(), 'yyyy-MM-dd');
-  const endDate = format(addDays(new Date(), 28), 'yyyy-MM-dd');
   return useQuery({
     queryKey: ['coach-calendar-sessions', coachId, today],
     enabled: !!coachId,
@@ -25,7 +24,6 @@ function useCoachSessions(coachId: string | undefined) {
         .eq('trainings.coach_id', coachId!)
         .eq('trainings.is_active', true)
         .gte('session_date', today)
-        .lte('session_date', endDate)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -36,7 +34,6 @@ function useCoachSessions(coachId: string | undefined) {
 
 function useSchoolSessions(schoolId: string | undefined) {
   const today = format(new Date(), 'yyyy-MM-dd');
-  const endDate = format(addDays(new Date(), 28), 'yyyy-MM-dd');
   return useQuery({
     queryKey: ['school-calendar-sessions', schoolId, today],
     enabled: !!schoolId,
@@ -47,7 +44,6 @@ function useSchoolSessions(schoolId: string | undefined) {
         .eq('trainings.school_id', schoolId!)
         .eq('trainings.is_active', true)
         .gte('session_date', today)
-        .lte('session_date', endDate)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;

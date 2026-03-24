@@ -231,13 +231,11 @@ export function useMyUpcomingSessions() {
       const { data, error } = await supabase
         .from('session_attendance')
         .select('*, training_sessions(*, trainings(id, name, sport, venue, cancel_deadline_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
-        .eq('user_id', user!.id)
-        .limit(50);
+        .eq('user_id', user!.id);
       if (error) throw error;
       return (data ?? [])
         .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true && d.training_sessions.status !== 'cancelled')
-        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
-        .slice(0, 20) as SessionAttendanceWithSession[];
+        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date)) as SessionAttendanceWithSession[];
     },
   });
 }
