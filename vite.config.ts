@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => ({
@@ -12,7 +11,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
     VitePWA({
       strategies: "injectManifest",
       srcDir: "src",
@@ -21,13 +19,13 @@ export default defineConfig(({ mode }) => ({
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
       },
-      includeAssets: ["favicon.ico", "icons/*.svg"],
+      includeAssets: ["favicon.ico", "favicon.png", "icons/*.svg"],
       manifest: {
         name: "Sessio",
         short_name: "Sessio",
         description: "Sports coaching group management. Stop managing sessions on WhatsApp.",
-        theme_color: "#0066FF",
-        background_color: "#FAFBFC",
+        theme_color: "#171717",
+        background_color: "#e6e0d6",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
