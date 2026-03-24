@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -13,6 +13,7 @@ import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
+import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
@@ -33,7 +34,6 @@ export default function TrainingDetail() {
   const [viewProfile, setViewProfile] = useState<any>(null);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
-  const shareText = training ? `Join ${training.name} on Sessio!\n${inviteLink}` : '';
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
   if (!training) return (
@@ -49,15 +49,6 @@ export default function TrainingDetail() {
   const regularMembers = members.filter((m: any) => m.role === 'regular');
   const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
   const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => DAYS_SHORT[d]).filter(Boolean).join(', ');
-
-  async function handleShare() {
-    if (navigator.share) {
-      try { await navigator.share({ title: training.name, text: shareText }); } catch {}
-    } else {
-      navigator.clipboard.writeText(inviteLink);
-      toast.success('Link copied!');
-    }
-  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -159,20 +150,7 @@ export default function TrainingDetail() {
                 {/* Invite */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">Invite Athletes</h2>
-                  <div className="flex gap-2">
-                    <button onClick={handleShare}
-                      className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform">
-                      <Share2 className="h-4 w-4" /> Share link
-                    </button>
-                    <button onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Copied!'); }}
-                      className="flex h-[44px] w-[44px] items-center justify-center rounded-xl border border-border hover:bg-secondary shrink-0">
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366]/10 py-3 text-sm font-semibold text-[#25D366] min-h-[44px] mt-2">
-                    💬 WhatsApp
-                  </a>
+                  <ShareLinkButton url={inviteLink} />
                 </div>
 
                 {/* Join Requests */}
