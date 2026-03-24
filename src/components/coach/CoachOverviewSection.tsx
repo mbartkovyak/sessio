@@ -29,7 +29,7 @@ export default function CoachOverviewSection() {
         .from('training_members')
         .select('user_id', { count: 'exact', head: true })
         .in('training_id', trainingIds)
-        .eq('status', 'approved');
+        .eq('role', 'regular');
       if (error) throw error;
       return count ?? 0;
     },
@@ -62,11 +62,10 @@ export default function CoachOverviewSection() {
       )}
 
       {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: 'Athletes', value: totalAthletes, style: 'accent' as const },
           { label: 'Lessons', value: trainings.length, style: 'primary' as const },
-          { label: 'Requests', value: joinRequests.length, style: 'white' as const },
         ].map(({ label, value, style }) => (
           <div key={label} className={`rounded-2xl p-4 text-center shadow-md ${
             style === 'accent' ? 'bg-accent text-accent-foreground' :
