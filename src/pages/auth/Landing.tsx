@@ -53,7 +53,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-5 py-4 md:px-8" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
+      <nav className="flex items-center justify-between px-5 py-4 md:px-8" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
         <SessioLogo />
         <button
           onClick={() => navigate('/auth')}
