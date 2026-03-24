@@ -94,6 +94,7 @@ export function useTrainingConversation(trainingId: string | undefined) {
   return useQuery({
     queryKey: ['conversation-for-training', trainingId],
     enabled: !!trainingId,
+    staleTime: 5 * 60 * 1000, // conversation ID doesn't change — cache 5 min
     queryFn: async () => {
       const { data } = await supabase
         .from('conversations')
@@ -111,6 +112,7 @@ export function useDMConversation(otherUserId: string | undefined) {
   return useQuery({
     queryKey: ['dm-conversation', user?.id, otherUserId],
     enabled: !!user && !!otherUserId,
+    staleTime: 5 * 60 * 1000, // conversation ID doesn't change — cache 5 min
     queryFn: async () => {
       // Find existing conversation where both are participants and no training
       const { data: myConvos } = await supabase

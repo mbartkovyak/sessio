@@ -2,7 +2,7 @@ import { Send, Smile, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useMessages, useSendMessage, useTrainingConversation, useDMConversation, getOrCreateTrainingConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
+import { useMessages, useTrainingConversation, useDMConversation, getOrCreateTrainingConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
@@ -152,16 +152,23 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  // Resolve conversation ID from either training or DM
+  // Resolve conversation ID: local state > prop > hook results
   const { data: trainingConvId } = useTrainingConversation(trainingId);
   const { data: dmConvId } = useDMConversation(otherUserId);
   const [localConvId, setLocalConvId] = useState<string | null>(null);
-  const conversationId = localConvId ?? directConvId ?? trainingConvId ?? dmConvId ?? undefined;
+
+  // Sync hook results into local state so we always have a stable ID
+  const hookConvId = directConvId ?? trainingConvId ?? dmConvId ?? null;
+  useEffect(() => {
+    if (hookConvId && !localConvId) setLocalConvId(hookConvId);
+  }, [hookConvId, localConvId]);
+
+  const conversationId = localConvId ?? hookConvId ?? undefined;
 
   const { data: messages = [] } = useMessages(conversationId);
   const { data: allReactions = {} } = useMessageReactions(conversationId);
-  const sendMutation = useSendMessage(conversationId);
   const [text, setText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -197,35 +204,42 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
   useEffect(() => { if (conversationId) markConversationSeen(conversationId); }, [conversationId]);
 
   async function handleSend() {
-    if (!text.trim() || !user) return;
+    if (!text.trim() || !user || isSending) return;
     const content = text.trim();
     setText('');
     setShowEmojis(false);
+    setIsSending(true);
     userScrolled.current = false;
 
-    // Create conversation if needed
-    let convId = conversationId;
-    if (!convId) {
-      try {
+    try {
+      // Resolve or create conversation
+      let convId = conversationId;
+      if (!convId) {
         if (trainingId) {
           convId = await getOrCreateTrainingConversation(trainingId);
           qc.invalidateQueries({ queryKey: ['conversation-for-training', trainingId] });
         } else if (otherUserId) {
           convId = await getOrCreateDMConversation(user.id, otherUserId);
-          setLocalConvId(convId);
           qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
-          qc.invalidateQueries({ queryKey: ['my-conversations'] });
         }
-      } catch { toast.error('Failed to start conversation'); return; }
-    }
-    if (!convId) return;
+        if (!convId) return;
+        setLocalConvId(convId);
+      }
 
-    // Send using direct insert (since conversationId may have just been created)
-    const { error } = await supabase
-      .from('messages')
-      .insert({ conversation_id: convId, sender_id: user.id, content });
-    if (error) toast.error('Failed to send');
-    else qc.invalidateQueries({ queryKey: ['messages', convId] });
+      // Send message
+      const { error } = await supabase
+        .from('messages')
+        .insert({ conversation_id: convId, sender_id: user.id, content });
+      if (error) { toast.error('Failed to send'); return; }
+
+      // Refresh messages + conversation list
+      qc.invalidateQueries({ queryKey: ['messages', convId] });
+      qc.invalidateQueries({ queryKey: ['my-conversations'] });
+    } catch {
+      toast.error('Failed to start conversation');
+    } finally {
+      setIsSending(false);
+    }
   }
 
   // Long-press handlers
@@ -439,7 +453,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim() || sendMutation.isPending}
+            disabled={!text.trim() || isSending}
             className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${
               text.trim()
                 ? 'bg-foreground text-white'
