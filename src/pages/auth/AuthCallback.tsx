@@ -1,54 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const { profile, loading, session } = useAuth();
-  const handled = useRef(false);
-
-  // Handle PKCE code exchange and wait for session
-  useEffect(() => {
-    if (handled.current) return;
-
-    async function handleCallback() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-
-      if (code) {
-        console.log('[AuthCallback] Exchanging code for session...');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        console.log('[AuthCallback] Exchange result:', { user: data?.user?.email, error });
-        if (error) {
-          console.error('[AuthCallback] Exchange failed:', error.message);
-        }
-      }
-
-      // Check session after exchange
-      const { data: { session: s } } = await supabase.auth.getSession();
-      console.log('[AuthCallback] Session:', s ? s.user.email : 'null');
-
-      if (s) {
-        // Fetch profile directly
-        const { data: p, error: pErr } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', s.user.id)
-          .single();
-        console.log('[AuthCallback] Profile:', p, 'Error:', pErr);
-      }
-    }
-
-    handled.current = true;
-    handleCallback();
-  }, []);
+  const { profile, loading } = useAuth();
 
   useEffect(() => {
     if (loading) return;
     if (!profile) {
-      // Don't redirect if we might still be processing
-      if (!session) return;
       navigate('/auth');
       return;
     }
