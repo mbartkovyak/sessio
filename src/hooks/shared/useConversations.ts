@@ -452,7 +452,7 @@ export function useUnreadMessageCount() {
   const { data: count = 0 } = useQuery({
     queryKey: ['unread-total', user?.id],
     enabled: !!user,
-    staleTime: Infinity, // never refetch automatically — realtime handles updates
+    staleTime: 30_000, // refetch every 30s as fallback; realtime handles instant updates
     queryFn: async () => {
       const { data: parts } = await supabase
         .from('conversation_participants')
