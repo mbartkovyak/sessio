@@ -15,9 +15,15 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
-        <p className="text-sm text-muted-foreground">School overview</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+          <p className="text-sm text-muted-foreground">School overview</p>
+        </div>
+        <button onClick={() => navigate('/school/profile')}
+          className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
+          <Settings className="h-3.5 w-3.5" /> Profile
+        </button>
       </div>
 
       {/* Join Requests (athletes) */}
@@ -91,16 +97,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         )}
       </div>
 
-      {/* School settings */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-foreground">School</h2>
-          <button onClick={() => navigate('/school/profile')}
-            className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97]">
-            <Settings className="h-3.5 w-3.5" /> Settings
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

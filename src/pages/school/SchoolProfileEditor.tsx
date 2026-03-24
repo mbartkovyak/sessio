@@ -109,7 +109,7 @@ export default function SchoolProfileEditor() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <CoachHeader title="School Settings" back />
+      <CoachHeader title="School Profile" back />
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
 
         {/* School info */}
