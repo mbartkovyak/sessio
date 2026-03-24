@@ -190,7 +190,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center px-6 py-5 gap-3">
+      <div className="flex items-center px-6 py-5 gap-3" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
         {showBack && (
           <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary -ml-2">
             <ArrowLeft className="h-5 w-5" />
