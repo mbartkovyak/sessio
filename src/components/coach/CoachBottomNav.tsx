@@ -24,8 +24,8 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
         <div
           className="absolute inset-0"
           style={{
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
             maskImage: 'linear-gradient(to bottom, transparent, black)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
           }}
