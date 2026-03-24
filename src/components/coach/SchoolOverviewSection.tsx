@@ -22,7 +22,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         </div>
         <button onClick={() => navigate('/school/profile')}
           className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
-          <Settings className="h-3.5 w-3.5" /> Profile
+          <Settings className="h-3.5 w-3.5" /> School Profile
         </button>
       </div>
 
