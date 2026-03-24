@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, CheckCircle2 } from 'lucide-react';
+import { Settings, CheckCircle2 } from 'lucide-react';
+import NewLessonButton from '@/components/coach/NewLessonButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
@@ -58,9 +59,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-foreground">Lessons</h2>
-          <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-1 rounded-xl bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground min-h-[40px]">
-            <Plus className="h-4 w-4" /> New
-          </button>
+          <NewLessonButton />
         </div>
         {trainingsLoading ? (
           <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}</div>
