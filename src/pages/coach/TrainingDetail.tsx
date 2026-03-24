@@ -261,12 +261,13 @@ export default function TrainingDetail() {
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   onClick={() => {
-                                    const newDate = prompt(`Reschedule to (YYYY-MM-DD):`, s.session_date);
-                                    if (!newDate || newDate === s.session_date) return;
+                                    const newDate = prompt('Reschedule to (YYYY-MM-DD):', s.session_date);
+                                    if (!newDate) return;
                                     const newStart = prompt('Start time (HH:MM):', s.start_time?.slice(0,5));
                                     if (!newStart) return;
                                     const newEnd = prompt('End time (HH:MM):', s.end_time?.slice(0,5));
                                     if (!newEnd) return;
+                                    if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
                                     rescheduleSession.mutate({
                                       sessionId: s.id, trainingName: training.name,
                                       oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,

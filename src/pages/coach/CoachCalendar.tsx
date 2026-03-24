@@ -91,11 +91,12 @@ export default function CoachCalendar() {
   async function handleRescheduleSession(session: any) {
     const training = session.trainings;
     const newDate = prompt('Reschedule to (YYYY-MM-DD):', session.session_date);
-    if (!newDate || newDate === session.session_date) return;
+    if (!newDate) return;
     const newStart = prompt('Start time (HH:MM):', session.start_time?.slice(0, 5));
     if (!newStart) return;
     const newEnd = prompt('End time (HH:MM):', session.end_time?.slice(0, 5));
     if (!newEnd) return;
+    if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
       .from('training_sessions')
       .update({ session_date: newDate, start_time: newStart, end_time: newEnd })

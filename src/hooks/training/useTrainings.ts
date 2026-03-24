@@ -395,7 +395,9 @@ export function useRescheduleSession(trainingId: string) {
           await supabase.from('messages').insert({
             conversation_id: conv.id,
             sender_id: user.id,
-            content: `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`,
+            content: oldDate === newDate
+              ? `📅 ${trainingName} on ${newDate} moved to ${newStartTime.slice(0, 5)}–${newEndTime.slice(0, 5)}.`
+              : `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`,
           });
         }
       }
