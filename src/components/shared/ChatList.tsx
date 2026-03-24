@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, MoreVertical } from 'lucide-react';
 import { SPORT_ICONS } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
@@ -15,6 +16,7 @@ interface Props {
 
 export default function ChatList({ conversations, isLoading, getChatPath, emptyText }: Props) {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
@@ -102,7 +104,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                 onClick={e => e.stopPropagation()}
               >
                 <button
-                  onClick={() => { markAsUnread(conv.id); setMenuOpen(null); }}
+                  onClick={() => { markAsUnread(conv.id); qc.invalidateQueries({ queryKey: ['unread-total'] }); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
                 >
                   Mark as unread
