@@ -1,8 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
-  'https://se-ssio.lovable.app',
-  'https://id-preview--b1cefc2c-92d3-4ee7-8fcb-0d3ced41852e.lovable.app',
+  'https://sessio-topaz.vercel.app',
+  'https://sessio-dev.vercel.app',
 ];
 
 function getCorsHeaders(req: Request) {
