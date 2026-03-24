@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Settings, CheckCircle2 } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
-import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import Avatar from '@/components/shared/Avatar';
@@ -68,27 +67,39 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
             <p className="text-sm text-muted-foreground">No lessons yet — create one to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {trainings.map((t: any) => (
-              <TrainingCard
-                key={t.id}
-                training={t}
-                variant="grid"
-                onClick={() => navigate(`/coach/trainings/${t.id}`)}
-                badge={
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{t.type}</span>
-                }
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              {trainings.slice(0, 4).map((t: any) => (
+                <TrainingCard
+                  key={t.id}
+                  training={t}
+                  variant="grid"
+                  onClick={() => navigate(`/coach/trainings/${t.id}`)}
+                  badge={
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{t.type}</span>
+                  }
+                />
+              ))}
+            </div>
+            {trainings.length > 4 && (
+              <button onClick={() => navigate('/coach/trainings')}
+                className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
+                Show all {trainings.length} lessons
+              </button>
+            )}
+          </>
         )}
       </div>
 
       {/* School settings */}
-      <div className="rounded-xl border border-border bg-card">
-        <button onClick={() => navigate('/school/profile')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
-          <Settings className="h-4 w-4 text-muted-foreground" /> School Settings
-        </button>
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-foreground">School</h2>
+          <button onClick={() => navigate('/school/profile')}
+            className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97]">
+            <Settings className="h-3.5 w-3.5" /> Settings
+          </button>
+        </div>
       </div>
     </div>
   );

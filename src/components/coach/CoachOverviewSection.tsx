@@ -131,24 +131,32 @@ export default function CoachOverviewSection() {
             {canCreate && <NewLessonButton />}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {trainings.slice(0, 6).map((t: any) => (
-              <TrainingCard
-                key={t.id}
-                training={t}
-                variant="grid"
-                onClick={() => navigate(`/coach/trainings/${t.id}`)}
-                badge={
-                  <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold text-accent capitalize">{t.type}</span>
-                }
-                extra={
-                  <div className="flex items-center justify-end mt-2 -mb-1">
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                  </div>
-                }
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              {trainings.slice(0, 4).map((t: any) => (
+                <TrainingCard
+                  key={t.id}
+                  training={t}
+                  variant="grid"
+                  onClick={() => navigate(`/coach/trainings/${t.id}`)}
+                  badge={
+                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold text-accent capitalize">{t.type}</span>
+                  }
+                  extra={
+                    <div className="flex items-center justify-end mt-2 -mb-1">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                    </div>
+                  }
+                />
+              ))}
+            </div>
+            {trainings.length > 4 && (
+              <button onClick={() => navigate('/coach/trainings')}
+                className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
+                Show all {trainings.length} lessons
+              </button>
+            )}
+          </>
         )}
       </section>
     </div>
