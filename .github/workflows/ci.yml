@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev]
+
+jobs:
+  build:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run tsc --noEmit
+
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: "https://example.supabase.co"
+          VITE_SUPABASE_ANON_KEY: "placeholder-for-ci"
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets in tracked files
+        run: |
+          # Fail if .env files are tracked
+          if git ls-files | grep -qE '^\.(env|env\..*)$'; then
+            echo "::error::.env file is tracked in git!"
+            exit 1
+          fi
+          # Fail if common secret patterns appear in tracked files
+          if git grep -lE '(sk_live_|SUPABASE_SERVICE_ROLE|AIza[0-9A-Za-z_-]{35})' -- ':!.github/' ':!*.md' 2>/dev/null; then
+            echo "::error::Potential secrets found in tracked files!"
+            exit 1
+          fi
+          echo "No secrets detected"
