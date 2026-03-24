@@ -10,7 +10,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { SPORTS, CITIES } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
-import AccountActions from '@/components/shared/AccountActions';
+
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import Avatar from '@/components/shared/Avatar';
 
@@ -240,7 +240,6 @@ export default function SchoolProfileEditor() {
           </div>
         </div>
 
-        <AccountActions />
       </main>
       <CoachBottomNav />
     </div>
