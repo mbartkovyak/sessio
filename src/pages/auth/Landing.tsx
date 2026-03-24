@@ -57,7 +57,7 @@ export default function Landing() {
         <SessioLogo />
         <button
           onClick={() => navigate('/auth')}
-          className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary min-h-[44px]"
+          className="rounded-xl bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/80 min-h-[44px]"
         >
           Sign In / Up
         </button>
@@ -75,7 +75,7 @@ export default function Landing() {
           </p>
           <button
             onClick={() => navigate('/auth')}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-8 py-3.5 font-semibold text-accent-foreground transition-colors hover:bg-accent/90 min-h-[44px]"
           >
             Get Started Free
             <ArrowRight className="h-4 w-4" />
@@ -128,7 +128,7 @@ export default function Landing() {
           <p className="mb-6 text-white/65">No credit card. No migration pain. Bring your existing athletes in minutes.</p>
           <button
             onClick={() => navigate('/auth')}
-            className="rounded-xl bg-primary px-8 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
+            className="rounded-xl bg-accent px-8 py-3.5 font-semibold text-accent-foreground transition-colors hover:bg-accent/90 min-h-[44px]"
           >
             Create my account
           </button>
