@@ -214,6 +214,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           convId = await getOrCreateDMConversation(user.id, otherUserId);
           setLocalConvId(convId);
           qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
+          qc.invalidateQueries({ queryKey: ['my-conversations'] });
         }
       } catch { toast.error('Failed to start conversation'); return; }
     }

@@ -253,13 +253,13 @@ export async function getOrCreateDMConversation(userId1: string, userId2: string
       .in('conversation_id', ids);
 
     if (shared && shared.length > 0) {
-      const { data: dm } = await supabase
+      const { data: dms } = await supabase
         .from('conversations')
         .select('id')
         .in('id', shared.map(s => s.conversation_id))
         .is('training_id', null)
-        .maybeSingle();
-      if (dm) return dm.id;
+        .limit(1);
+      if (dms && dms.length > 0) return dms[0].id;
     }
   }
 
@@ -347,9 +347,9 @@ export function useMyConversations() {
         : { data: [] };
       const trainingMap = new Map((trainings ?? []).map(t => [t.id, t]));
 
-      // Get other participants for DMs
+      // Get other participants for DMs — always preserve userId even if profile lookup fails
       const dmConvIds = convos.filter(c => !c.training_id).map(c => c.id);
-      let dmProfiles = new Map<string, any>();
+      const dmInfo = new Map<string, { userId: string; profile: any }>();
       if (dmConvIds.length > 0) {
         const { data: otherParticipants } = await supabase
           .from('conversation_participants')
@@ -358,16 +358,17 @@ export function useMyConversations() {
           .neq('user_id', user!.id);
 
         const otherIds = [...new Set((otherParticipants ?? []).map(p => p.user_id))];
+        let profileMap = new Map<string, any>();
         if (otherIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
             .select('id, full_name, avatar_url, sport')
             .in('id', otherIds);
-          const profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
+          profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
+        }
 
-          for (const p of otherParticipants ?? []) {
-            dmProfiles.set(p.conversation_id, profileMap.get(p.user_id));
-          }
+        for (const p of otherParticipants ?? []) {
+          dmInfo.set(p.conversation_id, { userId: p.user_id, profile: profileMap.get(p.user_id) });
         }
       }
 
@@ -413,13 +414,14 @@ export function useMyConversations() {
             unreadCount,
           });
         } else {
-          const otherProfile = dmProfiles.get(conv.id);
+          const info = dmInfo.get(conv.id);
+          const otherProfile = info?.profile;
           result.push({
             id: conv.id,
             type: 'dm',
-            name: otherProfile?.full_name ?? 'Unknown',
+            name: otherProfile?.full_name ?? 'User',
             avatarUrl: otherProfile?.avatar_url,
-            otherUserId: otherProfile?.id,
+            otherUserId: info?.userId,
             lastMessage: latest ? { content: latest.content, senderName: latest.profiles?.full_name, createdAt: latest.created_at } : undefined,
             unreadCount,
           });
