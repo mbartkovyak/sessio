@@ -11,13 +11,14 @@ import { toast } from 'sonner';
 import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
 import { useQueryClient } from '@tanstack/react-query';
 
-function getNextDayDate(dayOfWeek: number): string {
-  const today = new Date();
-  const todayDay = (today.getDay() + 6) % 7; // Monday=0
-  const diff = ((dayOfWeek - todayDay) + 7) % 7 || 7;
-  const next = new Date(today);
-  next.setDate(today.getDate() + diff);
-  return next.toISOString().split('T')[0];
+/** Given a start_date and a target day (Monday=0), return the first occurrence
+ *  of that day on or after start_date. Prevents sessions starting on the wrong day. */
+function alignStartDate(startDate: string, dayOfWeek: number): string {
+  const d = new Date(startDate + 'T00:00:00');
+  const currentDay = (d.getDay() + 6) % 7; // Monday=0
+  const diff = ((dayOfWeek - currentDay) + 7) % 7;
+  if (diff > 0) d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
 }
 
 export default function CreateTraining() {
@@ -76,7 +77,7 @@ export default function CreateTraining() {
         end_time: form.end_time + ':00',
         days_of_week: form.is_recurring ? form.days_of_week : undefined,
         day_of_week: form.is_recurring ? form.days_of_week[0] : undefined,
-        start_date: form.is_recurring ? (form.start_date || getNextDayDate(form.days_of_week[0])) : form.one_off_date,
+        start_date: form.is_recurring ? alignStartDate(form.start_date, form.days_of_week[0]) : form.one_off_date,
         end_date: form.is_recurring ? (form.end_date || null) : form.one_off_date,
       };
       delete payload.one_off_date;

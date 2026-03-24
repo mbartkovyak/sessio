@@ -53,7 +53,7 @@ export interface TrainingFormValues {
 const defaults: TrainingFormValues = {
   name: '', type: 'group', sport: 'Tennis', venue: '',
   start_time: '09:00', end_time: '10:00', max_players: 6,
-  is_recurring: true, days_of_week: [0],
+  is_recurring: true, days_of_week: [],
   start_date: new Date().toISOString().split('T')[0],
   end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
   one_off_date: '',
@@ -174,7 +174,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   function toggleDay(day: number) {
     setForm(f => {
       const newDays = f.days_of_week.includes(day)
-        ? (f.days_of_week.length > 1 ? f.days_of_week.filter(d => d !== day) : f.days_of_week)
+        ? f.days_of_week.filter(d => d !== day)
         : [...f.days_of_week, day].sort();
       // Clean up day_schedules for removed days
       let ds = f.day_schedules ? { ...f.day_schedules } : null;
@@ -240,6 +240,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const errors: string[] = [];
   if (!form.name) errors.push('Lesson name is required');
   if (!form.venue) errors.push('Venue is required');
+  if (form.is_recurring && form.days_of_week.length === 0) errors.push('Select at least one day');
   if (!form.is_recurring && !form.one_off_date) errors.push('Date is required for one-time lessons');
   if (form.type === 'group' && !form.max_players) errors.push('Max athletes is required');
   if (hasTimeError) errors.push('End time must be after start time');
@@ -378,11 +379,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {form.is_recurring ? (
         <>
           {/* Days — multi-select */}
-          <div><label className="text-sm font-medium text-foreground mb-2 block">Days</label>
+          <div {...(form.days_of_week.length === 0 && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-destructive">*</span></label>
             <div className="flex gap-1.5 flex-wrap">{DAYS_FULL.map((d, i) => (
               <button type="button" key={d} onClick={() => toggleDay(i)}
                 className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
             ))}</div>
+            {form.days_of_week.length === 0 && showErrors && <p className="text-xs text-destructive mt-1">Select at least one day</p>}
           </div>
 
           {/* Schedule — time per day */}
