@@ -4,9 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { Users, Share2, Copy, UserPlus, ArrowLeft, Check, CheckCircle2, X } from 'lucide-react';
+import { Users, UserPlus, ArrowLeft, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
+import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { useState } from 'react';
 
 export default function SchoolCoaches() {
@@ -15,14 +16,12 @@ export default function SchoolCoaches() {
   const { profile } = useAuth();
   const qc = useQueryClient();
   const respond = useRespondSchoolMember();
-  const [copied, setCopied] = useState(false);
 
   const coaches = (school)?.school_members ?? [];
   const pendingMembers = (school)?.pending_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === profile?.id);
   const inviteCode = school?.invite_code;
   const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
-  const shareText = `Join ${school?.name} on Sessio as a coach!\n${inviteLink}`;
 
   async function addSelfAsCoach() {
     if (!school?.id || !profile?.id) return;
@@ -34,23 +33,6 @@ export default function SchoolCoaches() {
       toast.success("Added!");
       qc.invalidateQueries({ queryKey: ['my-school'] });
     }
-  }
-
-  async function handleShare() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `Join ${school?.name}`, text: shareText });
-      } catch {}
-    } else {
-      handleCopy();
-    }
-  }
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
-    toast.success('Link copied!');
-    setTimeout(() => setCopied(false), 2000);
   }
 
   if (isLoading) {
@@ -74,29 +56,10 @@ export default function SchoolCoaches() {
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
         {/* Invite section */}
-        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <div className="space-y-2">
           <h2 className="font-semibold text-foreground text-sm">Invite a coach</h2>
           <p className="text-xs text-muted-foreground">Share this link — coaches request to join and you approve them.</p>
-
-          <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-lg bg-secondary px-3 py-2 text-sm text-foreground font-mono truncate">
-              {inviteLink || 'Generating...'}
-            </div>
-            <button
-              onClick={handleCopy}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors shrink-0"
-            >
-              {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-            </button>
-          </div>
-
-          <button
-            onClick={handleShare}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform"
-          >
-            <Share2 className="h-4 w-4" />
-            Share invite link
-          </button>
+          <ShareLinkButton url={inviteLink} label="Share invite link" />
         </div>
 
         {/* Pending requests */}

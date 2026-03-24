@@ -26,3 +26,18 @@ dist-ssr
 .vercel
 .env
 .env.*
+
+# Obsidian
+.obsidian/
+
+# Lovable (legacy)
+.lovable/
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Pasted images (Obsidian)
+Pasted image*.png
+
+# Duplicate lock files (we use bun)
+package-lock.json

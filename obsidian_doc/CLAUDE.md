@@ -115,6 +115,23 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 
 1. Training card markup repeated in CoachTrainings, PlayerHome, PlayerSearch, CoachPublicProfile, SchoolPublicProfile → extract `TrainingCard`
 
+### Git workflow — MANDATORY
+
+- **Push to `dev` only.** Never push directly to `main`.
+- **Create PRs** from `dev` → `main` using `gh pr create`.
+- **NEVER merge PRs.** Only the user merges via GitHub. Do not run `gh pr merge` under any circumstances.
+- **Always ask before destructive git operations** — force push, reset, branch delete, merge.
+
+### Verify before pushing — MANDATORY
+
+Every change must be verified before `git push`. We've broken production multiple times by pushing "should work" code. **Never skip these:**
+
+1. **`bun run build`** — catch compile errors, missing imports, type issues.
+2. **Trace the full flow** — what calls what, what data flows where, what happens on mount/unmount/navigate-away-and-back.
+3. **Grep for removed/renamed exports** — if you removed or renamed a function, grep `src/` for all usages. Files you didn't edit may still import the old name.
+4. **For DB migrations** — verify the SQL is correct, check that triggers/backfills will actually work with existing data.
+5. **Don't push and hope** — if you're not confident it works, say so and ask to test first.
+
 ### General
 
 - **No silent failures.** Every Supabase call handles errors — toast or message, never swallow.

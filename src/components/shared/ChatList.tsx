@@ -54,9 +54,10 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
             <button
               onClick={() => {
                 markConversationSeen(conv.id);
+                qc.invalidateQueries({ queryKey: ['unread-total'] });
                 navigate(getChatPath(conv));
               }}
-              className="flex flex-1 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+              className="flex flex-1 min-w-0 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
             >
               {conv.type === 'dm' ? (
                 <Avatar url={conv.avatarUrl} name={conv.name} size="md" />

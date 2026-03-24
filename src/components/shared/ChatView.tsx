@@ -201,7 +201,12 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   }, [text]);
 
-  useEffect(() => { if (conversationId) markConversationSeen(conversationId); }, [conversationId]);
+  useEffect(() => {
+    if (conversationId) {
+      markConversationSeen(conversationId);
+      qc.invalidateQueries({ queryKey: ['unread-total'] });
+    }
+  }, [conversationId, qc]);
 
   async function handleSend() {
     if (!text.trim() || !user || isSending) return;

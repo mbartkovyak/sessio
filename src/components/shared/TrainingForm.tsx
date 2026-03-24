@@ -198,7 +198,6 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     setShowErrors(true);
     onAttemptSubmit?.();
     if (!isValid) {
-      // Find the first field with data-field-error in DOM order — order-independent
       setTimeout(() => {
         const first = formRef.current?.querySelector('[data-field-error]');
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -300,28 +299,35 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             <PlaceAutocompleteInput
               value={newVenueAddress}
               onChange={setNewVenueAddress}
-              onPlaceSelect={addr => {
-                // Auto-save when place is picked from autocomplete dropdown
-                if (newVenueName.trim() && addr.trim()) {
-                  const venue = { name: newVenueName.trim(), address: addr.trim() };
+              onPlaceSelect={setNewVenueAddress}
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Back to venue list
+              </button>
+              <button
+                type="button"
+                disabled={!newVenueName.trim() || !newVenueAddress.trim()}
+                onClick={() => {
+                  const venue = { name: newVenueName.trim(), address: newVenueAddress.trim() };
                   set('venue', `${venue.name}, ${venue.address}`);
                   touch('venue');
                   onNewVenue?.(venue);
                   setAddingNewVenue(false);
                   setNewVenueName('');
                   setNewVenueAddress('');
-                }
-              }}
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Back to venue list
-            </button>
+                }}
+                className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
+              >
+                Save venue
+              </button>
+            </div>
           </div>
         ) : (
           <PlaceAutocompleteInput

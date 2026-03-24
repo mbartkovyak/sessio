@@ -235,7 +235,7 @@ export function useMyUpcomingSessions() {
         .limit(50);
       if (error) throw error;
       return (data ?? [])
-        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true)
+        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true && d.training_sessions.status !== 'cancelled')
         .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
         .slice(0, 20) as SessionAttendanceWithSession[];
     },
@@ -331,6 +331,81 @@ export function useRespondJoinRequest() {
       qc.invalidateQueries({ queryKey: ['all-join-requests'] });
       qc.invalidateQueries({ queryKey: ['join-requests'] });
       qc.invalidateQueries({ queryKey: ['training-members'] });
+    },
+  });
+}
+
+// ── Session-level actions ──
+
+export function useCancelSession(trainingId: string) {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ sessionId, trainingName, sessionDate }: { sessionId: string; trainingName: string; sessionDate: string }) => {
+      const { error } = await supabase
+        .from('training_sessions')
+        .update({ status: 'cancelled' })
+        .eq('id', sessionId);
+      if (error) throw error;
+      // Notify in training chat
+      if (user) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('training_id', trainingId)
+          .maybeSingle();
+        if (conv) {
+          await supabase.from('messages').insert({
+            conversation_id: conv.id,
+            sender_id: user.id,
+            content: `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`,
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      toast.success('Session cancelled');
+    },
+  });
+}
+
+export function useRescheduleSession(trainingId: string) {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ sessionId, trainingName, oldDate, newDate, newStartTime, newEndTime }: {
+      sessionId: string; trainingName: string; oldDate: string;
+      newDate: string; newStartTime: string; newEndTime: string;
+    }) => {
+      const { error } = await supabase
+        .from('training_sessions')
+        .update({ session_date: newDate, start_time: newStartTime, end_time: newEndTime })
+        .eq('id', sessionId);
+      if (error) throw error;
+      // Notify in training chat
+      if (user) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('training_id', trainingId)
+          .maybeSingle();
+        if (conv) {
+          await supabase.from('messages').insert({
+            conversation_id: conv.id,
+            sender_id: user.id,
+            content: oldDate === newDate
+              ? `📅 ${trainingName} on ${newDate} moved to ${newStartTime.slice(0, 5)}–${newEndTime.slice(0, 5)}.`
+              : `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`,
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      toast.success('Session rescheduled');
     },
   });
 }

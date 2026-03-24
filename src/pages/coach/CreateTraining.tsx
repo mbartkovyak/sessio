@@ -23,7 +23,7 @@ function getNextDayDate(dayOfWeek: number): string {
 export default function CreateTraining() {
   const navigate = useNavigate();
   const create = useCreateTraining();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { data: school } = useMySchool();
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
@@ -31,9 +31,28 @@ export default function CreateTraining() {
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
   const qc = useQueryClient();
+  const sourceVenues: VenueOption[] = isSchoolOwner ? ((school as any)?.venues ?? []) : ((profile as any)?.venues ?? []);
+  const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
+
+  // Sync when source data loads (profile/school async)
+  useEffect(() => {
+    if (sourceVenues.length > 0) setLocalVenues(sourceVenues);
+  }, [sourceVenues.length]);
+
+  async function handleNewCoachVenue(venue: VenueOption) {
+    if (!profile) return;
+    setLocalVenues(prev => [...prev, venue]);
+    const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
+    await supabase
+      .from('profiles')
+      .update({ venues: [...currentVenues, venue] })
+      .eq('id', profile.id);
+    refreshProfile();
+  }
 
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
+    setLocalVenues(prev => [...prev, venue]);
     const currentVenues = ((school as any).venues ?? []) as VenueOption[];
     await supabase
       .from('schools')
@@ -134,8 +153,8 @@ export default function CreateTraining() {
             onSubmit={handleSubmit}
             submitting={create.isPending}
             schoolSlot={schoolSlot}
-            venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
-            onNewVenue={isSchoolOwner ? handleNewVenue : undefined}
+            venueOptions={localVenues}
+            onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
           />

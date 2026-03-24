@@ -5,12 +5,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Trash2, MapPin, Share2, Copy, Check, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
+import { Plus, Trash2, MapPin, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { SPORTS, CITIES } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
-
+import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import Avatar from '@/components/shared/Avatar';
 
@@ -31,8 +31,6 @@ export default function SchoolProfileEditor() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [newVenueName, setNewVenueName] = useState(() => localStorage.getItem('_newVenueName') ?? '');
   const [newVenueAddress, setNewVenueAddress] = useState(() => localStorage.getItem('_newVenueAddress') ?? '');
-  const [copied, setCopied] = useState(false);
-
   function updateNewVenueName(v: string) { setNewVenueName(v); localStorage.setItem('_newVenueName', v); }
   function updateNewVenueAddress(v: string) { setNewVenueAddress(v); localStorage.setItem('_newVenueAddress', v); }
 
@@ -67,21 +65,6 @@ export default function SchoolProfileEditor() {
   const isSelfCoach = coaches.some((m: any) => m.coach_id === profile?.id);
   const inviteCode = school?.invite_code;
   const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
-    toast.success('Link copied!');
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  async function handleShare() {
-    if (navigator.share) {
-      try { await navigator.share({ title: `Join ${school?.name}`, text: `Join ${school?.name} on Sessio as a coach!\n${inviteLink}` }); } catch {}
-    } else {
-      handleCopy();
-    }
-  }
 
   async function removeCoach(memberId: string, coachName: string) {
     if (!confirm(`Remove ${coachName} from the school?`)) return;
@@ -135,17 +118,9 @@ export default function SchoolProfileEditor() {
           <h2 className="font-semibold text-foreground text-sm mb-3">Coaches</h2>
 
           {/* Invite */}
-          <div className="rounded-xl border border-border bg-card p-4 space-y-3 mb-3">
-            <p className="text-xs text-muted-foreground">Share this link — coaches request to join and you approve them.</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 rounded-lg bg-secondary px-3 py-2 text-xs text-foreground font-mono truncate">{inviteLink || '...'}</div>
-              <button onClick={handleCopy} className="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:bg-secondary shrink-0">
-                {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              </button>
-            </div>
-            <button onClick={handleShare} className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground min-h-[40px]">
-              <Share2 className="h-3.5 w-3.5" /> Share invite link
-            </button>
+          <div className="mb-3">
+            <p className="text-xs text-muted-foreground mb-2">Share this link — coaches request to join and you approve them.</p>
+            <ShareLinkButton url={inviteLink} label="Share invite link" />
           </div>
 
           {/* Pending */}

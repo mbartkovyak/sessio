@@ -1,9 +1,10 @@
 import { format, addDays } from 'date-fns';
-import { MapPin } from 'lucide-react';
+import { MapPin, CalendarDays, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -65,6 +66,51 @@ export default function CoachCalendar() {
   const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolOwner ? school?.id : undefined);
 
   const canCreate = isSchoolOwner || !schoolMembership;
+  const qc = useQueryClient();
+
+  async function handleCancelSession(session: any) {
+    const training = session.trainings;
+    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM');
+    if (!confirm(`Cancel ${training?.name} on ${dateLabel}?`)) return;
+    const { error } = await supabase
+      .from('training_sessions')
+      .update({ status: 'cancelled' })
+      .eq('id', session.id);
+    if (error) { toast.error(error.message); return; }
+    // Notify in training chat
+    if (user) {
+      const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
+      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `⚠️ ${training?.name} on ${session.session_date} has been cancelled.` });
+    }
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
+    toast.success('Session cancelled');
+  }
+
+  async function handleRescheduleSession(session: any) {
+    const training = session.trainings;
+    const newDate = prompt('Reschedule to (YYYY-MM-DD):', session.session_date);
+    if (!newDate) return;
+    const newStart = prompt('Start time (HH:MM):', session.start_time?.slice(0, 5));
+    if (!newStart) return;
+    const newEnd = prompt('End time (HH:MM):', session.end_time?.slice(0, 5));
+    if (!newEnd) return;
+    if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
+    const { error } = await supabase
+      .from('training_sessions')
+      .update({ session_date: newDate, start_time: newStart, end_time: newEnd })
+      .eq('id', session.id);
+    if (error) { toast.error(error.message); return; }
+    if (user) {
+      const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
+      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `📅 ${training?.name} moved from ${session.session_date} to ${newDate} at ${newStart}.` });
+    }
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
+    toast.success('Session rescheduled');
+  }
 
   // School owner: merge own sessions + school sessions (deduplicate)
   const sessions = useMemo(() => {
@@ -109,25 +155,36 @@ export default function CoachCalendar() {
 
               return (
                 <div key={session.id} className={`rounded-xl border border-border ${statusColor} shadow-sm overflow-hidden`}>
-                  <button
-                    onClick={() => navigate(`/coach/trainings/${training?.id}`)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-secondary/50 transition-colors"
-                  >
-                    <span className="text-xl shrink-0">{sportIcon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground text-sm truncate">{training?.name}</p>
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                  <div className="flex items-center gap-2 px-4 py-3">
+                    <button
+                      onClick={() => navigate(`/coach/trainings/${training?.id}`)}
+                      className="flex flex-1 items-center gap-3 text-left min-w-0"
+                    >
+                      <span className="text-xl shrink-0">{sportIcon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className={`font-semibold text-sm truncate ${session.status === 'cancelled' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground mt-0.5 block">
+                          {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
+                          {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · Coach ${training.coach.full_name}`}
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground mt-0.5 block">
-                        {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                        {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · Coach ${training.coach.full_name}`}
-                      </span>
-                    </div>
-                    {session.status === 'cancelled' && (
+                    </button>
+                    {session.status === 'cancelled' ? (
                       <span className="text-xs font-medium text-destructive shrink-0">Cancelled</span>
+                    ) : (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => handleRescheduleSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Reschedule">
+                          <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                        </button>
+                        <button onClick={() => handleCancelSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors" title="Cancel session">
+                          <X className="h-3.5 w-3.5 text-destructive" />
+                        </button>
+                      </div>
                     )}
-                  </button>
+                  </div>
                   {training?.venue && (
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}

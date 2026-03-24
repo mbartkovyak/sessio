@@ -1,9 +1,9 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -13,6 +13,7 @@ import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
+import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 
 export default function TrainingDetail() {
@@ -25,6 +26,8 @@ export default function TrainingDetail() {
   const { data: sessions = [] } = useTrainingSessions(id);
   const { user } = useAuth();
   const removeMember = useRemoveTrainingMember(id!);
+  const cancelSession = useCancelSession(id!);
+  const rescheduleSession = useRescheduleSession(id!);
   const { data: joinRequests = [] } = useJoinRequests(id);
   const respond = useRespondJoinRequest();
   const [showEdit, setShowEdit] = useState(false);
@@ -33,7 +36,6 @@ export default function TrainingDetail() {
   const [viewProfile, setViewProfile] = useState<any>(null);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
-  const shareText = training ? `Join ${training.name} on Sessio!\n${inviteLink}` : '';
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
   if (!training) return (
@@ -49,15 +51,6 @@ export default function TrainingDetail() {
   const regularMembers = members.filter((m: any) => m.role === 'regular');
   const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
   const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => DAYS_SHORT[d]).filter(Boolean).join(', ');
-
-  async function handleShare() {
-    if (navigator.share) {
-      try { await navigator.share({ title: training.name, text: shareText }); } catch {}
-    } else {
-      navigator.clipboard.writeText(inviteLink);
-      toast.success('Link copied!');
-    }
-  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -159,20 +152,7 @@ export default function TrainingDetail() {
                 {/* Invite */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">Invite Athletes</h2>
-                  <div className="flex gap-2">
-                    <button onClick={handleShare}
-                      className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform">
-                      <Share2 className="h-4 w-4" /> Share link
-                    </button>
-                    <button onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Copied!'); }}
-                      className="flex h-[44px] w-[44px] items-center justify-center rounded-xl border border-border hover:bg-secondary shrink-0">
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366]/10 py-3 text-sm font-semibold text-[#25D366] min-h-[44px] mt-2">
-                    💬 WhatsApp
-                  </a>
+                  <ShareLinkButton url={inviteLink} />
                 </div>
 
                 {/* Join Requests */}
@@ -265,15 +245,54 @@ export default function TrainingDetail() {
                     <p className="text-sm text-muted-foreground">No upcoming lessons</p>
                   ) : (
                     <div className="space-y-2">
-                      {upcoming.map((s: any) => (
-                        <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}</p>
-                            <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
+                      {upcoming.map((s: any) => {
+                        const isCancelled = s.status === 'cancelled';
+                        return (
+                          <div key={s.id} className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
+                            </div>
+                            {isCancelled ? (
+                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">Cancelled</span>
+                            ) : (
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => {
+                                    const newDate = prompt('Reschedule to (YYYY-MM-DD):', s.session_date);
+                                    if (!newDate) return;
+                                    const newStart = prompt('Start time (HH:MM):', s.start_time?.slice(0,5));
+                                    if (!newStart) return;
+                                    const newEnd = prompt('End time (HH:MM):', s.end_time?.slice(0,5));
+                                    if (!newEnd) return;
+                                    if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
+                                    rescheduleSession.mutate({
+                                      sessionId: s.id, trainingName: training.name,
+                                      oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
+                                    });
+                                  }}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                                  title="Reschedule"
+                                >
+                                  <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (!confirm(`Cancel ${training.name} on ${format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}?`)) return;
+                                    cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
+                                  }}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                                  title="Cancel session"
+                                >
+                                  <X className="h-3.5 w-3.5 text-destructive" />
+                                </button>
+                              </div>
+                            )}
                           </div>
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>{s.status}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

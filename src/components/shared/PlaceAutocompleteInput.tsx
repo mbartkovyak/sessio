@@ -4,10 +4,17 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // Load Google Maps script once
 let loadPromise: Promise<void> | null = null;
+let googleMapsAuthFailed = false;
+
 function loadGoogleMaps(): Promise<void> {
+  if (googleMapsAuthFailed) return Promise.reject('Auth failed');
   if ((window as any).google?.maps?.places) return Promise.resolve();
   if (loadPromise) return loadPromise;
   if (!API_KEY) return Promise.reject('No API key');
+
+  // Listen for Google Maps auth errors (invalid key, domain not allowed)
+  (window as any).gm_authFailure = () => { googleMapsAuthFailed = true; };
+
   loadPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
@@ -49,32 +56,37 @@ export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect,
   }, [value]);
 
   useEffect(() => {
-    if (!API_KEY) return;
+    if (!API_KEY || googleMapsAuthFailed) return;
     loadGoogleMaps().then(() => setLoaded(true)).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!loaded || !inputRef.current || autocompleteRef.current) return;
 
-    const ac = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
-      types: ['establishment', 'geocode'],
-    });
+    try {
+      const ac = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
+        types: ['establishment', 'geocode'],
+      });
 
-    ac.addListener('place_changed', () => {
-      const place = ac.getPlace();
-      const addr = place.formatted_address || place.name || '';
-      if (addr) {
-        setLocal(addr);
-        onChangeRef.current(addr);
-        onPlaceSelectRef.current?.(addr);
-      }
-    });
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        const addr = place.formatted_address || place.name || '';
+        if (addr) {
+          setLocal(addr);
+          onChangeRef.current(addr);
+          onPlaceSelectRef.current?.(addr);
+        }
+      });
 
-    autocompleteRef.current = ac;
+      autocompleteRef.current = ac;
 
-    return () => {
-      (window as any).google.maps.event.clearInstanceListeners(ac);
-    };
+      return () => {
+        (window as any).google.maps.event.clearInstanceListeners(ac);
+      };
+    } catch {
+      // Google Places failed (invalid key, API not enabled, etc.) — fall back to plain input
+      setLoaded(false);
+    }
   }, [loaded]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
