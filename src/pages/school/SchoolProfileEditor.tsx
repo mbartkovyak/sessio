@@ -5,8 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Trash2, MapPin, Share2, Copy, Check, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
+import { Plus, Trash2, MapPin, Share2, Copy, Check, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import CoachHeader from '@/components/coach/CoachHeader';
 import { SPORTS, CITIES } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
@@ -108,12 +109,7 @@ export default function SchoolProfileEditor() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center gap-3">
-          <button onClick={() => navigate('/coach')} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary shrink-0"><ArrowLeft className="h-5 w-5" /></button>
-          <h1 className="text-lg font-bold text-foreground">School Settings</h1>
-        </div>
-      </header>
+      <CoachHeader title="School Settings" back />
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
 
         {/* School info */}
