@@ -8,6 +8,8 @@ import { useTodaySessions } from '@/hooks/training/useTodaySessions';
 import TrainingCard from '@/components/shared/TrainingCard';
 import Avatar from '@/components/shared/Avatar';
 import TodaySessionRow from '@/components/coach/TodaySessionRow';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 export default function CoachOverviewSection() {
   const { profile } = useAuth();
@@ -18,6 +20,20 @@ export default function CoachOverviewSection() {
   const respond = useRespondJoinRequest();
   const { data: todaySessions = [] } = useTodaySessions(profile?.id);
   const { data: schoolMembership } = useMySchoolMembership();
+  const trainingIds = trainings.map((t: any) => t.id);
+  const { data: totalAthletes = 0 } = useQuery({
+    queryKey: ['coach-total-athletes', trainingIds],
+    enabled: trainingIds.length > 0,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('training_members')
+        .select('user_id', { count: 'exact', head: true })
+        .in('training_id', trainingIds)
+        .eq('status', 'approved');
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
   // Coaches in a school cannot create lessons
   const canCreate = isSchoolOwner || !schoolMembership;
 
@@ -48,7 +64,7 @@ export default function CoachOverviewSection() {
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Active', value: trainings.filter((t: any) => t.is_active).length, style: 'accent' as const },
+          { label: 'Athletes', value: totalAthletes, style: 'accent' as const },
           { label: 'Lessons', value: trainings.length, style: 'primary' as const },
           { label: 'Requests', value: joinRequests.length, style: 'white' as const },
         ].map(({ label, value, style }) => (
