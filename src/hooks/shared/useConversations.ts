@@ -77,6 +77,11 @@ export function hideChat(conversationId: string) {
   if (!hidden.includes(conversationId)) localStorage.setItem(HIDDEN_KEY, JSON.stringify([...hidden, conversationId]));
 }
 
+export function unhideChat(conversationId: string) {
+  const hidden = getHiddenChats();
+  if (hidden.includes(conversationId)) localStorage.setItem(HIDDEN_KEY, JSON.stringify(hidden.filter(id => id !== conversationId)));
+}
+
 export function isUnread(conversationId: string, lastMsg: any, userId: string): boolean {
   if (!lastMsg || lastMsg.sender_id === userId) return false;
   const seen = getConversationLastSeen(conversationId);

@@ -2,7 +2,7 @@ import { Send, Smile, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useMessages, useTrainingConversation, useDMConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
+import { useMessages, useTrainingConversation, useDMConversation, getOrCreateDMConversation, markConversationSeen, unhideChat } from '@/hooks/shared/useConversations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
@@ -247,7 +247,8 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         return;
       }
 
-      // Replace optimistic with real data
+      // Replace optimistic with real data + ensure chat is visible
+      unhideChat(convId);
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
     } catch (err: any) {
