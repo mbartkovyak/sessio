@@ -4,7 +4,7 @@ import NewLessonButton from '@/components/coach/NewLessonButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
-import { useTodaySessions } from '@/hooks/training/useTodaySessions';
+import { useUpcomingSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import TrainingCard from '@/components/shared/TrainingCard';
 import Avatar from '@/components/shared/Avatar';
 import TodaySessionRow from '@/components/coach/TodaySessionRow';
@@ -18,7 +18,7 @@ export default function CoachOverviewSection() {
   const { data: trainings = [], isLoading } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: todaySessions = [] } = useTodaySessions(profile?.id);
+  const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 7);
   const { data: schoolMembership } = useMySchoolMembership();
   const trainingIds = trainings.map((t: any) => t.id);
   const { data: totalAthletes = 0 } = useQuery({
@@ -80,14 +80,29 @@ export default function CoachOverviewSection() {
         ))}
       </div>
 
-      {/* Today's Lessons */}
-      {todaySessions.length > 0 && (
+      {/* Upcoming Sessions */}
+      {upcomingSessions.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Today</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Upcoming</h2>
           <div className="space-y-2">
-            {todaySessions.map((session: any) => (
-              <TodaySessionRow key={session.id} session={session} />
-            ))}
+            {(() => {
+              const today = new Date().toISOString().split('T')[0];
+              const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+              let lastDate = '';
+              return upcomingSessions.map((session: UpcomingSession) => {
+                const showLabel = session.session_date !== lastDate;
+                lastDate = session.session_date;
+                const label = session.session_date === today ? 'Today'
+                  : session.session_date === tomorrow ? 'Tomorrow'
+                  : new Date(session.session_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                return (
+                  <div key={session.id}>
+                    {showLabel && <p className="text-xs font-medium text-muted-foreground mt-2 mb-1">{label}</p>}
+                    <TodaySessionRow session={session} />
+                  </div>
+                );
+              });
+            })()}
           </div>
         </section>
       )}
