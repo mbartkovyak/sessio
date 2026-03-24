@@ -119,11 +119,8 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
-  // Parse initial venue into name + address for solo coach two-field view
-  const initVenue = initialValues?.venue ?? restoredDraft?.venue ?? '';
-  const initVenueComma = initVenue.indexOf(',');
-  const [newVenueName, setNewVenueName] = useState(initVenueComma > 0 ? initVenue.slice(0, initVenueComma).trim() : initVenue);
-  const [newVenueAddress, setNewVenueAddress] = useState(initVenueComma > 0 ? initVenue.slice(initVenueComma + 1).trim() : '');
+  const [newVenueName, setNewVenueName] = useState('');
+  const [newVenueAddress, setNewVenueAddress] = useState('');
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)
@@ -197,27 +194,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // For solo coach: combine venue name + address into form.venue
-    let submitForm = form;
-    if (!venueOptions && newVenueName.trim()) {
-      const combined = newVenueAddress.trim()
-        ? `${newVenueName.trim()}, ${newVenueAddress.trim()}`
-        : newVenueName.trim();
-      submitForm = { ...form, venue: combined };
-      set('venue', combined);
-    }
     setTouched(new Set(['name', 'venue', 'time', 'max_players']));
     setShowErrors(true);
     onAttemptSubmit?.();
-    // Validate using submitForm (has combined venue)
-    const submitErrors: string[] = [];
-    if (!submitForm.name) submitErrors.push('name');
-    if (!submitForm.venue) submitErrors.push('venue');
-    if (!submitForm.is_recurring && !submitForm.one_off_date) submitErrors.push('date');
-    if (submitForm.type === 'group' && !submitForm.max_players) submitErrors.push('max_players');
-    if (hasTimeError) submitErrors.push('time');
-    if (extraErrors?.length) submitErrors.push('extra');
-    if (submitErrors.length > 0) {
+    if (!isValid) {
       setTimeout(() => {
         const first = formRef.current?.querySelector('[data-field-error]');
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -225,7 +205,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
-    onSubmit(submitForm);
+    onSubmit(form);
   }
 
   // Check if any time slot has end <= start
@@ -343,26 +323,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
-            <input
-              value={newVenueName}
-              onChange={e => setNewVenueName(e.target.value)}
-              placeholder="Venue name (e.g. Court 3)"
-              className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue && !newVenueName ? 'border-destructive' : 'border-input'}`}
-            />
-            <PlaceAutocompleteInput
-              value={newVenueAddress}
-              onChange={setNewVenueAddress}
-              onPlaceSelect={addr => {
-                if (newVenueName.trim() && addr.trim()) {
-                  set('venue', `${newVenueName.trim()}, ${addr.trim()}`);
-                  touch('venue');
-                }
-              }}
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
-            />
-          </div>
+          <PlaceAutocompleteInput
+            value={form.venue}
+            onChange={v => { set('venue', v); touch('venue'); }}
+            placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
+          />
         )}
         {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">Venue is required</p>}
       </div>

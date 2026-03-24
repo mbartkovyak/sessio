@@ -32,6 +32,16 @@ export default function CreateTraining() {
   const [attempted, setAttempted] = useState(false);
   const qc = useQueryClient();
 
+  async function handleNewCoachVenue(venue: VenueOption) {
+    if (!profile) return;
+    const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
+    await supabase
+      .from('profiles')
+      .update({ venues: [...currentVenues, venue] })
+      .eq('id', profile.id);
+    qc.invalidateQueries({ queryKey: ['profile'] });
+  }
+
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
     const currentVenues = ((school as any).venues ?? []) as VenueOption[];
@@ -134,8 +144,8 @@ export default function CreateTraining() {
             onSubmit={handleSubmit}
             submitting={create.isPending}
             schoolSlot={schoolSlot}
-            venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : undefined}
-            onNewVenue={isSchoolOwner ? handleNewVenue : undefined}
+            venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : ((profile as any)?.venues ?? [])}
+            onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
           />
