@@ -23,7 +23,7 @@ function getNextDayDate(dayOfWeek: number): string {
 export default function CreateTraining() {
   const navigate = useNavigate();
   const create = useCreateTraining();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { data: school } = useMySchool();
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
@@ -41,24 +41,24 @@ export default function CreateTraining() {
 
   async function handleNewCoachVenue(venue: VenueOption) {
     if (!profile) return;
-    // Update local state immediately so dropdown shows the new venue
     setLocalVenues(prev => [...prev, venue]);
     const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
     await supabase
       .from('profiles')
       .update({ venues: [...currentVenues, venue] })
       .eq('id', profile.id);
+    refreshProfile();
   }
 
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
-    // Update local state immediately so dropdown shows the new venue
     setLocalVenues(prev => [...prev, venue]);
     const currentVenues = ((school as any).venues ?? []) as VenueOption[];
     await supabase
       .from('schools')
       .update({ venues: [...currentVenues, venue] })
       .eq('id', school.id);
+    qc.invalidateQueries({ queryKey: ['my-school'] });
   }
 
   // Coaches in a school cannot create lessons — only school owners can
