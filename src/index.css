@@ -9,24 +9,24 @@
 
 @layer base {
   :root {
-    /* Sessio Design System — warm sporty: deep navy, bright orange, clean whites */
+    /* Sessio Design System — black + orange, clean whites */
     --background: 35 18% 90%;
-    --foreground: 215 28% 14%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 28% 14%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 14%;
+    --popover-foreground: 0 0% 9%;
 
-    --primary: 215 50% 23%;
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 215 28% 18%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 14%;
 
-    --muted: 220 10% 90%;
-    --muted-foreground: 215 10% 46%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 46%;
 
     --accent: 30 95% 52%;
     --accent-foreground: 0 0% 100%;
@@ -40,31 +40,31 @@
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 12% 88%;
-    --input: 220 12% 88%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
     --ring: 30 95% 52%;
 
     --radius: 0.875rem;
 
-    --sidebar-background: 220 14% 96%;
-    --sidebar-foreground: 215 15% 20%;
-    --sidebar-primary: 215 50% 23%;
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 0 0% 18%;
+    --sidebar-primary: 0 0% 9%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 92%;
-    --sidebar-accent-foreground: 215 15% 12%;
-    --sidebar-border: 220 12% 88%;
+    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 88%;
     --sidebar-ring: 30 95% 52%;
 
-    /* Header — deep navy, authoritative */
-    --header-from: 215 45% 18%;
-    --header-to: 215 40% 25%;
+    /* Header — black */
+    --header-from: 0 0% 6%;
+    --header-to: 0 0% 12%;
 
-    /* Body — warm sand, subtle warmth against navy headers */
+    /* Body — warm sand */
     --bg-from: 35 20% 90%;
     --bg-to: 30 18% 87%;
 
     /* Dark hero */
-    --hero-bg: 215 40% 10%;
+    --hero-bg: 0 0% 6%;
     --hero-foreground: 0 0% 100%;
   }
 

@@ -1,7 +1,7 @@
 export function SessioMark({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="8" fill="hsl(215, 50%, 23%)" />
+      <rect width="32" height="32" rx="8" fill="hsl(0, 0%, 9%)" />
       {/* Bold S — two arcs */}
       <path
         d="M19 9c-2-1.5-6.5-0.5-6.5 3.5 0 3.5 7 3 7 7 0 3-4 4.5-7 3"

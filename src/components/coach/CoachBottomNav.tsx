@@ -38,7 +38,7 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
             background: 'rgba(255, 255, 255, 0.25)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            boxShadow: '0 0 0 0.5px rgba(15,23,42,0.3)',
+            boxShadow: '0 0 0 0.5px rgba(0,0,0,0.3)',
           }}
         >
           {tabs.map(({ icon: Icon, label, path }) => {
