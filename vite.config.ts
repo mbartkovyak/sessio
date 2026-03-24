@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
       },
-      includeAssets: ["favicon.ico", "icons/*.svg"],
+      includeAssets: ["favicon.ico", "favicon.png", "icons/*.svg"],
       manifest: {
         name: "Sessio",
         short_name: "Sessio",
