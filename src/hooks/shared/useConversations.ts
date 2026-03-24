@@ -326,8 +326,6 @@ export function useMyConversations() {
 
       const result: ConversationInfo[] = [];
       for (const conv of convos) {
-        if (hidden.includes(conv.id)) continue;
-
         const latest = latestMap.get(conv.id);
         const seen = seenMap[conv.id];
         let unreadCount = 0;
@@ -337,6 +335,9 @@ export function useMyConversations() {
           if (seen && msg.created_at <= seen) break;
           unreadCount++;
         }
+
+        // Archived DMs: skip if no unread, show if new messages arrived
+        if (hidden.includes(conv.id) && unreadCount === 0) continue;
 
         if (conv.training_id) {
           const training = trainingMap.get(conv.training_id);
