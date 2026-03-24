@@ -14,7 +14,7 @@ import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 type Venue = { name: string; address: string };
 
 export default function CoachProfileEditor() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
@@ -33,7 +33,7 @@ export default function CoachProfileEditor() {
       .eq('id', user.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success('Profile updated');
+    else { toast.success('Profile updated'); refreshProfile(); }
   }
 
   function addVenue() {
@@ -45,6 +45,7 @@ export default function CoachProfileEditor() {
     // Auto-save venues
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
       if (error) toast.error(error.message);
+      else refreshProfile();
     });
   }
 
@@ -53,6 +54,7 @@ export default function CoachProfileEditor() {
     setVenues(updated);
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
       if (error) toast.error(error.message);
+      else refreshProfile();
     });
   }
 
