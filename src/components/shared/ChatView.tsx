@@ -2,7 +2,7 @@ import { Send, Smile, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useMessages, useTrainingConversation, useDMConversation, getOrCreateTrainingConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
+import { useMessages, useTrainingConversation, useDMConversation, getOrCreateDMConversation, markConversationSeen } from '@/hooks/shared/useConversations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
@@ -212,31 +212,41 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     userScrolled.current = false;
 
     try {
-      // Resolve or create conversation
+      // Training conversations always exist (auto-created).
+      // DMs: create on first message if needed.
       let convId = conversationId;
-      if (!convId) {
-        if (trainingId) {
-          convId = await getOrCreateTrainingConversation(trainingId);
-          qc.invalidateQueries({ queryKey: ['conversation-for-training', trainingId] });
-        } else if (otherUserId) {
-          convId = await getOrCreateDMConversation(user.id, otherUserId);
-          qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
-        }
-        if (!convId) return;
+      if (!convId && otherUserId) {
+        convId = await getOrCreateDMConversation(user.id, otherUserId);
         setLocalConvId(convId);
+        qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
       }
+      if (!convId) return;
 
-      // Send message
+      // Optimistic update: show message instantly
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg = {
+        id: tempId, conversation_id: convId, sender_id: user.id,
+        content, created_at: new Date().toISOString(), profiles: null, _optimistic: true,
+      };
+      qc.setQueryData(['messages', convId], (old: any[]) => [...(old ?? []), optimisticMsg]);
+
+      // Insert into DB
       const { error } = await supabase
         .from('messages')
         .insert({ conversation_id: convId, sender_id: user.id, content });
-      if (error) { toast.error('Failed to send'); return; }
 
-      // Refresh messages + conversation list
+      if (error) {
+        // Rollback optimistic message
+        qc.setQueryData(['messages', convId], (old: any[]) => (old ?? []).filter(m => m.id !== tempId));
+        toast.error('Failed to send');
+        return;
+      }
+
+      // Replace optimistic with real data
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
     } catch {
-      toast.error('Failed to start conversation');
+      toast.error('Failed to send');
     } finally {
       setIsSending(false);
     }

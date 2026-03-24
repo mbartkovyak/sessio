@@ -179,48 +179,7 @@ export function useMessages(conversationId: string | undefined) {
   return query;
 }
 
-export function useSendMessage(conversationId: string | undefined) {
-  const qc = useQueryClient();
-  const { user } = useAuth();
-  return useMutation({
-    mutationFn: async ({ content }: { content: string }) => {
-      if (!conversationId || !user) throw new Error('No conversation');
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({ conversation_id: conversationId, sender_id: user.id, content })
-        .select('*, profiles:sender_id(id, full_name, avatar_url)')
-        .single();
-      if (error) throw error;
-      return data as MessageWithSender;
-    },
-    onMutate: async ({ content }) => {
-      if (!conversationId || !user) return;
-      const key = ['messages', conversationId];
-      await qc.cancelQueries({ queryKey: key });
-      const previous = qc.getQueryData(key);
-      const tempMsg = {
-        id: `temp-${Date.now()}`, conversation_id: conversationId, sender_id: user.id,
-        content, created_at: new Date().toISOString(), profiles: null, _optimistic: true,
-      };
-      qc.setQueryData(key, (old: any[]) => old ? [...old, tempMsg] : [tempMsg]);
-      return { previous };
-    },
-    onSuccess: (data) => {
-      if (!conversationId) return;
-      qc.setQueryData(['messages', conversationId], (old: any[]) =>
-        old ? old.map(m => m._optimistic ? data : m) : [data]
-      );
-    },
-    onError: (_err, _vars, context: any) => {
-      if (context?.previous && conversationId) {
-        qc.setQueryData(['messages', conversationId], context.previous);
-      }
-      toast.error('Failed to send message');
-    },
-  });
-}
-
-/** Create a training conversation if it doesn't exist, return the id */
+/** Find training conversation (auto-created by DB trigger), or create as fallback */
 export async function getOrCreateTrainingConversation(trainingId: string): Promise<string> {
   const { data: existing } = await supabase
     .from('conversations')
