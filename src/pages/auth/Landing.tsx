@@ -57,7 +57,7 @@ export default function Landing() {
         <SessioLogo />
         <button
           onClick={() => navigate('/auth')}
-          className="rounded-xl bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-background/80 min-h-[44px]"
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 min-h-[44px]"
         >
           Sign In / Up
         </button>
