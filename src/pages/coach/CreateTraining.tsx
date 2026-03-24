@@ -31,25 +31,34 @@ export default function CreateTraining() {
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
   const qc = useQueryClient();
+  const sourceVenues: VenueOption[] = isSchoolOwner ? ((school as any)?.venues ?? []) : ((profile as any)?.venues ?? []);
+  const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
+
+  // Sync when source data loads (profile/school async)
+  useEffect(() => {
+    if (sourceVenues.length > 0) setLocalVenues(sourceVenues);
+  }, [sourceVenues.length]);
 
   async function handleNewCoachVenue(venue: VenueOption) {
     if (!profile) return;
+    // Update local state immediately so dropdown shows the new venue
+    setLocalVenues(prev => [...prev, venue]);
     const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
     await supabase
       .from('profiles')
       .update({ venues: [...currentVenues, venue] })
       .eq('id', profile.id);
-    qc.invalidateQueries({ queryKey: ['profile'] });
   }
 
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
+    // Update local state immediately so dropdown shows the new venue
+    setLocalVenues(prev => [...prev, venue]);
     const currentVenues = ((school as any).venues ?? []) as VenueOption[];
     await supabase
       .from('schools')
       .update({ venues: [...currentVenues, venue] })
       .eq('id', school.id);
-    qc.invalidateQueries({ queryKey: ['my-school'] });
   }
 
   // Coaches in a school cannot create lessons — only school owners can
@@ -144,7 +153,7 @@ export default function CreateTraining() {
             onSubmit={handleSubmit}
             submitting={create.isPending}
             schoolSlot={schoolSlot}
-            venueOptions={isSchoolOwner ? ((school as any)?.venues ?? []) : ((profile as any)?.venues ?? [])}
+            venueOptions={localVenues}
             onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
