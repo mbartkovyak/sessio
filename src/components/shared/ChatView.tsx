@@ -155,7 +155,8 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
   // Resolve conversation ID from either training or DM
   const { data: trainingConvId } = useTrainingConversation(trainingId);
   const { data: dmConvId } = useDMConversation(otherUserId);
-  const conversationId = directConvId ?? trainingConvId ?? dmConvId ?? undefined;
+  const [localConvId, setLocalConvId] = useState<string | null>(null);
+  const conversationId = localConvId ?? directConvId ?? trainingConvId ?? dmConvId ?? undefined;
 
   const { data: messages = [] } = useMessages(conversationId);
   const { data: allReactions = {} } = useMessageReactions(conversationId);
@@ -211,6 +212,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           qc.invalidateQueries({ queryKey: ['conversation-for-training', trainingId] });
         } else if (otherUserId) {
           convId = await getOrCreateDMConversation(user.id, otherUserId);
+          setLocalConvId(convId);
           qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
         }
       } catch { toast.error('Failed to start conversation'); return; }
@@ -419,6 +421,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           </button>
           <textarea
             ref={textareaRef}
+            data-transparent
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}

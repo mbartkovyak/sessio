@@ -238,14 +238,14 @@ export default function TrainingDetail() {
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 onClick={() => navigate(`/coach/dm/${p?.id}`)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary"
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
                                 title="Direct message"
                               >
-                                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                                <MessageCircle className="h-3.5 w-3.5 text-primary" />
                               </button>
                               <button
                                 onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
-                                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-destructive/10"
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
                                 title="Remove"
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
