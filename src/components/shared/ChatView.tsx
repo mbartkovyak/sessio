@@ -212,11 +212,16 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     userScrolled.current = false;
 
     try {
-      // Training conversations always exist (auto-created).
+      // Training conversations always exist (auto-created by DB trigger).
       // DMs: create on first message if needed.
       let convId = conversationId;
       if (!convId && otherUserId) {
-        convId = await getOrCreateDMConversation(user.id, otherUserId);
+        try {
+          convId = await getOrCreateDMConversation(user.id, otherUserId);
+        } catch (err: any) {
+          toast.error(err?.message ?? 'Failed to create conversation');
+          return;
+        }
         setLocalConvId(convId);
         qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
       }
@@ -238,15 +243,15 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       if (error) {
         // Rollback optimistic message
         qc.setQueryData(['messages', convId], (old: any[]) => (old ?? []).filter(m => m.id !== tempId));
-        toast.error('Failed to send');
+        toast.error(`Failed to send: ${error.message}`);
         return;
       }
 
       // Replace optimistic with real data
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
-    } catch {
-      toast.error('Failed to send');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Something went wrong');
     } finally {
       setIsSending(false);
     }

@@ -231,10 +231,15 @@ export async function getOrCreateDMConversation(userId1: string, userId2: string
     .insert({ id });
   if (error) throw error;
 
-  await supabase.from('conversation_participants').insert([
+  const { error: partError } = await supabase.from('conversation_participants').insert([
     { conversation_id: id, user_id: userId1 },
     { conversation_id: id, user_id: userId2 },
   ]);
+  if (partError) {
+    // Clean up orphaned conversation
+    await supabase.from('conversations').delete().eq('id', id);
+    throw new Error(`Failed to add participants: ${partError.message}`);
+  }
 
   return id;
 }
@@ -247,50 +252,15 @@ export function useMyConversations() {
     queryKey: ['my-conversations', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Get conversations I'm a participant of
+      // Single source of truth: conversation_participants
+      // Coaches, athletes, school owners are all added via DB triggers.
       const { data: participations, error: partErr } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
         .eq('user_id', user!.id);
-      if (partErr) console.error('participations error:', partErr);
-      const participantConvIds = (participations ?? []).map(p => p.conversation_id);
+      if (partErr) throw partErr;
 
-      // Also get conversations for trainings I coach
-      const { data: myTrainings, error: trainErr } = await supabase
-        .from('trainings')
-        .select('id')
-        .eq('coach_id', user!.id);
-      if (trainErr) console.error('trainings error:', trainErr);
-      const myTrainingIds = (myTrainings ?? []).map(t => t.id);
-
-      // And trainings from my school (if school owner)
-      const { data: mySchool } = await supabase
-        .from('schools')
-        .select('id')
-        .eq('owner_id', user!.id)
-        .maybeSingle();
-      if (mySchool) {
-        const { data: schoolTrainings } = await supabase
-          .from('trainings')
-          .select('id')
-          .eq('school_id', mySchool.id);
-        for (const t of schoolTrainings ?? []) {
-          if (!myTrainingIds.includes(t.id)) myTrainingIds.push(t.id);
-        }
-      }
-
-      // Get conversations for those trainings
-      let trainingConvIds: string[] = [];
-      if (myTrainingIds.length > 0) {
-        const { data: trainingConvs } = await supabase
-          .from('conversations')
-          .select('id')
-          .in('training_id', myTrainingIds);
-        trainingConvIds = (trainingConvs ?? []).map(c => c.id);
-      }
-
-      // Merge all conversation IDs (deduplicate)
-      const allConvIds = [...new Set([...participantConvIds, ...trainingConvIds])];
+      const allConvIds = (participations ?? []).map(p => p.conversation_id);
       if (allConvIds.length === 0) return [];
 
       // Get conversation details
