@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, CheckCircle2, Users, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Users, ChevronRight } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
@@ -127,12 +127,8 @@ export default function CoachOverviewSection() {
           <div className="rounded-2xl bg-white p-6 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
             <Users className="h-6 w-6 text-accent mb-3" />
             <h3 className="font-bold text-lg text-foreground mb-1">{canCreate ? 'Create your first lesson' : 'No lessons yet'}</h3>
-            <p className="text-sm text-muted-foreground mb-5">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
-            {canCreate && (
-              <button onClick={() => navigate('/coach/trainings/new')} className="flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-accent-foreground min-h-[48px] shadow-sm transition-all active:scale-[0.97]">
-                <Plus className="h-4 w-4" /> New Training
-              </button>
-            )}
+            <p className="text-sm text-muted-foreground mb-4">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
+            {canCreate && <NewLessonButton />}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -152,13 +148,6 @@ export default function CoachOverviewSection() {
                 }
               />
             ))}
-            {canCreate && (
-              <button onClick={() => navigate('/coach/trainings/new')}
-                className="rounded-2xl border-2 border-dashed border-accent/30 p-4 flex flex-col items-center justify-center gap-2 text-accent/70 hover:border-accent hover:text-accent hover:bg-accent/5 transition-colors min-h-[120px]">
-                <Plus className="h-6 w-6" />
-                <span className="text-sm font-medium">New Training</span>
-              </button>
-            )}
           </div>
         )}
       </section>
