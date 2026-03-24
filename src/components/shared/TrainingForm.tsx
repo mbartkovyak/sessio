@@ -197,11 +197,27 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // For solo coach: combine venue name + address into form.venue
+    let submitForm = form;
+    if (!venueOptions && newVenueName.trim()) {
+      const combined = newVenueAddress.trim()
+        ? `${newVenueName.trim()}, ${newVenueAddress.trim()}`
+        : newVenueName.trim();
+      submitForm = { ...form, venue: combined };
+      set('venue', combined);
+    }
     setTouched(new Set(['name', 'venue', 'time', 'max_players']));
     setShowErrors(true);
     onAttemptSubmit?.();
-    if (!isValid) {
-      // Find the first field with data-field-error in DOM order — order-independent
+    // Validate using submitForm (has combined venue)
+    const submitErrors: string[] = [];
+    if (!submitForm.name) submitErrors.push('name');
+    if (!submitForm.venue) submitErrors.push('venue');
+    if (!submitForm.is_recurring && !submitForm.one_off_date) submitErrors.push('date');
+    if (submitForm.type === 'group' && !submitForm.max_players) submitErrors.push('max_players');
+    if (hasTimeError) submitErrors.push('time');
+    if (extraErrors?.length) submitErrors.push('extra');
+    if (submitErrors.length > 0) {
       setTimeout(() => {
         const first = formRef.current?.querySelector('[data-field-error]');
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -209,7 +225,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
-    onSubmit(form);
+    onSubmit(submitForm);
   }
 
   // Check if any time slot has end <= start
@@ -330,22 +346,18 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           <div className="space-y-2">
             <input
               value={newVenueName}
-              onChange={e => {
-                setNewVenueName(e.target.value);
-                const addr = newVenueAddress.trim();
-                set('venue', addr ? `${e.target.value.trim()}, ${addr}` : e.target.value.trim());
-                touch('venue');
-              }}
+              onChange={e => setNewVenueName(e.target.value)}
               placeholder="Venue name (e.g. Court 3)"
-              className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
+              className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue && !newVenueName ? 'border-destructive' : 'border-input'}`}
             />
             <PlaceAutocompleteInput
               value={newVenueAddress}
-              onChange={addr => {
-                setNewVenueAddress(addr);
-                const name = newVenueName.trim();
-                set('venue', name ? `${name}, ${addr}` : addr);
-                touch('venue');
+              onChange={setNewVenueAddress}
+              onPlaceSelect={addr => {
+                if (newVenueName.trim() && addr.trim()) {
+                  set('venue', `${newVenueName.trim()}, ${addr.trim()}`);
+                  touch('venue');
+                }
               }}
               placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
