@@ -108,7 +108,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                   Mark as unread
                 </button>
                 <button
-                  onClick={() => { hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
+                  onClick={() => { if (!confirm('Delete this chat?')) return; hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
                 >
                   Delete chat

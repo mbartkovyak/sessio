@@ -11,7 +11,7 @@ export default function CoachMessages() {
       <CoachHeader title="Chats" />
       <div className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4">
-          <div className="rounded-2xl bg-white shadow-sm overflow-hidden" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+          <div className="rounded-2xl bg-white shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
             <ChatList
               conversations={conversations}
               isLoading={isLoading}
