@@ -121,6 +121,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
+  const pickedAddressRef = useRef('');
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)
@@ -292,7 +293,21 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           <div className="space-y-2 rounded-xl border border-dashed border-border p-3">
             <input
               value={newVenueName}
-              onChange={e => setNewVenueName(e.target.value)}
+              onChange={e => {
+                const name = e.target.value;
+                setNewVenueName(name);
+                // If address was already picked from autocomplete, auto-save venue
+                if (name.trim() && pickedAddressRef.current) {
+                  const venue = { name: name.trim(), address: pickedAddressRef.current };
+                  set('venue', `${venue.name}, ${venue.address}`);
+                  touch('venue');
+                  onNewVenue?.(venue);
+                  setAddingNewVenue(false);
+                  setNewVenueName('');
+                  setNewVenueAddress('');
+                  pickedAddressRef.current = '';
+                }
+              }}
               placeholder="Venue name (e.g. Court 3)"
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
@@ -309,6 +324,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                   setAddingNewVenue(false);
                   setNewVenueName('');
                   setNewVenueAddress('');
+                  pickedAddressRef.current = '';
+                } else if (addr.trim()) {
+                  // Address picked first, name not yet entered — remember it
+                  pickedAddressRef.current = addr.trim();
                 }
               }}
               placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
@@ -316,7 +335,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             />
             <button
               type="button"
-              onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
+              onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); pickedAddressRef.current = ''; }}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               Back to venue list
