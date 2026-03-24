@@ -5,26 +5,50 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const { profile, loading } = useAuth();
-  const exchangeAttempted = useRef(false);
+  const { profile, loading, session } = useAuth();
+  const handled = useRef(false);
 
-  // Handle PKCE code exchange from OAuth redirects
+  // Handle PKCE code exchange and wait for session
   useEffect(() => {
-    if (exchangeAttempted.current) return;
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code) {
-      exchangeAttempted.current = true;
-      supabase.auth.exchangeCodeForSession(code);
+    if (handled.current) return;
+
+    async function handleCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+
+      if (code) {
+        console.log('[AuthCallback] Exchanging code for session...');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        console.log('[AuthCallback] Exchange result:', { user: data?.user?.email, error });
+        if (error) {
+          console.error('[AuthCallback] Exchange failed:', error.message);
+        }
+      }
+
+      // Check session after exchange
+      const { data: { session: s } } = await supabase.auth.getSession();
+      console.log('[AuthCallback] Session:', s ? s.user.email : 'null');
+
+      if (s) {
+        // Fetch profile directly
+        const { data: p, error: pErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', s.user.id)
+          .single();
+        console.log('[AuthCallback] Profile:', p, 'Error:', pErr);
+      }
     }
+
+    handled.current = true;
+    handleCallback();
   }, []);
 
   useEffect(() => {
     if (loading) return;
-    // If there's a code param, the exchange may still be in progress — don't redirect yet
-    const params = new URLSearchParams(window.location.search);
-    if (!profile && params.get('code')) return;
     if (!profile) {
+      // Don't redirect if we might still be processing
+      if (!session) return;
       navigate('/auth');
       return;
     }
