@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -147,6 +149,23 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }, [venueOptions]);
 
+  // Track whether form has been modified from its initial state
+  const baseline = useMemo(() => restoredDraft ?? { ...defaults, ...initialValues }, []);
+  const isDirty = form.name !== baseline.name
+    || form.venue !== baseline.venue
+    || form.type !== baseline.type
+    || form.sport !== baseline.sport
+    || form.start_time !== baseline.start_time
+    || form.end_time !== baseline.end_time
+    || form.max_players !== baseline.max_players
+    || form.is_recurring !== baseline.is_recurring
+    || form.booking_mode !== baseline.booking_mode
+    || form.visibility !== baseline.visibility
+    || form.one_off_date !== baseline.one_off_date
+    || JSON.stringify(form.days_of_week) !== JSON.stringify(baseline.days_of_week);
+  const [submitted, setSubmitted] = useState(false);
+  const blocker = useUnsavedChanges(isDirty && !submitted);
+
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const touch = (field: string) => setTouched(t => new Set(t).add(field));
 
@@ -205,6 +224,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
+    setSubmitted(true);
     onSubmit(form);
   }
 
@@ -514,6 +534,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
         </button>
       )}
+      <UnsavedChangesDialog
+        blocker={blocker}
+        onDiscard={() => localStorage.removeItem(DRAFT_KEY)}
+      />
     </form>
   );
 }

@@ -10,6 +10,8 @@ import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 type Venue = { name: string; address: string };
 
@@ -23,6 +25,12 @@ export default function CoachProfileEditor() {
   const [venues, setVenues] = useState<Venue[]>(((profile as any)?.venues as Venue[]) ?? []);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
+
+  const isDirty = name !== (profile?.full_name ?? '')
+    || city !== (profile?.city ?? '')
+    || bio !== (profile?.bio ?? '')
+    || sport !== (profile?.sport ?? '');
+  const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
     if (!user) return;
@@ -139,6 +147,7 @@ export default function CoachProfileEditor() {
         <AccountActions />
       </main>
       <CoachBottomNav />
+      <UnsavedChangesDialog blocker={blocker} />
     </div>
   );
 }

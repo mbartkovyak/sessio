@@ -6,11 +6,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import AccountActions from '@/components/shared/AccountActions';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 export default function PlayerProfile() {
   const { profile, user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
+
+  const isDirty = name !== (profile?.full_name ?? '');
+  const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
     if (!user) return;
@@ -65,6 +70,7 @@ export default function PlayerProfile() {
       </main>
 
       <PlayerBottomNav />
+      <UnsavedChangesDialog blocker={blocker} />
     </div>
   );
 }
