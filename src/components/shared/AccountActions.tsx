@@ -14,7 +14,8 @@ export default function AccountActions() {
     <div className="space-y-3">
       <button
         onClick={async () => { await signOut(); navigate('/auth'); }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
+        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-destructive"
+        style={{ border: '1px solid rgba(0,0,0,0.2)' }}
       >
         <LogOut className="h-4 w-4" /> Sign Out
       </button>

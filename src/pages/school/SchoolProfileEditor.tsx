@@ -227,7 +227,7 @@ export default function SchoolProfileEditor() {
               ))}
             </div>
           )}
-          <div className="space-y-2 rounded-xl border border-dashed border-border p-3">
+          <div className="space-y-2 rounded-xl border border-dashed p-3" style={{ borderColor: 'rgba(0,0,0,0.2)' }}>
             <input placeholder="Venue name (e.g. Court 3)" value={newVenueName} onChange={e => updateNewVenueName(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             <PlaceAutocompleteInput value={newVenueAddress} onChange={updateNewVenueAddress}
