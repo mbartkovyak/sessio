@@ -42,9 +42,10 @@ jobs:
             echo "::error::.env file is tracked in git!"
             exit 1
           fi
-          # Fail if common secret patterns appear in tracked files
-          if git grep -lE '(sk_live_|SUPABASE_SERVICE_ROLE|AIza[0-9A-Za-z_-]{35})' -- ':!.github/' ':!*.md' 2>/dev/null; then
-            echo "::error::Potential secrets found in tracked files!"
+          # Fail if hardcoded secret VALUES appear (not env var names)
+          # Patterns: Stripe live keys, Google API keys, Supabase service role JWTs
+          if git grep -lE '(sk_live_[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z_-]{35}|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]{50,})' -- ':!.github/' ':!*.md' ':!*.lock' 2>/dev/null; then
+            echo "::error::Potential hardcoded secrets found in tracked files!"
             exit 1
           fi
           echo "No secrets detected"
