@@ -119,8 +119,11 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
-  const [newVenueName, setNewVenueName] = useState('');
-  const [newVenueAddress, setNewVenueAddress] = useState('');
+  // Parse initial venue into name + address for solo coach two-field view
+  const initVenue = initialValues?.venue ?? restoredDraft?.venue ?? '';
+  const initVenueComma = initVenue.indexOf(',');
+  const [newVenueName, setNewVenueName] = useState(initVenueComma > 0 ? initVenue.slice(0, initVenueComma).trim() : initVenue);
+  const [newVenueAddress, setNewVenueAddress] = useState(initVenueComma > 0 ? initVenue.slice(initVenueComma + 1).trim() : '');
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)
@@ -324,12 +327,30 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             </button>
           </div>
         ) : (
-          <PlaceAutocompleteInput
-            value={form.venue}
-            onChange={v => { set('venue', v); touch('venue'); }}
-            placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
-            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
-          />
+          <div className="space-y-2">
+            <input
+              value={newVenueName}
+              onChange={e => {
+                setNewVenueName(e.target.value);
+                const addr = newVenueAddress.trim();
+                set('venue', addr ? `${e.target.value.trim()}, ${addr}` : e.target.value.trim());
+                touch('venue');
+              }}
+              placeholder="Venue name (e.g. Court 3)"
+              className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
+            />
+            <PlaceAutocompleteInput
+              value={newVenueAddress}
+              onChange={addr => {
+                setNewVenueAddress(addr);
+                const name = newVenueName.trim();
+                set('venue', name ? `${name}, ${addr}` : addr);
+                touch('venue');
+              }}
+              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+            />
+          </div>
         )}
         {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">Venue is required</p>}
       </div>
