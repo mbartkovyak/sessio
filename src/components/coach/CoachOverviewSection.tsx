@@ -26,13 +26,13 @@ export default function CoachOverviewSection() {
     queryKey: ['coach-total-athletes', trainingIds],
     enabled: trainingIds.length > 0,
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('training_members')
-        .select('user_id', { count: 'exact', head: true })
+        .select('user_id')
         .in('training_id', trainingIds)
         .eq('role', 'regular');
       if (error) throw error;
-      return count ?? 0;
+      return new Set(data?.map(m => m.user_id)).size;
     },
   });
 
