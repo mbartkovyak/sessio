@@ -253,6 +253,30 @@ export async function getOrCreateDMConversation(userId1: string, userId2: string
 
 export function useMyConversations() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime: update conversation list when new messages arrive (debounced)
+  useEffect(() => {
+    if (!user) return;
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const channel = supabase
+      .channel('conv-list-messages')
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages',
+      }, (payload: any) => {
+        if (payload.new.sender_id === user.id) return; // skip own messages
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
+        }, 1000);
+      })
+      .subscribe();
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, qc]);
+
   return useQuery({
     queryKey: ['my-conversations', user?.id],
     enabled: !!user,
@@ -276,24 +300,26 @@ export function useMyConversations() {
 
       if (!convos) return [];
 
-      // Get training info for group chats
+      // Fetch training info, DM participants, and messages in parallel
       const trainingIds = convos.filter(c => c.training_id).map(c => c.training_id!);
-      const { data: trainings } = trainingIds.length > 0
-        ? await supabase.from('trainings').select('id, name, sport, is_active').in('id', trainingIds)
-        : { data: [] };
-      const trainingMap = new Map((trainings ?? []).map(t => [t.id, t]));
-
-      // Get other participants for DMs — always preserve userId even if profile lookup fails
       const dmConvIds = convos.filter(c => !c.training_id).map(c => c.id);
-      const dmInfo = new Map<string, { userId: string; profile: any }>();
-      if (dmConvIds.length > 0) {
-        const { data: otherParticipants } = await supabase
-          .from('conversation_participants')
-          .select('conversation_id, user_id')
-          .in('conversation_id', dmConvIds)
-          .neq('user_id', user!.id);
 
-        const otherIds = [...new Set((otherParticipants ?? []).map(p => p.user_id))];
+      const [trainings, otherParticipants, allMessages] = await Promise.all([
+        trainingIds.length > 0
+          ? supabase.from('trainings').select('id, name, sport, is_active').in('id', trainingIds).then(r => r.data ?? [])
+          : Promise.resolve([] as any[]),
+        dmConvIds.length > 0
+          ? supabase.from('conversation_participants').select('conversation_id, user_id').in('conversation_id', dmConvIds).neq('user_id', user!.id).then(r => r.data ?? [])
+          : Promise.resolve([] as any[]),
+        supabase.from('messages').select('conversation_id, content, created_at, sender_id, profiles:sender_id(full_name)').in('conversation_id', allConvIds).order('created_at', { ascending: false }).then(r => r.data ?? []),
+      ]);
+
+      const trainingMap = new Map((trainings).map(t => [t.id, t]));
+
+      // Get DM partner profiles (depends on otherParticipants above)
+      const dmInfo = new Map<string, { userId: string; profile: any }>();
+      if (otherParticipants.length > 0) {
+        const otherIds = [...new Set(otherParticipants.map(p => p.user_id))];
         let profileMap = new Map<string, any>();
         if (otherIds.length > 0) {
           const { data: profiles } = await supabase
@@ -303,17 +329,10 @@ export function useMyConversations() {
           profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
         }
 
-        for (const p of otherParticipants ?? []) {
+        for (const p of otherParticipants) {
           dmInfo.set(p.conversation_id, { userId: p.user_id, profile: profileMap.get(p.user_id) });
         }
       }
-
-      // Get latest message per conversation
-      const { data: allMessages } = await supabase
-        .from('messages')
-        .select('conversation_id, content, created_at, sender_id, profiles:sender_id(full_name)')
-        .in('conversation_id', allConvIds)
-        .order('created_at', { ascending: false });
 
       const latestMap = new Map<string, any>();
       for (const msg of allMessages ?? []) {
@@ -428,6 +447,7 @@ export function useUnreadMessageCount() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload: any) => {
         if (payload.new.sender_id !== user.id) {
           qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
+          qc.invalidateQueries({ queryKey: ['my-conversations'] });
         }
       })
       .subscribe();

@@ -7,6 +7,7 @@ import { SessioLogo } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import { SPORTS, CITIES } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -66,7 +67,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'player', onboarding_complete: true })
+        .update({ full_name: fullName.trim(), phone, role: 'player', onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(error.message); setLoading(false); return; }
       await refreshProfile();
@@ -86,7 +87,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport, city, onboarding_complete: true })
+        .update({ full_name: fullName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(error.message); setLoading(false); return; }
       await refreshProfile();
@@ -107,7 +108,7 @@ export default function Onboarding() {
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
+        .update({ full_name: fullName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
@@ -166,7 +167,7 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone: phone.trim() || null, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
+        .update({ full_name: fullName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(profileError.message); setLoading(false); return; }
 
@@ -233,16 +234,10 @@ export default function Onboarding() {
                   onChange={e => setLastName(e.target.value)}
                   className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                 />
-                <input
-                  type="tel"
-                  placeholder="Phone number (optional)"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                />
+                <PhoneInput value={phone} onChange={setPhone} required />
                 <button
                   onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
-                  disabled={!firstName.trim() || !lastName.trim() || loading}
+                  disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

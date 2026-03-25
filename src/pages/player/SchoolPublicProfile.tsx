@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Heart, Calendar, Users } from 'lucide-react';
+import { MapPin, Heart, Calendar, Users } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useSchool, useSchoolPublicTrainings, useIsFavouriteSchool, useToggleFavouriteSchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
@@ -19,20 +20,18 @@ export default function SchoolPublicProfile() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-4">
-        <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 font-semibold text-foreground truncate">{school?.name ?? 'School'}</h1>
-        {session && (
+      <AppHeader
+        title={school?.name ?? 'School'}
+        back
+        right={session ? (
           <button
             onClick={() => id && toggleFav.mutate({ schoolId: id, isFav: !!isFav })}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
+            className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10"
           >
-            <Heart className={`h-5 w-5 ${isFav ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} />
+            <Heart className={`h-4.5 w-4.5 ${isFav ? 'fill-destructive text-destructive' : 'text-white/70'}`} />
           </button>
-        )}
-      </header>
+        ) : undefined}
+      />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">

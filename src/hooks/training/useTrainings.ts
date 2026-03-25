@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { notifyUsers } from '@/lib/pushNotify';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
@@ -231,13 +232,11 @@ export function useMyUpcomingSessions() {
       const { data, error } = await supabase
         .from('session_attendance')
         .select('*, training_sessions(*, trainings(id, name, sport, venue, cancel_deadline_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
-        .eq('user_id', user!.id)
-        .limit(50);
+        .eq('user_id', user!.id);
       if (error) throw error;
       return (data ?? [])
         .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true && d.training_sessions.status !== 'cancelled')
-        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date))
-        .slice(0, 20) as SessionAttendanceWithSession[];
+        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date)) as SessionAttendanceWithSession[];
     },
   });
 }
@@ -319,13 +318,21 @@ export function useAllCoachJoinRequests() {
 export function useRespondJoinRequest() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ requestId, trainingId, userId, accept }: {
-      requestId: string; trainingId: string; userId: string; accept: boolean;
+    mutationFn: async ({ requestId, trainingId, userId, accept, trainingName }: {
+      requestId: string; trainingId: string; userId: string; accept: boolean; trainingName?: string;
     }) => {
       await supabase.from('join_requests').update({ status: accept ? 'accepted' : 'declined' }).eq('id', requestId);
       if (accept) {
         await supabase.from('training_members').upsert({ training_id: trainingId, user_id: userId, role: 'regular' }, { onConflict: 'training_id,user_id' });
       }
+      // Notify the athlete about the decision
+      const name = trainingName ?? 'a training';
+      notifyUsers([userId], {
+        title: accept ? 'Request approved!' : 'Request declined',
+        body: accept ? `You've been accepted to ${name}.` : `Your request to join ${name} was declined.`,
+        tag: `join-${requestId}`,
+        url: '/player',
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['all-join-requests'] });
@@ -361,6 +368,17 @@ export function useCancelSession(trainingId: string) {
             content: `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`,
           });
         }
+        // Push to all training members
+        const { data: members } = await supabase
+          .from('training_members')
+          .select('user_id')
+          .eq('training_id', trainingId);
+        if (members?.length) {
+          notifyUsers(
+            members.map(m => m.user_id),
+            { title: 'Session cancelled', body: `${trainingName} on ${sessionDate} has been cancelled.`, tag: `cancel-${sessionId}`, url: '/player' },
+          );
+        }
       }
     },
     onSuccess: () => {
@@ -385,6 +403,9 @@ export function useRescheduleSession(trainingId: string) {
         .eq('id', sessionId);
       if (error) throw error;
       // Notify in training chat
+      const chatMsg = oldDate === newDate
+        ? `📅 ${trainingName} on ${newDate} moved to ${newStartTime.slice(0, 5)}–${newEndTime.slice(0, 5)}.`
+        : `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`;
       if (user) {
         const { data: conv } = await supabase
           .from('conversations')
@@ -395,10 +416,19 @@ export function useRescheduleSession(trainingId: string) {
           await supabase.from('messages').insert({
             conversation_id: conv.id,
             sender_id: user.id,
-            content: oldDate === newDate
-              ? `📅 ${trainingName} on ${newDate} moved to ${newStartTime.slice(0, 5)}–${newEndTime.slice(0, 5)}.`
-              : `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`,
+            content: chatMsg,
           });
+        }
+        // Push to all training members
+        const { data: members } = await supabase
+          .from('training_members')
+          .select('user_id')
+          .eq('training_id', trainingId);
+        if (members?.length) {
+          notifyUsers(
+            members.map(m => m.user_id),
+            { title: 'Session rescheduled', body: chatMsg, tag: `reschedule-${sessionId}`, url: '/player' },
+          );
         }
       }
     },

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 
 import Avatar from '@/components/shared/Avatar';
+import { notifyMessage } from '@/lib/pushNotify';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
@@ -205,6 +206,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     if (conversationId) {
       markConversationSeen(conversationId);
       qc.invalidateQueries({ queryKey: ['unread-total'] });
+      qc.invalidateQueries({ queryKey: ['my-conversations'] });
     }
   }, [conversationId, qc]);
 
@@ -254,6 +256,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
       // Replace optimistic with real data + ensure chat is visible
       unhideChat(convId);
+      notifyMessage(convId, content);
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
     } catch (err: any) {

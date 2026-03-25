@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { SPORT_ICONS, DAYS_FULL as DAYS } from '@/lib/constants';
+import { notifyUsers } from '@/lib/pushNotify';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -13,6 +15,7 @@ export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
@@ -109,6 +112,14 @@ export default function JoinTraining() {
               .from('join_requests')
               .update({ status: 'pending', created_at: new Date().toISOString() })
               .eq('id', existingReq.id);
+            if (training.coach_id) {
+              notifyUsers([training.coach_id], {
+                title: 'New join request',
+                body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+                tag: `join-req-${training.id}`,
+                url: `/coach/trainings/${training.id}`,
+              });
+            }
             toast.success('Join request sent again!');
             navigate('/player');
             return;
@@ -117,6 +128,15 @@ export default function JoinTraining() {
             .from('join_requests')
             .insert({ user_id: profile.id, training_id: training.id, status: 'pending' });
           if (error) throw error;
+          // Notify coach about the join request
+          if (training.coach_id) {
+            notifyUsers([training.coach_id], {
+              title: 'New join request',
+              body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+              tag: `join-req-${training.id}`,
+              url: `/coach/trainings/${training.id}`,
+            });
+          }
           toast.success('Join request sent! The coach will review it.');
           navigate('/player');
           return;
@@ -134,6 +154,16 @@ export default function JoinTraining() {
           }
           throw error;
         }
+        // Notify coach about the new member
+        if (training.coach_id) {
+          notifyUsers([training.coach_id], {
+            title: 'New member joined',
+            body: `${profile.full_name ?? 'An athlete'} joined ${training.name}.`,
+            tag: `joined-${training.id}`,
+            url: `/coach/trainings/${training.id}`,
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
         toast.success(memberRole === 'waitlist' ? "Added to waitlist!" : `Joined ${training.name}! 🎉`);
         navigate('/player');
       } else {

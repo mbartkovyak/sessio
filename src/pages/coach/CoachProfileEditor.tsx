@@ -10,30 +10,41 @@ import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import PhoneInput from '@/components/shared/PhoneInput';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 type Venue = { name: string; address: string };
 
 export default function CoachProfileEditor() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [sport, setSport] = useState(profile?.sport ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
   const [venues, setVenues] = useState<Venue[]>(((profile as any)?.venues as Venue[]) ?? []);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
+
+  const isDirty = name !== (profile?.full_name ?? '')
+    || phone !== (profile?.phone ?? '')
+    || city !== (profile?.city ?? '')
+    || bio !== (profile?.bio ?? '')
+    || sport !== (profile?.sport ?? '');
+  const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name, city, bio, sport, venues })
+      .update({ full_name: name, phone: phone || null, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success('Profile updated');
+    else { toast.success('Profile updated'); refreshProfile(); }
   }
 
   function addVenue() {
@@ -45,6 +56,7 @@ export default function CoachProfileEditor() {
     // Auto-save venues
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
       if (error) toast.error(error.message);
+      else refreshProfile();
     });
   }
 
@@ -53,6 +65,7 @@ export default function CoachProfileEditor() {
     setVenues(updated);
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
       if (error) toast.error(error.message);
+      else refreshProfile();
     });
   }
 
@@ -76,6 +89,7 @@ export default function CoachProfileEditor() {
                 value={name} onChange={e => setName(e.target.value)}
               />
             </div>
+            <PhoneInput value={phone} onChange={setPhone} />
             <SelectField label="City" value={city} onChange={setCity} options={CITIES} placeholder="Select city" />
             <SelectField label="Sport" value={sport} onChange={setSport} options={SPORTS} placeholder="Select sport" />
             <div>
@@ -137,6 +151,7 @@ export default function CoachProfileEditor() {
         <AccountActions />
       </main>
       <CoachBottomNav />
+      <UnsavedChangesDialog blocker={blocker} />
     </div>
   );
 }

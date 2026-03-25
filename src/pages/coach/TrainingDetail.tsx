@@ -6,6 +6,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUsers } from '@/lib/pushNotify';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
@@ -54,7 +55,7 @@ export default function TrainingDetail() {
 
   async function handleDelete() {
     setDeleting(true);
-    // Notify members via training chat before deleting
+    // Notify members via training chat + push before deleting
     if (members.length > 0 && user) {
       const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
       try {
@@ -65,6 +66,10 @@ export default function TrainingDetail() {
           content: `⚠️ "${training.name}" has been cancelled and will no longer take place. Contact your coach for more information.`,
         });
       } catch {}
+      notifyUsers(
+        members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean),
+        { title: 'Training cancelled', body: `"${training.name}" has been cancelled.`, tag: `delete-${training.id}`, url: '/player' },
+      );
     }
     const { error } = await supabase
       .from('trainings')
@@ -172,13 +177,13 @@ export default function TrainingDetail() {
                             </button>
                             <div className="grid grid-cols-2 gap-2">
                               <button
-                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: true })}
+                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: true, trainingName: training.name })}
                                 className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5" /> Accept
                               </button>
                               <button
-                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: false })}
+                                onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: false, trainingName: training.name })}
                                 className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
                               >
                                 Decline

@@ -1,23 +1,32 @@
 import { useState } from 'react';
 import { User } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import AccountActions from '@/components/shared/AccountActions';
+import PhoneInput from '@/components/shared/PhoneInput';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 export default function PlayerProfile() {
   const { profile, user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
+
+  const isDirty = name !== (profile?.full_name ?? '')
+    || phone !== (profile?.phone ?? '');
+  const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name })
+      .update({ full_name: name, phone: phone || null })
       .eq('id', user.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -26,11 +35,7 @@ export default function PlayerProfile() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Profile</h1>
-        </div>
-      </header>
+      <AppHeader title="Profile" />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
@@ -52,6 +57,8 @@ export default function PlayerProfile() {
             />
           </div>
 
+          <PhoneInput value={phone} onChange={setPhone} />
+
           <button
             onClick={handleSave}
             disabled={saving}
@@ -65,6 +72,7 @@ export default function PlayerProfile() {
       </main>
 
       <PlayerBottomNav />
+      <UnsavedChangesDialog blocker={blocker} />
     </div>
   );
 }

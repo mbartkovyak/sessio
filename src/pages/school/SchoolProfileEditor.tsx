@@ -13,6 +13,8 @@ import SelectField from '@/components/shared/SelectField';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import Avatar from '@/components/shared/Avatar';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 type Venue = { name: string; address: string };
 
@@ -43,6 +45,12 @@ export default function SchoolProfileEditor() {
       setVenues(((school as any).venues as Venue[]) ?? []);
     }
   }, [school]);
+
+  const isDirty = name !== (school?.name ?? '')
+    || city !== (school?.city ?? '')
+    || sport !== (school?.sport ?? '')
+    || description !== (school?.description ?? '');
+  const blocker = useUnsavedChanges(isDirty);
 
   function addVenue() {
     if (!newVenueName.trim() || !newVenueAddress.trim()) return;
@@ -217,6 +225,7 @@ export default function SchoolProfileEditor() {
 
       </main>
       <CoachBottomNav />
+      <UnsavedChangesDialog blocker={blocker} />
     </div>
   );
 }

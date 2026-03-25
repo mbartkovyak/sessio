@@ -20,6 +20,29 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+// ── Shared helper: send push to a list of subscriptions ──
+
+type Sub = { endpoint: string; keys: any; user_id?: string };
+
+async function sendPushToSubs(
+  subs: Sub[],
+  payload: string,
+  supabaseAdmin: any,
+): Promise<number> {
+  let sent = 0;
+  for (const sub of subs) {
+    try {
+      await webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
+      sent++;
+    } catch (err: any) {
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      }
+    }
+  }
+  return sent;
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -54,6 +77,114 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? 'send_confirmations';
     const results: any = {};
+
+    // ── Generic: send push to specific users ──
+    if (action === 'notify') {
+      const { user_ids, title, body: pushBody, tag, url } = body;
+      if (!Array.isArray(user_ids) || !title) throw new Error('user_ids[] and title required');
+
+      // Always exclude the sender
+      const targets = user_ids.filter((id: string) => id !== user.id);
+      if (!targets.length) {
+        results.sent = 0;
+      } else {
+        const { data: subs } = await supabaseAdmin
+          .from('push_subscriptions')
+          .select('endpoint, keys')
+          .in('user_id', targets);
+
+        results.sent = await sendPushToSubs(
+          subs ?? [],
+          JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
+          supabaseAdmin,
+        );
+      }
+    }
+
+    // ── Message: notify conversation participants ──
+    if (action === 'notify_message') {
+      const { conversation_id, message_preview } = body;
+      if (!conversation_id) throw new Error('conversation_id required');
+
+      // Get sender name
+      const { data: senderProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Get conversation details
+      const { data: conv } = await supabaseAdmin
+        .from('conversations')
+        .select('id, training_id')
+        .eq('id', conversation_id)
+        .single();
+
+      // Get all participants except sender, with their roles
+      const { data: participants } = await supabaseAdmin
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', conversation_id)
+        .neq('user_id', user.id);
+
+      if (!participants?.length) {
+        results.sent = 0;
+      } else {
+        const participantIds = participants.map((p: any) => p.user_id);
+
+        // Get roles for all participants
+        const { data: profiles } = await supabaseAdmin
+          .from('profiles')
+          .select('id, role')
+          .in('id', participantIds);
+
+        const roleMap: Record<string, string> = {};
+        for (const p of profiles ?? []) roleMap[p.id] = p.role;
+
+        // Get all subscriptions in one query
+        const { data: subs } = await supabaseAdmin
+          .from('push_subscriptions')
+          .select('endpoint, keys, user_id')
+          .in('user_id', participantIds);
+
+        const senderName = senderProfile?.full_name ?? 'Someone';
+        const preview = (message_preview ?? '').slice(0, 100);
+        let sent = 0;
+
+        for (const sub of subs ?? []) {
+          const role = roleMap[sub.user_id] ?? 'player';
+          let url: string;
+
+          if (conv?.training_id) {
+            url = role === 'player'
+              ? `/player/messages/${conversation_id}`
+              : `/coach/trainings/${conv.training_id}`;
+          } else {
+            url = role === 'player'
+              ? `/player/dm/${user.id}`
+              : `/coach/dm/${user.id}`;
+          }
+
+          try {
+            await webPush.sendNotification(
+              { endpoint: sub.endpoint, keys: sub.keys },
+              JSON.stringify({
+                title: senderName,
+                body: preview,
+                tag: `msg-${conversation_id}`,
+                url,
+              }),
+            );
+            sent++;
+          } catch (err: any) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+            }
+          }
+        }
+        results.sent = sent;
+      }
+    }
 
     // ── Send confirmation reminders for upcoming sessions ──
     if (action === 'send_confirmations') {
@@ -96,19 +227,7 @@ Deno.serve(async (req) => {
           url: '/player',
         });
 
-        for (const sub of subs) {
-          try {
-            await webPush.sendNotification(
-              { endpoint: sub.endpoint, keys: sub.keys },
-              payload
-            );
-            sent++;
-          } catch (err: any) {
-            if (err.statusCode === 410 || err.statusCode === 404) {
-              await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-            }
-          }
-        }
+        sent += await sendPushToSubs(subs, payload, supabaseAdmin);
       }
 
       results.sent = sent;
@@ -116,32 +235,21 @@ Deno.serve(async (req) => {
 
     // ── Test: send a push to yourself only ──
     if (action === 'test') {
-      // Can only send test push to yourself
-      const targetUserId = user.id;
-
       const { data: subs } = await supabaseAdmin
         .from('push_subscriptions')
         .select('endpoint, keys')
-        .eq('user_id', targetUserId);
+        .eq('user_id', user.id);
 
-      let sent = 0;
-      for (const sub of subs ?? []) {
-        try {
-          await webPush.sendNotification(
-            { endpoint: sub.endpoint, keys: sub.keys },
-            JSON.stringify({
-              title: body.title ?? 'Sessio',
-              body: body.body ?? 'Test notification',
-              tag: 'test',
-              url: '/player',
-            })
-          );
-          sent++;
-        } catch (err: any) {
-          console.error('Push failed:', err.statusCode, err.body);
-        }
-      }
-      results.sent = sent;
+      results.sent = await sendPushToSubs(
+        subs ?? [],
+        JSON.stringify({
+          title: body.title ?? 'Sessio',
+          body: body.body ?? 'Test notification',
+          tag: 'test',
+          url: body.url ?? '/',
+        }),
+        supabaseAdmin,
+      );
     }
 
     return new Response(JSON.stringify({ ok: true, ...results }), {

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
+import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -51,7 +53,7 @@ export interface TrainingFormValues {
 const defaults: TrainingFormValues = {
   name: '', type: 'group', sport: 'Tennis', venue: '',
   start_time: '09:00', end_time: '10:00', max_players: 6,
-  is_recurring: true, days_of_week: [0],
+  is_recurring: true, days_of_week: [],
   start_date: new Date().toISOString().split('T')[0],
   end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
   one_off_date: '',
@@ -147,6 +149,23 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }, [venueOptions]);
 
+  // Track whether form has been modified from its initial state
+  const baseline = useMemo(() => restoredDraft ?? { ...defaults, ...initialValues }, []);
+  const isDirty = form.name !== baseline.name
+    || form.venue !== baseline.venue
+    || form.type !== baseline.type
+    || form.sport !== baseline.sport
+    || form.start_time !== baseline.start_time
+    || form.end_time !== baseline.end_time
+    || form.max_players !== baseline.max_players
+    || form.is_recurring !== baseline.is_recurring
+    || form.booking_mode !== baseline.booking_mode
+    || form.visibility !== baseline.visibility
+    || form.one_off_date !== baseline.one_off_date
+    || JSON.stringify(form.days_of_week) !== JSON.stringify(baseline.days_of_week);
+  const [submitted, setSubmitted] = useState(false);
+  const blocker = useUnsavedChanges(isDirty && !submitted);
+
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const touch = (field: string) => setTouched(t => new Set(t).add(field));
 
@@ -155,7 +174,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   function toggleDay(day: number) {
     setForm(f => {
       const newDays = f.days_of_week.includes(day)
-        ? (f.days_of_week.length > 1 ? f.days_of_week.filter(d => d !== day) : f.days_of_week)
+        ? f.days_of_week.filter(d => d !== day)
         : [...f.days_of_week, day].sort();
       // Clean up day_schedules for removed days
       let ds = f.day_schedules ? { ...f.day_schedules } : null;
@@ -205,6 +224,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
+    setSubmitted(true);
     onSubmit(form);
   }
 
@@ -220,6 +240,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const errors: string[] = [];
   if (!form.name) errors.push('Lesson name is required');
   if (!form.venue) errors.push('Venue is required');
+  if (form.is_recurring && form.days_of_week.length === 0) errors.push('Select at least one day');
   if (!form.is_recurring && !form.one_off_date) errors.push('Date is required for one-time lessons');
   if (form.type === 'group' && !form.max_players) errors.push('Max athletes is required');
   if (hasTimeError) errors.push('End time must be after start time');
@@ -358,11 +379,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {form.is_recurring ? (
         <>
           {/* Days — multi-select */}
-          <div><label className="text-sm font-medium text-foreground mb-2 block">Days</label>
+          <div {...(form.days_of_week.length === 0 && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-destructive">*</span></label>
             <div className="flex gap-1.5 flex-wrap">{DAYS_FULL.map((d, i) => (
               <button type="button" key={d} onClick={() => toggleDay(i)}
                 className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
             ))}</div>
+            {form.days_of_week.length === 0 && showErrors && <p className="text-xs text-destructive mt-1">Select at least one day</p>}
           </div>
 
           {/* Schedule — time per day */}
@@ -514,6 +536,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
         </button>
       )}
+      <UnsavedChangesDialog
+        blocker={blocker}
+        onDiscard={() => localStorage.removeItem(DRAFT_KEY)}
+      />
     </form>
   );
 }

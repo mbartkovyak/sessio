@@ -1,4 +1,4 @@
-import { format, addDays, isToday, isTomorrow } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 
 function dayLabel(date: Date) {
   if (isToday(date)) return 'Today';
@@ -15,14 +15,19 @@ interface CalendarGridProps<T> {
 }
 
 export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading, emptyState }: CalendarGridProps<T>) {
-  const today = new Date();
-  const days = Array.from({ length: 28 }, (_, i) => addDays(today, i));
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
 
+  // Group items by date
   const byDate: Record<string, T[]> = {};
   for (const item of items) {
     const d = getDate(item);
     if (d) { byDate[d] = byDate[d] ?? []; byDate[d].push(item); }
   }
+
+  // Collect unique dates that have sessions, always include today
+  const dateKeys = new Set(Object.keys(byDate));
+  dateKeys.add(todayStr);
+  const sortedDates = Array.from(dateKeys).sort();
 
   if (isLoading) {
     return (
@@ -32,29 +37,43 @@ export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading,
     );
   }
 
+  let lastMonth = '';
+
   return (
     <>
-      {days.map(day => {
-        const dateKey = format(day, 'yyyy-MM-dd');
+      {sortedDates.map(dateKey => {
+        const day = parseISO(dateKey);
         const daySessions = byDate[dateKey];
-        const isToday_ = isToday(day);
+        const isToday_ = dateKey === todayStr;
+        const month = format(day, 'MMMM yyyy');
+        const showMonthHeader = month !== lastMonth;
+        lastMonth = month;
 
         return (
-          <div key={dateKey} className={`py-3 ${isToday_ ? '' : 'border-t border-border'}`}>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className={`text-sm font-semibold ${isToday_ ? 'text-primary' : 'text-foreground'}`}>
-                {dayLabel(day)}
-              </span>
-              <span className="text-xs text-muted-foreground">{format(day, 'MMM d')}</span>
-            </div>
-
-            {!daySessions || daySessions.length === 0 ? (
-              <p className="text-xs text-muted-foreground/60 pl-1">No trainings</p>
-            ) : (
-              <div className="space-y-2">
-                {daySessions.map(renderItem)}
+          <div key={dateKey}>
+            {showMonthHeader && (
+              <div className="pt-4 pb-1">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {month}
+                </span>
               </div>
             )}
+            <div className={`py-3 ${isToday_ ? '' : 'border-t border-border'}`}>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className={`text-sm font-semibold ${isToday_ ? 'text-primary' : 'text-foreground'}`}>
+                  {dayLabel(day)}
+                </span>
+                <span className="text-xs text-muted-foreground">{format(day, 'MMM d')}</span>
+              </div>
+
+              {!daySessions || daySessions.length === 0 ? (
+                <p className="text-xs text-muted-foreground/60 pl-1">No trainings</p>
+              ) : (
+                <div className="space-y-2">
+                  {daySessions.map(renderItem)}
+                </div>
+              )}
+            </div>
           </div>
         );
       })}

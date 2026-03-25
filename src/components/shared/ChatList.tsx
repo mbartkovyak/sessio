@@ -55,6 +55,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
               onClick={() => {
                 markConversationSeen(conv.id);
                 qc.invalidateQueries({ queryKey: ['unread-total'] });
+                qc.invalidateQueries({ queryKey: ['my-conversations'] });
                 navigate(getChatPath(conv));
               }}
               className="flex flex-1 min-w-0 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
