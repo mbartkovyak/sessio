@@ -142,7 +142,7 @@ export default function CoachOverviewSection() {
         </div>
         {upcomingSessions.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-            <p className="text-sm text-muted-foreground">No upcoming sessions this week</p>
+            <p className="text-sm text-muted-foreground">No upcoming sessions</p>
           </div>
         ) : (
           <>
