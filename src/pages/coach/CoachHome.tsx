@@ -3,6 +3,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import PendingApprovalScreen from '@/components/coach/PendingApprovalScreen';
 import SchoolOverviewSection from '@/components/coach/SchoolOverviewSection';
 import CoachOverviewSection from '@/components/coach/CoachOverviewSection';
+import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMyPendingSchoolRequest } from '@/hooks/school/useSchools';
 import { useMySchoolBasic } from '@/hooks/coach/useMySchoolBasic';
@@ -31,6 +32,9 @@ export default function CoachHome() {
       </header>
 
       <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 pt-4">
+          <PushNotificationPrompt />
+        </div>
         {showLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
