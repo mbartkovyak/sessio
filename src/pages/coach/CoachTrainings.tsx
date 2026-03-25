@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { useState, useMemo } from 'react';
@@ -63,18 +63,36 @@ export default function CoachTrainings() {
 
           {/* Filters */}
           <div className="flex gap-2">
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as TypeFilter)}
-              className="flex-1 appearance-none rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="all">All types</option>
-              <option value="group">Group</option>
-              <option value="individual">Individual</option>
-            </select>
-            <select value={scheduleFilter} onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
-              className="flex-1 appearance-none rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="all">All schedules</option>
-              <option value="recurring">Recurring</option>
-              <option value="one-time">One-time</option>
-            </select>
+            <div className="relative">
+              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as TypeFilter)}
+                className={`appearance-none rounded-full pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${
+                  typeFilter !== 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground'
+                }`}>
+                <option value="all">All types</option>
+                <option value="group">Group</option>
+                <option value="individual">Individual</option>
+              </select>
+              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
+                typeFilter !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'
+              }`} />
+            </div>
+            <div className="relative">
+              <select value={scheduleFilter} onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
+                className={`appearance-none rounded-full pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${
+                  scheduleFilter !== 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground'
+                }`}>
+                <option value="all">All schedules</option>
+                <option value="recurring">Recurring</option>
+                <option value="one-time">One-time</option>
+              </select>
+              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
+                scheduleFilter !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'
+              }`} />
+            </div>
           </div>
         </div>
 
