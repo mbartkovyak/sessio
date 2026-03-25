@@ -18,7 +18,7 @@ export default function CoachOverviewSection() {
   const { data: trainings = [] } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 7);
+  const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
   const qc = useQueryClient();
   const trainingIds = trainings.map((t: any) => t.id);
