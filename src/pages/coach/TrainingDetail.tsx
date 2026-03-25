@@ -2,6 +2,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +27,7 @@ export default function TrainingDetail() {
   const { data: members = [] } = useTrainingMembers(id);
   const { data: sessions = [] } = useTrainingSessions(id);
   const { user } = useAuth();
+  const qc = useQueryClient();
   const removeMember = useRemoveTrainingMember(id!);
   const cancelSession = useCancelSession(id!);
   const rescheduleSession = useRescheduleSession(id!);
@@ -76,7 +78,13 @@ export default function TrainingDetail() {
       .update({ is_active: false })
       .eq('id', training.id);
     if (error) { toast.error(error.message); setDeleting(false); }
-    else { toast.success('Training deleted — members notified'); navigate('/coach/trainings'); }
+    else {
+      qc.invalidateQueries({ queryKey: ['trainings'] });
+      qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+      toast.success('Training deleted — members notified');
+      navigate('/coach/trainings');
+    }
   }
 
   const isDeleted = !training.is_active;
@@ -379,7 +387,9 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
     const daysChanged = JSON.stringify(form.days_of_week) !== oldDays;
     if (timeChanged || daysChanged) {
-      const msg = `📅 ${training.name} schedule updated: now ${form.start_time}–${form.end_time}.`;
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const days = form.days_of_week.map(d => dayNames[d]).join(', ');
+      const msg = `📅 ${training.name} schedule updated: ${days} ${form.start_time}–${form.end_time}.`;
       try {
         const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
         const convId = await getOrCreateTrainingConversation(training.id);
@@ -388,6 +398,11 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
           await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
         }
       } catch {}
+    }
+
+    // Regenerate sessions if days changed (new days need new sessions)
+    if (daysChanged) {
+      await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
     }
 
     toast.success('Training updated');
