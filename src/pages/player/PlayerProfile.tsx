@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
@@ -12,10 +12,17 @@ import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
 export default function PlayerProfile() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name ?? '');
+      setPhone(profile.phone ?? '');
+    }
+  }, [profile]);
 
   const isDirty = name !== (profile?.full_name ?? '')
     || phone !== (profile?.phone ?? '');
@@ -29,8 +36,9 @@ export default function PlayerProfile() {
       .update({ full_name: name, phone: phone || null })
       .eq('id', user.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else toast.success('Profile updated');
+    if (error) { toast.error(error.message); return; }
+    toast.success('Profile updated');
+    await refreshProfile();
   }
 
   return (
