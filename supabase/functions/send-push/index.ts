@@ -21,35 +21,39 @@ Deno.serve(async (req) => {
 
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  // Authenticate the caller
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  // Verify the JWT to get the caller's user ID
-  const supabaseAuth = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY') ?? authHeader.replace('Bearer ', '')
-  );
-  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? 'notify';
     const results: any = {};
+
+    // ── Determine sender: from JWT (client calls) or from body (server/trigger calls) ──
+    let senderId: string | null = null;
+
+    const authHeader = req.headers.get('authorization');
+    if (authHeader) {
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY') ?? authHeader.replace('Bearer ', '')
+      );
+      const { data: { user } } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
+      senderId = user?.id ?? null;
+    }
+
+    // For server-side calls (DB trigger), sender_id comes in the body
+    if (!senderId && body.sender_id) {
+      senderId = body.sender_id;
+    }
+
+    if (!senderId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // ── Generic: send push to specific users ──
     if (action === 'notify') {
@@ -60,7 +64,7 @@ Deno.serve(async (req) => {
         supabaseAdmin,
         user_ids,
         JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
-        user.id,
+        senderId,
       );
     }
 
@@ -73,7 +77,7 @@ Deno.serve(async (req) => {
       const { data: senderProfile } = await supabaseAdmin
         .from('profiles')
         .select('full_name')
-        .eq('id', user.id)
+        .eq('id', senderId)
         .single();
 
       // Get conversation details
@@ -83,12 +87,12 @@ Deno.serve(async (req) => {
         .eq('id', conversation_id)
         .single();
 
-      // Get all participants except sender, with their roles
+      // Get all participants except sender
       const { data: participants } = await supabaseAdmin
         .from('conversation_participants')
         .select('user_id')
         .eq('conversation_id', conversation_id)
-        .neq('user_id', user.id);
+        .neq('user_id', senderId);
 
       if (!participants?.length) {
         results.sent = 0;
@@ -124,8 +128,8 @@ Deno.serve(async (req) => {
               : `/coach/trainings/${conv.training_id}`;
           } else {
             url = role === 'player'
-              ? `/player/dm/${user.id}`
-              : `/coach/dm/${user.id}`;
+              ? `/player/dm/${senderId}`
+              : `/coach/dm/${senderId}`;
           }
 
           try {
@@ -154,7 +158,7 @@ Deno.serve(async (req) => {
       const { data: subs } = await supabaseAdmin
         .from('push_subscriptions')
         .select('endpoint, keys')
-        .eq('user_id', user.id);
+        .eq('user_id', senderId);
 
       results.sent = await sendPushToSubs(
         subs ?? [],

@@ -6,7 +6,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { notifyUsers, notifyMessage } from '@/lib/pushNotify';
+import { notifyUsers } from '@/lib/pushNotify';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
@@ -386,7 +386,6 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
-          notifyMessage(convId, msg);
         }
       } catch {}
     }

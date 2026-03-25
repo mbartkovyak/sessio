@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { notifyUsers, notifyMessage } from '@/lib/pushNotify';
+import { notifyUsers } from '@/lib/pushNotify';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
@@ -381,7 +381,7 @@ export function useCancelSession(trainingId: string) {
             sender_id: user.id,
             content: msg,
           });
-          notifyMessage(conv.id, msg);
+
         }
       }
     },
@@ -422,7 +422,6 @@ export function useRescheduleSession(trainingId: string) {
             sender_id: user.id,
             content: chatMsg,
           });
-          notifyMessage(conv.id, chatMsg);
         }
       }
     },

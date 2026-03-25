@@ -9,7 +9,6 @@ import Avatar from '@/components/shared/Avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { notifyMessage } from '@/lib/pushNotify';
 import { SPORT_ICONS } from '@/lib/constants';
 
 export default function CoachOverviewSection() {
@@ -48,11 +47,7 @@ export default function CoachOverviewSection() {
     if (error) { toast.error(error.message); return; }
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
-      if (conv) {
-        const msg = `⚠️ ${training?.name} on ${session.session_date} has been cancelled.`;
-        await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: msg });
-        notifyMessage(conv.id, msg);
-      }
+      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `⚠️ ${training?.name} on ${session.session_date} has been cancelled.` });
     }
     qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
