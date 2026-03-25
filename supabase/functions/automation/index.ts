@@ -112,8 +112,14 @@ Deno.serve(async (req) => {
       results.sessions_created = (data as any)?.created ?? 0;
     }
 
-    // ── 3. Send confirmation reminders ──
+    // ── 3. Send confirmation reminders (only between 9:00–22:00 Warsaw time) ──
     if (action === 'full' || action === 'notifications') {
+      const warsawHour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Warsaw' }).format(new Date()));
+      if (warsawHour < 9 || warsawHour >= 22) {
+        results.reminders_sent = 0;
+        results.skipped_reason = 'outside_hours';
+      } else {
+
       const { data: pending, error } = await supabase
         .from('session_attendance')
         .select(`
@@ -164,6 +170,7 @@ Deno.serve(async (req) => {
       }
 
       results.reminders_sent = sent;
+      } // end hours check
     }
 
     // ── 4. Handle no-response deadline ──
