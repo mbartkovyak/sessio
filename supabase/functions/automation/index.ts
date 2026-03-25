@@ -144,12 +144,12 @@ Deno.serve(async (req) => {
         if (!session || !training) continue;
 
         const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const windowMs = (training.confirmation_window_hours ?? 48) * 60 * 60 * 1000;
-
-        // Only send if within confirmation window and session hasn't passed
-        if (sessionStart - now > windowMs || sessionStart < now) continue;
-
         const deadlineHours = training.cancel_deadline_hours ?? 2;
+        // Remind 24h before the cancel deadline
+        const reminderMs = (deadlineHours + 24) * 60 * 60 * 1000;
+
+        // Only send if within reminder window and session hasn't passed
+        if (sessionStart - now > reminderMs || sessionStart < now) continue;
 
         const payload = JSON.stringify({
           title: training.name,
