@@ -135,6 +135,44 @@ export default function CoachOverviewSection() {
         ))}
       </div>
 
+      {/* Join Requests */}
+      {joinRequests.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
+          <div className="space-y-2">
+            {joinRequests.map((req: any) => {
+              const player = req.profiles;
+              const training = req.trainings;
+              return (
+                <div key={req.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Avatar url={player?.avatar_url} name={player?.full_name} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{training?.name}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97]"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                    </button>
+                    <button
+                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
+                      className="flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground min-h-[40px] transition-all active:scale-[0.97]"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Upcoming Sessions — up to 4 with cancel/reschedule */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -212,44 +250,6 @@ export default function CoachOverviewSection() {
           </>
         )}
       </section>
-
-      {/* Join Requests */}
-      {joinRequests.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
-          <div className="space-y-2">
-            {joinRequests.map((req: any) => {
-              const player = req.profiles;
-              const training = req.trainings;
-              return (
-                <div key={req.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <Avatar url={player?.avatar_url} name={player?.full_name} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{training?.name}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97]"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
-                    </button>
-                    <button
-                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
-                      className="flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground min-h-[40px] transition-all active:scale-[0.97]"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
