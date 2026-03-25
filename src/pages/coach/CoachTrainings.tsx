@@ -63,36 +63,21 @@ export default function CoachTrainings() {
 
           {/* Filters */}
           <div className="flex gap-2">
-            <div className="relative">
-              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as TypeFilter)}
-                className={`appearance-none rounded-full pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${
-                  typeFilter !== 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground'
-                }`}>
-                <option value="all">Type</option>
-                <option value="group">Group</option>
-                <option value="individual">Individual</option>
-              </select>
-              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
-                typeFilter !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'
-              }`} />
-            </div>
-            <div className="relative">
-              <select value={scheduleFilter} onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
-                className={`appearance-none rounded-full pl-3 pr-7 py-1.5 text-xs font-semibold transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring ${
-                  scheduleFilter !== 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground'
-                }`}>
-                <option value="all">Schedule</option>
-                <option value="recurring">Recurring</option>
-                <option value="one-time">One-time</option>
-              </select>
-              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
-                scheduleFilter !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'
-              }`} />
-            </div>
+            {([
+              { value: typeFilter, set: (v: string) => setTypeFilter(v as TypeFilter), label: typeFilter === 'all' ? 'Type' : typeFilter === 'group' ? 'Group' : 'Individual', options: [['all', 'Type'], ['group', 'Group'], ['individual', 'Individual']] },
+              { value: scheduleFilter, set: (v: string) => setScheduleFilter(v as ScheduleFilter), label: scheduleFilter === 'all' ? 'Schedule' : scheduleFilter === 'recurring' ? 'Recurring' : 'One-time', options: [['all', 'Schedule'], ['recurring', 'Recurring'], ['one-time', 'One-time']] },
+            ] as const).map(({ value, set, label, options }, i) => (
+              <div key={i} className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition-colors ${
+                value !== 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+              }`}>
+                <span className="text-xs font-semibold pointer-events-none">{label}</span>
+                <ChevronDown className={`h-3 w-3 pointer-events-none ${value !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                <select value={value} onChange={e => set(e.target.value)}
+                  className="absolute inset-0 w-full opacity-0 cursor-pointer" aria-label={label}>
+                  {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
         </div>
 
