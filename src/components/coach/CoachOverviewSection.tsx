@@ -103,7 +103,7 @@ export default function CoachOverviewSection() {
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
           Hey, {profile?.full_name?.split(' ')[0] ?? 'Coach'}
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Your training overview</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Here's your training overview</p>
       </div>
 
       {/* School membership banner */}
