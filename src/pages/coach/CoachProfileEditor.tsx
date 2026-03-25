@@ -10,6 +10,7 @@ import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import PhoneInput from '@/components/shared/PhoneInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
@@ -22,11 +23,13 @@ export default function CoachProfileEditor() {
   const [city, setCity] = useState(profile?.city ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [sport, setSport] = useState(profile?.sport ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
   const [venues, setVenues] = useState<Venue[]>(((profile as any)?.venues as Venue[]) ?? []);
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
 
   const isDirty = name !== (profile?.full_name ?? '')
+    || phone !== (profile?.phone ?? '')
     || city !== (profile?.city ?? '')
     || bio !== (profile?.bio ?? '')
     || sport !== (profile?.sport ?? '');
@@ -37,7 +40,7 @@ export default function CoachProfileEditor() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name, city, bio, sport, venues })
+      .update({ full_name: name, phone: phone || null, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -86,6 +89,7 @@ export default function CoachProfileEditor() {
                 value={name} onChange={e => setName(e.target.value)}
               />
             </div>
+            <PhoneInput value={phone} onChange={setPhone} />
             <SelectField label="City" value={city} onChange={setCity} options={CITIES} placeholder="Select city" />
             <SelectField label="Sport" value={sport} onChange={setSport} options={SPORTS} placeholder="Select sport" />
             <div>

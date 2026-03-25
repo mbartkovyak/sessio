@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import AccountActions from '@/components/shared/AccountActions';
+import PhoneInput from '@/components/shared/PhoneInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 
@@ -13,8 +14,10 @@ export default function PlayerProfile() {
   const { profile, user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
 
-  const isDirty = name !== (profile?.full_name ?? '');
+  const isDirty = name !== (profile?.full_name ?? '')
+    || phone !== (profile?.phone ?? '');
   const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
@@ -22,7 +25,7 @@ export default function PlayerProfile() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name })
+      .update({ full_name: name, phone: phone || null })
       .eq('id', user.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -56,6 +59,8 @@ export default function PlayerProfile() {
               value={name} onChange={e => setName(e.target.value)}
             />
           </div>
+
+          <PhoneInput value={phone} onChange={setPhone} />
 
           <button
             onClick={handleSave}
