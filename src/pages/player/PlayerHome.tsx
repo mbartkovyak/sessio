@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle2, Clock } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
+import AppHeader from '@/components/shared/AppHeader';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
 import { relativeTime } from '@/components/player/home/relativeTime';
@@ -38,8 +39,8 @@ export default function PlayerHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-card border-b border-border px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
+        <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
       </header>

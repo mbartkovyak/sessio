@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, MapPin } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -20,11 +21,7 @@ export default function PlayerCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Calendar</h1>
-        </div>
-      </header>
+      <AppHeader title="Calendar" />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">

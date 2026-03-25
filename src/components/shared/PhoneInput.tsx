@@ -57,7 +57,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
   }, [value]);
 
   function emit(cc: string, num: string) {
-    const digits = num.replace(/\D/g, '');
+    const digits = num.replace(/\D/g, '').slice(0, 12);
     onChange(digits ? `${cc}${digits}` : '');
   }
 
@@ -86,6 +86,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
           inputMode="numeric"
           placeholder="Phone number"
           value={number}
+          maxLength={12}
           onChange={e => { setNumber(e.target.value); emit(countryCode, e.target.value); }}
           className="flex-1 rounded-xl border border-input bg-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
         />

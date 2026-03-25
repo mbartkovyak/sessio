@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Star, MapPin } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -31,12 +31,7 @@ export default function CoachPublicProfile() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-4">
-        <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="font-semibold text-foreground truncate">{profile?.full_name ?? 'Coach Profile'}</h1>
-      </header>
+      <AppHeader title={profile?.full_name ?? 'Coach Profile'} back />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto">

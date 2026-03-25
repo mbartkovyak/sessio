@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
 import { SPORTS, CITIES } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
@@ -34,11 +35,7 @@ export default function PlayerSearch() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-bold text-foreground">Discover</h1>
-        </div>
-      </header>
+      <AppHeader title="Discover" />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-3 pb-2 space-y-3">

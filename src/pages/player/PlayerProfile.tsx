@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
+import AppHeader from '@/components/shared/AppHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -34,11 +35,7 @@ export default function PlayerProfile() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">Profile</h1>
-        </div>
-      </header>
+      <AppHeader title="Profile" />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
