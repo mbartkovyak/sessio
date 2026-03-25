@@ -1,7 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Vercel cron sends authorization header with CRON_SECRET
+export default async function handler(req: any, res: any) {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.authorization;
 
