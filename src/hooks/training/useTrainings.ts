@@ -351,6 +351,8 @@ export function useRespondJoinRequest() {
       qc.invalidateQueries({ queryKey: ['all-join-requests'] });
       qc.invalidateQueries({ queryKey: ['join-requests'] });
       qc.invalidateQueries({ queryKey: ['training-members'] });
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['my-join-requests'] });
     },
   });
 }
