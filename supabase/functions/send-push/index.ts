@@ -1,10 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import webPush from 'npm:web-push@3.6.7';
-
-const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')!;
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')!;
-
-webPush.setVapidDetails('mailto:hello@sessio.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+import { webPush, sendPushToSubs, sendPushToUsers } from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
   'https://sessio-topaz.vercel.app',
@@ -18,29 +13,6 @@ function getCorsHeaders(req: Request) {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
-}
-
-// ── Shared helper: send push to a list of subscriptions ──
-
-type Sub = { endpoint: string; keys: any; user_id?: string };
-
-async function sendPushToSubs(
-  subs: Sub[],
-  payload: string,
-  supabaseAdmin: any,
-): Promise<number> {
-  let sent = 0;
-  for (const sub of subs) {
-    try {
-      await webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
-      sent++;
-    } catch (err: any) {
-      if (err.statusCode === 410 || err.statusCode === 404) {
-        await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-      }
-    }
-  }
-  return sent;
 }
 
 Deno.serve(async (req) => {
@@ -75,7 +47,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const action = body.action ?? 'send_confirmations';
+    const action = body.action ?? 'notify';
     const results: any = {};
 
     // ── Generic: send push to specific users ──
@@ -83,22 +55,12 @@ Deno.serve(async (req) => {
       const { user_ids, title, body: pushBody, tag, url } = body;
       if (!Array.isArray(user_ids) || !title) throw new Error('user_ids[] and title required');
 
-      // Always exclude the sender
-      const targets = user_ids.filter((id: string) => id !== user.id);
-      if (!targets.length) {
-        results.sent = 0;
-      } else {
-        const { data: subs } = await supabaseAdmin
-          .from('push_subscriptions')
-          .select('endpoint, keys')
-          .in('user_id', targets);
-
-        results.sent = await sendPushToSubs(
-          subs ?? [],
-          JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
-          supabaseAdmin,
-        );
-      }
+      results.sent = await sendPushToUsers(
+        supabaseAdmin,
+        user_ids,
+        JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
+        user.id,
+      );
     }
 
     // ── Message: notify conversation participants ──
@@ -184,53 +146,6 @@ Deno.serve(async (req) => {
         }
         results.sent = sent;
       }
-    }
-
-    // ── Send confirmation reminders for upcoming sessions ──
-    if (action === 'send_confirmations') {
-      const { data: pending, error } = await supabaseAdmin
-        .from('session_attendance')
-        .select(`
-          id, user_id, session_id, status,
-          training_sessions(id, session_date, start_time, end_time,
-            trainings(id, name, confirmation_window_hours)
-          )
-        `)
-        .eq('status', 'pending')
-        .limit(100);
-
-      if (error) throw error;
-
-      const now = Date.now();
-      let sent = 0;
-
-      for (const att of pending ?? []) {
-        const session = att.training_sessions as any;
-        const training = session?.trainings;
-        if (!session || !training) continue;
-
-        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const windowMs = (training.confirmation_window_hours ?? 48) * 60 * 60 * 1000;
-        if (sessionStart - now > windowMs || sessionStart < now) continue;
-
-        const { data: subs } = await supabaseAdmin
-          .from('push_subscriptions')
-          .select('endpoint, keys')
-          .eq('user_id', att.user_id);
-
-        if (!subs?.length) continue;
-
-        const payload = JSON.stringify({
-          title: training.name,
-          body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — are you coming?`,
-          tag: `confirm-${att.session_id}`,
-          url: '/player',
-        });
-
-        sent += await sendPushToSubs(subs, payload, supabaseAdmin);
-      }
-
-      results.sent = sent;
     }
 
     // ── Test: send a push to yourself only ──

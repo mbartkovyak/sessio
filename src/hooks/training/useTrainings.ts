@@ -245,7 +245,11 @@ export function useUpsertAttendance() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ sessionId, status }: { sessionId: string; status: string }) => {
+    mutationFn: async ({ sessionId, status, notify }: {
+      sessionId: string;
+      status: string;
+      notify?: { coachId: string; trainingName: string; trainingId: string };
+    }) => {
       const update: any = { session_id: sessionId, user_id: user!.id, status };
       if (status === 'confirmed') update.confirmed_at = new Date().toISOString();
       if (status === 'declined') update.declined_at = new Date().toISOString();
@@ -253,6 +257,15 @@ export function useUpsertAttendance() {
         .from('session_attendance')
         .upsert(update, { onConflict: 'session_id,user_id' });
       if (error) throw error;
+
+      if (notify && (status === 'confirmed' || status === 'declined')) {
+        notifyUsers([notify.coachId], {
+          title: status === 'confirmed' ? 'Player confirmed' : 'Player declined',
+          body: `A player ${status} for ${notify.trainingName}.`,
+          tag: `attendance-${sessionId}`,
+          url: `/coach/trainings/${notify.trainingId}`,
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });

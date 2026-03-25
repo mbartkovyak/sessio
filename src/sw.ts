@@ -13,16 +13,32 @@ self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim(
 // Push notification handler
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
-  const title = data.title ?? 'Sessio';
-  const options: NotificationOptions = {
-    body: data.body ?? '',
-    icon: '/icons/icon-192.svg',
-    badge: '/icons/icon-192.svg',
-    tag: data.tag ?? 'sessio-notification',
-    data: { url: data.url ?? '/' },
-    actions: data.actions ?? [],
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  const tag = data.tag ?? 'sessio-notification';
+  const pushUrl = data.url ?? '/';
+
+  const promise = self.clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((clients) => {
+      // Suppress message notifications if user is viewing that conversation
+      if (tag.startsWith('msg-')) {
+        for (const client of clients) {
+          try {
+            if (client.focused && new URL(client.url).pathname === pushUrl) return;
+          } catch { /* ignore invalid URLs */ }
+        }
+      }
+
+      return self.registration.showNotification(data.title ?? 'Sessio', {
+        body: data.body ?? '',
+        icon: '/icons/icon-192.svg',
+        badge: '/icons/icon-192.svg',
+        tag,
+        data: { url: pushUrl },
+        actions: data.actions ?? [],
+      });
+    });
+
+  event.waitUntil(promise);
 });
 
 // Notification click handler
@@ -32,7 +48,6 @@ self.addEventListener('notificationclick', (event) => {
 
   // Handle action buttons
   if (event.action === 'confirm') {
-    // Will be handled by opening the app with a special URL
     event.waitUntil(self.clients.openWindow(url + '?action=confirm'));
     return;
   }
