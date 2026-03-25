@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
           if (conv?.training_id) {
             url = role === 'player'
-              ? `/player/messages/${conversation_id}`
+              ? `/player/messages/${conv.training_id}`
               : `/coach/trainings/${conv.training_id}`;
           } else {
             url = role === 'player'
