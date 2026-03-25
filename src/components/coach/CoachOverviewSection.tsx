@@ -9,20 +9,21 @@ import Avatar from '@/components/shared/Avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { notifyMessage } from '@/lib/pushNotify';
 import { SPORT_ICONS } from '@/lib/constants';
 
 export default function CoachOverviewSection() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
-  const { data: trainings = [] } = useTrainings();
-  const { data: joinRequests = [] } = useAllCoachJoinRequests();
+  const { data: trainings = [], isLoading: trainingsLoading } = useTrainings();
+  const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 5);
+  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
   const qc = useQueryClient();
   const trainingIds = trainings.map((t: any) => t.id);
-  const { data: totalAthletes = 0 } = useQuery({
+  const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
     queryKey: ['coach-total-athletes', trainingIds],
     enabled: trainingIds.length > 0,
     queryFn: async () => {
@@ -47,7 +48,11 @@ export default function CoachOverviewSection() {
     if (error) { toast.error(error.message); return; }
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
-      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `⚠️ ${training?.name} on ${session.session_date} has been cancelled.` });
+      if (conv) {
+        const msg = `⚠️ ${training?.name} on ${session.session_date} has been cancelled.`;
+        await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: msg });
+        notifyMessage(conv.id, msg);
+      }
     }
     qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
@@ -81,6 +86,20 @@ export default function CoachOverviewSection() {
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+  // athletesPending (not isLoading) because the query starts disabled — isLoading would be
+  // false in the gap between trainings loading and athletes query starting, flashing 0s.
+  // Guard with trainingIds.length so coaches with 0 trainings don't spin forever.
+  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading
+    || (trainingIds.length > 0 && athletesPending);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
