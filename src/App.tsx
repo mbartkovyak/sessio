@@ -13,12 +13,29 @@ import { useLocation } from "react-router-dom";
 
 function PushRegistrar() { useAutoRegisterPush(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
+function RefreshOnResume() {
+  useEffect(() => {
+    const refresh = () => queryClient.invalidateQueries();
+    const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
+    const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) refresh(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('focus', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
+  return null;
+}
 
 function RootLayout() {
   return (
     <>
       <NavigationLoadingBar />
       <ScrollToTop />
+      <RefreshOnResume />
       <InstallPWA />
       <ErrorBoundary>
         <AuthProvider>
@@ -68,7 +85,16 @@ import SchoolCalendar from "./pages/school/SchoolCalendar";
 import SchoolCoaches from "./pages/school/SchoolCoaches";
 import SchoolProfileEditor from "./pages/school/SchoolProfileEditor";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000,   // 2 min — data stays fresh, no refetch on mount
+      gcTime: 10 * 60 * 1000,     // 10 min — keep unused cache in memory
+      refetchOnWindowFocus: false, // mobile PWA: no refetch on tab switch
+      retry: 1,                    // fail fast
+    },
+  },
+});
 
 const router = createBrowserRouter(
   createRoutesFromElements(

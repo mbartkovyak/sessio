@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, Users, Mail, Calendar } from 'lucide-react';
@@ -14,6 +15,7 @@ export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
@@ -161,6 +163,7 @@ export default function JoinTraining() {
             url: `/coach/trainings/${training.id}`,
           });
         }
+        queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
         toast.success(memberRole === 'waitlist' ? "Added to waitlist!" : `Joined ${training.name}! 🎉`);
         navigate('/player');
       } else {
