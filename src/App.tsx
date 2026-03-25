@@ -15,16 +15,20 @@ function PushRegistrar() { useAutoRegisterPush(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
 function RefreshOnResume() {
   useEffect(() => {
-    const refresh = () => queryClient.invalidateQueries();
+    let lastRefresh = 0;
+    const refresh = () => {
+      const now = Date.now();
+      if (now - lastRefresh < 10_000) return; // throttle: skip if < 10s since last refresh
+      lastRefresh = now;
+      queryClient.invalidateQueries();
+    };
     const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
     const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) refresh(); };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pageshow', onPageShow);
-    window.addEventListener('focus', refresh);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pageshow', onPageShow);
-      window.removeEventListener('focus', refresh);
     };
   }, []);
   return null;
