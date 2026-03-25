@@ -4,6 +4,7 @@ import { sendPushToUsers } from '../_shared/push.ts';
 const ALLOWED_ORIGINS = [
   'https://sessio-topaz.vercel.app',
   'https://sessio-dev.vercel.app',
+  'https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app',
 ];
 
 function getCorsHeaders(req: Request) {
