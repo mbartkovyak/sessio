@@ -2,21 +2,21 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Phone } from 'lucide-react';
 
 const COUNTRY_CODES = [
-  { code: '+48', country: 'PL', flag: '🇵🇱' },
-  { code: '+380', country: 'UA', flag: '🇺🇦' },
-  { code: '+49', country: 'DE', flag: '🇩🇪' },
-  { code: '+44', country: 'GB', flag: '🇬🇧' },
-  { code: '+33', country: 'FR', flag: '🇫🇷' },
-  { code: '+34', country: 'ES', flag: '🇪🇸' },
-  { code: '+39', country: 'IT', flag: '🇮🇹' },
-  { code: '+420', country: 'CZ', flag: '🇨🇿' },
-  { code: '+421', country: 'SK', flag: '🇸🇰' },
-  { code: '+31', country: 'NL', flag: '🇳🇱' },
-  { code: '+46', country: 'SE', flag: '🇸🇪' },
-  { code: '+47', country: 'NO', flag: '🇳🇴' },
-  { code: '+43', country: 'AT', flag: '🇦🇹' },
-  { code: '+41', country: 'CH', flag: '🇨🇭' },
-  { code: '+1', country: 'US', flag: '🇺🇸' },
+  { code: '+48', country: 'PL', flag: '🇵🇱', digits: 9 },
+  { code: '+380', country: 'UA', flag: '🇺🇦', digits: 9 },
+  { code: '+49', country: 'DE', flag: '🇩🇪', digits: 11 },
+  { code: '+44', country: 'GB', flag: '🇬🇧', digits: 10 },
+  { code: '+33', country: 'FR', flag: '🇫🇷', digits: 9 },
+  { code: '+34', country: 'ES', flag: '🇪🇸', digits: 9 },
+  { code: '+39', country: 'IT', flag: '🇮🇹', digits: 10 },
+  { code: '+420', country: 'CZ', flag: '🇨🇿', digits: 9 },
+  { code: '+421', country: 'SK', flag: '🇸🇰', digits: 9 },
+  { code: '+31', country: 'NL', flag: '🇳🇱', digits: 9 },
+  { code: '+46', country: 'SE', flag: '🇸🇪', digits: 9 },
+  { code: '+47', country: 'NO', flag: '🇳🇴', digits: 8 },
+  { code: '+43', country: 'AT', flag: '🇦🇹', digits: 10 },
+  { code: '+41', country: 'CH', flag: '🇨🇭', digits: 9 },
+  { code: '+1', country: 'US', flag: '🇺🇸', digits: 10 },
 ] as const;
 
 /** Parse an E.164 phone string into country code + local number */
@@ -56,12 +56,14 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
     setNumber(p.number);
   }, [value]);
 
+  const selected = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0];
+  const maxDigits = selected.digits;
+
   function emit(cc: string, num: string) {
-    const digits = num.replace(/\D/g, '').slice(0, 12);
+    const sel = COUNTRY_CODES.find(c => c.code === cc) ?? COUNTRY_CODES[0];
+    const digits = num.replace(/\D/g, '').slice(0, sel.digits);
     onChange(digits ? `${cc}${digits}` : '');
   }
-
-  const selected = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0];
 
   return (
     <div>
@@ -86,7 +88,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
           inputMode="numeric"
           placeholder="Phone number"
           value={number}
-          maxLength={12}
+          maxLength={maxDigits}
           onChange={e => { setNumber(e.target.value); emit(countryCode, e.target.value); }}
           className="flex-1 rounded-xl border border-input bg-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
         />
