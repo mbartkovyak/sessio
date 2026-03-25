@@ -7,7 +7,7 @@ import { SessioLogo } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import { SPORTS, CITIES } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
-import PhoneInput from '@/components/shared/PhoneInput';
+import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -237,7 +237,7 @@ export default function Onboarding() {
                 <PhoneInput value={phone} onChange={setPhone} required />
                 <button
                   onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
-                  disabled={!firstName.trim() || !lastName.trim() || !phone.trim() || loading}
+                  disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

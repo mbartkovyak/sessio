@@ -38,6 +38,15 @@ function parsePhone(value: string | null | undefined): { countryCode: string; nu
   return { countryCode: '+48', number: cleaned };
 }
 
+/** Check if an E.164 phone string has the correct number of digits for its country */
+export function isValidPhone(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const { countryCode, number } = parsePhone(value);
+  const cc = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0];
+  const digits = number.replace(/\D/g, '');
+  return digits.length === cc.digits;
+}
+
 interface PhoneInputProps {
   value: string;
   onChange: (e164: string) => void;
