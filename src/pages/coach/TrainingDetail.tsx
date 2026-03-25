@@ -6,7 +6,7 @@ import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { notifyUsers } from '@/lib/pushNotify';
+import { notifyUsers, notifyMessage } from '@/lib/pushNotify';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
 
@@ -360,6 +360,10 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
   } : undefined;
 
   async function handleSave(form: TrainingFormValues) {
+    const oldTime = training.start_time?.slice(0, 5);
+    const oldEnd = training.end_time?.slice(0, 5);
+    const oldDays = JSON.stringify(training.days_of_week ?? [training.day_of_week ?? 0]);
+
     await update.mutateAsync({
       name: form.name, sport: form.sport, venue: form.venue,
       type: form.type,
@@ -370,6 +374,23 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       confirmation_window_hours: form.confirmation_window_hours,
       day_schedules: form.day_schedules || null,
     });
+
+    // Notify members if schedule changed
+    const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
+    const daysChanged = JSON.stringify(form.days_of_week) !== oldDays;
+    if (timeChanged || daysChanged) {
+      const msg = `📅 ${training.name} schedule updated: now ${form.start_time}–${form.end_time}.`;
+      try {
+        const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
+        const convId = await getOrCreateTrainingConversation(training.id);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
+          notifyMessage(convId, msg);
+        }
+      } catch {}
+    }
+
     toast.success('Training updated');
     onClose();
   }
