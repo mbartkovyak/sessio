@@ -4,13 +4,14 @@ import type { ReactNode } from 'react';
 
 interface AppHeaderProps {
   title: string;
+  subtitle?: string;
   back?: boolean;
   right?: ReactNode;
   /** Use shrink-0 instead of sticky (for full-screen layouts like chat) */
   inline?: boolean;
 }
 
-export default function AppHeader({ title, back, right, inline }: AppHeaderProps) {
+export default function AppHeader({ title, subtitle, back, right, inline }: AppHeaderProps) {
   const navigate = useNavigate();
   return (
     <header className={`${inline ? 'shrink-0' : 'sticky top-0 z-10'} px-4 py-4 header-gradient relative`}>
@@ -20,7 +21,10 @@ export default function AppHeader({ title, back, right, inline }: AppHeaderProps
             <ArrowLeft className="h-4.5 w-4.5" />
           </button>
         )}
-        <h1 className={`font-bold text-white text-center flex-1 ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
+        <div className="flex-1 text-center">
+          <h1 className={`font-bold text-white ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
+          {subtitle && <p className="text-xs text-white/70">{subtitle}</p>}
+        </div>
         {right && <div className="absolute right-4">{right}</div>}
       </div>
     </header>
