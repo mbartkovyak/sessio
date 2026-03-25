@@ -28,39 +28,39 @@ export type ConversationInfo = {
   unreadCount: number;
 };
 
-// ── Read tracking (localStorage) ──
+// ── Read tracking (DB-backed, localStorage as instant cache) ──
 
 const SEEN_KEY = 'msg_last_seen';
 const MANUAL_UNREAD_KEY = 'manual_unread';
 const HIDDEN_KEY = 'hidden_chats';
 
-// One-time migration: clear old training-ID-keyed data (now uses conversation IDs)
-if (!localStorage.getItem('_msg_migrated_v2')) {
-  localStorage.removeItem(SEEN_KEY);
-  localStorage.removeItem(MANUAL_UNREAD_KEY);
-  localStorage.removeItem(HIDDEN_KEY);
-  localStorage.setItem('_msg_migrated_v2', '1');
-}
-
 function getSeenMap(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) ?? '{}'); } catch { return {}; }
 }
 
+function getManualUnread(): string[] {
+  try { return JSON.parse(localStorage.getItem(MANUAL_UNREAD_KEY) ?? '[]'); } catch { return []; }
+}
+
 export function markConversationSeen(conversationId: string) {
+  const now = new Date().toISOString();
+  // Immediate: localStorage cache for instant UI
   const map = getSeenMap();
-  map[conversationId] = new Date().toISOString();
+  map[conversationId] = now;
   localStorage.setItem(SEEN_KEY, JSON.stringify(map));
   // Clear manual unread
   const manual = getManualUnread();
   localStorage.setItem(MANUAL_UNREAD_KEY, JSON.stringify(manual.filter(id => id !== conversationId)));
-}
-
-export function getConversationLastSeen(conversationId: string): string | null {
-  return getSeenMap()[conversationId] ?? null;
-}
-
-function getManualUnread(): string[] {
-  try { return JSON.parse(localStorage.getItem(MANUAL_UNREAD_KEY) ?? '[]'); } catch { return []; }
+  // Async: persist to DB (fire-and-forget)
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) return;
+    supabase
+      .from('conversation_participants')
+      .update({ last_read_at: now })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id)
+      .then();
+  });
 }
 
 export function markAsUnread(conversationId: string) {
@@ -68,28 +68,74 @@ export function markAsUnread(conversationId: string) {
   if (!list.includes(conversationId)) localStorage.setItem(MANUAL_UNREAD_KEY, JSON.stringify([...list, conversationId]));
 }
 
-function getHiddenChats(): string[] {
-  try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? '[]'); } catch { return []; }
+export function isManuallyUnread(conversationId: string): boolean {
+  return getManualUnread().includes(conversationId);
 }
 
 export function hideChat(conversationId: string) {
-  const hidden = getHiddenChats();
+  // localStorage cache for instant UI
+  const hidden: string[] = (() => { try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? '[]'); } catch { return []; } })();
   if (!hidden.includes(conversationId)) localStorage.setItem(HIDDEN_KEY, JSON.stringify([...hidden, conversationId]));
+  // Async: persist to DB
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) return;
+    supabase
+      .from('conversation_participants')
+      .update({ hidden: true })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id)
+      .then();
+  });
 }
 
 export function unhideChat(conversationId: string) {
-  const hidden = getHiddenChats();
+  // localStorage cache
+  const hidden: string[] = (() => { try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? '[]'); } catch { return []; } })();
   if (hidden.includes(conversationId)) localStorage.setItem(HIDDEN_KEY, JSON.stringify(hidden.filter(id => id !== conversationId)));
+  // Async: persist to DB
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) return;
+    supabase
+      .from('conversation_participants')
+      .update({ hidden: false })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id)
+      .then();
+  });
 }
 
-export function isUnread(conversationId: string, lastMsg: any, userId: string): boolean {
-  if (!lastMsg || lastMsg.sender_id === userId) return false;
-  const seen = getConversationLastSeen(conversationId);
-  return !seen || lastMsg.created_at > seen;
-}
+/** One-time seed: push existing localStorage read state to DB */
+export async function seedReadTrackingToDb() {
+  if (localStorage.getItem('_read_tracking_seeded')) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
-export function isManuallyUnread(conversationId: string): boolean {
-  return getManualUnread().includes(conversationId);
+  const seenMap = getSeenMap();
+  const hidden: string[] = (() => { try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? '[]'); } catch { return []; } })();
+  if (Object.keys(seenMap).length === 0 && hidden.length === 0) {
+    localStorage.setItem('_read_tracking_seeded', '1');
+    return;
+  }
+
+  const updates: Promise<any>[] = [];
+  for (const [convId, timestamp] of Object.entries(seenMap)) {
+    updates.push(
+      supabase.from('conversation_participants')
+        .update({ last_read_at: timestamp })
+        .eq('conversation_id', convId)
+        .eq('user_id', user.id)
+    );
+  }
+  for (const convId of hidden) {
+    updates.push(
+      supabase.from('conversation_participants')
+        .update({ hidden: true })
+        .eq('conversation_id', convId)
+        .eq('user_id', user.id)
+    );
+  }
+  await Promise.allSettled(updates);
+  localStorage.setItem('_read_tracking_seeded', '1');
 }
 
 // ── Conversation resolution ──
@@ -255,6 +301,11 @@ export function useMyConversations() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  // One-time: seed localStorage read state to DB (fire-and-forget)
+  useEffect(() => {
+    if (user) seedReadTrackingToDb();
+  }, [user?.id]);
+
   // Realtime: update conversation list when new messages arrive (debounced)
   useEffect(() => {
     if (!user) return;
@@ -285,7 +336,7 @@ export function useMyConversations() {
       // Coaches, athletes, school owners are all added via DB triggers.
       const { data: participations, error: partErr } = await supabase
         .from('conversation_participants')
-        .select('conversation_id')
+        .select('conversation_id, last_read_at, hidden')
         .eq('user_id', user!.id);
       if (partErr) throw partErr;
 
@@ -339,9 +390,13 @@ export function useMyConversations() {
         if (!latestMap.has(msg.conversation_id)) latestMap.set(msg.conversation_id, msg);
       }
 
-      // Get unread counts
-      const seenMap = getSeenMap();
-      const hidden = getHiddenChats();
+      // Build seenMap and hiddenSet from DB data
+      const seenMap: Record<string, string> = {};
+      const hiddenSet = new Set<string>();
+      for (const p of participations ?? []) {
+        if (p.last_read_at) seenMap[p.conversation_id] = p.last_read_at;
+        if (p.hidden) hiddenSet.add(p.conversation_id);
+      }
 
       const result: ConversationInfo[] = [];
       for (const conv of convos) {
@@ -356,7 +411,7 @@ export function useMyConversations() {
         }
 
         // Archived DMs: skip if no unread, show if new messages arrived
-        if (hidden.includes(conv.id) && unreadCount === 0) continue;
+        if (hiddenSet.has(conv.id) && unreadCount === 0) continue;
 
         if (conv.training_id) {
           const training = trainingMap.get(conv.training_id);
@@ -412,12 +467,15 @@ export function useUnreadMessageCount() {
     queryFn: async () => {
       const { data: parts } = await supabase
         .from('conversation_participants')
-        .select('conversation_id')
+        .select('conversation_id, last_read_at')
         .eq('user_id', user!.id);
       const convIds = (parts ?? []).map(p => p.conversation_id);
       if (convIds.length === 0) return getManualUnread().length;
 
-      const seenMap = getSeenMap();
+      const seenMap: Record<string, string> = {};
+      for (const p of parts ?? []) {
+        if (p.last_read_at) seenMap[p.conversation_id] = p.last_read_at;
+      }
       const { data: msgs } = await supabase
         .from('messages')
         .select('conversation_id, created_at, sender_id')
