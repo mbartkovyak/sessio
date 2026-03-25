@@ -70,7 +70,7 @@ export default function CoachTrainings() {
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground'
                 }`}>
-                <option value="all">All types</option>
+                <option value="all">Type</option>
                 <option value="group">Group</option>
                 <option value="individual">Individual</option>
               </select>
@@ -85,7 +85,7 @@ export default function CoachTrainings() {
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground'
                 }`}>
-                <option value="all">All schedules</option>
+                <option value="all">Schedule</option>
                 <option value="recurring">Recurring</option>
                 <option value="one-time">One-time</option>
               </select>
