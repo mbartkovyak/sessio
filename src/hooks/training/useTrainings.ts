@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { notifyUsers } from '@/lib/pushNotify';
+import { notifyUsers, notifyMessage } from '@/lib/pushNotify';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
@@ -367,7 +367,7 @@ export function useCancelSession(trainingId: string) {
         .update({ status: 'cancelled' })
         .eq('id', sessionId);
       if (error) throw error;
-      // Notify in training chat
+      // Notify in training chat — push comes from the chat message
       if (user) {
         const { data: conv } = await supabase
           .from('conversations')
@@ -375,22 +375,13 @@ export function useCancelSession(trainingId: string) {
           .eq('training_id', trainingId)
           .maybeSingle();
         if (conv) {
+          const msg = `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`;
           await supabase.from('messages').insert({
             conversation_id: conv.id,
             sender_id: user.id,
-            content: `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`,
+            content: msg,
           });
-        }
-        // Push to all training members
-        const { data: members } = await supabase
-          .from('training_members')
-          .select('user_id')
-          .eq('training_id', trainingId);
-        if (members?.length) {
-          notifyUsers(
-            members.map(m => m.user_id),
-            { title: 'Session cancelled', body: `${trainingName} on ${sessionDate} has been cancelled.`, tag: `cancel-${sessionId}`, url: '/player' },
-          );
+          notifyMessage(conv.id, msg);
         }
       }
     },
@@ -431,17 +422,7 @@ export function useRescheduleSession(trainingId: string) {
             sender_id: user.id,
             content: chatMsg,
           });
-        }
-        // Push to all training members
-        const { data: members } = await supabase
-          .from('training_members')
-          .select('user_id')
-          .eq('training_id', trainingId);
-        if (members?.length) {
-          notifyUsers(
-            members.map(m => m.user_id),
-            { title: 'Session rescheduled', body: chatMsg, tag: `reschedule-${sessionId}`, url: '/player' },
-          );
+          notifyMessage(conv.id, chatMsg);
         }
       }
     },
