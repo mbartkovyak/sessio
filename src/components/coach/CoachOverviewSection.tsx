@@ -1,25 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Users, ChevronRight } from 'lucide-react';
-import NewLessonButton from '@/components/coach/NewLessonButton';
+import { format } from 'date-fns';
+import { CheckCircle2, Users, CalendarDays, X, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
 import { useUpcomingSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
-import TrainingCard from '@/components/shared/TrainingCard';
 import Avatar from '@/components/shared/Avatar';
-import TodaySessionRow from '@/components/coach/TodaySessionRow';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { SPORT_ICONS } from '@/lib/constants';
 
 export default function CoachOverviewSection() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
-  const { data: trainings = [], isLoading } = useTrainings();
+  const { data: trainings = [] } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
   const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 7);
   const { data: schoolMembership } = useMySchoolMembership();
+  const qc = useQueryClient();
   const trainingIds = trainings.map((t: any) => t.id);
   const { data: totalAthletes = 0 } = useQuery({
     queryKey: ['coach-total-athletes', trainingIds],
@@ -34,8 +35,52 @@ export default function CoachOverviewSection() {
       return count ?? 0;
     },
   });
-  // Coaches in a school cannot create lessons
-  const canCreate = isSchoolOwner || !schoolMembership;
+
+  async function handleCancelSession(session: UpcomingSession) {
+    const training = session.trainings;
+    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM');
+    if (!confirm(`Cancel ${training?.name} on ${dateLabel}?`)) return;
+    const { error } = await supabase
+      .from('training_sessions')
+      .update({ status: 'cancelled' })
+      .eq('id', session.id);
+    if (error) { toast.error(error.message); return; }
+    if (user) {
+      const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
+      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `⚠️ ${training?.name} on ${session.session_date} has been cancelled.` });
+    }
+    qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
+    toast.success('Session cancelled');
+  }
+
+  async function handleRescheduleSession(session: UpcomingSession) {
+    const training = session.trainings;
+    const newDate = prompt('Reschedule to (YYYY-MM-DD):', session.session_date);
+    if (!newDate) return;
+    const newStart = prompt('Start time (HH:MM):', session.start_time?.slice(0, 5));
+    if (!newStart) return;
+    const newEnd = prompt('End time (HH:MM):', session.end_time?.slice(0, 5));
+    if (!newEnd) return;
+    if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
+    const { error } = await supabase
+      .from('training_sessions')
+      .update({ session_date: newDate, start_time: newStart, end_time: newEnd })
+      .eq('id', session.id);
+    if (error) { toast.error(error.message); return; }
+    if (user) {
+      const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
+      if (conv) await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content: `📅 ${training?.name} moved from ${session.session_date} to ${newDate} at ${newStart}.` });
+    }
+    qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
+    toast.success('Session rescheduled');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
@@ -68,44 +113,91 @@ export default function CoachOverviewSection() {
           { label: 'Lessons', value: trainings.length, style: 'primary' as const },
         ].map(({ label, value, style }) => (
           <div key={label} className={`rounded-2xl p-4 text-center shadow-md ${
-            style === 'accent' ? 'bg-accent text-accent-foreground' :
-            style === 'primary' ? 'bg-primary text-primary-foreground' :
-            'bg-white'
-          }`} style={style === 'white' ? { border: '1px solid hsl(203 20% 88%)' } : {}}>
-            <div className={`text-2xl font-bold ${style === 'white' ? 'text-foreground' : ''}`}>{value}</div>
-            <div className={`text-xs mt-1 font-medium ${
-              style === 'white' ? 'text-muted-foreground' : 'opacity-80'
-            }`}>{label}</div>
+            style === 'accent' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'
+          }`}>
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-xs mt-1 font-medium opacity-80">{label}</div>
           </div>
         ))}
       </div>
 
-      {/* Upcoming Sessions */}
-      {upcomingSessions.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Upcoming</h2>
-          <div className="space-y-2">
-            {(() => {
-              const today = new Date().toISOString().split('T')[0];
-              const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-              let lastDate = '';
-              return upcomingSessions.map((session: UpcomingSession) => {
-                const showLabel = session.session_date !== lastDate;
-                lastDate = session.session_date;
-                const label = session.session_date === today ? 'Today'
-                  : session.session_date === tomorrow ? 'Tomorrow'
-                  : new Date(session.session_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-                return (
-                  <div key={session.id}>
-                    {showLabel && <p className="text-xs font-medium text-muted-foreground mt-2 mb-1">{label}</p>}
-                    <TodaySessionRow session={session} />
-                  </div>
-                );
-              });
-            })()}
+      {/* Upcoming Sessions — up to 4 with cancel/reschedule */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Upcoming</h2>
+        </div>
+        {upcomingSessions.length === 0 ? (
+          <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+            <p className="text-sm text-muted-foreground">No upcoming sessions this week</p>
           </div>
-        </section>
-      )}
+        ) : (
+          <>
+            <div className="space-y-2">
+              {(() => {
+                let lastDate = '';
+                return upcomingSessions.slice(0, 4).map((session) => {
+                  const training = session.trainings;
+                  const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
+                  const showLabel = session.session_date !== lastDate;
+                  lastDate = session.session_date;
+                  const label = session.session_date === today ? 'Today'
+                    : session.session_date === tomorrow ? 'Tomorrow'
+                    : new Date(session.session_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+                  return (
+                    <div key={session.id}>
+                      {showLabel && <p className="text-xs font-medium text-muted-foreground mt-2 mb-1">{label}</p>}
+                      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                        <div className="flex items-center gap-2 px-4 py-3">
+                          <button
+                            onClick={() => navigate(`/coach/trainings/${training?.id}`)}
+                            className="flex flex-1 items-center gap-3 text-left min-w-0"
+                          >
+                            <span className="text-xl shrink-0">{sportIcon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-sm truncate text-foreground">{training?.name}</p>
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                              </div>
+                              <span className="text-xs text-muted-foreground mt-0.5 block">
+                                {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
+                              </span>
+                            </div>
+                          </button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button onClick={() => handleRescheduleSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Reschedule">
+                              <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                            </button>
+                            <button onClick={() => handleCancelSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors" title="Cancel session">
+                              <X className="h-3.5 w-3.5 text-destructive" />
+                            </button>
+                          </div>
+                        </div>
+                        {training?.venue && (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                          >
+                            <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+            {upcomingSessions.length > 4 && (
+              <button onClick={() => navigate('/coach/calendar')}
+                className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
+                Show all in calendar
+              </button>
+            )}
+          </>
+        )}
+      </section>
 
       {/* Join Requests */}
       {joinRequests.length > 0 && (
@@ -144,51 +236,6 @@ export default function CoachOverviewSection() {
           </div>
         </section>
       )}
-
-      {/* My Trainings */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">My Lessons</h2>
-          {canCreate && <NewLessonButton />}
-        </div>
-        {isLoading ? (
-          <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />)}</div>
-        ) : trainings.length === 0 ? (
-          <div className="rounded-2xl bg-white p-6 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-            <Users className="h-6 w-6 text-accent mb-3" />
-            <h3 className="font-bold text-lg text-foreground mb-1">{canCreate ? 'Create your first lesson' : 'No lessons yet'}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{canCreate ? 'Add a recurring lesson and invite your athletes' : 'Your school will assign trainings to you'}</p>
-            {canCreate && <NewLessonButton />}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              {trainings.slice(0, 4).map((t: any) => (
-                <TrainingCard
-                  key={t.id}
-                  training={t}
-                  variant="grid"
-                  onClick={() => navigate(`/coach/trainings/${t.id}`)}
-                  badge={
-                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold text-accent capitalize">{t.type}</span>
-                  }
-                  extra={
-                    <div className="flex items-center justify-end mt-2 -mb-1">
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                    </div>
-                  }
-                />
-              ))}
-            </div>
-            {trainings.length > 4 && (
-              <button onClick={() => navigate('/coach/trainings')}
-                className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
-                Show all {trainings.length} lessons
-              </button>
-            )}
-          </>
-        )}
-      </section>
     </div>
   );
 }

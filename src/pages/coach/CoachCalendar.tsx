@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
+import NewLessonButton from '@/components/coach/NewLessonButton';
 import { SPORT_ICONS } from '@/lib/constants';
 import CalendarGrid from '@/components/shared/CalendarGrid';
 
@@ -119,7 +120,7 @@ export default function CoachCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title="Calendar" />
+      <CoachHeader title="Calendar" right={canCreate ? <NewLessonButton /> : undefined} />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">
