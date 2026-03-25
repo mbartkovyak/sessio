@@ -206,6 +206,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     if (conversationId) {
       markConversationSeen(conversationId);
       qc.invalidateQueries({ queryKey: ['unread-total'] });
+      qc.invalidateQueries({ queryKey: ['my-conversations'] });
     }
   }, [conversationId, qc]);
 
