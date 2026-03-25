@@ -62,20 +62,19 @@ export default function CoachTrainings() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-2 flex-wrap">
-            {(['all', 'group', 'individual'] as TypeFilter[]).map(v => (
-              <button key={v} onClick={() => setTypeFilter(v)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${typeFilter === v ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
-                {v === 'all' ? 'All types' : v.charAt(0).toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-            <div className="w-px bg-border" />
-            {(['all', 'recurring', 'one-time'] as ScheduleFilter[]).map(v => (
-              <button key={v} onClick={() => setScheduleFilter(v)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${scheduleFilter === v ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>
-                {v === 'all' ? 'All schedules' : v === 'recurring' ? 'Recurring' : 'One-time'}
-              </button>
-            ))}
+          <div className="flex gap-2">
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as TypeFilter)}
+              className="flex-1 appearance-none rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="all">All types</option>
+              <option value="group">Group</option>
+              <option value="individual">Individual</option>
+            </select>
+            <select value={scheduleFilter} onChange={e => setScheduleFilter(e.target.value as ScheduleFilter)}
+              className="flex-1 appearance-none rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="all">All schedules</option>
+              <option value="recurring">Recurring</option>
+              <option value="one-time">One-time</option>
+            </select>
           </div>
         </div>
 
