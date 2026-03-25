@@ -73,7 +73,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
           <select
             value={countryCode}
             onChange={e => { setCountryCode(e.target.value); emit(e.target.value, number); }}
-            className="appearance-none rounded-xl border border-input bg-card pl-3 pr-8 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] w-[90px]"
+            className="appearance-none rounded-xl border border-input bg-card pl-3 pr-8 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] w-[105px]"
           >
             {COUNTRY_CODES.map(cc => (
               <option key={cc.code} value={cc.code}>{cc.flag} {cc.code}</option>
