@@ -46,6 +46,11 @@ export default function PlayerHome() {
       </header>
 
       <main className="flex-1 pb-24">
+        {isLoading ? (
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           {/* Greeting */}
           <div>
@@ -60,11 +65,7 @@ export default function PlayerHome() {
           </div>
 
           {/* Confirmation cards — most important */}
-          {isLoading ? (
-            <div className="space-y-3">
-              <div className="h-52 animate-pulse rounded-2xl bg-muted" />
-            </div>
-          ) : pendingConfirmations.length > 0 ? (
+          {pendingConfirmations.length > 0 ? (
             <div className="space-y-3">
               {pendingConfirmations.slice(0, 3).map((a: any) => (
                 <ConfirmationCard key={a.id} attendance={a} />
@@ -104,7 +105,12 @@ export default function PlayerHome() {
                 Find a Coach
               </button>
             </div>
-          ) : null}
+          ) : (
+            <div className="card-elevated rounded-2xl p-6 text-center">
+              <p className="font-semibold text-foreground">You're all free this week</p>
+              <p className="text-sm text-muted-foreground mt-1">No sessions in the next 7 days</p>
+            </div>
+          )}
 
           {/* Pending / declined join requests */}
           <MyJoinRequests />
@@ -121,6 +127,7 @@ export default function PlayerHome() {
           {/* This week — responded sessions with change option */}
           <ThisWeekSection sessions={respondedSessions} />
         </div>
+        )}
       </main>
 
       <PlayerBottomNav />

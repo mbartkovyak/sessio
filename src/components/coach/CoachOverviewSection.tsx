@@ -15,14 +15,14 @@ export default function CoachOverviewSection() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const isSchoolOwner = profile?.role === 'school_owner';
-  const { data: trainings = [] } = useTrainings();
-  const { data: joinRequests = [] } = useAllCoachJoinRequests();
+  const { data: trainings = [], isLoading: trainingsLoading } = useTrainings();
+  const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: upcomingSessions = [] } = useUpcomingSessions(profile?.id, 5);
+  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
   const qc = useQueryClient();
   const trainingIds = trainings.map((t: any) => t.id);
-  const { data: totalAthletes = 0 } = useQuery({
+  const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
     queryKey: ['coach-total-athletes', trainingIds],
     enabled: trainingIds.length > 0,
     queryFn: async () => {
@@ -82,6 +82,20 @@ export default function CoachOverviewSection() {
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
+  // athletesPending (not isLoading) because the query starts disabled — isLoading would be
+  // false in the gap between trainings loading and athletes query starting, flashing 0s.
+  // Guard with trainingIds.length so coaches with 0 trainings don't spin forever.
+  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading
+    || (trainingIds.length > 0 && athletesPending);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
       {/* Greeting */}
@@ -121,6 +135,44 @@ export default function CoachOverviewSection() {
         ))}
       </div>
 
+      {/* Join Requests */}
+      {joinRequests.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
+          <div className="space-y-2">
+            {joinRequests.map((req: any) => {
+              const player = req.profiles;
+              const training = req.trainings;
+              return (
+                <div key={req.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Avatar url={player?.avatar_url} name={player?.full_name} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{training?.name}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97]"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                    </button>
+                    <button
+                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
+                      className="flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground min-h-[40px] transition-all active:scale-[0.97]"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Upcoming Sessions — up to 4 with cancel/reschedule */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -128,7 +180,7 @@ export default function CoachOverviewSection() {
         </div>
         {upcomingSessions.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-            <p className="text-sm text-muted-foreground">No upcoming sessions this week</p>
+            <p className="text-sm text-muted-foreground">No upcoming sessions</p>
           </div>
         ) : (
           <>
@@ -198,44 +250,6 @@ export default function CoachOverviewSection() {
           </>
         )}
       </section>
-
-      {/* Join Requests */}
-      {joinRequests.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
-          <div className="space-y-2">
-            {joinRequests.map((req: any) => {
-              const player = req.profiles;
-              const training = req.trainings;
-              return (
-                <div key={req.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <Avatar url={player?.avatar_url} name={player?.full_name} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{training?.name}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97]"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
-                    </button>
-                    <button
-                      onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
-                      className="flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground min-h-[40px] transition-all active:scale-[0.97]"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

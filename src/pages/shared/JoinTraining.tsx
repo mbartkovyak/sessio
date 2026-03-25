@@ -120,6 +120,7 @@ export default function JoinTraining() {
                 url: `/coach/trainings/${training.id}`,
               });
             }
+            queryClient.invalidateQueries({ queryKey: ['my-join-requests'] });
             toast.success('Join request sent again!');
             navigate('/player');
             return;
@@ -137,6 +138,7 @@ export default function JoinTraining() {
               url: `/coach/trainings/${training.id}`,
             });
           }
+          queryClient.invalidateQueries({ queryKey: ['my-join-requests'] });
           toast.success('Join request sent! The coach will review it.');
           navigate('/player');
           return;

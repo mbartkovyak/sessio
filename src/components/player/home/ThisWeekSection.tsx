@@ -34,8 +34,12 @@ function SessionRow({ attendance }: { attendance: any }) {
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
 
+  const notify = training?.coach?.id
+    ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
+    : undefined;
+
   async function switchTo(newStatus: string) {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus });
+    await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
     toast.success(newStatus === 'confirmed' ? "You're back in! 🎉" : 'Spot released');
     setShowWarning(false);
   }

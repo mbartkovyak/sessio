@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Clock } from 'lucide-react';
@@ -10,6 +11,7 @@ export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [school, setSchool] = useState<any>(null);
   const [schoolLoading, setSchoolLoading] = useState(true);
@@ -76,6 +78,7 @@ export default function JoinSchool() {
         .from('school_members')
         .insert({ school_id: school.id, coach_id: profile.id, status: 'pending' });
       if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['my-school'] });
       setRequestSent(true);
     } catch (err: any) {
       toast.error(err.message ?? 'Failed to send request');

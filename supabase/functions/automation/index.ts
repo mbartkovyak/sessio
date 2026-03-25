@@ -1,8 +1,10 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { sendPushToUsers } from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
   'https://sessio-topaz.vercel.app',
   'https://sessio-dev.vercel.app',
+  'https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app',
 ];
 
 function getCorsHeaders(req: Request) {
@@ -10,9 +12,11 @@ function getCorsHeaders(req: Request) {
   const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   };
 }
+
+const CRON_ACTIONS = ['full', 'generate', 'notifications', 'deadline'];
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -21,48 +25,61 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Authenticate the caller
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  // ── Auth: support JWT (user) or cron secret (scheduled) ──
+  const cronSecret = req.headers.get('x-cron-secret');
+  const cronSecretEnv = Deno.env.get('CRON_SECRET');
+  const isCron = !!cronSecret && !!cronSecretEnv && cronSecret === cronSecretEnv;
+
+  let userId: string | null = null;
+
+  if (!isCron) {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const anonClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+    );
+    const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    userId = user.id;
   }
 
-  const token = authHeader.replace('Bearer ', '');
-
-  // Use anon client to verify the user JWT
-  const anonClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-  );
-  const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
-
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Invalid token' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Service-role client for actual operations
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
   try {
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? 'full';
 
-    // Coach-only actions: verify role
-    const coachActions = ['cancel_session', 'generate_group', 'generate', 'generate_group'];
-    if (coachActions.includes(action)) {
+    // Cron can only run safe actions
+    if (isCron && !CRON_ACTIONS.includes(action)) {
+      return new Response(JSON.stringify({ error: 'Forbidden action for cron' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Coach-only actions require role check
+    if (!isCron && ['generate', 'generate_training'].includes(action)) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', userId!)
         .single();
       if (profile?.role !== 'coach') {
         return new Response(JSON.stringify({ error: 'Forbidden - coach access required' }), {
@@ -74,81 +91,138 @@ Deno.serve(async (req) => {
 
     const results: Record<string, any> = {};
 
-    // ── 1. Generate sessions for all active groups ──
+    // ── 1. Generate sessions for all active trainings ──
     if (action === 'full' || action === 'generate') {
-      const { data: groups } = await supabase
-        .from('groups')
+      const { data: trainings } = await supabase
+        .from('trainings')
         .select('id')
         .eq('is_active', true);
 
       let totalCreated = 0;
-      for (const g of groups ?? []) {
-        const { data } = await supabase.rpc('generate_sessions_for_group', { p_group_id: g.id });
+      for (const t of trainings ?? []) {
+        const { data } = await supabase.rpc('generate_sessions_for_training', { p_training_id: t.id });
         totalCreated += (data as any)?.created ?? 0;
       }
       results.sessions_created = totalCreated;
     }
 
-    // ── 2. Send confirmation-window notifications ──
-    if (action === 'full' || action === 'notifications') {
-      const { data } = await supabase.rpc('process_confirmation_window');
-      results.notifications_sent = (data as any)?.notifications_sent ?? 0;
-    }
-
-    // ── 3. Handle no-response deadline ──
-    if (action === 'full' || action === 'deadline') {
-      const { data } = await supabase.rpc('handle_no_response_deadline');
-      results.no_response_handled = (data as any)?.spots_created ?? 0;
-      results.waitlist_notified = (data as any)?.notified ?? 0;
-    }
-
-    // ── 4. Generate sessions for a single group (manual trigger) ──
-    if (action === 'generate_group' && body.group_id) {
-      const { data } = await supabase.rpc('generate_sessions_for_group', { p_group_id: body.group_id });
+    // ── 2. Generate sessions for a single training (manual trigger) ──
+    if (action === 'generate_training' && body.training_id) {
+      const { data } = await supabase.rpc('generate_sessions_for_training', { p_training_id: body.training_id });
       results.sessions_created = (data as any)?.created ?? 0;
     }
 
-    // ── 5. Cancel session + notify players ──
-    if (action === 'cancel_session' && body.session_id) {
-      const { data: session } = await supabase
-        .from('sessions')
-        .select('*, groups(name)')
-        .eq('id', body.session_id)
-        .single();
+    // ── 3. Send confirmation reminders (only between 9:00–22:00 Warsaw time) ──
+    if (action === 'full' || action === 'notifications') {
+      const warsawHour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Warsaw' }).format(new Date()));
+      if (warsawHour < 9 || warsawHour >= 22) {
+        results.reminders_sent = 0;
+        results.skipped_reason = 'outside_hours';
+      } else {
 
-      if (session) {
-        await supabase
-          .from('sessions')
-          .update({ status: 'cancelled' })
-          .eq('id', body.session_id);
+      const { data: pending, error } = await supabase
+        .from('session_attendance')
+        .select(`
+          id, user_id, session_id, status, reminder_sent_at,
+          training_sessions(id, session_date, start_time, end_time,
+            trainings(id, name, confirmation_window_hours, cancel_deadline_hours)
+          )
+        `)
+        .eq('status', 'pending')
+        .is('reminder_sent_at', null)
+        .limit(200);
 
-        // Notify confirmed + pending players
-        const { data: confs } = await supabase
-          .from('confirmations')
-          .select('player_id')
-          .eq('session_id', body.session_id)
-          .in('status', ['confirmed', 'pending']);
+      if (error) throw error;
 
-        const group = session.groups as any;
-        const notifications = (confs ?? []).map((c: any) => ({
-          user_id: c.player_id,
-          type: 'session_cancelled',
-          title: 'Session cancelled',
-          message: `${group?.name ?? 'Your session'} has been cancelled.`,
-          related_session_id: body.session_id,
-          related_group_id: session.group_id,
-        }));
+      const now = Date.now();
+      let sent = 0;
+      const sentIds: string[] = [];
 
-        if (notifications.length > 0) {
-          await supabase.from('notifications').insert(notifications);
-        }
+      for (const att of pending ?? []) {
+        const session = att.training_sessions as any;
+        const training = session?.trainings;
+        if (!session || !training) continue;
 
-        // Remove open spots
-        await supabase.from('open_spots').delete().eq('session_id', body.session_id);
+        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
+        const deadlineHours = training.cancel_deadline_hours ?? 2;
+        // Remind 24h before the cancel deadline
+        const reminderMs = (deadlineHours + 24) * 60 * 60 * 1000;
 
-        results.cancelled = true;
-        results.notified = notifications.length;
+        // Only send if within reminder window and session hasn't passed
+        if (sessionStart - now > reminderMs || sessionStart < now) continue;
+
+        const payload = JSON.stringify({
+          title: training.name,
+          body: `${session.session_date} at ${session.start_time?.slice(0, 5)}. Cancel at least ${deadlineHours}h before if you can't make it.`,
+          tag: `confirm-${att.session_id}`,
+          url: '/player',
+        });
+
+        const count = await sendPushToUsers(supabase, [att.user_id], payload);
+        sent += count;
+        sentIds.push(att.id);
       }
+
+      // Mark reminders as sent (dedup)
+      if (sentIds.length) {
+        await supabase
+          .from('session_attendance')
+          .update({ reminder_sent_at: new Date().toISOString() })
+          .in('id', sentIds);
+      }
+
+      results.reminders_sent = sent;
+      } // end hours check
+    }
+
+    // ── 4. Handle no-response deadline ──
+    if (action === 'full' || action === 'deadline') {
+      // Find pending attendances past their deadline
+      const { data: pending } = await supabase
+        .from('session_attendance')
+        .select(`
+          id, user_id, session_id, status,
+          training_sessions(id, session_date, start_time, training_id,
+            trainings(id, name, no_response_behavior, cancel_deadline_hours)
+          )
+        `)
+        .eq('status', 'pending');
+
+      const now = Date.now();
+      let handled = 0;
+
+      for (const att of pending ?? []) {
+        const session = att.training_sessions as any;
+        const training = session?.trainings;
+        if (!session || !training) continue;
+
+        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
+        const deadlineMs = (training.cancel_deadline_hours ?? 2) * 60 * 60 * 1000;
+
+        // Past the deadline?
+        if (sessionStart - now > deadlineMs) continue;
+        if (sessionStart < now) continue; // session already happened
+
+        const behavior = training.no_response_behavior ?? 'mark_absent';
+        if (behavior === 'keep_pending') continue;
+
+        // Mark as no_response
+        await supabase
+          .from('session_attendance')
+          .update({ status: 'no_response' })
+          .eq('id', att.id);
+
+        // Create open spot
+        await supabase.from('training_open_spots').insert({
+          training_id: session.training_id,
+          session_id: att.session_id,
+          created_by: att.user_id,
+        }).then(() => {}, () => {}); // ignore duplicate errors
+
+        handled++;
+      }
+
+      results.no_response_handled = handled;
     }
 
     return new Response(JSON.stringify({ ok: true, ...results }), {

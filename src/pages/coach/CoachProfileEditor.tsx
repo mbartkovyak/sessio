@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, FileText, Plus, Trash2, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +28,18 @@ export default function CoachProfileEditor() {
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueAddress, setNewVenueAddress] = useState('');
 
+  // Sync form state when profile updates (e.g. after save + refreshProfile)
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name ?? '');
+      setCity(profile.city ?? '');
+      setBio(profile.bio ?? '');
+      setSport(profile.sport ?? '');
+      setPhone(profile.phone ?? '');
+      setVenues(((profile as any)?.venues as Venue[]) ?? []);
+    }
+  }, [profile]);
+
   const isDirty = name !== (profile?.full_name ?? '')
     || phone !== (profile?.phone ?? '')
     || city !== (profile?.city ?? '')
@@ -43,8 +55,9 @@ export default function CoachProfileEditor() {
       .update({ full_name: name, phone: phone || null, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else { toast.success('Profile updated'); refreshProfile(); }
+    if (error) { toast.error(error.message); return; }
+    toast.success('Profile updated');
+    await refreshProfile();
   }
 
   function addVenue() {

@@ -15,14 +15,18 @@ export default function ConfirmationCard({ attendance }: { attendance: any }) {
 
   if (dismissed || attendance.status !== 'pending') return null;
 
+  const notify = training?.coach?.id
+    ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
+    : undefined;
+
   async function confirm() {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'confirmed' });
+    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'confirmed', notify });
     setDismissed(true);
     toast.success("You're in! 🎉");
   }
 
   async function decline() {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'declined' });
+    await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'declined', notify });
     setDismissed(true);
     toast.success("Marked as can't make it");
   }

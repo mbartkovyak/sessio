@@ -18,10 +18,10 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  const [hiddenIds, setHiddenIds] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('hidden_chats') ?? '[]'); } catch { return []; }
-  });
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
+  // useMyConversations already filters hidden from DB, but local hiddenIds
+  // gives instant feedback after archiving (before query refetches)
   const visible = conversations.filter(c => !hiddenIds.includes(c.id));
 
   if (isLoading) {

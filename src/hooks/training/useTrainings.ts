@@ -245,7 +245,11 @@ export function useUpsertAttendance() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ sessionId, status }: { sessionId: string; status: string }) => {
+    mutationFn: async ({ sessionId, status, notify }: {
+      sessionId: string;
+      status: string;
+      notify?: { coachId: string; trainingName: string; trainingId: string };
+    }) => {
       const update: any = { session_id: sessionId, user_id: user!.id, status };
       if (status === 'confirmed') update.confirmed_at = new Date().toISOString();
       if (status === 'declined') update.declined_at = new Date().toISOString();
@@ -253,6 +257,15 @@ export function useUpsertAttendance() {
         .from('session_attendance')
         .upsert(update, { onConflict: 'session_id,user_id' });
       if (error) throw error;
+
+      if (notify && (status === 'confirmed' || status === 'declined')) {
+        notifyUsers([notify.coachId], {
+          title: status === 'confirmed' ? 'Player confirmed' : 'Player declined',
+          body: `A player ${status} for ${notify.trainingName}.`,
+          tag: `attendance-${sessionId}`,
+          url: `/coach/trainings/${notify.trainingId}`,
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
@@ -338,6 +351,8 @@ export function useRespondJoinRequest() {
       qc.invalidateQueries({ queryKey: ['all-join-requests'] });
       qc.invalidateQueries({ queryKey: ['join-requests'] });
       qc.invalidateQueries({ queryKey: ['training-members'] });
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['my-join-requests'] });
     },
   });
 }
@@ -354,7 +369,7 @@ export function useCancelSession(trainingId: string) {
         .update({ status: 'cancelled' })
         .eq('id', sessionId);
       if (error) throw error;
-      // Notify in training chat
+      // Notify in training chat — push comes from the chat message
       if (user) {
         const { data: conv } = await supabase
           .from('conversations')
@@ -362,22 +377,13 @@ export function useCancelSession(trainingId: string) {
           .eq('training_id', trainingId)
           .maybeSingle();
         if (conv) {
+          const msg = `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`;
           await supabase.from('messages').insert({
             conversation_id: conv.id,
             sender_id: user.id,
-            content: `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`,
+            content: msg,
           });
-        }
-        // Push to all training members
-        const { data: members } = await supabase
-          .from('training_members')
-          .select('user_id')
-          .eq('training_id', trainingId);
-        if (members?.length) {
-          notifyUsers(
-            members.map(m => m.user_id),
-            { title: 'Session cancelled', body: `${trainingName} on ${sessionDate} has been cancelled.`, tag: `cancel-${sessionId}`, url: '/player' },
-          );
+
         }
       }
     },
@@ -418,17 +424,6 @@ export function useRescheduleSession(trainingId: string) {
             sender_id: user.id,
             content: chatMsg,
           });
-        }
-        // Push to all training members
-        const { data: members } = await supabase
-          .from('training_members')
-          .select('user_id')
-          .eq('training_id', trainingId);
-        if (members?.length) {
-          notifyUsers(
-            members.map(m => m.user_id),
-            { title: 'Session rescheduled', body: chatMsg, tag: `reschedule-${sessionId}`, url: '/player' },
-          );
         }
       }
     },

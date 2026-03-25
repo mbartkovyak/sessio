@@ -69,8 +69,12 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
 
   const canAct = attendance.status === 'confirmed' || attendance.status === 'declined' || attendance.status === 'pending';
 
+  const notify = training?.coach?.id
+    ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
+    : undefined;
+
   async function handleChange(newStatus: string) {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus });
+    await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
     toast.success(newStatus === 'confirmed' ? "You're in! 🎉" : "Cancelled");
     setShowCancelWarning(false);
     onToggle(); // collapse

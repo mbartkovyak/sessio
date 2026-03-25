@@ -1,14 +1,10 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import webPush from 'npm:web-push@3.6.7';
-
-const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')!;
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')!;
-
-webPush.setVapidDetails('mailto:hello@sessio.app', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { webPush, sendPushToSubs, sendPushToUsers } from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
   'https://sessio-topaz.vercel.app',
   'https://sessio-dev.vercel.app',
+  'https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app',
 ];
 
 function getCorsHeaders(req: Request) {
@@ -20,85 +16,56 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// ── Shared helper: send push to a list of subscriptions ──
-
-type Sub = { endpoint: string; keys: any; user_id?: string };
-
-async function sendPushToSubs(
-  subs: Sub[],
-  payload: string,
-  supabaseAdmin: any,
-): Promise<number> {
-  let sent = 0;
-  for (const sub of subs) {
-    try {
-      await webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
-      sent++;
-    } catch (err: any) {
-      if (err.statusCode === 410 || err.statusCode === 404) {
-        await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-      }
-    }
-  }
-  return sent;
-}
-
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-
-  // Authenticate the caller
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
 
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  // Verify the JWT to get the caller's user ID
-  const supabaseAuth = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY') ?? authHeader.replace('Bearer ', '')
-  );
-  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
     const body = await req.json().catch(() => ({}));
-    const action = body.action ?? 'send_confirmations';
+    const action = body.action ?? 'notify';
     const results: any = {};
+
+    // ── Determine sender: from JWT (client calls) or from body (server/trigger calls) ──
+    let senderId: string | null = null;
+
+    const authHeader = req.headers.get('authorization');
+    if (authHeader) {
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY') ?? authHeader.replace('Bearer ', '')
+      );
+      const { data: { user } } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
+      senderId = user?.id ?? null;
+    }
+
+    // For server-side calls (DB trigger), sender_id comes in the body
+    if (!senderId && body.sender_id) {
+      senderId = body.sender_id;
+    }
+
+    if (!senderId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // ── Generic: send push to specific users ──
     if (action === 'notify') {
       const { user_ids, title, body: pushBody, tag, url } = body;
       if (!Array.isArray(user_ids) || !title) throw new Error('user_ids[] and title required');
 
-      // Always exclude the sender
-      const targets = user_ids.filter((id: string) => id !== user.id);
-      if (!targets.length) {
-        results.sent = 0;
-      } else {
-        const { data: subs } = await supabaseAdmin
-          .from('push_subscriptions')
-          .select('endpoint, keys')
-          .in('user_id', targets);
-
-        results.sent = await sendPushToSubs(
-          subs ?? [],
-          JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
-          supabaseAdmin,
-        );
-      }
+      results.sent = await sendPushToUsers(
+        supabaseAdmin,
+        user_ids,
+        JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
+        senderId,
+      );
     }
 
     // ── Message: notify conversation participants ──
@@ -110,7 +77,7 @@ Deno.serve(async (req) => {
       const { data: senderProfile } = await supabaseAdmin
         .from('profiles')
         .select('full_name')
-        .eq('id', user.id)
+        .eq('id', senderId)
         .single();
 
       // Get conversation details
@@ -120,12 +87,12 @@ Deno.serve(async (req) => {
         .eq('id', conversation_id)
         .single();
 
-      // Get all participants except sender, with their roles
+      // Get all participants except sender
       const { data: participants } = await supabaseAdmin
         .from('conversation_participants')
         .select('user_id')
         .eq('conversation_id', conversation_id)
-        .neq('user_id', user.id);
+        .neq('user_id', senderId);
 
       if (!participants?.length) {
         results.sent = 0;
@@ -157,12 +124,12 @@ Deno.serve(async (req) => {
 
           if (conv?.training_id) {
             url = role === 'player'
-              ? `/player/messages/${conversation_id}`
+              ? `/player/messages/${conv.training_id}`
               : `/coach/trainings/${conv.training_id}`;
           } else {
             url = role === 'player'
-              ? `/player/dm/${user.id}`
-              : `/coach/dm/${user.id}`;
+              ? `/player/dm/${senderId}`
+              : `/coach/dm/${senderId}`;
           }
 
           try {
@@ -186,59 +153,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Send confirmation reminders for upcoming sessions ──
-    if (action === 'send_confirmations') {
-      const { data: pending, error } = await supabaseAdmin
-        .from('session_attendance')
-        .select(`
-          id, user_id, session_id, status,
-          training_sessions(id, session_date, start_time, end_time,
-            trainings(id, name, confirmation_window_hours)
-          )
-        `)
-        .eq('status', 'pending')
-        .limit(100);
-
-      if (error) throw error;
-
-      const now = Date.now();
-      let sent = 0;
-
-      for (const att of pending ?? []) {
-        const session = att.training_sessions as any;
-        const training = session?.trainings;
-        if (!session || !training) continue;
-
-        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const windowMs = (training.confirmation_window_hours ?? 48) * 60 * 60 * 1000;
-        if (sessionStart - now > windowMs || sessionStart < now) continue;
-
-        const { data: subs } = await supabaseAdmin
-          .from('push_subscriptions')
-          .select('endpoint, keys')
-          .eq('user_id', att.user_id);
-
-        if (!subs?.length) continue;
-
-        const payload = JSON.stringify({
-          title: training.name,
-          body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — are you coming?`,
-          tag: `confirm-${att.session_id}`,
-          url: '/player',
-        });
-
-        sent += await sendPushToSubs(subs, payload, supabaseAdmin);
-      }
-
-      results.sent = sent;
-    }
-
     // ── Test: send a push to yourself only ──
     if (action === 'test') {
       const { data: subs } = await supabaseAdmin
         .from('push_subscriptions')
         .select('endpoint, keys')
-        .eq('user_id', user.id);
+        .eq('user_id', senderId);
 
       results.sent = await sendPushToSubs(
         subs ?? [],

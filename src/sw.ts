@@ -32,7 +32,6 @@ self.addEventListener('notificationclick', (event) => {
 
   // Handle action buttons
   if (event.action === 'confirm') {
-    // Will be handled by opening the app with a special URL
     event.waitUntil(self.clients.openWindow(url + '?action=confirm'));
     return;
   }
@@ -44,7 +43,6 @@ self.addEventListener('notificationclick', (event) => {
   // Default: open the app
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Focus existing tab if open
       for (const client of clients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.focus();
@@ -52,7 +50,6 @@ self.addEventListener('notificationclick', (event) => {
           return;
         }
       }
-      // Otherwise open new window
       return self.clients.openWindow(url);
     })
   );
