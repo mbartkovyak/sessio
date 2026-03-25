@@ -149,14 +149,11 @@ Deno.serve(async (req) => {
         // Only send if within confirmation window and session hasn't passed
         if (sessionStart - now > windowMs || sessionStart < now) continue;
 
-        // Calculate cancel deadline time
         const deadlineHours = training.cancel_deadline_hours ?? 2;
-        const deadlineTime = new Date(sessionStart - deadlineHours * 60 * 60 * 1000);
-        const deadlineStr = `${deadlineTime.toISOString().slice(11, 16)}`;
 
         const payload = JSON.stringify({
           title: training.name,
-          body: `${session.session_date} at ${session.start_time?.slice(0, 5)}. Cancel before ${deadlineStr} if you can't make it.`,
+          body: `${session.session_date} at ${session.start_time?.slice(0, 5)}. Cancel at least ${deadlineHours}h before if you can't make it.`,
           tag: `confirm-${att.session_id}`,
           url: '/player',
         });
