@@ -1,0 +1,189 @@
+{
+  "nav": {
+    "home": "Start",
+    "chats": "Czaty",
+    "search": "Szukaj",
+    "calendar": "Kalendarz",
+    "profile": "Profil",
+    "lessons": "Zajęcia"
+  },
+  "actions": {
+    "save": "Zapisz zmiany",
+    "cancel": "Anuluj",
+    "back": "Wróć",
+    "continue": "Dalej",
+    "loading": "Ładowanie...",
+    "signOut": "Wyloguj się",
+    "deleteAccount": "Usuń konto",
+    "deleting": "Usuwanie...",
+    "confirmDelete": "Usunąć wszystkie dane? Tego nie można cofnąć.",
+    "getStarted": "Zaczynamy",
+    "shareLink": "Udostępnij link",
+    "linkCopied": "Link skopiowany!"
+  },
+  "sports": {
+    "Tennis": "Tenis",
+    "Swimming": "Pływanie",
+    "Running": "Bieganie",
+    "Fitness": "Fitness",
+    "Yoga": "Joga",
+    "Football": "Piłka nożna",
+    "Badminton": "Badminton",
+    "Boxing": "Boks",
+    "Other": "Inne"
+  },
+  "days": {
+    "Monday": "Poniedziałek",
+    "Tuesday": "Wtorek",
+    "Wednesday": "Środa",
+    "Thursday": "Czwartek",
+    "Friday": "Piątek",
+    "Saturday": "Sobota",
+    "Sunday": "Niedziela"
+  },
+  "daysShort": {
+    "Mon": "Pon",
+    "Tue": "Wt",
+    "Wed": "Śr",
+    "Thu": "Czw",
+    "Fri": "Pt",
+    "Sat": "Sob",
+    "Sun": "Ndz"
+  },
+  "calendar": {
+    "today": "Dzisiaj",
+    "yesterday": "Wczoraj",
+    "tomorrow": "Jutro",
+    "todayAt": "Dzisiaj o {{time}}",
+    "tomorrowAt": "Jutro o {{time}}",
+    "at": "o",
+    "noTrainings": "Brak zajęć"
+  },
+  "phone": {
+    "label": "Telefon",
+    "placeholder": "Numer telefonu"
+  },
+  "chat": {
+    "noChats": "Brak czatów",
+    "startConversation": "Rozpocznij rozmowę",
+    "noMessages": "Brak wiadomości",
+    "someone": "Ktoś",
+    "markAsUnread": "Oznacz jako nieprzeczytane",
+    "archive": "Archiwizuj",
+    "archiveConfirm": "Zarchiwizować tę rozmowę?",
+    "messagePlaceholder": "Wiadomość...",
+    "noMessagesYet": "Brak wiadomości",
+    "beFirst": "Napisz pierwszy",
+    "failedCreate": "Nie udało się utworzyć rozmowy",
+    "member": "Członek",
+    "chatTitle": "Czat",
+    "group": "Grupa"
+  },
+  "notifications": {
+    "enableTitle": "Włącz powiadomienia",
+    "enableDesc": "Otrzymuj przypomnienia o potwierdzeniu zajęć",
+    "completeTitle": "Dokończ konfigurację powiadomień",
+    "completeDesc": "Kliknij, aby dokończyć — uprawnienia przyznane, ale konfiguracja niekompletna",
+    "enabled": "Powiadomienia włączone!",
+    "failed": "Nie udało się — upewnij się, że aplikacja jest dodana na ekran główny",
+    "settingUp": "Konfigurowanie...",
+    "completeSetup": "Dokończ konfigurację",
+    "turnOn": "Włącz"
+  },
+  "form": {
+    "sport": "Sport",
+    "selectSport": "Wybierz sport",
+    "addSport": "+ Dodaj sport",
+    "city": "Miasto",
+    "selectCity": "Wybierz miasto",
+    "select": "Wybierz..."
+  },
+  "trainingType": {
+    "group": "Grupowe",
+    "individual": "Indywidualne"
+  },
+  "errors": {
+    "somethingWentWrong": "Coś poszło nie tak",
+    "notSignedIn": "Nie jesteś zalogowany — odśwież stronę i spróbuj ponownie",
+    "errorTitle": "Coś poszło nie tak",
+    "errorDesc": "Wystąpił nieoczekiwany błąd. Odśwież stronę i spróbuj ponownie.",
+    "goHome": "Strona główna",
+    "reload": "Odśwież"
+  },
+  "join": {
+    "alreadyOnWaitlist": "Jesteś na liście rezerwowej",
+    "alreadyInTraining": "Już jesteś w tych zajęciach",
+    "trainingFull": "Zajęcia są pełne",
+    "requestAlreadySent": "Prośba już wysłana — czekaj na zatwierdzenie",
+    "joinRequestSent": "Prośba o dołączenie wysłana! Trener ją rozpatrzy.",
+    "joinRequestSentAgain": "Prośba o dołączenie wysłana ponownie!",
+    "addedToWaitlist": "Dodano na listę rezerwową!",
+    "joinedTraining": "Dołączono do {{name}}!",
+    "alreadyInGroup": "Już jesteś w tej grupie",
+    "groupFull": "Grupa jest pełna",
+    "failedToJoin": "Nie udało się dołączyć",
+    "signInFailed": "Logowanie nie powiodło się",
+    "notFound": "Nie znaleziono",
+    "notFoundDesc": "Ten link zaproszenia mógł wygasnąć lub jest nieprawidłowy.",
+    "goHome": "Strona główna",
+    "spotsPerTraining": "{{count}} miejsc na zajęcia",
+    "joining": "Dołączanie...",
+    "joinName": "Dołącz do {{name}}",
+    "invitedToJoin": "{{name}} zaprasza cię do dołączenia",
+    "beenInvitedToJoin": "Zostałeś zaproszony do dołączenia",
+    "joinIn30Seconds": "Dołącz w 30 sekund. Bez pobierania aplikacji.",
+    "checkEmail": "Sprawdź email",
+    "sentMagicLink": "Wysłaliśmy link logowania na",
+    "continueGoogle": "Kontynuuj z Google",
+    "continueEmail": "Kontynuuj z Email",
+    "sendMagicLink": "Wyślij link logowania",
+    "at": "o"
+  },
+  "joinSchool": {
+    "onlyCoaches": "Tylko trenerzy mogą dołączyć do szkółki",
+    "alreadyInSchool": "Już jesteś w tej szkółce",
+    "failedToSend": "Nie udało się wysłać prośby",
+    "signInFailed": "Logowanie nie powiodło się",
+    "notFound": "Nie znaleziono szkółki",
+    "notFoundDesc": "Ten link zaproszenia mógł wygasnąć lub jest nieprawidłowy.",
+    "goHome": "Strona główna",
+    "requestSent": "Prośba wysłana",
+    "requestSentDesc": "Właściciel szkółki rozpatrzy twoją prośbę. Zostaniesz dodany po zatwierdzeniu.",
+    "goToDashboard": "Przejdź do panelu",
+    "invitedToJoin": "Zostałeś zaproszony do dołączenia",
+    "sendingRequest": "Wysyłanie prośby...",
+    "requestToJoin": "Poproś o dołączenie",
+    "ownerWillApprove": "Właściciel szkółki zatwierdzi twoją prośbę",
+    "signInToJoin": "Zaloguj się, aby poprosić o dołączenie jako trener",
+    "checkEmail": "Sprawdź email",
+    "sentMagicLink": "Wysłaliśmy link logowania na",
+    "continueGoogle": "Kontynuuj z Google",
+    "continueEmail": "Kontynuuj z Email",
+    "sendMagicLink": "Wyślij link logowania"
+  },
+  "notFound": {
+    "title": "Poza boiskiem!",
+    "description": "Ta strona nie istnieje. Może zajęcia zostały odwołane?",
+    "goHome": "Strona główna"
+  },
+  "pwa": {
+    "title": "Dodaj Sessio na ekran główny",
+    "description": "Działa offline. Bez sklepu z aplikacjami.",
+    "notNow": "Nie teraz",
+    "install": "Zainstaluj"
+  },
+  "dialog": {
+    "unsavedTitle": "Niezapisane zmiany",
+    "unsavedDesc": "Masz niezapisane zmiany, które zostaną utracone, jeśli opuścisz tę stronę.",
+    "stay": "Zostań",
+    "discard": "Odrzuć"
+  },
+  "profile": {
+    "unknown": "Nieznany",
+    "call": "Zadzwoń",
+    "whatsapp": "WhatsApp",
+    "open": "Otwórz",
+    "email": "Email",
+    "noContact": "Brak danych kontaktowych"
+  }
+}

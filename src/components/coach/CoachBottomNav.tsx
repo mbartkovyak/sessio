@@ -1,21 +1,23 @@
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Home, MessageCircle, Dumbbell, CalendarDays, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useUnreadMessageCount } from '@/hooks/shared/useConversations';
-
-const tabs = [
-  { icon: Home, label: 'Home', path: '/coach' },
-  { icon: MessageCircle, label: 'Chats', path: '/coach/messages' },
-  { icon: Dumbbell, label: 'Lessons', path: '/coach/trainings' },
-  { icon: CalendarDays, label: 'Calendar', path: '/coach/calendar' },
-  { icon: User, label: 'Profile', path: '/coach/profile' },
-];
 
 export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
   const unreadCount = useUnreadMessageCount();
   const isChatTab = searchParams.get('tab') === 'chat';
+
+  const tabs = [
+    { icon: Home, label: t('nav.home'), path: '/coach' },
+    { icon: MessageCircle, label: t('nav.chats'), path: '/coach/messages' },
+    { icon: Dumbbell, label: t('nav.lessons'), path: '/coach/trainings' },
+    { icon: CalendarDays, label: t('nav.calendar'), path: '/coach/calendar' },
+    { icon: User, label: t('nav.profile'), path: '/coach/profile' },
+  ];
 
   return (
     <div className={`${inline ? 'shrink-0' : 'fixed bottom-0 left-0 right-0'} z-10`}>
@@ -46,10 +48,10 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
             const active = onTrainingChat
               ? path === '/coach/messages'
               : location.pathname === path || (path !== '/coach' && location.pathname.startsWith(path));
-            const isMessages = label === 'Chats';
+            const isMessages = path === '/coach/messages';
             return (
               <button
-                key={label}
+                key={path}
                 onClick={() => navigate(path)}
                 className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
               >

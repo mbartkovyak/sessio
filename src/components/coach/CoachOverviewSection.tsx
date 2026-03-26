@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { CheckCircle2, Users, CalendarDays, X, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
@@ -10,10 +11,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 
 export default function CoachOverviewSection() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: trainings = [], isLoading: trainingsLoading } = useTrainings();
   const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
@@ -21,7 +24,7 @@ export default function CoachOverviewSection() {
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
   const qc = useQueryClient();
-  const trainingIds = trainings.map((t: any) => t.id);
+  const trainingIds = trainings.map((tr: any) => tr.id);
   const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
     queryKey: ['coach-total-athletes', trainingIds],
     enabled: trainingIds.length > 0,
@@ -38,8 +41,8 @@ export default function CoachOverviewSection() {
 
   async function handleCancelSession(session: UpcomingSession) {
     const training = session.trainings;
-    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM');
-    if (!confirm(`Cancel ${training?.name} on ${dateLabel}?`)) return;
+    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
+    if (!confirm(t('home.cancelConfirm', { name: training?.name, date: dateLabel }))) return;
     const { error } = await supabase
       .from('training_sessions')
       .update({ status: 'cancelled' })
@@ -52,16 +55,16 @@ export default function CoachOverviewSection() {
     qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
-    toast.success('Session cancelled');
+    toast.success(t('home.sessionCancelled'));
   }
 
   async function handleRescheduleSession(session: UpcomingSession) {
     const training = session.trainings;
-    const newDate = prompt('Reschedule to (YYYY-MM-DD):', session.session_date);
+    const newDate = prompt(t('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt('Start time (HH:MM):', session.start_time?.slice(0, 5));
+    const newStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
     if (!newStart) return;
-    const newEnd = prompt('End time (HH:MM):', session.end_time?.slice(0, 5));
+    const newEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
     if (!newEnd) return;
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
@@ -76,7 +79,7 @@ export default function CoachOverviewSection() {
     qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
-    toast.success('Session rescheduled');
+    toast.success(t('home.sessionRescheduled'));
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -101,9 +104,9 @@ export default function CoachOverviewSection() {
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight">
-          Hey, {profile?.full_name?.split(' ')[0] ?? 'Coach'}
+          {t('home.greeting', { name: profile?.full_name?.split(' ')[0] ?? t('home.defaultName') })}
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Here's your training overview</p>
+        <p className="text-sm text-muted-foreground mt-0.5">{t('home.overview')}</p>
       </div>
 
       {/* School membership banner */}
@@ -123,8 +126,8 @@ export default function CoachOverviewSection() {
       {/* Quick stats */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Athletes', value: totalAthletes, style: 'accent' as const },
-          { label: 'Lessons', value: trainings.length, style: 'primary' as const },
+          { label: t('home.athletes'), value: totalAthletes, style: 'accent' as const },
+          { label: t('home.lessons'), value: trainings.length, style: 'primary' as const },
         ].map(({ label, value, style }) => (
           <div key={label} className={`rounded-2xl p-4 text-center shadow-md ${
             style === 'accent' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'
@@ -138,7 +141,7 @@ export default function CoachOverviewSection() {
       {/* Join Requests */}
       {joinRequests.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Join Requests</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('home.joinRequests')}</h2>
           <div className="space-y-2">
             {joinRequests.map((req: any) => {
               const player = req.profiles;
@@ -157,13 +160,13 @@ export default function CoachOverviewSection() {
                       onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
                       className="flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97]"
                     >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                      <CheckCircle2 className="h-3.5 w-3.5" /> {t('home.accept')}
                     </button>
                     <button
                       onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
                       className="flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-xs font-bold text-muted-foreground min-h-[40px] transition-all active:scale-[0.97]"
                     >
-                      Decline
+                      {t('home.decline')}
                     </button>
                   </div>
                 </div>
@@ -176,11 +179,11 @@ export default function CoachOverviewSection() {
       {/* Upcoming Sessions — up to 4 with cancel/reschedule */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Upcoming</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('home.upcoming')}</h2>
         </div>
         {upcomingSessions.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-            <p className="text-sm text-muted-foreground">No upcoming sessions</p>
+            <p className="text-sm text-muted-foreground">{t('home.noUpcoming')}</p>
           </div>
         ) : (
           <>
@@ -192,9 +195,9 @@ export default function CoachOverviewSection() {
                   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
                   const showLabel = session.session_date !== lastDate;
                   lastDate = session.session_date;
-                  const label = session.session_date === today ? 'Today'
-                    : session.session_date === tomorrow ? 'Tomorrow'
-                    : new Date(session.session_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                  const label = session.session_date === today ? t('common:calendar.today')
+                    : session.session_date === tomorrow ? t('common:calendar.tomorrow')
+                    : format(new Date(session.session_date + 'T00:00:00'), 'EEEE, MMM d', { locale: getDateLocale() });
 
                   return (
                     <div key={session.id}>
@@ -209,7 +212,7 @@ export default function CoachOverviewSection() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold text-sm truncate text-foreground">{training?.name}</p>
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
                               </div>
                               <span className="text-xs text-muted-foreground mt-0.5 block">
                                 {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
@@ -232,7 +235,7 @@ export default function CoachOverviewSection() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
                           >
-                            <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+                            <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: training.venue.split(',')[0] })}
                           </a>
                         )}
                       </div>
@@ -244,7 +247,7 @@ export default function CoachOverviewSection() {
             {upcomingSessions.length > 4 && (
               <button onClick={() => navigate('/coach/calendar')}
                 className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
-                Show all in calendar
+                {t('home.showAll')}
               </button>
             )}
           </>

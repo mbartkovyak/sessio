@@ -1,0 +1,72 @@
+{
+  "dashboard": {
+    "defaultName": "School",
+    "coaches": "Coaches",
+    "trainings": "Trainings",
+    "athletes": "Athletes",
+    "alsoCoach": "I also coach",
+    "alsoCoachDesc": "Add yourself as a coach at your school",
+    "coachesSection": "Coaches",
+    "add": "Add",
+    "noCoaches": "No coaches yet",
+    "noCoachesDesc": "Add yourself or invite coaches to get started",
+    "coach": "Coach",
+    "you": "(you)",
+    "schoolCalendar": "School Calendar",
+    "manageCoaches": "Manage Coaches",
+    "schoolSettings": "School Settings",
+    "nowCoach": "You're now a coach at your school!"
+  },
+  "profile": {
+    "title": "School Profile",
+    "schoolName": "School Name",
+    "description": "Description",
+    "saving": "Saving...",
+    "coachesSection": "Coaches",
+    "inviteDesc": "Share this link — coaches request to join and you approve them.",
+    "shareInvite": "Share invite link",
+    "pending": "{{count}} pending",
+    "approve": "Approve",
+    "decline": "Decline",
+    "coach": "Coach",
+    "you": "(you)",
+    "coachRemoved": "Coach removed",
+    "removeConfirm": "Remove {{name}} from the school?",
+    "added": "Added!",
+    "addMyselfCoach": "Add myself as coach",
+    "venues": "Venues",
+    "venueName": "Venue name (e.g. Court 3)",
+    "venueAddress": "Full address (e.g. ul. Marszałkowska 12, Warszawa)",
+    "addVenue": "Add venue"
+  },
+  "coaches": {
+    "title": "Coaches",
+    "inviteCoach": "Invite a coach",
+    "inviteDesc": "Share this link — coaches request to join and you approve them.",
+    "shareInvite": "Share invite link",
+    "pendingRequests": "Pending Requests ({{count}})",
+    "approve": "Approve",
+    "decline": "Decline",
+    "addMyselfCoach": "Add myself as coach",
+    "added": "Added!",
+    "coachCount_one": "{{count}} coach in {{name}}",
+    "coachCount_other": "{{count}} coaches in {{name}}",
+    "noCoaches": "No coaches yet — share the invite link to get started",
+    "coach": "Coach",
+    "you": "(you)"
+  },
+  "calendar": {
+    "title": "School Calendar",
+    "comingSoon": "School calendar coming soon"
+  },
+  "overview": {
+    "title": "School overview",
+    "schoolProfile": "School Profile",
+    "joinRequests": "Join Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "lessons": "Lessons",
+    "noLessons": "No lessons yet — create one to get started",
+    "showAll": "Show all {{count}} lessons"
+  }
+}

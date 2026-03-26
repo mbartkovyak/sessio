@@ -1,10 +1,6 @@
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
-
-function dayLabel(date: Date) {
-  if (isToday(date)) return 'Today';
-  if (isTomorrow(date)) return 'Tomorrow';
-  return format(date, 'EEEE');
-}
+import { useTranslation } from 'react-i18next';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 
 interface CalendarGridProps<T> {
   items: T[];
@@ -15,7 +11,14 @@ interface CalendarGridProps<T> {
 }
 
 export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading, emptyState }: CalendarGridProps<T>) {
+  const { t } = useTranslation();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+  function dayLabel(date: Date) {
+    if (isToday(date)) return t('calendar.today');
+    if (isTomorrow(date)) return t('calendar.tomorrow');
+    return format(date, 'EEEE', { locale: getDateLocale() });
+  }
 
   // Group items by date
   const byDate: Record<string, T[]> = {};
@@ -45,7 +48,7 @@ export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading,
         const day = parseISO(dateKey);
         const daySessions = byDate[dateKey];
         const isToday_ = dateKey === todayStr;
-        const month = format(day, 'MMMM yyyy');
+        const month = format(day, 'LLLL yyyy', { locale: getDateLocale() });
         const showMonthHeader = month !== lastMonth;
         lastMonth = month;
 
@@ -63,11 +66,11 @@ export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading,
                 <span className={`text-sm font-semibold ${isToday_ ? 'text-primary' : 'text-foreground'}`}>
                   {dayLabel(day)}
                 </span>
-                <span className="text-xs text-muted-foreground">{format(day, 'MMM d')}</span>
+                <span className="text-xs text-muted-foreground">{format(day, 'MMM d', { locale: getDateLocale() })}</span>
               </div>
 
               {!daySessions || daySessions.length === 0 ? (
-                <p className="text-xs text-muted-foreground/60 pl-1">No trainings</p>
+                <p className="text-xs text-muted-foreground/60 pl-1">{t('calendar.noTrainings')}</p>
               ) : (
                 <div className="space-y-2">
                   {daySessions.map(renderItem)}

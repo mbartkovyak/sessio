@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
         .select(`
           id, user_id, session_id, status, reminder_sent_at,
           training_sessions(id, session_date, start_time, end_time,
-            trainings(id, name, confirmation_window_hours, cancel_deadline_hours)
+            trainings(id, name, confirmation_window_hours)
           )
         `)
         .eq('status', 'pending')
@@ -144,16 +144,14 @@ Deno.serve(async (req) => {
         if (!session || !training) continue;
 
         const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const deadlineHours = training.cancel_deadline_hours ?? 2;
-        // Remind 24h before the cancel deadline
-        const reminderMs = (deadlineHours + 24) * 60 * 60 * 1000;
+        const windowHours = training.confirmation_window_hours ?? 48;
 
-        // Only send if within reminder window and session hasn't passed
-        if (sessionStart - now > reminderMs || sessionStart < now) continue;
+        // Send reminder when session enters the confirmation window
+        if (sessionStart - now > windowHours * 60 * 60 * 1000 || sessionStart < now) continue;
 
         const payload = JSON.stringify({
           title: training.name,
-          body: `${session.session_date} at ${session.start_time?.slice(0, 5)}. Cancel at least ${deadlineHours}h before if you can't make it.`,
+          body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — confirm or cancel if you can't make it.`,
           tag: `confirm-${att.session_id}`,
           url: '/player',
         });
@@ -183,7 +181,7 @@ Deno.serve(async (req) => {
         .select(`
           id, user_id, session_id, status,
           training_sessions(id, session_date, start_time, training_id,
-            trainings(id, name, no_response_behavior, cancel_deadline_hours)
+            trainings(id, name, no_response_behavior, confirmation_window_hours)
           )
         `)
         .eq('status', 'pending');
@@ -197,7 +195,7 @@ Deno.serve(async (req) => {
         if (!session || !training) continue;
 
         const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const deadlineMs = (training.cancel_deadline_hours ?? 2) * 60 * 60 * 1000;
+        const deadlineMs = (training.confirmation_window_hours ?? 24) * 60 * 60 * 1000;
 
         // Past the deadline?
         if (sessionStart - now > deadlineMs) continue;

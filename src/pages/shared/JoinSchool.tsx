@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Clock } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function JoinSchool() {
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('common');
 
   const [school, setSchool] = useState<any>(null);
   const [schoolLoading, setSchoolLoading] = useState(true);
@@ -46,7 +48,7 @@ export default function JoinSchool() {
       return;
     }
     if (profile.role !== 'coach') {
-      toast.error('Only coaches can join a school');
+      toast.error(t('joinSchool.onlyCoaches'));
       navigate(profile.role === 'player' ? '/player' : '/coach');
       return;
     }
@@ -63,7 +65,7 @@ export default function JoinSchool() {
       .maybeSingle();
 
     if (existing?.status === 'approved') {
-      toast.info("You're already in this school");
+      toast.info(t('joinSchool.alreadyInSchool'));
       navigate('/coach');
     } else if (existing?.status === 'pending') {
       setRequestSent(true);
@@ -81,7 +83,7 @@ export default function JoinSchool() {
       queryClient.invalidateQueries({ queryKey: ['my-school'] });
       setRequestSent(true);
     } catch (err: any) {
-      toast.error(err.message ?? 'Failed to send request');
+      toast.error(err.message ?? t('joinSchool.failedToSend'));
       setJoining(false);
     }
   }
@@ -93,7 +95,7 @@ export default function JoinSchool() {
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth/callback' },
     });
-    if (error) { toast.error('Sign in failed'); setGoogleLoading(false); }
+    if (error) { toast.error(t('joinSchool.signInFailed')); setGoogleLoading(false); }
   }
 
   async function handleMagicLink(e: React.FormEvent) {
@@ -118,9 +120,9 @@ export default function JoinSchool() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
         <div className="text-5xl mb-3">🔍</div>
-        <h2 className="text-xl font-bold text-foreground">School not found</h2>
-        <p className="mt-2 text-muted-foreground">This invite link may be expired or invalid.</p>
-        <button onClick={() => navigate('/')} className="mt-6 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground min-h-[44px]">Go home</button>
+        <h2 className="text-xl font-bold text-foreground">{t('joinSchool.notFound')}</h2>
+        <p className="mt-2 text-muted-foreground">{t('joinSchool.notFoundDesc')}</p>
+        <button onClick={() => navigate('/')} className="mt-6 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground min-h-[44px]">{t('joinSchool.goHome')}</button>
       </div>
     );
   }
@@ -148,14 +150,14 @@ export default function JoinSchool() {
           <SchoolCard />
           <div className="rounded-2xl bg-amber-50 border border-amber-200 p-5 text-center">
             <Clock className="mx-auto h-8 w-8 text-amber-500 mb-2" />
-            <p className="font-semibold text-foreground">Request sent</p>
-            <p className="mt-1 text-sm text-muted-foreground">The school owner will review your request. You'll be added once approved.</p>
+            <p className="font-semibold text-foreground">{t('joinSchool.requestSent')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t('joinSchool.requestSentDesc')}</p>
           </div>
           <button
             onClick={() => navigate('/coach')}
             className="w-full rounded-2xl border border-border py-3.5 text-sm font-medium text-foreground min-h-[44px]"
           >
-            Go to dashboard
+            {t('joinSchool.goToDashboard')}
           </button>
         </main>
       </div>
@@ -170,16 +172,16 @@ export default function JoinSchool() {
           <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
         </header>
         <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
-          <p className="text-center text-sm text-muted-foreground">You've been invited to join</p>
+          <p className="text-center text-sm text-muted-foreground">{t('joinSchool.invitedToJoin')}</p>
           <SchoolCard />
           <button
             onClick={requestJoin}
             disabled={joining}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? 'Sending request...' : `Request to Join`}
+            {joining ? t('joinSchool.sendingRequest') : t('joinSchool.requestToJoin')}
           </button>
-          <p className="text-center text-xs text-muted-foreground">The school owner will approve your request</p>
+          <p className="text-center text-xs text-muted-foreground">{t('joinSchool.ownerWillApprove')}</p>
         </main>
       </div>
     );
@@ -192,15 +194,15 @@ export default function JoinSchool() {
         <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
       </header>
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
-        <p className="text-center text-sm text-muted-foreground">You've been invited to join</p>
+        <p className="text-center text-sm text-muted-foreground">{t('joinSchool.invitedToJoin')}</p>
         <SchoolCard />
-        <p className="text-center text-sm text-muted-foreground">Sign in to request to join as a coach</p>
+        <p className="text-center text-sm text-muted-foreground">{t('joinSchool.signInToJoin')}</p>
 
         {emailSent ? (
           <div className="rounded-2xl bg-success/10 border border-success/20 p-5 text-center">
             <div className="mb-2 text-3xl">📩</div>
-            <p className="font-semibold text-foreground">Check your email</p>
-            <p className="mt-1 text-sm text-muted-foreground">We sent a magic link to <strong>{email}</strong></p>
+            <p className="font-semibold text-foreground">{t('joinSchool.checkEmail')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t('joinSchool.sentMagicLink')} <strong>{email}</strong></p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -219,7 +221,7 @@ export default function JoinSchool() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
-                  Continue with Google
+                  {t('joinSchool.continueGoogle')}
                 </>
               )}
             </button>
@@ -230,7 +232,7 @@ export default function JoinSchool() {
                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3.5 text-sm font-medium text-foreground min-h-[44px]"
               >
                 <Mail className="h-4 w-4" />
-                Continue with Email
+                {t('joinSchool.continueEmail')}
               </button>
             ) : (
               <form onSubmit={handleMagicLink} className="space-y-3">
@@ -240,7 +242,7 @@ export default function JoinSchool() {
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
                 />
                 <button type="submit" className="w-full rounded-xl bg-foreground py-3 text-sm font-semibold text-background min-h-[44px]">
-                  Send Magic Link
+                  {t('joinSchool.sendMagicLink')}
                 </button>
               </form>
             )}

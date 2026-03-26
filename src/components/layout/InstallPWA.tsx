@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -8,6 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 export default function InstallPWA() {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     // Count visits
@@ -49,15 +51,15 @@ export default function InstallPWA() {
           S
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-background">Add Sessio to Home Screen</p>
-          <p className="text-xs text-background/60">Works offline. No app store needed.</p>
+          <p className="text-sm font-semibold text-background">{t('pwa.title')}</p>
+          <p className="text-xs text-background/60">{t('pwa.description')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <button onClick={dismiss} className="text-xs text-background/50 px-2 min-h-[36px]">
-            Not now
+            {t('pwa.notNow')}
           </button>
           <button onClick={handleInstall} className="rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground min-h-[36px]">
-            Install
+            {t('pwa.install')}
           </button>
         </div>
       </div>

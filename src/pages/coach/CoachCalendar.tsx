@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+import { useTranslation } from 'react-i18next';
 import CoachHeader from '@/components/coach/CoachHeader';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -55,6 +57,7 @@ function useSchoolSessions(schoolId: string | undefined) {
 
 export default function CoachCalendar() {
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
   const { user, profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
@@ -67,8 +70,8 @@ export default function CoachCalendar() {
 
   async function handleCancelSession(session: any) {
     const training = session.trainings;
-    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM');
-    if (!confirm(`Cancel ${training?.name} on ${dateLabel}?`)) return;
+    const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
+    if (!confirm(t('calendar.cancelConfirm', { name: training?.name, date: dateLabel }))) return;
     const { error } = await supabase
       .from('training_sessions')
       .update({ status: 'cancelled' })
@@ -82,16 +85,16 @@ export default function CoachCalendar() {
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
-    toast.success('Session cancelled');
+    toast.success(t('calendar.sessionCancelled'));
   }
 
   async function handleRescheduleSession(session: any) {
     const training = session.trainings;
-    const newDate = prompt('Reschedule to (YYYY-MM-DD):', session.session_date);
+    const newDate = prompt(t('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt('Start time (HH:MM):', session.start_time?.slice(0, 5));
+    const newStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
     if (!newStart) return;
-    const newEnd = prompt('End time (HH:MM):', session.end_time?.slice(0, 5));
+    const newEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
     if (!newEnd) return;
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
@@ -106,7 +109,7 @@ export default function CoachCalendar() {
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
     qc.invalidateQueries({ queryKey: ['training-sessions', training?.id] });
-    toast.success('Session rescheduled');
+    toast.success(t('calendar.sessionRescheduled'));
   }
 
   // School owner: merge own sessions + school sessions (deduplicate)
@@ -120,7 +123,7 @@ export default function CoachCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title="Calendar" right={canCreate ? <NewLessonButton /> : undefined} />
+      <CoachHeader title={t('calendar.title')} right={canCreate ? <NewLessonButton /> : undefined} />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">
@@ -131,16 +134,16 @@ export default function CoachCalendar() {
             emptyState={
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
-                <p className="font-medium text-foreground">No upcoming trainings</p>
+                <p className="font-medium text-foreground">{t('calendar.noUpcoming')}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {canCreate ? 'Create a training to see your schedule' : 'Your school will assign trainings to you'}
+                  {canCreate ? t('calendar.noUpcomingDesc') : t('calendar.noUpcomingSchool')}
                 </p>
                 {canCreate && (
                   <button
                     onClick={() => navigate('/coach/trainings/new')}
                     className="mt-4 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground min-h-[44px]"
                   >
-                    Create a Training
+                    {t('calendar.createTraining')}
                   </button>
                 )}
               </div>
@@ -161,16 +164,16 @@ export default function CoachCalendar() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className={`font-semibold text-sm truncate ${session.status === 'cancelled' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
                         </div>
                         <span className="text-xs text-muted-foreground mt-0.5 block">
                           {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                          {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · Coach ${training.coach.full_name}`}
+                          {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · ${t('trainings.coachName', { name: training.coach.full_name })}`}
                         </span>
                       </div>
                     </button>
                     {session.status === 'cancelled' ? (
-                      <span className="text-xs font-medium text-destructive shrink-0">Cancelled</span>
+                      <span className="text-xs font-medium text-destructive shrink-0">{t('calendar.cancelled')}</span>
                     ) : (
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => handleRescheduleSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Reschedule">
@@ -189,7 +192,7 @@ export default function CoachCalendar() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
                     >
-                      <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+                      <MapPin className="h-3 w-3" /> {t('calendar.navigateTo', { venue: training.venue.split(',')[0] })}
                     </a>
                   )}
                 </div>

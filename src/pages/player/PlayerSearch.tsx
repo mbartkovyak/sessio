@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
@@ -9,6 +10,7 @@ import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 
 export default function PlayerSearch() {
+  const { t } = useTranslation('player');
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
@@ -28,14 +30,14 @@ export default function PlayerSearch() {
   // Result summary
   const summary = !isLoading && results.length > 0
     ? [
-        schools.length > 0 && `${schools.length} school${schools.length !== 1 ? 's' : ''}`,
-        coaches.length > 0 && `${coaches.length} coach${coaches.length !== 1 ? 'es' : ''}`,
+        schools.length > 0 && `${schools.length} ${schools.length === 1 ? t('search.school').toLowerCase() : t('search.school').toLowerCase() + 's'}`,
+        coaches.length > 0 && t('search.coachCount', { count: coaches.length }),
       ].filter(Boolean).join(', ')
     : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <AppHeader title="Discover" />
+      <AppHeader title={t('search.title')} />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-3 pb-2 space-y-3">
@@ -44,13 +46,13 @@ export default function PlayerSearch() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search coaches and schools..."
+              placeholder={t('search.placeholder')}
               className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder="All sports" />
-            <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={CITIES} placeholder="All cities" />
+            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} />
+            <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={CITIES} placeholder={t('search.allCities')} />
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-2">
@@ -65,8 +67,8 @@ export default function PlayerSearch() {
           ) : results.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-4xl mb-3">🔍</div>
-              <p className="font-medium text-foreground">No results found</p>
-              <p className="text-sm text-muted-foreground mt-1">Try a different search or filter</p>
+              <p className="font-medium text-foreground">{t('search.noResults')}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('search.noResultsDesc')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -86,7 +88,7 @@ export default function PlayerSearch() {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.name}</p>
                         <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                          <Building2 className="h-2.5 w-2.5" />School
+                          <Building2 className="h-2.5 w-2.5" />{t('search.school')}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
@@ -98,7 +100,7 @@ export default function PlayerSearch() {
                         )}
                         {item.coach_count > 0 && (
                           <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                            <Users className="h-2.5 w-2.5" />{item.coach_count} coach{item.coach_count !== 1 ? 'es' : ''}
+                            <Users className="h-2.5 w-2.5" />{t('search.coachCount', { count: item.coach_count })}
                           </span>
                         )}
                       </div>
@@ -116,7 +118,7 @@ export default function PlayerSearch() {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.full_name}</p>
                         <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">
-                          <UserCheck className="h-2.5 w-2.5" />Coach
+                          <UserCheck className="h-2.5 w-2.5" />{t('search.coach')}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
@@ -132,7 +134,7 @@ export default function PlayerSearch() {
                           <Building2 className="h-2.5 w-2.5" />{item.schools.name}
                         </p>
                       ) : (
-                        <p className="text-xs text-muted-foreground mt-1">Independent coach</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('search.independentCoach')}</p>
                       )}
                       {item.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.bio}</p>}
                     </div>

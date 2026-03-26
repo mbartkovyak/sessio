@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
+import { useTranslation, Trans } from 'react-i18next';
 import { SessioLogo } from '@/components/SessioLogo';
+import LanguageSelector from '@/components/shared/LanguageSelector';
 
 type Step = 'email' | 'code';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -58,7 +61,7 @@ export default function Auth() {
     });
     setLoading(false);
     if (error) {
-      setError('Invalid or expired code. Try again.');
+      setError(t('auth.invalidCode'));
     } else {
       navigate('/auth/callback');
     }
@@ -66,8 +69,9 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center px-6 py-5" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
+      <div className="flex items-center justify-between px-6 py-5" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
         <SessioLogo />
+        <LanguageSelector />
       </div>
 
       <div className="flex-1 px-4 pt-12">
@@ -76,8 +80,8 @@ export default function Auth() {
           {step === 'email' && (
             <>
               <div className="mb-8 text-center">
-                <h1 className="mb-2 text-2xl font-bold text-foreground">Welcome to sessio</h1>
-                <p className="text-muted-foreground">Sign in or sign up — same flow</p>
+                <h1 className="mb-2 text-2xl font-bold text-foreground">{t('auth.welcomeTitle')}</h1>
+                <p className="text-muted-foreground">{t('auth.welcomeSubtitle')}</p>
               </div>
 
               <div className="space-y-4">
@@ -97,12 +101,12 @@ export default function Auth() {
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                   )}
-                  Continue with Google
+                  {t('auth.continueGoogle')}
                 </button>
 
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs text-muted-foreground">or</span>
+                  <span className="text-xs text-muted-foreground">{t('auth.or')}</span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
 
@@ -110,7 +114,7 @@ export default function Auth() {
                 <form onSubmit={handleSendCode} className="space-y-3">
                   <input
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
@@ -124,7 +128,7 @@ export default function Auth() {
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                    Continue with Email
+                    {t('auth.continueEmail')}
                     {!loading && <ArrowRight className="h-4 w-4" />}
                   </button>
                 </form>
@@ -138,14 +142,16 @@ export default function Auth() {
                 onClick={() => { setStep('email'); setCode(''); setError(''); }}
                 className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
               >
-                <ArrowLeft className="h-4 w-4" /> Back
+                <ArrowLeft className="h-4 w-4" /> {t('common:actions.back')}
               </button>
 
               <div className="mb-8 text-center">
                 <div className="mb-3 text-4xl">📬</div>
-                <h1 className="mb-2 text-2xl font-bold text-foreground">Check your email</h1>
+                <h1 className="mb-2 text-2xl font-bold text-foreground">{t('auth.checkEmail')}</h1>
                 <p className="text-muted-foreground text-sm">
-                  We sent a code to <strong>{email}</strong>
+                  <Trans i18nKey="auth.codeSentTo" ns="auth" values={{ email }}>
+                    We sent a code to <strong>{{ email } as any}</strong>
+                  </Trans>
                 </p>
               </div>
 
@@ -153,7 +159,7 @@ export default function Auth() {
                 <input
                   type="text"
                   inputMode="numeric"
-                  placeholder="12345678"
+                  placeholder={t('auth.codePlaceholder')}
                   value={code}
                   onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   required
@@ -166,7 +172,7 @@ export default function Auth() {
                   disabled={loading || code.length < 8}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
                 >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.signIn')}
                 </button>
                 <button
                   type="button"
@@ -174,7 +180,7 @@ export default function Auth() {
                   disabled={loading}
                   className="w-full text-center text-sm text-muted-foreground hover:text-foreground disabled:opacity-40"
                 >
-                  Resend code
+                  {t('auth.resendCode')}
                 </button>
               </form>
             </>

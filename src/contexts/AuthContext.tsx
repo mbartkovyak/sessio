@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback, Re
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
+import i18n from '@/i18n';
 
 type AuthContextType = {
   session: Session | null;
@@ -77,6 +78,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Sync language preference with profile
+  useEffect(() => {
+    if (!profile) return;
+    const currentLang = i18n.language;
+    if (profile.language && profile.language !== currentLang) {
+      i18n.changeLanguage(profile.language);
+      localStorage.setItem('sessio_lang', profile.language);
+    } else if (!profile.language && currentLang) {
+      supabase.from('profiles').update({ language: currentLang }).eq('id', profile.id);
+    }
+  }, [profile?.id, profile?.language]);
 
   async function signOut() {
     await supabase.auth.signOut({ scope: 'global' });

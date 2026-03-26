@@ -1,15 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import { useMyFavouriteSchools } from '@/hooks/school/useSchools';
 import Avatar from '@/components/shared/Avatar';
+import { useTranslation } from 'react-i18next';
 
 export default function FavouriteSchoolsSection() {
+  const { t } = useTranslation('player');
   const navigate = useNavigate();
   const { data: favs = [] } = useMyFavouriteSchools();
   if (!favs.length) return null;
 
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">My Schools</h2>
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('favouriteSchools.title')}</h2>
       <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
         {favs.map((f: any) => {
           const school = f.school;

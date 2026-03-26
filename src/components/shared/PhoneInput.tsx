@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Phone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const COUNTRY_CODES = [
   { code: '+48', country: 'PL', flag: '🇵🇱', digits: 9 },
@@ -54,6 +55,7 @@ interface PhoneInputProps {
 }
 
 export default function PhoneInput({ value, onChange, required }: PhoneInputProps) {
+  const { t } = useTranslation();
   const parsed = parsePhone(value);
   const [countryCode, setCountryCode] = useState(parsed.countryCode);
   const [number, setNumber] = useState(parsed.number);
@@ -77,7 +79,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
   return (
     <div>
       <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
-        <Phone className="h-3.5 w-3.5" /> Phone {required && <span className="text-destructive">*</span>}
+        <Phone className="h-3.5 w-3.5" /> {t('phone.label')} {required && <span className="text-destructive">*</span>}
       </label>
       <div className="flex gap-2">
         <div className="relative shrink-0">
@@ -95,7 +97,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
         <input
           type="tel"
           inputMode="numeric"
-          placeholder="Phone number"
+          placeholder={t('phone.placeholder')}
           value={number}
           maxLength={maxDigits}
           onChange={e => { setNumber(e.target.value); emit(countryCode, e.target.value); }}

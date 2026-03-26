@@ -5,8 +5,10 @@ import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
 import VenueLink from '@/components/shared/VenueLink';
+import { useTranslation } from 'react-i18next';
 
 export default function ConfirmationCard({ attendance }: { attendance: any }) {
+  const { t } = useTranslation('player');
   const session = attendance.training_sessions;
   const training = session?.trainings;
   const upsert = useUpsertAttendance();
@@ -22,13 +24,13 @@ export default function ConfirmationCard({ attendance }: { attendance: any }) {
   async function confirm() {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'confirmed', notify });
     setDismissed(true);
-    toast.success("You're in! 🎉");
+    toast.success(t('confirmation.confirmed'));
   }
 
   async function decline() {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: 'declined', notify });
     setDismissed(true);
-    toast.success("Marked as can't make it");
+    toast.success(t('confirmation.markedCantMake'));
   }
 
   return (
@@ -64,7 +66,7 @@ export default function ConfirmationCard({ attendance }: { attendance: any }) {
           className="flex items-center justify-center gap-2 rounded-xl bg-success py-3.5 text-sm font-bold text-success-foreground min-h-[48px] active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           <CheckCircle2 className="h-4.5 w-4.5" />
-          I'm coming
+          {t('confirmation.imComing')}
         </button>
         <button
           onClick={decline}
@@ -72,7 +74,7 @@ export default function ConfirmationCard({ attendance }: { attendance: any }) {
           className="flex items-center justify-center gap-2 rounded-xl border border-destructive/25 bg-destructive/8 py-3.5 text-sm font-bold text-destructive min-h-[48px] active:scale-[0.97] transition-transform disabled:opacity-60"
         >
           <XCircle className="h-4.5 w-4.5" />
-          Can't make it
+          {t('confirmation.cantMakeIt')}
         </button>
       </div>
     </div>

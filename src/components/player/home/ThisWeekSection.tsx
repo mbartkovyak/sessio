@@ -6,13 +6,15 @@ import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
 import { getHoursUntilSession } from './sessionUtils';
 import VenueLink from '@/components/shared/VenueLink';
+import { useTranslation } from 'react-i18next';
 
 export default function ThisWeekSection({ sessions }: { sessions: any[] }) {
+  const { t } = useTranslation('player');
   if (sessions.length === 0) return null;
 
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">This Week</h2>
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('thisWeek.title')}</h2>
       <div className="card-elevated rounded-xl divide-y divide-border">
         {sessions.slice(0, 8).map((a: any) => (
           <SessionRow key={a.id} attendance={a} />
@@ -23,6 +25,7 @@ export default function ThisWeekSection({ sessions }: { sessions: any[] }) {
 }
 
 function SessionRow({ attendance }: { attendance: any }) {
+  const { t } = useTranslation('player');
   const session = attendance.training_sessions;
   const training = session?.trainings;
   const upsert = useUpsertAttendance();
@@ -30,7 +33,7 @@ function SessionRow({ attendance }: { attendance: any }) {
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
 
   const isGoing = attendance.status === 'confirmed';
-  const cancelDeadlineHours = training?.cancel_deadline_hours ?? 2;
+  const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
 
@@ -40,7 +43,7 @@ function SessionRow({ attendance }: { attendance: any }) {
 
   async function switchTo(newStatus: string) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
-    toast.success(newStatus === 'confirmed' ? "You're back in! 🎉" : 'Spot released');
+    toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
     setShowWarning(false);
   }
 
@@ -73,7 +76,7 @@ function SessionRow({ attendance }: { attendance: any }) {
                 : 'text-muted-foreground hover:bg-muted/50'
             } disabled:opacity-100`}
           >
-            Going
+            {t('thisWeek.going')}
           </button>
           <button
             onClick={isGoing ? handleNotGoing : undefined}
@@ -84,7 +87,7 @@ function SessionRow({ attendance }: { attendance: any }) {
                 : 'text-muted-foreground hover:bg-destructive/5 hover:text-destructive'
             } disabled:opacity-100`}
           >
-            Not going
+            {t('thisWeek.notGoing')}
           </button>
         </div>
       </div>
@@ -94,23 +97,21 @@ function SessionRow({ attendance }: { attendance: any }) {
         <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5 ml-9">
           <div className="flex items-start gap-2.5 mb-3">
             <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground">
-              Less than <strong>{cancelDeadlineHours}h</strong> before the lesson. Your spot may still be charged.
-            </p>
+            <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('thisWeek.lateCancel', { hours: cancelDeadlineHours }) }} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setShowWarning(false)}
               className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
             >
-              Keep my spot
+              {t('thisWeek.keepSpot')}
             </button>
             <button
               onClick={() => switchTo('declined')}
               disabled={upsert.isPending}
               className="rounded-lg bg-destructive/10 py-2 text-xs font-semibold text-destructive min-h-[36px] disabled:opacity-50"
             >
-              Cancel anyway
+              {t('thisWeek.cancelAnyway')}
             </button>
           </div>
         </div>

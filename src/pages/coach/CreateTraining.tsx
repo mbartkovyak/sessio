@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 /** Given a start_date and a target day (Monday=0), return the first occurrence
  *  of that day on or after start_date. Prevents sessions starting on the wrong day. */
@@ -23,6 +24,7 @@ function alignStartDate(startDate: string, dayOfWeek: number): string {
 
 export default function CreateTraining() {
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
   const create = useCreateTraining();
   const { profile, refreshProfile } = useAuth();
   const { data: school } = useMySchool();
@@ -67,7 +69,7 @@ export default function CreateTraining() {
     return <Navigate to="/coach/trainings" replace />;
   }
 
-  const extraErrors = isSchoolOwner && !selectedCoachId ? ['Coach is required'] : [];
+  const extraErrors = isSchoolOwner && !selectedCoachId ? [t('create.coachRequired')] : [];
 
   async function handleSubmit(form: TrainingFormValues) {
     try {
@@ -100,7 +102,7 @@ export default function CreateTraining() {
       const { error: rpcError } = await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id });
       if (rpcError) {
         console.warn('Session generation failed:', rpcError.message);
-        toast.error('Training created but session generation failed.');
+        toast.error(t('create.sessionGenFailed'));
       }
       navigate(`/coach/trainings/${training.id}`);
     } catch (err: any) {
@@ -111,13 +113,13 @@ export default function CreateTraining() {
   // School owner: show coach selector
   const schoolSlot = isSchoolOwner && school ? (
     <div {...(!selectedCoachId ? { 'data-field-error': true } : {})}>
-      <label className="text-sm font-medium text-foreground mb-1 block">Coach <span className="text-destructive">*</span></label>
+      <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')} <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
-          <p className="text-sm text-muted-foreground">No coaches in your school yet</p>
+          <p className="text-sm text-muted-foreground">{t('create.noCoaches')}</p>
           <button type="button" onClick={() => navigate('/school/profile')}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-            <UserPlus className="h-4 w-4" /> Add coaches
+            <UserPlus className="h-4 w-4" /> {t('create.addCoaches')}
           </button>
         </div>
       ) : (
@@ -128,16 +130,16 @@ export default function CreateTraining() {
               onChange={e => setSelectedCoachId(e.target.value)}
               className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${attempted && !selectedCoachId ? 'border-destructive' : 'border-input'}`}
             >
-              <option value="">Select coach</option>
+              <option value="">{t('create.selectCoach')}</option>
               {schoolCoaches.map((m: any) => (
                 <option key={m.coach_id} value={m.coach_id}>
-                  {m.coach?.full_name ?? 'Coach'}
+                  {m.coach?.full_name ?? t('create.coachLabel')}
                 </option>
               ))}
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
-          {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">Coach is required</p>}
+          {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">{t('create.coachRequired')}</p>}
         </>
       )}
     </div>
@@ -145,7 +147,7 @@ export default function CreateTraining() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title="New Lesson" back />
+      <CoachHeader title={t('create.title')} back />
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-6">
           <div className="rounded-2xl bg-white p-4 shadow-sm overflow-visible" style={{ border: '1px solid hsl(203 20% 90%)' }}>

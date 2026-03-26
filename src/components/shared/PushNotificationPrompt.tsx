@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Bell, X, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { usePushNotifications } from '@/hooks/shared/usePushNotifications';
 import { toast } from 'sonner';
 
 export default function PushNotificationPrompt() {
   const { supported, permission, subscribe, subscribed } = usePushNotifications();
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() => localStorage.getItem('_pushDismissed') === '1');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,9 +19,9 @@ export default function PushNotificationPrompt() {
     const result = await subscribe();
     setLoading(false);
     if (result === true) {
-      toast.success('Notifications enabled!');
+      toast.success(t('notifications.enabled'));
     } else {
-      setError(typeof result === 'string' ? result : 'Failed — make sure app is added to home screen');
+      setError(typeof result === 'string' ? result : t('notifications.failed'));
     }
   }
 
@@ -37,10 +39,10 @@ export default function PushNotificationPrompt() {
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-foreground text-sm">
-          {needsSubscription ? 'Complete notification setup' : 'Enable notifications'}
+          {needsSubscription ? t('notifications.completeTitle') : t('notifications.enableTitle')}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {needsSubscription ? 'Tap to finish — permission granted but setup incomplete' : 'Get reminders to confirm your trainings'}
+          {needsSubscription ? t('notifications.completeDesc') : t('notifications.enableDesc')}
         </p>
         {error && <p className="text-xs text-destructive mt-1">{error}</p>}
         <button
@@ -48,7 +50,7 @@ export default function PushNotificationPrompt() {
           disabled={loading}
           className="mt-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground min-h-[36px] disabled:opacity-60"
         >
-          {loading ? 'Setting up...' : needsSubscription ? 'Complete setup' : 'Turn on'}
+          {loading ? t('notifications.settingUp') : needsSubscription ? t('notifications.completeSetup') : t('notifications.turnOn')}
         </button>
       </div>
       {!needsSubscription && (

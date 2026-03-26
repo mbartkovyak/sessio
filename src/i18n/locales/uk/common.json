@@ -1,0 +1,189 @@
+{
+  "nav": {
+    "home": "Головна",
+    "chats": "Чати",
+    "search": "Пошук",
+    "calendar": "Календар",
+    "profile": "Профіль",
+    "lessons": "Заняття"
+  },
+  "actions": {
+    "save": "Зберегти зміни",
+    "cancel": "Скасувати",
+    "back": "Назад",
+    "continue": "Далі",
+    "loading": "Завантаження...",
+    "signOut": "Вийти",
+    "deleteAccount": "Видалити акаунт",
+    "deleting": "Видалення...",
+    "confirmDelete": "Видалити всі ваші дані? Цю дію неможливо скасувати.",
+    "getStarted": "Почати",
+    "shareLink": "Поділитися посиланням",
+    "linkCopied": "Посилання скопійовано!"
+  },
+  "sports": {
+    "Tennis": "Теніс",
+    "Swimming": "Плавання",
+    "Running": "Біг",
+    "Fitness": "Фітнес",
+    "Yoga": "Йога",
+    "Football": "Футбол",
+    "Badminton": "Бадмінтон",
+    "Boxing": "Бокс",
+    "Other": "Інше"
+  },
+  "days": {
+    "Monday": "Понеділок",
+    "Tuesday": "Вівторок",
+    "Wednesday": "Середа",
+    "Thursday": "Четвер",
+    "Friday": "П'ятниця",
+    "Saturday": "Субота",
+    "Sunday": "Неділя"
+  },
+  "daysShort": {
+    "Mon": "Пн",
+    "Tue": "Вт",
+    "Wed": "Ср",
+    "Thu": "Чт",
+    "Fri": "Пт",
+    "Sat": "Сб",
+    "Sun": "Нд"
+  },
+  "calendar": {
+    "today": "Сьогодні",
+    "yesterday": "Вчора",
+    "tomorrow": "Завтра",
+    "todayAt": "Сьогодні о {{time}}",
+    "tomorrowAt": "Завтра о {{time}}",
+    "at": "о",
+    "noTrainings": "Немає занять"
+  },
+  "phone": {
+    "label": "Телефон",
+    "placeholder": "Номер телефону"
+  },
+  "chat": {
+    "noChats": "Ще немає чатів",
+    "startConversation": "Почніть розмову",
+    "noMessages": "Ще немає повідомлень",
+    "someone": "Хтось",
+    "markAsUnread": "Позначити як непрочитане",
+    "archive": "Архівувати",
+    "archiveConfirm": "Архівувати цю розмову?",
+    "messagePlaceholder": "Повідомлення...",
+    "noMessagesYet": "Ще немає повідомлень",
+    "beFirst": "Напишіть першими",
+    "failedCreate": "Не вдалося створити розмову",
+    "member": "Учасник",
+    "chatTitle": "Чат",
+    "group": "Група"
+  },
+  "notifications": {
+    "enableTitle": "Увімкнути сповіщення",
+    "enableDesc": "Отримуйте нагадування про підтвердження занять",
+    "completeTitle": "Завершіть налаштування сповіщень",
+    "completeDesc": "Натисніть, щоб завершити — дозвіл надано, але налаштування не завершено",
+    "enabled": "Сповіщення увімкнено!",
+    "failed": "Не вдалося — переконайтеся, що додаток додано на головний екран",
+    "settingUp": "Налаштування...",
+    "completeSetup": "Завершити налаштування",
+    "turnOn": "Увімкнути"
+  },
+  "form": {
+    "sport": "Спорт",
+    "selectSport": "Оберіть спорт",
+    "addSport": "+ Додати спорт",
+    "city": "Місто",
+    "selectCity": "Оберіть місто",
+    "select": "Оберіть..."
+  },
+  "trainingType": {
+    "group": "Групові",
+    "individual": "Індивідуальні"
+  },
+  "errors": {
+    "somethingWentWrong": "Щось пішло не так",
+    "notSignedIn": "Ви не увійшли — перезавантажте сторінку та спробуйте ще раз",
+    "errorTitle": "Щось пішло не так",
+    "errorDesc": "Сталася непередбачена помилка. Перезавантажте сторінку та спробуйте ще раз.",
+    "goHome": "На головну",
+    "reload": "Перезавантажити"
+  },
+  "join": {
+    "alreadyOnWaitlist": "Ви в списку очікування",
+    "alreadyInTraining": "Ви вже в цьому занятті",
+    "trainingFull": "Заняття заповнене",
+    "requestAlreadySent": "Запит вже надіслано — очікуйте на підтвердження",
+    "joinRequestSent": "Запит на приєднання надіслано! Тренер його розгляне.",
+    "joinRequestSentAgain": "Запит на приєднання надіслано повторно!",
+    "addedToWaitlist": "Додано до списку очікування!",
+    "joinedTraining": "Приєднано до {{name}}!",
+    "alreadyInGroup": "Ви вже в цій групі",
+    "groupFull": "Група заповнена",
+    "failedToJoin": "Не вдалося приєднатися",
+    "signInFailed": "Помилка входу",
+    "notFound": "Не знайдено",
+    "notFoundDesc": "Це посилання-запрошення могло закінчитися або є недійсним.",
+    "goHome": "На головну",
+    "spotsPerTraining": "{{count}} місць на заняття",
+    "joining": "Приєднання...",
+    "joinName": "Приєднатися до {{name}}",
+    "invitedToJoin": "{{name}} запрошує вас приєднатися",
+    "beenInvitedToJoin": "Вас запросили приєднатися",
+    "joinIn30Seconds": "Приєднайтесь за 30 секунд. Без завантаження додатку.",
+    "checkEmail": "Перевірте пошту",
+    "sentMagicLink": "Ми надіслали посилання для входу на",
+    "continueGoogle": "Продовжити з Google",
+    "continueEmail": "Продовжити з Email",
+    "sendMagicLink": "Надіслати посилання для входу",
+    "at": "о"
+  },
+  "joinSchool": {
+    "onlyCoaches": "Тільки тренери можуть приєднатися до школи",
+    "alreadyInSchool": "Ви вже в цій школі",
+    "failedToSend": "Не вдалося надіслати запит",
+    "signInFailed": "Помилка входу",
+    "notFound": "Школу не знайдено",
+    "notFoundDesc": "Це посилання-запрошення могло закінчитися або є недійсним.",
+    "goHome": "На головну",
+    "requestSent": "Запит надіслано",
+    "requestSentDesc": "Власник школи розгляне ваш запит. Вас додадуть після підтвердження.",
+    "goToDashboard": "До панелі керування",
+    "invitedToJoin": "Вас запросили приєднатися",
+    "sendingRequest": "Надсилання запиту...",
+    "requestToJoin": "Надіслати запит",
+    "ownerWillApprove": "Власник школи затвердить ваш запит",
+    "signInToJoin": "Увійдіть, щоб надіслати запит як тренер",
+    "checkEmail": "Перевірте пошту",
+    "sentMagicLink": "Ми надіслали посилання для входу на",
+    "continueGoogle": "Продовжити з Google",
+    "continueEmail": "Продовжити з Email",
+    "sendMagicLink": "Надіслати посилання для входу"
+  },
+  "notFound": {
+    "title": "За межами поля!",
+    "description": "Ця сторінка не існує. Можливо, заняття було скасовано?",
+    "goHome": "На головну"
+  },
+  "pwa": {
+    "title": "Додати Sessio на головний екран",
+    "description": "Працює офлайн. Без магазину додатків.",
+    "notNow": "Не зараз",
+    "install": "Встановити"
+  },
+  "dialog": {
+    "unsavedTitle": "Незбережені зміни",
+    "unsavedDesc": "У вас є незбережені зміни, які будуть втрачені, якщо ви покинете цю сторінку.",
+    "stay": "Залишитися",
+    "discard": "Відхилити"
+  },
+  "profile": {
+    "unknown": "Невідомий",
+    "call": "Зателефонувати",
+    "whatsapp": "WhatsApp",
+    "open": "Відкрити",
+    "email": "Email",
+    "noContact": "Контактна інформація відсутня"
+  }
+}

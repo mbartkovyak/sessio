@@ -5,8 +5,10 @@ import { useMySchool } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import Avatar from '@/components/shared/Avatar';
 import TrainingCard from '@/components/shared/TrainingCard';
+import { useTranslation } from 'react-i18next';
 
 export default function SchoolOverviewSection({ school }: { school: { id: string; name: string } }) {
+  const { t } = useTranslation('school');
   const navigate = useNavigate();
   const { data: fullSchool } = useMySchool();
   const { data: trainings = [], isLoading: trainingsLoading } = useSchoolTrainings(fullSchool?.id);
@@ -18,18 +20,18 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
-          <p className="text-sm text-muted-foreground">School overview</p>
+          <p className="text-sm text-muted-foreground">{t('overview.title')}</p>
         </div>
         <button onClick={() => navigate('/school/profile')}
           className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
-          <Settings className="h-3.5 w-3.5" /> School Profile
+          <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
         </button>
       </div>
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (
         <div>
-          <h2 className="mb-3 font-semibold text-foreground">Join Requests</h2>
+          <h2 className="mb-3 font-semibold text-foreground">{t('overview.joinRequests')}</h2>
           <div className="space-y-2">
             {joinRequests.map((req: any) => {
               const player = req.profiles;
@@ -46,11 +48,11 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: true, trainingName: req.trainings?.name })}
                       className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                      <CheckCircle2 className="h-3.5 w-3.5" /> {t('overview.accept')}
                     </button>
                     <button onClick={() => respond.mutate({ requestId: req.id, trainingId: req.training_id, userId: req.user_id, accept: false, trainingName: req.trainings?.name })}
                       className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]">
-                      Decline
+                      {t('overview.decline')}
                     </button>
                   </div>
                 </div>
@@ -63,26 +65,26 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       {/* Trainings */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-foreground">Lessons</h2>
+          <h2 className="font-semibold text-foreground">{t('overview.lessons')}</h2>
           <NewLessonButton />
         </div>
         {trainingsLoading ? (
           <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}</div>
         ) : trainings.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-6 text-center">
-            <p className="text-sm text-muted-foreground">No lessons yet — create one to get started</p>
+            <p className="text-sm text-muted-foreground">{t('overview.noLessons')}</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              {trainings.slice(0, 4).map((t: any) => (
+              {trainings.slice(0, 4).map((tr: any) => (
                 <TrainingCard
-                  key={t.id}
-                  training={t}
+                  key={tr.id}
+                  training={tr}
                   variant="grid"
-                  onClick={() => navigate(`/coach/trainings/${t.id}`)}
+                  onClick={() => navigate(`/coach/trainings/${tr.id}`)}
                   badge={
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{t.type}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t(`common:trainingType.${tr.type}`)}</span>
                   }
                 />
               ))}
@@ -90,7 +92,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
             {trainings.length > 4 && (
               <button onClick={() => navigate('/coach/trainings')}
                 className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-accent-foreground transition-all active:scale-[0.97]">
-                Show all {trainings.length} lessons
+                {t('overview.showAll', { count: trainings.length })}
               </button>
             )}
           </>

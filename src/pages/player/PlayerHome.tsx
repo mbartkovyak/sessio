@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle2, Clock } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
@@ -16,6 +17,7 @@ import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function PlayerHome() {
+  const { t } = useTranslation('player');
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
@@ -55,12 +57,12 @@ export default function PlayerHome() {
           {/* Greeting */}
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Hey, {profile?.full_name?.split(' ')[0] ?? 'Athlete'} 👋
+              {t('home.greeting', { name: profile?.full_name?.split(' ')[0] ?? t('home.defaultName') })}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {pendingConfirmations.length > 0
-                ? `${pendingConfirmations.length} training${pendingConfirmations.length > 1 ? 's' : ''} need your response`
-                : 'Your training overview'}
+                ? t('home.pendingCount', { count: pendingConfirmations.length })
+                : t('home.overview')}
             </p>
           </div>
 
@@ -79,14 +81,14 @@ export default function PlayerHome() {
                   <CheckCircle2 className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">You're all set</p>
-                  <p className="text-xs text-muted-foreground">All trainings confirmed</p>
+                  <p className="font-semibold text-foreground">{t('home.allSet')}</p>
+                  <p className="text-xs text-muted-foreground">{t('home.allConfirmed')}</p>
                 </div>
               </div>
               <div className="mt-2 rounded-lg bg-background/60 px-3 py-2.5">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Next: {relativeTime(nextConfirmed.training_sessions?.session_date, nextConfirmed.training_sessions?.start_time)}</span>
+                  <span>{t('home.next', { time: relativeTime(nextConfirmed.training_sessions?.session_date, nextConfirmed.training_sessions?.start_time) })}</span>
                 </div>
                 <p className="text-sm text-foreground font-medium mt-0.5 ml-[22px]">
                   {nextConfirmed.training_sessions?.trainings?.name}
@@ -96,19 +98,19 @@ export default function PlayerHome() {
           ) : upcoming.length === 0 ? (
             <div className="card-elevated rounded-2xl p-8 text-center">
               <div className="text-4xl mb-3">📅</div>
-              <p className="font-semibold text-foreground">No upcoming trainings</p>
-              <p className="text-sm text-muted-foreground mt-1">Find a coach and join a training</p>
+              <p className="font-semibold text-foreground">{t('home.noUpcoming')}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('home.noUpcomingDesc')}</p>
               <button
                 onClick={() => navigate('/search')}
                 className="mt-4 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground min-h-[44px] active:scale-[0.97] transition-transform"
               >
-                Find a Coach
+                {t('home.findCoach')}
               </button>
             </div>
           ) : (
             <div className="card-elevated rounded-2xl p-6 text-center">
-              <p className="font-semibold text-foreground">You're all free this week</p>
-              <p className="text-sm text-muted-foreground mt-1">No sessions in the next 7 days</p>
+              <p className="font-semibold text-foreground">{t('home.freeWeek')}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('home.freeWeekDesc')}</p>
             </div>
           )}
 
