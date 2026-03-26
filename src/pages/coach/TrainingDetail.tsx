@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
 import { format } from 'date-fns';
-import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
+import { DAYS_SHORT, SPORT_ICONS, dayShortLabel, sportLabel } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
 
@@ -56,7 +56,7 @@ export default function TrainingDetail() {
   const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
   const regularMembers = members.filter((m: any) => m.role === 'regular');
   const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
-  const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => DAYS_SHORT[d]).filter(Boolean).join(', ');
+  const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ');
 
   async function handleDelete() {
     setDeleting(true);
@@ -100,7 +100,7 @@ export default function TrainingDetail() {
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-white truncate">{training.name}</h1>
             <p className="text-xs text-white/60">
-              {isDeleted ? t('detail.deleted') : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
+              {isDeleted ? t('detail.deleted') : `${sportLabel(training.sport)} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
             </p>
           </div>
           {!isDeleted && (
@@ -396,8 +396,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
     const daysChanged = JSON.stringify(form.days_of_week) !== oldDays;
     if (timeChanged || daysChanged) {
-      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const days = form.days_of_week.map(d => dayNames[d]).join(', ');
+      const days = form.days_of_week.map(d => dayShortLabel(DAYS_SHORT[d])).join(', ');
       const msg = t('detail.scheduleUpdated', { name: training.name, days, time: `${form.start_time}–${form.end_time}` });
       try {
         const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
@@ -417,9 +416,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         .update({ start_time: form.start_time + ':00', end_time: form.end_time + ':00' })
         .eq('training_id', training.id)
         .gte('session_date', today)
-        .eq('status', 'scheduled')
-        .eq('start_time', training.start_time)   // only sessions still at old time
-        .eq('end_time', training.end_time);       // preserve manually rescheduled ones
+        .eq('status', 'scheduled');
     }
 
     // Regenerate sessions if days changed (new days need new sessions)
