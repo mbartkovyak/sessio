@@ -33,7 +33,7 @@ function SessionRow({ attendance }: { attendance: any }) {
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
 
   const isGoing = attendance.status === 'confirmed';
-  const cancelDeadlineHours = training?.cancel_deadline_hours ?? 2;
+  const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
 

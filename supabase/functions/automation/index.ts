@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
         .select(`
           id, user_id, session_id, status, reminder_sent_at,
           training_sessions(id, session_date, start_time, end_time,
-            trainings(id, name, confirmation_window_hours, cancel_deadline_hours)
+            trainings(id, name, confirmation_window_hours)
           )
         `)
         .eq('status', 'pending')
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
         .select(`
           id, user_id, session_id, status,
           training_sessions(id, session_date, start_time, training_id,
-            trainings(id, name, no_response_behavior, cancel_deadline_hours)
+            trainings(id, name, no_response_behavior, confirmation_window_hours)
           )
         `)
         .eq('status', 'pending');
@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
         if (!session || !training) continue;
 
         const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const deadlineMs = (training.cancel_deadline_hours ?? 2) * 60 * 60 * 1000;
+        const deadlineMs = (training.confirmation_window_hours ?? 24) * 60 * 60 * 1000;
 
         // Past the deadline?
         if (sessionStart - now > deadlineMs) continue;
