@@ -131,6 +131,10 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border px-5 py-6 text-center text-sm text-muted-foreground">
         {t('landing.footer')}
+        {/* TODO: remove after Sentry verification */}
+        <button onClick={() => { throw new Error('Sentry test error'); }} className="mt-4 text-xs text-muted-foreground/50 underline">
+          Test Sentry
+        </button>
       </footer>
     </div>
   );
