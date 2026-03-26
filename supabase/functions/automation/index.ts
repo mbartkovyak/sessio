@@ -62,6 +62,17 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  /** Convert a Warsaw local date+time to UTC millis. */
+  function warsawToUtcMs(dateStr: string, timeStr: string): number {
+    const naiveUtc = new Date(`${dateStr}T${timeStr}Z`).getTime();
+    // Midnight UTC expressed in Warsaw tells us the offset (1 for CET, 2 for CEST)
+    const offsetHours = Number(
+      new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Warsaw' })
+        .format(new Date(`${dateStr}T00:00:00Z`))
+    );
+    return naiveUtc - offsetHours * 3600000;
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? 'full';
@@ -120,19 +131,34 @@ Deno.serve(async (req) => {
         results.skipped_reason = 'outside_hours';
       } else {
 
-      const { data: pending, error } = await supabase
-        .from('session_attendance')
-        .select(`
-          id, user_id, session_id, status, reminder_sent_at,
-          training_sessions(id, session_date, start_time, end_time,
-            trainings(id, name, confirmation_window_hours)
-          )
-        `)
-        .eq('status', 'pending')
-        .is('reminder_sent_at', null)
-        .limit(200);
+      // Only fetch sessions within the next 3 days (covers any reminder window)
+      const cutoff = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10);
 
-      if (error) throw error;
+      const { data: upcomingSessions } = await supabase
+        .from('training_sessions')
+        .select('id')
+        .gte('session_date', today)
+        .lte('session_date', cutoff);
+
+      const sessionIds = (upcomingSessions ?? []).map((s: any) => s.id);
+
+      let pending: any[] = [];
+      if (sessionIds.length) {
+        const { data, error: err } = await supabase
+          .from('session_attendance')
+          .select(`
+            id, user_id, session_id, status, reminder_sent_at, reminder_count,
+            training_sessions(id, session_date, start_time, end_time,
+              trainings(id, name, confirmation_window_hours)
+            )
+          `)
+          .eq('status', 'pending')
+          .lt('reminder_count', 2)
+          .in('session_id', sessionIds);
+        if (err) throw err;
+        pending = data ?? [];
+      }
 
       const now = Date.now();
       let sent = 0;
@@ -143,11 +169,19 @@ Deno.serve(async (req) => {
         const training = session?.trainings;
         if (!session || !training) continue;
 
-        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const windowHours = training.confirmation_window_hours ?? 48;
+        const sessionStart = warsawToUtcMs(session.session_date, session.start_time);
+        const deadlineHours = training.confirmation_window_hours ?? 24;
+        const reminderHours = deadlineHours + 24;
 
-        // Send reminder when session enters the confirmation window
-        if (sessionStart - now > windowHours * 60 * 60 * 1000 || sessionStart < now) continue;
+        // Must be within the reminder window
+        if (sessionStart - now > (reminderHours + 1) * 60 * 60 * 1000 || sessionStart < now) continue;
+
+        // First reminder: always send. Second: only if 6h since first.
+        const count = (att as any).reminder_count ?? 0;
+        if (count === 1) {
+          const firstSentAt = new Date((att as any).reminder_sent_at).getTime();
+          if (now - firstSentAt < 6 * 60 * 60 * 1000) continue; // too soon for follow-up
+        }
 
         const payload = JSON.stringify({
           title: training.name,
@@ -156,17 +190,17 @@ Deno.serve(async (req) => {
           url: '/player',
         });
 
-        const count = await sendPushToUsers(supabase, [att.user_id], payload);
-        sent += count;
-        sentIds.push(att.id);
+        const pushCount = await sendPushToUsers(supabase, [att.user_id], payload);
+        sent += pushCount;
+        sentIds.push({ id: att.id, newCount: count + 1 });
       }
 
-      // Mark reminders as sent (dedup)
-      if (sentIds.length) {
+      // Update reminder_sent_at and increment reminder_count
+      for (const { id, newCount } of sentIds) {
         await supabase
           .from('session_attendance')
-          .update({ reminder_sent_at: new Date().toISOString() })
-          .in('id', sentIds);
+          .update({ reminder_sent_at: new Date().toISOString(), reminder_count: newCount })
+          .eq('id', id);
       }
 
       results.reminders_sent = sent;
@@ -175,16 +209,32 @@ Deno.serve(async (req) => {
 
     // ── 4. Handle no-response deadline ──
     if (action === 'full' || action === 'deadline') {
-      // Find pending attendances past their deadline
-      const { data: pending } = await supabase
-        .from('session_attendance')
-        .select(`
-          id, user_id, session_id, status,
-          training_sessions(id, session_date, start_time, training_id,
-            trainings(id, name, no_response_behavior, confirmation_window_hours)
-          )
-        `)
-        .eq('status', 'pending');
+      // Only check sessions within the next 3 days
+      const dlCutoff = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const dlToday = new Date().toISOString().slice(0, 10);
+
+      const { data: dlSessions } = await supabase
+        .from('training_sessions')
+        .select('id')
+        .gte('session_date', dlToday)
+        .lte('session_date', dlCutoff);
+
+      const dlSessionIds = (dlSessions ?? []).map((s: any) => s.id);
+
+      let pending: any[] = [];
+      if (dlSessionIds.length) {
+        const { data } = await supabase
+          .from('session_attendance')
+          .select(`
+            id, user_id, session_id, status,
+            training_sessions(id, session_date, start_time, training_id,
+              trainings(id, name, no_response_behavior, confirmation_window_hours)
+            )
+          `)
+          .eq('status', 'pending')
+          .in('session_id', dlSessionIds);
+        pending = data ?? [];
+      }
 
       const now = Date.now();
       let handled = 0;
@@ -194,11 +244,11 @@ Deno.serve(async (req) => {
         const training = session?.trainings;
         if (!session || !training) continue;
 
-        const sessionStart = new Date(`${session.session_date}T${session.start_time}`).getTime();
-        const deadlineMs = (training.confirmation_window_hours ?? 24) * 60 * 60 * 1000;
+        const sessionStart = warsawToUtcMs(session.session_date, session.start_time);
+        const deadlineHours = training.confirmation_window_hours ?? 24;
 
-        // Past the deadline?
-        if (sessionStart - now > deadlineMs) continue;
+        // Deadline = confirmation_window_hours before session (+1h buffer for hourly cron)
+        if (sessionStart - now > (deadlineHours + 1) * 60 * 60 * 1000) continue;
         if (sessionStart < now) continue; // session already happened
 
         const behavior = training.no_response_behavior ?? 'mark_absent';

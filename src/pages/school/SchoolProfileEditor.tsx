@@ -16,6 +16,7 @@ import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Venue = { name: string; address: string };
 
@@ -79,7 +80,7 @@ export default function SchoolProfileEditor() {
   async function removeCoach(memberId: string, coachName: string) {
     if (!confirm(t('profile.removeConfirm', { name: coachName }))) return;
     const { error } = await supabase.from('school_members').delete().eq('id', memberId);
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
     else { toast.success(t('profile.coachRemoved')); qc.invalidateQueries({ queryKey: ['my-school'] }); }
   }
 
@@ -88,7 +89,7 @@ export default function SchoolProfileEditor() {
     const { error } = await supabase
       .from('school_members')
       .insert({ school_id: school.id, coach_id: profile.id, status: 'approved' });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
     else { toast.success(t('profile.added')); qc.invalidateQueries({ queryKey: ['my-school'] }); }
   }
 

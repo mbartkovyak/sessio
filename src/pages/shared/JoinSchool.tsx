@@ -4,16 +4,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
+import { sportLabel } from '@/lib/constants';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const [school, setSchool] = useState<any>(null);
   const [schoolLoading, setSchoolLoading] = useState(true);
@@ -24,19 +27,28 @@ export default function JoinSchool() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
+  async function applyInviteLanguage(lang?: string | null) {
+    if (!lang || !SUPPORTED_LANGS.includes(lang as SupportedLang)) return;
+    if (session) return;
+    if (i18n.language === lang) return;
+    await i18n.changeLanguage(lang);
+    localStorage.setItem('sessio_lang', lang);
+  }
+
   // Fetch school by invite_code
   useEffect(() => {
     if (!code) return;
     supabase
       .from('schools')
-      .select('id, name, sport, city, logo_url, invite_code')
+      .select('id, name, sport, city, logo_url, invite_code, owner:profiles!schools_owner_id_fkey(language)')
       .eq('invite_code', code.toUpperCase())
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
+        await applyInviteLanguage((data as any)?.owner?.language);
         setSchool(data);
         setSchoolLoading(false);
       });
-  }, [code]);
+  }, [code, session, i18n]);
 
   // Check status once auth resolves
   useEffect(() => {
@@ -47,7 +59,7 @@ export default function JoinSchool() {
       navigate('/onboarding');
       return;
     }
-    if (profile.role !== 'coach') {
+    if (profile.role !== 'coach' && profile.role !== 'school_owner') {
       toast.error(t('joinSchool.onlyCoaches'));
       navigate(profile.role === 'player' ? '/player' : '/coach');
       return;
@@ -57,6 +69,18 @@ export default function JoinSchool() {
 
   async function checkExisting() {
     if (!school || !profile) return;
+
+    // Block solo coaches — they're not part of any school
+    const { count } = await supabase
+      .from('school_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', profile.id);
+    if (profile.role === 'coach' && (count ?? 0) === 0) {
+      toast.error(t('joinSchool.soloCoachBlocked'));
+      navigate('/coach');
+      return;
+    }
+
     const { data: existing } = await supabase
       .from('school_members')
       .select('id, status')
@@ -83,7 +107,7 @@ export default function JoinSchool() {
       queryClient.invalidateQueries({ queryKey: ['my-school'] });
       setRequestSent(true);
     } catch (err: any) {
-      toast.error(err.message ?? t('joinSchool.failedToSend'));
+      toast.error(localizeErrorMessage(err, t('joinSchool.failedToSend')));
       setJoining(false);
     }
   }
@@ -104,7 +128,7 @@ export default function JoinSchool() {
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('joinSchool.failedToSend')));
     else setEmailSent(true);
   }
 
@@ -134,7 +158,7 @@ export default function JoinSchool() {
       </div>
       <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
       <p className="text-sm text-muted-foreground mt-1">
-        {[school.sport, school.city].filter(Boolean).join(' · ')}
+        {[school.sport ? sportLabel(school.sport) : null, school.city].filter(Boolean).join(' · ')}
       </p>
     </div>
   );
@@ -237,7 +261,7 @@ export default function JoinSchool() {
             ) : (
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
-                  type="email" required placeholder="your@email.com" value={email}
+                  type="email" required placeholder={t('auth:auth.emailPlaceholder')} value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
                 />

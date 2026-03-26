@@ -1,97 +1,112 @@
 {
   "home": {
-    "greeting": "Hey, {{name}} 👋",
-    "defaultName": "Athlete",
-    "pendingCount_one": "{{count}} training needs your response",
-    "pendingCount_other": "{{count}} trainings need your response",
-    "overview": "Your training overview",
-    "allSet": "You're all set",
-    "allConfirmed": "All trainings confirmed",
+    "greeting": "Hi, {{name}}",
+    "defaultName": "there",
+    "pendingCount_one": "{{count}} training needs your reply",
+    "pendingCount_few": "{{count}} trainings need your reply",
+    "pendingCount_many": "{{count}} trainings need your reply",
+    "pendingCount_other": "{{count}} trainings need your reply",
+    "overview": "Here's your schedule at a glance",
+    "allSet": "All set",
+    "allConfirmed": "Your upcoming trainings are confirmed",
     "next": "Next: {{time}}",
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Find a coach and join a training",
-    "findCoach": "Find a Coach",
-    "freeWeek": "You're all free this week",
-    "freeWeekDesc": "No sessions in the next 7 days"
+    "findCoach": "Find a coach",
+    "freeWeek": "You're up to date",
+    "freeWeekDesc": "Nothing needs a reply right now"
   },
   "profile": {
     "title": "Profile",
-    "athlete": "Athlete",
-    "fullName": "Full Name",
+    "athlete": "Participant",
+    "fullName": "Full name",
     "saving": "Saving...",
     "profileUpdated": "Profile updated"
   },
   "search": {
-    "title": "Discover",
-    "placeholder": "Search coaches and schools...",
+    "title": "Search",
+    "placeholder": "Search coaches and schools",
     "allSports": "All sports",
     "allCities": "All cities",
     "noResults": "No results found",
-    "noResultsDesc": "Try a different search or filter",
+    "noResultsDesc": "Try different filters or a different search",
     "school": "School",
+    "schoolCount_one": "{{count}} school",
+    "schoolCount_few": "{{count}} schools",
+    "schoolCount_many": "{{count}} schools",
+    "schoolCount_other": "{{count}} schools",
     "coach": "Coach",
     "coachCount_one": "{{count}} coach",
+    "coachCount_few": "{{count}} coaches",
+    "coachCount_many": "{{count}} coaches",
     "coachCount_other": "{{count}} coaches",
     "independentCoach": "Independent coach"
   },
   "calendar": {
     "title": "Calendar",
     "noUpcoming": "No upcoming trainings",
-    "noUpcomingDesc": "Join a training to see your schedule",
-    "confirmed": "You're in! 🎉",
+    "noUpcomingDesc": "Join a training to see it here",
+    "confirmed": "You're in",
+    "pending": "Awaiting reply",
+    "declined": "Not coming",
+    "noShow": "No-show",
     "cancelled": "Cancelled",
-    "navigateTo": "Navigate to {{venue}}",
-    "lateCancel": "Less than <strong>{{hours}}h</strong> before the lesson. Late cancellations may count against your record.",
+    "navigateTo": "Get directions to {{venue}}",
+    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still count against your record.",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel anyway",
     "imComing": "I'm coming",
     "cantMakeIt": "Can't make it",
-    "cantMakeItAnymore": "Can't make it anymore",
-    "changedMind": "Changed my mind — I'm coming"
+    "cantMakeItAnymore": "I can't make it after all",
+    "changedMind": "Actually, I can make it"
   },
   "messages": {
     "title": "Chats",
-    "emptyDesc": "Join a training to start chatting with your group"
+    "emptyDesc": "Join a training to start chatting with the group"
   },
   "coachProfile": {
-    "title": "Coach Profile",
+    "title": "Coach",
     "about": "About",
-    "availableTrainings": "Available Trainings",
-    "requestToJoin": "Request to Join",
-    "joinTraining": "Join Training",
+    "availableTrainings": "Available trainings",
+    "requestToJoin": "Request to join",
+    "joinTraining": "Join training",
     "reviews": "Reviews",
-    "reviewsMinimum": "Rating visible after 3 reviews",
-    "athlete": "Athlete",
-    "coachResponse": "Coach's response:"
+    "reviewsMinimum": "Rating appears after 3 reviews",
+    "athlete": "Participant",
+    "coachResponse": "Coach reply:"
   },
   "schoolProfile": {
     "title": "School",
-    "groupTrainings": "Group Trainings",
+    "groupTrainings": "Group trainings",
     "spots_one": "{{count}} spot",
+    "spots_few": "{{count}} spots",
+    "spots_many": "{{count}} spots",
     "spots_other": "{{count}} spots",
     "coachName": "Coach {{name}}",
     "noTrainings": "No trainings available yet",
-    "coachCount_one": "{{count}} Coach",
-    "coachCount_other": "{{count}} Coaches"
+    "coachCount_one": "{{count}} coach",
+    "coachCount_few": "{{count}} coaches",
+    "coachCount_many": "{{count}} coaches",
+    "coachCount_other": "{{count}} coaches"
   },
   "confirmation": {
     "imComing": "I'm coming",
     "cantMakeIt": "Can't make it",
-    "confirmed": "You're in! 🎉",
-    "markedCantMake": "Marked as can't make it"
+    "confirmed": "You're in",
+    "markedCantMake": "Marked as not coming"
   },
   "thisWeek": {
-    "title": "This Week",
+    "title": "This week",
     "going": "Going",
     "notGoing": "Not going",
-    "backIn": "You're back in! 🎉",
+    "backIn": "You're back in",
     "spotReleased": "Spot released",
-    "lateCancel": "Less than <strong>{{hours}}h</strong> before the lesson. Your spot may still be charged.",
+    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. This may still count as a late cancellation.",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel anyway"
   },
   "joinRequests": {
-    "title": "Join Requests",
+    "title": "Join requests",
     "training": "Training",
     "waitingApproval": "Waiting for approval",
     "declined": "Request declined",
@@ -99,13 +114,13 @@
     "showAll": "Show all ({{count}})"
   },
   "openSpots": {
-    "title": "Open Spots",
-    "claimed": "Spot claimed! 🎉",
-    "tooSlow": "Someone was faster!",
-    "claimFailed": "Failed to claim spot",
-    "claimSpot": "Claim Spot"
+    "title": "Open spots",
+    "claimed": "Spot claimed",
+    "tooSlow": "Someone got there first",
+    "claimFailed": "Couldn't claim the spot",
+    "claimSpot": "Take this spot"
   },
   "favouriteSchools": {
-    "title": "My Schools"
+    "title": "Saved schools"
   }
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -34,15 +36,15 @@ export function usePushNotifications() {
   }, []);
 
   const subscribe = useCallback(async (): Promise<true | string> => {
-    if (!user) return 'Not signed in';
-    if (!supported) return 'Push not supported on this device';
+    if (!user) return i18n.t('errors.notSignedIn', { ns: 'common' });
+    if (!supported) return i18n.t('notifications.unsupported', { ns: 'common' });
 
     try {
       // Request permission if not yet granted
       if (Notification.permission !== 'granted') {
         const perm = await Notification.requestPermission();
         setPermission(perm);
-        if (perm !== 'granted') return 'Permission denied';
+        if (perm !== 'granted') return i18n.t('notifications.permissionDenied', { ns: 'common' });
       }
 
       const registration = await navigator.serviceWorker.ready;
@@ -64,12 +66,12 @@ export function usePushNotifications() {
           keys: sub.keys,
         }, { onConflict: 'user_id,endpoint' });
 
-      if (error) return `DB error: ${error.message}`;
+      if (error) return localizeErrorMessage(error, i18n.t('notifications.failed', { ns: 'common' }));
 
       setSubscribed(true);
       return true;
     } catch (err: any) {
-      return `Error: ${err?.message ?? String(err)}`;
+      return localizeErrorMessage(err, i18n.t('notifications.failed', { ns: 'common' }));
     }
   }, [user, supported]);
 

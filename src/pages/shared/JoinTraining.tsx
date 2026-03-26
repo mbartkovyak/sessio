@@ -4,10 +4,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 import { Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel } from '@/lib/constants';
+import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/constants';
 import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForLanguage } from '@/lib/notificationI18n';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -17,7 +20,7 @@ export default function JoinTraining() {
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
@@ -28,22 +31,31 @@ export default function JoinTraining() {
   const [emailSent, setEmailSent] = useState(false);
   const joiningRef = useRef(false);
 
+  async function applyInviteLanguage(lang?: string | null) {
+    if (!lang || !SUPPORTED_LANGS.includes(lang as SupportedLang)) return;
+    if (session) return;
+    if (i18n.language === lang) return;
+    await i18n.changeLanguage(lang);
+    localStorage.setItem('sessio_lang', lang);
+  }
+
   // Fetch training from invite_code
   useEffect(() => {
     if (!inviteCode) return;
     supabase
       .from('trainings')
-      .select('*, coach:profiles(full_name, avatar_url)')
+      .select('*, coach:profiles(full_name, avatar_url, language)')
       .eq('invite_code', inviteCode.toUpperCase())
       .eq('is_active', true)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data) {
+          await applyInviteLanguage((data as any).coach?.language);
           setTraining(Object.assign({}, data as object, { _type: 'training' }));
         }
         setTrainingLoading(false);
       });
-  }, [inviteCode]);
+  }, [inviteCode, session, i18n]);
 
   // Auto-join once auth resolves
   useEffect(() => {
@@ -51,6 +63,7 @@ export default function JoinTraining() {
     if (loading) return;
     if (!profile.onboarding_complete || !profile.role) {
       sessionStorage.setItem('pending_invite', inviteCode ?? '');
+      sessionStorage.setItem('pending_invite_ts', String(Date.now()));
       navigate('/onboarding');
       return;
     }
@@ -115,9 +128,13 @@ export default function JoinTraining() {
               .update({ status: 'pending', created_at: new Date().toISOString() })
               .eq('id', existingReq.id);
             if (training.coach_id) {
+              const tCoach = getFixedTForLanguage(training.coach?.language);
               notifyUsers([training.coach_id], {
-                title: 'New join request',
-                body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+                title: tCoach('join.requestNotificationTitle'),
+                body: tCoach('join.requestNotificationBody', {
+                  name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+                  training: training.name,
+                }),
                 tag: `join-req-${training.id}`,
                 url: `/coach/trainings/${training.id}`,
               });
@@ -133,9 +150,13 @@ export default function JoinTraining() {
           if (error) throw error;
           // Notify coach about the join request
           if (training.coach_id) {
+            const tCoach = getFixedTForLanguage(training.coach?.language);
             notifyUsers([training.coach_id], {
-              title: 'New join request',
-              body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+              title: tCoach('join.requestNotificationTitle'),
+              body: tCoach('join.requestNotificationBody', {
+                name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+                training: training.name,
+              }),
               tag: `join-req-${training.id}`,
               url: `/coach/trainings/${training.id}`,
             });
@@ -160,9 +181,13 @@ export default function JoinTraining() {
         }
         // Notify coach about the new member
         if (training.coach_id) {
+          const tCoach = getFixedTForLanguage(training.coach?.language);
           notifyUsers([training.coach_id], {
-            title: 'New member joined',
-            body: `${profile.full_name ?? 'An athlete'} joined ${training.name}.`,
+            title: tCoach('join.memberJoinedTitle'),
+            body: tCoach('join.memberJoinedBody', {
+              name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+              training: training.name,
+            }),
             tag: `joined-${training.id}`,
             url: `/coach/trainings/${training.id}`,
           });
@@ -183,7 +208,7 @@ export default function JoinTraining() {
         navigate('/player');
       }
     } catch (err: any) {
-      toast.error(err.message ?? t('join.failedToJoin'));
+      toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
       navigate('/player');
     } finally {
       joiningRef.current = false;
@@ -193,6 +218,7 @@ export default function JoinTraining() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
+    sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth/callback' },
@@ -203,10 +229,11 @@ export default function JoinTraining() {
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
+    sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('join.failedToJoin')));
     else setEmailSent(true);
   }
 
@@ -238,7 +265,7 @@ export default function JoinTraining() {
         <span className="text-4xl">{sportIcon}</span>
         <div>
           <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
-          <p className="text-sm text-muted-foreground">{training.sport}</p>
+          <p className="text-sm text-muted-foreground">{sportLabel(training.sport)}</p>
         </div>
       </div>
       <div className="space-y-2">
@@ -344,7 +371,7 @@ export default function JoinTraining() {
             ) : (
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
-                  type="email" required placeholder="your@email.com" value={email}
+                  type="email" required placeholder={t('auth:auth.emailPlaceholder')} value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
                 />

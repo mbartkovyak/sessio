@@ -1,4 +1,4 @@
-import { SPORT_ICONS, DAYS_SHORT } from '@/lib/constants';
+import { SPORT_ICONS, DAYS_SHORT, dayShortLabel } from '@/lib/constants';
 import type { ReactNode } from 'react';
 
 export interface TrainingCardProps {
@@ -31,7 +31,7 @@ export default function TrainingCard({
 }: TrainingCardProps) {
   const icon = SPORT_ICONS[training.sport ?? ''] ?? '🎯';
   const days = (training.days_of_week ?? (training.day_of_week != null ? [training.day_of_week] : []))
-    .map((d: number) => DAYS_SHORT[d])
+    .map((d: number) => dayShortLabel(DAYS_SHORT[d]))
     .filter(Boolean)
     .join(', ');
   const time = training.start_time?.slice(0, 5);

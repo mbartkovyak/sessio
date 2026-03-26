@@ -5,7 +5,7 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, CITIES } from '@/lib/constants';
+import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 
@@ -17,6 +17,7 @@ export default function PlayerSearch() {
   const [selectedCity, setSelectedCity] = useState('');
   const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined, selectedCity || undefined);
   const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined, selectedCity || undefined);
+  const sportLabels = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
 
   const isLoading = coachesLoading || schoolsLoading;
 
@@ -30,7 +31,7 @@ export default function PlayerSearch() {
   // Result summary
   const summary = !isLoading && results.length > 0
     ? [
-        schools.length > 0 && `${schools.length} ${schools.length === 1 ? t('search.school').toLowerCase() : t('search.school').toLowerCase() + 's'}`,
+        schools.length > 0 && t('search.schoolCount', { count: schools.length }),
         coaches.length > 0 && t('search.coachCount', { count: coaches.length }),
       ].filter(Boolean).join(', ')
     : null;
@@ -51,7 +52,7 @@ export default function PlayerSearch() {
             />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} />
+            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabels} />
             <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={CITIES} placeholder={t('search.allCities')} />
           </div>
         </div>
@@ -92,7 +93,7 @@ export default function PlayerSearch() {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        {item.sport && <span className="text-xs text-muted-foreground">{item.sport}</span>}
+                        {item.sport && <span className="text-xs text-muted-foreground">{sportLabel(item.sport)}</span>}
                         {item.city && (
                           <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                             <MapPin className="h-2.5 w-2.5" />{item.city}
@@ -122,7 +123,7 @@ export default function PlayerSearch() {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        {item.sport && <span className="text-xs text-muted-foreground">{item.sport}</span>}
+                        {item.sport && <span className="text-xs text-muted-foreground">{sportLabel(item.sport)}</span>}
                         {item.city && (
                           <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                             <MapPin className="h-2.5 w-2.5" />{item.city}

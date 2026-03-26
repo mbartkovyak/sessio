@@ -6,6 +6,7 @@ import AppHeader from '@/components/shared/AppHeader';
 import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { sportLabel } from '@/lib/constants';
 import TrainingCard from '@/components/shared/TrainingCard';
 
 import Avatar from '@/components/shared/Avatar';
@@ -51,7 +52,7 @@ export default function CoachPublicProfile() {
             </div>
             <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
             <div className="flex items-center justify-center gap-3 mt-1">
-              {profile?.sport && <span className="text-sm text-muted-foreground">{profile.sport}</span>}
+              {profile?.sport && <span className="text-sm text-muted-foreground">{sportLabel(profile.sport)}</span>}
               {profile?.city && (
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" />{profile.city}

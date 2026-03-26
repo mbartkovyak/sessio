@@ -8,10 +8,12 @@ import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSe
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForLanguage, groupUsersByLanguage } from '@/lib/notificationI18n';
 import { format } from 'date-fns';
-import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
+import { DAYS_SHORT, SPORT_ICONS, dayShortLabel, sportLabel } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -56,7 +58,7 @@ export default function TrainingDetail() {
   const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
   const regularMembers = members.filter((m: any) => m.role === 'regular');
   const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
-  const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => DAYS_SHORT[d]).filter(Boolean).join(', ');
+  const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ');
 
   async function handleDelete() {
     setDeleting(true);
@@ -71,16 +73,24 @@ export default function TrainingDetail() {
           content: t('detail.cancelledNotice', { name: training.name }),
         });
       } catch {}
-      notifyUsers(
-        members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean),
-        { title: t('detail.trainingCancelled'), body: t('detail.cancelledNotification', { name: training.name }), tag: `delete-${training.id}`, url: '/player' },
-      );
+      const memberIds = members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean);
+      const usersByLanguage = await groupUsersByLanguage(memberIds);
+      for (const [language, userIds] of Object.entries(usersByLanguage)) {
+        if (!userIds?.length) continue;
+        const tMembers = getFixedTForLanguage(language, 'coach');
+        notifyUsers(userIds, {
+          title: tMembers('detail.trainingCancelled'),
+          body: tMembers('detail.cancelledNotification', { name: training.name }),
+          tag: `delete-${training.id}`,
+          url: '/player',
+        });
+      }
     }
     const { error } = await supabase
       .from('trainings')
       .update({ is_active: false })
       .eq('id', training.id);
-    if (error) { toast.error(error.message); setDeleting(false); }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); }
     else {
       qc.invalidateQueries({ queryKey: ['trainings'] });
       qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
@@ -100,7 +110,7 @@ export default function TrainingDetail() {
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-white truncate">{training.name}</h1>
             <p className="text-xs text-white/60">
-              {isDeleted ? t('detail.deleted') : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
+              {isDeleted ? t('detail.deleted') : `${sportLabel(training.sport)} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
             </p>
           </div>
           {!isDeleted && (
@@ -152,7 +162,12 @@ export default function TrainingDetail() {
                 <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5 shrink-0" /> {daysLabel}</div>
                 <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /> {training.start_time?.slice(0,5)} – {training.end_time?.slice(0,5)}</div>
                 {training.venue && <div className="flex items-center gap-2"><VenueLink venue={training.venue} className="text-sm text-muted-foreground" /></div>}
-                {training.type === 'group' && <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 shrink-0" /> {regularMembers.length}/{training.max_players ?? '∞'} athletes</div>}
+                {training.type === 'group' && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 shrink-0" />
+                    {t('detail.participantsCount', { count: regularMembers.length, max: training.max_players ?? '∞' })}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -183,7 +198,7 @@ export default function TrainingDetail() {
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 mb-2.5 text-left w-full">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
                               </div>
                             </button>
                             <div className="grid grid-cols-2 gap-2">
@@ -225,7 +240,7 @@ export default function TrainingDetail() {
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
                                 {m.role === 'waitlist' && (
                                   <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
                                 )}
@@ -290,7 +305,7 @@ export default function TrainingDetail() {
                                     });
                                   }}
                                   className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                  title="Reschedule"
+                                  title={t('common:actions.reschedule')}
                                 >
                                   <CalendarDays className="h-3.5 w-3.5 text-primary" />
                                 </button>
@@ -300,7 +315,7 @@ export default function TrainingDetail() {
                                     cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
                                   }}
                                   className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                  title="Cancel session"
+                                  title={t('common:actions.cancelSession')}
                                 >
                                   <X className="h-3.5 w-3.5 text-destructive" />
                                 </button>
@@ -351,6 +366,7 @@ export default function TrainingDetail() {
 
 function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
   const { t } = useTranslation('coach');
+  const qc = useQueryClient();
   const update = useUpdateTraining(training.id);
 
   const initialValues: Partial<TrainingFormValues> = training ? {
@@ -391,8 +407,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
     const daysChanged = JSON.stringify(form.days_of_week) !== oldDays;
     if (timeChanged || daysChanged) {
-      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const days = form.days_of_week.map(d => dayNames[d]).join(', ');
+      const days = form.days_of_week.map(d => dayShortLabel(DAYS_SHORT[d])).join(', ');
       const msg = t('detail.scheduleUpdated', { name: training.name, days, time: `${form.start_time}–${form.end_time}` });
       try {
         const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
@@ -404,11 +419,26 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       } catch {}
     }
 
+    // Update future session times if time changed
+    if (timeChanged) {
+      const today = new Date().toISOString().split('T')[0];
+      const { error: sessErr } = await supabase
+        .from('training_sessions')
+        .update({ start_time: form.start_time + ':00', end_time: form.end_time + ':00' })
+        .eq('training_id', training.id)
+        .gte('session_date', today)
+        .eq('status', 'scheduled');
+      if (sessErr) toast.error(localizeErrorMessage(sessErr, t('common:errors.somethingWentWrong')));
+    }
+
     // Regenerate sessions if days changed (new days need new sessions)
     if (daysChanged) {
       await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
     }
 
+    qc.invalidateQueries({ queryKey: ['training-sessions', training.id] });
+    qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     toast.success(t('detail.trainingUpdated'));
     onClose();
   }

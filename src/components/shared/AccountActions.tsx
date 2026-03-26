@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function AccountActions() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export default function AccountActions() {
           if (!confirm(t('actions.confirmDelete'))) return;
           setDeleting(true);
           const { error } = await supabase.rpc('delete_my_account');
-          if (error) { toast.error(error.message); setDeleting(false); return; }
+          if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); return; }
           await signOut();
           navigate('/auth');
         }}

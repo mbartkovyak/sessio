@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
 import i18n from '@/i18n';
@@ -29,12 +30,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
 
-  async function fetchProfile(userId: string) {
-    const { data } = await supabase
+  async function fetchProfile(userId: string, retries = 2) {
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+    if (error) {
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, 1000));
+        return fetchProfile(userId, retries - 1);
+      }
+      Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+    }
     setProfile(data as Profile | null);
   }
 
@@ -64,11 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         userRef.current = session?.user ?? null;
+        Sentry.setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
         if (session?.user) {
           // Set loading=true so any waiting components (e.g. AuthCallback) hold until profile is ready
           setLoading(true);
           // Fire and forget — do NOT await here
-          fetchProfile(session.user.id).then(() => setLoading(false));
+          fetchProfile(session.user.id)
+            .then(() => setLoading(false))
+            .catch(() => setLoading(false));
         } else {
           setProfile(null);
           setLoading(false);

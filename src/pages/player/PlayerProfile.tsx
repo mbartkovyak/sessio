@@ -12,6 +12,7 @@ import LanguageSelector from '@/components/shared/LanguageSelector';
 import PhoneInput from '@/components/shared/PhoneInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function PlayerProfile() {
   const { t } = useTranslation('player');
@@ -39,7 +40,7 @@ export default function PlayerProfile() {
       .update({ full_name: name, phone: phone || null })
       .eq('id', user.id);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     toast.success(t('profile.profileUpdated'));
     await refreshProfile();
   }
@@ -69,6 +70,7 @@ export default function PlayerProfile() {
           </div>
 
           <PhoneInput value={phone} onChange={setPhone} />
+          <LanguageSelector />
 
           <button
             onClick={handleSave}
@@ -78,7 +80,6 @@ export default function PlayerProfile() {
             {saving ? t('profile.saving') : t('common:actions.save')}
           </button>
 
-          <LanguageSelector />
           <AccountActions />
         </div>
       </main>

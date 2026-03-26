@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { useState } from 'react';
+import { sportLabel } from '@/lib/constants';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function SchoolCoaches() {
   const { t } = useTranslation('school');
@@ -30,7 +32,7 @@ export default function SchoolCoaches() {
     const { error } = await supabase
       .from('school_members')
       .insert({ school_id: school.id, coach_id: profile.id, status: 'approved' });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
     else {
       toast.success(t('coaches.added'));
       qc.invalidateQueries({ queryKey: ['my-school'] });
@@ -79,7 +81,7 @@ export default function SchoolCoaches() {
                       <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? t('coaches.coach')}</p>
-                        <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
+                        <p className="text-xs text-muted-foreground">{coach?.sport ? sportLabel(coach.sport) : ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -139,7 +141,7 @@ export default function SchoolCoaches() {
                         {coach?.full_name ?? t('coaches.coach')}
                         {isMe && <span className="text-primary ml-1">{t('coaches.you')}</span>}
                       </p>
-                      <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
+                      <p className="text-xs text-muted-foreground">{coach?.sport ? sportLabel(coach.sport) : ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
                     </div>
                   </div>
                 );

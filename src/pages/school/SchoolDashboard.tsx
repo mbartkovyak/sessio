@@ -9,6 +9,8 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import { useState } from 'react';
+import { sportLabel } from '@/lib/constants';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function SchoolDashboard() {
   const { t } = useTranslation('school');
@@ -69,7 +71,7 @@ export default function SchoolDashboard() {
       .insert({ school_id: school.id, coach_id: user.id, status: 'approved' });
     setAddingSelf(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
     } else {
       toast.success(t('dashboard.nowCoach'));
       qc.invalidateQueries({ queryKey: ['my-school'] });
@@ -90,7 +92,7 @@ export default function SchoolDashboard() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-foreground">{school?.name ?? t('dashboard.defaultName')}</h1>
-            <p className="text-xs text-muted-foreground">{school?.city} · {school?.sport}</p>
+            <p className="text-xs text-muted-foreground">{[school?.city, school?.sport ? sportLabel(school.sport) : null].filter(Boolean).join(' · ')}</p>
           </div>
           <SessioLogoCompact size={24} />
         </div>
@@ -164,7 +166,7 @@ export default function SchoolDashboard() {
                         {coach?.full_name ?? t('dashboard.coach')}
                         {isMe && <span className="text-xs text-primary ml-1">{t('dashboard.you')}</span>}
                       </p>
-                      <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}</p>
+                      <p className="text-xs text-muted-foreground">{coach?.sport ? sportLabel(coach.sport) : ''}</p>
                     </div>
                   </div>
                 );

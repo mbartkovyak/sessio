@@ -5,6 +5,7 @@ import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useSchool, useSchoolPublicTrainings, useIsFavouriteSchool, useToggleFavouriteSchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
+import { sportLabel } from '@/lib/constants';
 import TrainingCard from '@/components/shared/TrainingCard';
 import Avatar from '@/components/shared/Avatar';
 
@@ -53,7 +54,7 @@ export default function SchoolPublicProfile() {
               </div>
               <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
               <div className="flex items-center justify-center gap-2 mt-1 text-sm text-muted-foreground">
-                {school.sport && <span>{school.sport}</span>}
+                {school.sport && <span>{sportLabel(school.sport)}</span>}
                 {school.city && (
                   <span className="flex items-center gap-0.5">
                     <MapPin className="h-3 w-3" />{school.city}
@@ -117,7 +118,7 @@ export default function SchoolPublicProfile() {
                       <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-foreground truncate">{coach.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{coach.sport}</p>
+                        <p className="text-xs text-muted-foreground">{coach.sport ? sportLabel(coach.sport) : ''}</p>
                       </div>
                     </button>
                   );

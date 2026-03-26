@@ -1,75 +1,82 @@
 {
   "home": {
-    "greeting": "Hej, {{name}} 👋",
-    "defaultName": "Sportowiec",
-    "pendingCount_one": "{{count}} zajęcia wymagają twojej odpowiedzi",
-    "pendingCount_few": "{{count}} zajęcia wymagają twojej odpowiedzi",
-    "pendingCount_many": "{{count}} zajęć wymaga twojej odpowiedzi",
-    "pendingCount_other": "{{count}} zajęć wymaga twojej odpowiedzi",
-    "overview": "Twój przegląd zajęć",
+    "greeting": "Cześć, {{name}}",
+    "defaultName": "uczestniku",
+    "pendingCount_one": "{{count}} zajęcie czeka na twoją odpowiedź",
+    "pendingCount_few": "{{count}} zajęcia czekają na twoją odpowiedź",
+    "pendingCount_many": "{{count}} zajęć czeka na twoją odpowiedź",
+    "pendingCount_other": "{{count}} zajęcia czekają na twoją odpowiedź",
+    "overview": "Tu masz plan na najbliższe dni",
     "allSet": "Wszystko gotowe",
-    "allConfirmed": "Wszystkie zajęcia potwierdzone",
+    "allConfirmed": "Twoje najbliższe zajęcia są potwierdzone",
     "next": "Następne: {{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
     "findCoach": "Znajdź trenera",
-    "freeWeek": "Masz wolny tydzień",
-    "freeWeekDesc": "Brak zajęć w ciągu najbliższych 7 dni"
+    "freeWeek": "Wszystko aktualne",
+    "freeWeekDesc": "Na razie nic nie musisz potwierdzać"
   },
   "profile": {
     "title": "Profil",
-    "athlete": "Sportowiec",
+    "athlete": "Uczestnik",
     "fullName": "Imię i nazwisko",
     "saving": "Zapisywanie...",
     "profileUpdated": "Profil zaktualizowany"
   },
   "search": {
-    "title": "Odkrywaj",
-    "placeholder": "Szukaj trenerów i szkółek...",
+    "title": "Szukaj",
+    "placeholder": "Szukaj trenerów i szkół",
     "allSports": "Wszystkie sporty",
     "allCities": "Wszystkie miasta",
     "noResults": "Brak wyników",
-    "noResultsDesc": "Spróbuj innego wyszukiwania lub filtru",
-    "school": "Szkółka",
+    "noResultsDesc": "Spróbuj zmienić wyszukiwanie albo filtry",
+    "school": "Szkoła",
+    "schoolCount_one": "{{count}} szkoła",
+    "schoolCount_few": "{{count}} szkoły",
+    "schoolCount_many": "{{count}} szkół",
+    "schoolCount_other": "{{count}} szkoły",
     "coach": "Trener",
     "coachCount_one": "{{count}} trener",
     "coachCount_few": "{{count}} trenerów",
     "coachCount_many": "{{count}} trenerów",
     "coachCount_other": "{{count}} trenerów",
-    "independentCoach": "Samodzielny trener"
+    "independentCoach": "Niezależny trener"
   },
   "calendar": {
     "title": "Kalendarz",
     "noUpcoming": "Brak nadchodzących zajęć",
-    "noUpcomingDesc": "Dołącz do zajęć, żeby zobaczyć swój harmonogram",
-    "confirmed": "Masz miejsce! 🎉",
-    "cancelled": "Odwołano",
-    "navigateTo": "Nawiguj do {{venue}}",
-    "lateCancel": "Mniej niż <strong>{{hours}}h</strong> przed zajęciami. Późne odwołania mogą być odnotowane.",
-    "keepSpot": "Zachowaj moje miejsce",
-    "cancelAnyway": "Odwołaj mimo to",
+    "noUpcomingDesc": "Dołącz do zajęć, aby zobaczyć swój plan",
+    "confirmed": "Masz miejsce",
+    "pending": "Czeka na odpowiedź",
+    "declined": "Rezygnacja",
+    "noShow": "Nieobecność",
+    "cancelled": "Odwołane",
+    "navigateTo": "Pokaż trasę do {{venue}}",
+    "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. Późna rezygnacja może zostać odnotowana.",
+    "keepSpot": "Zostaw moje miejsce",
+    "cancelAnyway": "Zrezygnuj mimo to",
     "imComing": "Będę",
     "cantMakeIt": "Nie dam rady",
     "cantMakeItAnymore": "Jednak nie dam rady",
-    "changedMind": "Zmieniam zdanie — będę"
+    "changedMind": "Jednak będę"
   },
   "messages": {
     "title": "Czaty",
-    "emptyDesc": "Dołącz do zajęć, żeby rozmawiać z grupą"
+    "emptyDesc": "Dołącz do zajęć, aby rozmawiać z grupą"
   },
   "coachProfile": {
-    "title": "Profil trenera",
+    "title": "Trener",
     "about": "O mnie",
     "availableTrainings": "Dostępne zajęcia",
     "requestToJoin": "Poproś o dołączenie",
     "joinTraining": "Dołącz do zajęć",
     "reviews": "Opinie",
-    "reviewsMinimum": "Ocena widoczna po 3 opiniach",
-    "athlete": "Sportowiec",
+    "reviewsMinimum": "Ocena pojawi się po 3 opiniach",
+    "athlete": "Uczestnik",
     "coachResponse": "Odpowiedź trenera:"
   },
   "schoolProfile": {
-    "title": "Szkółka",
+    "title": "Szkoła",
     "groupTrainings": "Zajęcia grupowe",
     "spots_one": "{{count}} miejsce",
     "spots_few": "{{count}} miejsca",
@@ -85,35 +92,35 @@
   "confirmation": {
     "imComing": "Będę",
     "cantMakeIt": "Nie dam rady",
-    "confirmed": "Masz miejsce! 🎉",
-    "markedCantMake": "Oznaczono jako nieobecność"
+    "confirmed": "Masz miejsce",
+    "markedCantMake": "Zaznaczono nieobecność"
   },
   "thisWeek": {
     "title": "Ten tydzień",
     "going": "Będę",
     "notGoing": "Nie będę",
-    "backIn": "Znowu masz miejsce! 🎉",
+    "backIn": "Znowu masz miejsce",
     "spotReleased": "Miejsce zwolnione",
-    "lateCancel": "Mniej niż <strong>{{hours}}h</strong> przed zajęciami. Twoje miejsce może być nadal naliczone.",
-    "keepSpot": "Zachowaj moje miejsce",
-    "cancelAnyway": "Odwołaj mimo to"
+    "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. To nadal może zostać policzone jako późna rezygnacja.",
+    "keepSpot": "Zostaw moje miejsce",
+    "cancelAnyway": "Zrezygnuj mimo to"
   },
   "joinRequests": {
     "title": "Prośby o dołączenie",
     "training": "Zajęcia",
-    "waitingApproval": "Oczekiwanie na akceptację",
+    "waitingApproval": "Czeka na decyzję",
     "declined": "Prośba odrzucona",
     "showLess": "Pokaż mniej",
     "showAll": "Pokaż wszystkie ({{count}})"
   },
   "openSpots": {
     "title": "Wolne miejsca",
-    "claimed": "Miejsce zajęte! 🎉",
-    "tooSlow": "Ktoś był szybszy!",
+    "claimed": "Miejsce zajęte",
+    "tooSlow": "Ktoś był szybszy",
     "claimFailed": "Nie udało się zająć miejsca",
-    "claimSpot": "Zajmij miejsce"
+    "claimSpot": "Weź to miejsce"
   },
   "favouriteSchools": {
-    "title": "Moje szkółki"
+    "title": "Zapisane szkoły"
   }
 }

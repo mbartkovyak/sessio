@@ -416,7 +416,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                   const sched = form.day_schedules?.[day] ?? { start_time: form.start_time, end_time: form.end_time };
                   return (
                     <div key={day} className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-foreground w-10 shrink-0">{DAYS_SHORT[day]}</span>
+                      <span className="text-sm font-medium text-foreground w-10 shrink-0">{dayShortLabel(DAYS_SHORT[day])}</span>
                       <TimeSelect value={sched.start_time} onChange={v => setDayTime(day, 'start_time', v)} compact />
                       <span className="text-muted-foreground text-xs">–</span>
                       <TimeSelect value={sched.end_time} onChange={v => setDayTime(day, 'end_time', v)} compact />

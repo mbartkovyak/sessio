@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -32,8 +33,13 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // If user arrived via a training invite link, they're an athlete — skip role selection
-  const hasTrainingInvite = !!sessionStorage.getItem('pending_invite');
+  // Fresh training invite → skip role selection, they're an athlete
+  // "Fresh" = set within the last 10 minutes (prevents stale sessionStorage from forcing athlete)
+  const hasTrainingInvite = (() => {
+    const code = sessionStorage.getItem('pending_invite');
+    const ts = Number(sessionStorage.getItem('pending_invite_ts') || 0);
+    return !!code && Date.now() - ts < 10 * 60 * 1000;
+  })();
 
   // Pre-fill invite code from pending school invite (via /join-school/:code link)
   useEffect(() => {
@@ -49,6 +55,7 @@ export default function Onboarding() {
     const pendingInvite = sessionStorage.getItem('pending_invite');
     if (pendingInvite) {
       sessionStorage.removeItem('pending_invite');
+      sessionStorage.removeItem('pending_invite_ts');
       return `/join/${pendingInvite}`;
     }
     return role === 'player' ? '/player' : '/coach';
@@ -71,11 +78,11 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'player', onboarding_complete: true })
         .eq('id', user.id);
-      if (error) { setError(error.message); setLoading(false); return; }
+      if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
       navigate(getPostOnboardingPath('player'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -91,11 +98,11 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
         .eq('id', user.id);
-      if (error) { setError(error.message); setLoading(false); return; }
+      if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
       navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -112,7 +119,7 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
         .eq('id', user.id);
-      if (profileError) { setError(profileError.message); setLoading(false); return; }
+      if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       const venues = venueName.trim() && venueAddress.trim()
         ? [{ name: venueName.trim(), address: venueAddress.trim() }]
@@ -122,7 +129,7 @@ export default function Onboarding() {
         .insert({ name: schoolName.trim(), sport: primarySport, city, owner_id: user.id, venues })
         .select('id')
         .single();
-      if (schoolError) { setError(schoolError.message); setLoading(false); return; }
+      if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       // Auto-add owner as coach in the school
       if (newSchool) {
@@ -134,7 +141,7 @@ export default function Onboarding() {
       await refreshProfile();
       navigate(getPostOnboardingPath('school_owner'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -171,14 +178,14 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
-      if (profileError) { setError(profileError.message); setLoading(false); return; }
+      if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       // Request to join school (pending approval)
       const { error: memberError } = await supabase
         .from('school_members')
         .insert({ school_id: s.id, coach_id: user.id, status: 'pending' });
       if (memberError && !memberError.message.includes('duplicate')) {
-        setError(memberError.message);
+        setError(localizeErrorMessage(memberError, t('common:errors.somethingWentWrong')));
         setLoading(false);
         return;
       }
@@ -187,7 +194,7 @@ export default function Onboarding() {
       toast.success(t('auth:onboarding.requestSent', { name: s.name }));
       navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -315,12 +322,10 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── Step: Coach Details (solo + join) ── */}
-          {step === 'coach-details' && (
+          {/* ── Step: Coach Details (solo) ── */}
+          {step === 'coach-details' && coachType !== 'join' && (
             <div>
-              <h1 className="mb-1 text-2xl font-bold text-foreground">
-                {coachType === 'join' ? t('auth:onboarding.joinYourSchool') : t('auth:onboarding.coachingSetup')}
-              </h1>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.coachingSetup')}</h1>
               <p className="mb-6 text-muted-foreground">{t('auth:onboarding.almostThere')}</p>
               <div className="space-y-5">
                 <div>
@@ -345,26 +350,44 @@ export default function Onboarding() {
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
-                {coachType === 'join' && (
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.schoolInviteCode')}</label>
-                    <input
-                      type="text"
-                      placeholder={t('auth:onboarding.enterCode')}
-                      value={inviteCode}
-                      onChange={e => setInviteCode(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                    />
-                  </div>
-                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
-                  onClick={coachType === 'join' ? submitJoinSchool : submitSoloCoach}
-                  disabled={!city || !sport || loading || (coachType === 'join' && !inviteCode.trim())}
+                  onClick={submitSoloCoach}
+                  disabled={!city || !sport || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t('common:actions.getStarted')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Join School (code only — sport/city come from school) ── */}
+          {step === 'coach-details' && coachType === 'join' && (
+            <div>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.joinYourSchool')}</h1>
+              <p className="mb-6 text-muted-foreground">{t('auth:onboarding.almostThere')}</p>
+              <div className="space-y-5">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.schoolInviteCode')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('auth:onboarding.enterCode')}
+                    value={inviteCode}
+                    onChange={e => setInviteCode(e.target.value)}
+                    autoFocus
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                  />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <button
+                  onClick={submitJoinSchool}
+                  disabled={!inviteCode.trim() || loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {t('auth:onboarding.joinSchool')}
                 </button>
               </div>
             </div>

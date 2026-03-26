@@ -29,6 +29,7 @@ export default function AuthCallback() {
     const pendingInvite = sessionStorage.getItem('pending_invite');
     if (pendingInvite) {
       sessionStorage.removeItem('pending_invite');
+      sessionStorage.removeItem('pending_invite_ts');
       navigate(`/join/${pendingInvite}`);
       return;
     }

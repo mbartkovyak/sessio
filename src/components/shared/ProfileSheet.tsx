@@ -1,5 +1,6 @@
 import { X, Phone, MessageCircle, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { sportLabel } from '@/lib/constants';
 import Avatar from './Avatar';
 
 interface Props {
@@ -45,7 +46,7 @@ export default function ProfileSheet({ profile, onClose }: Props) {
           <h2 className="mt-3 text-lg font-bold text-foreground">{profile.full_name ?? t('profile.unknown')}</h2>
           {(profile.sport || profile.city) && (
             <p className="text-sm text-muted-foreground mt-0.5">
-              {[profile.sport, profile.city].filter(Boolean).join(' · ')}
+              {[profile.sport ? sportLabel(profile.sport) : null, profile.city].filter(Boolean).join(' · ')}
             </p>
           )}
         </div>
