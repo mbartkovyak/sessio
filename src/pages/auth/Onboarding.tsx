@@ -33,9 +33,6 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // If user arrived via a training invite link, they're an athlete — skip role selection
-  const hasTrainingInvite = !!sessionStorage.getItem('pending_invite');
-
   // Pre-fill invite code from pending school invite (via /join-school/:code link)
   useEffect(() => {
     const pending = sessionStorage.getItem('pending_school_invite');
@@ -239,12 +236,12 @@ export default function Onboarding() {
                 />
                 <PhoneInput value={phone} onChange={setPhone} required />
                 <button
-                  onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
+                  onClick={() => coachType === 'join' ? submitJoinSchool() : setStep('train-or-coach')}
                   disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {coachType === 'join' ? t('auth:onboarding.joinSchool') : hasTrainingInvite ? t('auth:onboarding.joinTraining') : t('common:actions.continue')}
+                  {coachType === 'join' ? t('auth:onboarding.joinSchool') : t('common:actions.continue')}
                 </button>
                 {error && <p className="text-sm text-destructive mt-2">{error}</p>}
               </div>
@@ -316,12 +313,10 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── Step: Coach Details (solo + join) ── */}
-          {step === 'coach-details' && (
+          {/* ── Step: Coach Details (solo) ── */}
+          {step === 'coach-details' && coachType !== 'join' && (
             <div>
-              <h1 className="mb-1 text-2xl font-bold text-foreground">
-                {coachType === 'join' ? t('auth:onboarding.joinYourSchool') : t('auth:onboarding.coachingSetup')}
-              </h1>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.coachingSetup')}</h1>
               <p className="mb-6 text-muted-foreground">{t('auth:onboarding.almostThere')}</p>
               <div className="space-y-5">
                 <div>
@@ -346,26 +341,44 @@ export default function Onboarding() {
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
-                {coachType === 'join' && (
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.schoolInviteCode')}</label>
-                    <input
-                      type="text"
-                      placeholder={t('auth:onboarding.enterCode')}
-                      value={inviteCode}
-                      onChange={e => setInviteCode(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                    />
-                  </div>
-                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
-                  onClick={coachType === 'join' ? submitJoinSchool : submitSoloCoach}
-                  disabled={!city || !sport || loading || (coachType === 'join' && !inviteCode.trim())}
+                  onClick={submitSoloCoach}
+                  disabled={!city || !sport || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t('common:actions.getStarted')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Join School (code only — sport/city come from school) ── */}
+          {step === 'coach-details' && coachType === 'join' && (
+            <div>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.joinYourSchool')}</h1>
+              <p className="mb-6 text-muted-foreground">{t('auth:onboarding.almostThere')}</p>
+              <div className="space-y-5">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.schoolInviteCode')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('auth:onboarding.enterCode')}
+                    value={inviteCode}
+                    onChange={e => setInviteCode(e.target.value)}
+                    autoFocus
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                  />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <button
+                  onClick={submitJoinSchool}
+                  disabled={!inviteCode.trim() || loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {t('auth:onboarding.joinSchool')}
                 </button>
               </div>
             </div>
