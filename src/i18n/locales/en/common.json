@@ -165,6 +165,7 @@
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
+    "soloCoachBlocked": "Independent coaches can't join schools. Contact the school owner to be added.",
     "alreadyInSchool": "You're already part of this school",
     "failedToSend": "Couldn't send request",
     "signInFailed": "Sign-in failed",

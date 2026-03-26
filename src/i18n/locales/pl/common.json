@@ -165,6 +165,7 @@
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
+    "soloCoachBlocked": "Niezależni trenerzy nie mogą dołączać do szkół. Skontaktuj się z właścicielem szkoły.",
     "alreadyInSchool": "Już należysz do tej szkoły",
     "failedToSend": "Nie udało się wysłać prośby",
     "signInFailed": "Logowanie nie powiodło się",

@@ -59,7 +59,7 @@ export default function JoinSchool() {
       navigate('/onboarding');
       return;
     }
-    if (profile.role !== 'coach') {
+    if (profile.role !== 'coach' && profile.role !== 'school_owner') {
       toast.error(t('joinSchool.onlyCoaches'));
       navigate(profile.role === 'player' ? '/player' : '/coach');
       return;
@@ -69,6 +69,18 @@ export default function JoinSchool() {
 
   async function checkExisting() {
     if (!school || !profile) return;
+
+    // Block solo coaches — they're not part of any school
+    const { count } = await supabase
+      .from('school_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', profile.id);
+    if (profile.role === 'coach' && (count ?? 0) === 0) {
+      toast.error(t('joinSchool.soloCoachBlocked'));
+      navigate('/coach');
+      return;
+    }
+
     const { data: existing } = await supabase
       .from('school_members')
       .select('id, status')
