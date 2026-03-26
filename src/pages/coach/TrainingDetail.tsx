@@ -356,6 +356,7 @@ export default function TrainingDetail() {
 
 function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
   const { t } = useTranslation('coach');
+  const qc = useQueryClient();
   const update = useUpdateTraining(training.id);
 
   const initialValues: Partial<TrainingFormValues> = training ? {
@@ -411,12 +412,13 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     // Update future session times if time changed
     if (timeChanged) {
       const today = new Date().toISOString().split('T')[0];
-      await supabase
+      const { error: sessErr } = await supabase
         .from('training_sessions')
         .update({ start_time: form.start_time + ':00', end_time: form.end_time + ':00' })
         .eq('training_id', training.id)
         .gte('session_date', today)
         .eq('status', 'scheduled');
+      if (sessErr) toast.error(sessErr.message);
     }
 
     // Regenerate sessions if days changed (new days need new sessions)
@@ -424,6 +426,9 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
     }
 
+    qc.invalidateQueries({ queryKey: ['training-sessions', training.id] });
+    qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
     toast.success(t('detail.trainingUpdated'));
     onClose();
   }
