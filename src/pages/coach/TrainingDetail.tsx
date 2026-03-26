@@ -409,6 +409,19 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       } catch {}
     }
 
+    // Update future session times if time changed
+    if (timeChanged) {
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('training_sessions')
+        .update({ start_time: form.start_time + ':00', end_time: form.end_time + ':00' })
+        .eq('training_id', training.id)
+        .gte('session_date', today)
+        .eq('status', 'scheduled')
+        .eq('start_time', training.start_time)   // only sessions still at old time
+        .eq('end_time', training.end_time);       // preserve manually rescheduled ones
+    }
+
     // Regenerate sessions if days changed (new days need new sessions)
     if (daysChanged) {
       await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
