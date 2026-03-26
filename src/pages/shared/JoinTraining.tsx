@@ -116,8 +116,11 @@ export default function JoinTraining() {
               .eq('id', existingReq.id);
             if (training.coach_id) {
               notifyUsers([training.coach_id], {
-                title: 'New join request',
-                body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+                title: t('join.requestNotificationTitle'),
+                body: t('join.requestNotificationBody', {
+                  name: profile.full_name ?? t('join.anonymousParticipant'),
+                  training: training.name,
+                }),
                 tag: `join-req-${training.id}`,
                 url: `/coach/trainings/${training.id}`,
               });
@@ -134,8 +137,11 @@ export default function JoinTraining() {
           // Notify coach about the join request
           if (training.coach_id) {
             notifyUsers([training.coach_id], {
-              title: 'New join request',
-              body: `${profile.full_name ?? 'An athlete'} wants to join ${training.name}.`,
+              title: t('join.requestNotificationTitle'),
+              body: t('join.requestNotificationBody', {
+                name: profile.full_name ?? t('join.anonymousParticipant'),
+                training: training.name,
+              }),
               tag: `join-req-${training.id}`,
               url: `/coach/trainings/${training.id}`,
             });
@@ -161,8 +167,11 @@ export default function JoinTraining() {
         // Notify coach about the new member
         if (training.coach_id) {
           notifyUsers([training.coach_id], {
-            title: 'New member joined',
-            body: `${profile.full_name ?? 'An athlete'} joined ${training.name}.`,
+            title: t('join.memberJoinedTitle'),
+            body: t('join.memberJoinedBody', {
+              name: profile.full_name ?? t('join.anonymousParticipant'),
+              training: training.name,
+            }),
             tag: `joined-${training.id}`,
             url: `/coach/trainings/${training.id}`,
           });
@@ -344,7 +353,7 @@ export default function JoinTraining() {
             ) : (
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
-                  type="email" required placeholder="your@email.com" value={email}
+                  type="email" required placeholder={t('auth:auth.emailPlaceholder')} value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
                 />

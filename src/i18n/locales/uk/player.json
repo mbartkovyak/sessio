@@ -1,71 +1,75 @@
 {
   "home": {
-    "greeting": "Привіт, {{name}} 👋",
-    "defaultName": "Спортсмен",
-    "pendingCount_one": "{{count}} заняття потребує вашої відповіді",
-    "pendingCount_few": "{{count}} заняття потребують вашої відповіді",
-    "pendingCount_many": "{{count}} занять потребують вашої відповіді",
-    "pendingCount_other": "{{count}} занять потребують вашої відповіді",
-    "overview": "Ваш огляд занять",
-    "allSet": "Все готово",
-    "allConfirmed": "Всі заняття підтверджені",
+    "greeting": "Привіт, {{name}}",
+    "defaultName": "учаснику",
+    "pendingCount_one": "{{count}} заняття чекає на вашу відповідь",
+    "pendingCount_few": "{{count}} заняття чекають на вашу відповідь",
+    "pendingCount_many": "{{count}} занять чекають на вашу відповідь",
+    "pendingCount_other": "{{count}} заняття чекають на вашу відповідь",
+    "overview": "Ось ваш план на найближчі дні",
+    "allSet": "Усе готово",
+    "allConfirmed": "Усі найближчі заняття підтверджені",
     "next": "Наступне: {{time}}",
     "noUpcoming": "Немає найближчих занять",
-    "noUpcomingDesc": "Знайдіть тренера та приєднайтесь до занять",
+    "noUpcomingDesc": "Знайдіть тренера та приєднайтеся до занять",
     "findCoach": "Знайти тренера",
-    "freeWeek": "У вас вільний тиждень",
-    "freeWeekDesc": "Немає занять протягом наступних 7 днів"
+    "freeWeek": "Усе актуально",
+    "freeWeekDesc": "Зараз нічого не потрібно підтверджувати"
   },
   "profile": {
     "title": "Профіль",
-    "athlete": "Спортсмен",
-    "fullName": "Повне ім'я",
+    "athlete": "Учасник",
+    "fullName": "Ім'я та прізвище",
     "saving": "Збереження...",
     "profileUpdated": "Профіль оновлено"
   },
   "search": {
     "title": "Пошук",
-    "placeholder": "Шукати тренерів і школи...",
+    "placeholder": "Шукайте тренерів і школи",
     "allSports": "Усі види спорту",
     "allCities": "Усі міста",
     "noResults": "Нічого не знайдено",
-    "noResultsDesc": "Спробуйте інший пошук або фільтр",
+    "noResultsDesc": "Спробуйте змінити пошук або фільтри",
     "school": "Школа",
+    "schoolCount_one": "{{count}} школа",
+    "schoolCount_few": "{{count}} школи",
+    "schoolCount_many": "{{count}} шкіл",
+    "schoolCount_other": "{{count}} школи",
     "coach": "Тренер",
     "coachCount_one": "{{count}} тренер",
     "coachCount_few": "{{count}} тренери",
     "coachCount_many": "{{count}} тренерів",
-    "coachCount_other": "{{count}} тренерів",
-    "independentCoach": "Самостійний тренер"
+    "coachCount_other": "{{count}} тренери",
+    "independentCoach": "Незалежний тренер"
   },
   "calendar": {
     "title": "Календар",
     "noUpcoming": "Немає найближчих занять",
-    "noUpcomingDesc": "Приєднайтесь до занять, щоб побачити свій розклад",
-    "confirmed": "Ви записані! 🎉",
+    "noUpcomingDesc": "Приєднайтеся до занять, щоб побачити свій план",
+    "confirmed": "Вас записано",
     "cancelled": "Скасовано",
-    "navigateTo": "Навігація до {{venue}}",
-    "lateCancel": "Менше ніж <strong>{{hours}}г</strong> до заняття. Пізні скасування можуть бути зараховані.",
+    "navigateTo": "Прокласти маршрут до {{venue}}",
+    "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Пізнє скасування може бути враховане як запізніла відмова.",
     "keepSpot": "Залишити моє місце",
     "cancelAnyway": "Скасувати все одно",
     "imComing": "Я буду",
     "cantMakeIt": "Не зможу",
-    "cantMakeItAnymore": "Вже не зможу",
-    "changedMind": "Я все ж буду"
+    "cantMakeItAnymore": "Все ж не зможу",
+    "changedMind": "Все ж зможу прийти"
   },
   "messages": {
     "title": "Чати",
-    "emptyDesc": "Приєднайтесь до занять, щоб спілкуватися з групою"
+    "emptyDesc": "Приєднайтеся до занять, щоб спілкуватися з групою"
   },
   "coachProfile": {
-    "title": "Профіль тренера",
+    "title": "Тренер",
     "about": "Про мене",
     "availableTrainings": "Доступні заняття",
-    "requestToJoin": "Подати заявку",
-    "joinTraining": "Приєднатися",
+    "requestToJoin": "Подати запит",
+    "joinTraining": "Приєднатися до заняття",
     "reviews": "Відгуки",
-    "reviewsMinimum": "Оцінка видима після 3 відгуків",
-    "athlete": "Спортсмен",
+    "reviewsMinimum": "Оцінка з'явиться після 3 відгуків",
+    "athlete": "Учасник",
     "coachResponse": "Відповідь тренера:"
   },
   "schoolProfile": {
@@ -74,46 +78,46 @@
     "spots_one": "{{count}} місце",
     "spots_few": "{{count}} місця",
     "spots_many": "{{count}} місць",
-    "spots_other": "{{count}} місць",
+    "spots_other": "{{count}} місця",
     "coachName": "Тренер {{name}}",
-    "noTrainings": "Ще немає доступних занять",
+    "noTrainings": "Доступних занять поки немає",
     "coachCount_one": "{{count}} тренер",
     "coachCount_few": "{{count}} тренери",
     "coachCount_many": "{{count}} тренерів",
-    "coachCount_other": "{{count}} тренерів"
+    "coachCount_other": "{{count}} тренери"
   },
   "confirmation": {
     "imComing": "Я буду",
     "cantMakeIt": "Не зможу",
-    "confirmed": "Ви записані! 🎉",
+    "confirmed": "Вас записано",
     "markedCantMake": "Позначено як відсутність"
   },
   "thisWeek": {
     "title": "Цей тиждень",
     "going": "Буду",
     "notGoing": "Не буду",
-    "backIn": "Ви знову записані! 🎉",
-    "spotReleased": "Місце звільнене",
-    "lateCancel": "Менше ніж <strong>{{hours}}г</strong> до заняття. Ваше місце може бути все одно нараховане.",
+    "backIn": "Вас знову записано",
+    "spotReleased": "Місце звільнено",
+    "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Це все одно може зараховуватися як пізнє скасування.",
     "keepSpot": "Залишити моє місце",
     "cancelAnyway": "Скасувати все одно"
   },
   "joinRequests": {
-    "title": "Заявки на вступ",
+    "title": "Запити на приєднання",
     "training": "Заняття",
-    "waitingApproval": "Очікування на схвалення",
-    "declined": "Заявку відхилено",
+    "waitingApproval": "Очікує на рішення",
+    "declined": "Запит відхилено",
     "showLess": "Показати менше",
     "showAll": "Показати всі ({{count}})"
   },
   "openSpots": {
     "title": "Вільні місця",
-    "claimed": "Місце зайняте! 🎉",
-    "tooSlow": "Хтось був швидший!",
+    "claimed": "Місце зайнято",
+    "tooSlow": "Хтось устиг раніше",
     "claimFailed": "Не вдалося зайняти місце",
-    "claimSpot": "Зайняти місце"
+    "claimSpot": "Зайняти це місце"
   },
   "favouriteSchools": {
-    "title": "Мої школи"
+    "title": "Збережені школи"
   }
 }

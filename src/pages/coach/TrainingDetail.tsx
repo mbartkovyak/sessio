@@ -152,7 +152,12 @@ export default function TrainingDetail() {
                 <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5 shrink-0" /> {daysLabel}</div>
                 <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /> {training.start_time?.slice(0,5)} – {training.end_time?.slice(0,5)}</div>
                 {training.venue && <div className="flex items-center gap-2"><VenueLink venue={training.venue} className="text-sm text-muted-foreground" /></div>}
-                {training.type === 'group' && <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 shrink-0" /> {regularMembers.length}/{training.max_players ?? '∞'} athletes</div>}
+                {training.type === 'group' && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 shrink-0" />
+                    {t('detail.participantsCount', { count: regularMembers.length, max: training.max_players ?? '∞' })}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -290,7 +295,7 @@ export default function TrainingDetail() {
                                     });
                                   }}
                                   className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                  title="Reschedule"
+                                  title={t('common:actions.reschedule')}
                                 >
                                   <CalendarDays className="h-3.5 w-3.5 text-primary" />
                                 </button>
@@ -300,7 +305,7 @@ export default function TrainingDetail() {
                                     cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
                                   }}
                                   className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                  title="Cancel session"
+                                  title={t('common:actions.cancelSession')}
                                 >
                                   <X className="h-3.5 w-3.5 text-destructive" />
                                 </button>

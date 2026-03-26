@@ -237,7 +237,7 @@ export default function JoinSchool() {
             ) : (
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
-                  type="email" required placeholder="your@email.com" value={email}
+                  type="email" required placeholder={t('auth:auth.emailPlaceholder')} value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
                 />

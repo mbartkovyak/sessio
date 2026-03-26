@@ -30,7 +30,7 @@ export default function PlayerSearch() {
   // Result summary
   const summary = !isLoading && results.length > 0
     ? [
-        schools.length > 0 && `${schools.length} ${schools.length === 1 ? t('search.school').toLowerCase() : t('search.school').toLowerCase() + 's'}`,
+        schools.length > 0 && t('search.schoolCount', { count: schools.length }),
         coaches.length > 0 && t('search.coachCount', { count: coaches.length }),
       ].filter(Boolean).join(', ')
     : null;
