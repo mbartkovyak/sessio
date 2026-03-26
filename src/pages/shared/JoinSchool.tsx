@@ -4,16 +4,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
+import { sportLabel } from '@/lib/constants';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const [school, setSchool] = useState<any>(null);
   const [schoolLoading, setSchoolLoading] = useState(true);
@@ -24,19 +26,28 @@ export default function JoinSchool() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
+  async function applyInviteLanguage(lang?: string | null) {
+    if (!lang || !SUPPORTED_LANGS.includes(lang as SupportedLang)) return;
+    if (session) return;
+    if (i18n.language === lang) return;
+    await i18n.changeLanguage(lang);
+    localStorage.setItem('sessio_lang', lang);
+  }
+
   // Fetch school by invite_code
   useEffect(() => {
     if (!code) return;
     supabase
       .from('schools')
-      .select('id, name, sport, city, logo_url, invite_code')
+      .select('id, name, sport, city, logo_url, invite_code, owner:profiles(language)')
       .eq('invite_code', code.toUpperCase())
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
+        await applyInviteLanguage((data as any)?.owner?.language);
         setSchool(data);
         setSchoolLoading(false);
       });
-  }, [code]);
+  }, [code, session, i18n]);
 
   // Check status once auth resolves
   useEffect(() => {
@@ -134,7 +145,7 @@ export default function JoinSchool() {
       </div>
       <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
       <p className="text-sm text-muted-foreground mt-1">
-        {[school.sport, school.city].filter(Boolean).join(' · ')}
+        {[school.sport ? sportLabel(school.sport) : null, school.city].filter(Boolean).join(' · ')}
       </p>
     </div>
   );

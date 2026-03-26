@@ -4,9 +4,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 import { Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel } from '@/lib/constants';
+import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/constants';
 import { notifyUsers } from '@/lib/pushNotify';
 
 import Avatar from '@/components/shared/Avatar';
@@ -17,7 +18,7 @@ export default function JoinTraining() {
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
@@ -28,22 +29,31 @@ export default function JoinTraining() {
   const [emailSent, setEmailSent] = useState(false);
   const joiningRef = useRef(false);
 
+  async function applyInviteLanguage(lang?: string | null) {
+    if (!lang || !SUPPORTED_LANGS.includes(lang as SupportedLang)) return;
+    if (session) return;
+    if (i18n.language === lang) return;
+    await i18n.changeLanguage(lang);
+    localStorage.setItem('sessio_lang', lang);
+  }
+
   // Fetch training from invite_code
   useEffect(() => {
     if (!inviteCode) return;
     supabase
       .from('trainings')
-      .select('*, coach:profiles(full_name, avatar_url)')
+      .select('*, coach:profiles(full_name, avatar_url, language)')
       .eq('invite_code', inviteCode.toUpperCase())
       .eq('is_active', true)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data) {
+          await applyInviteLanguage((data as any).coach?.language);
           setTraining(Object.assign({}, data as object, { _type: 'training' }));
         }
         setTrainingLoading(false);
       });
-  }, [inviteCode]);
+  }, [inviteCode, session, i18n]);
 
   // Auto-join once auth resolves
   useEffect(() => {
@@ -247,7 +257,7 @@ export default function JoinTraining() {
         <span className="text-4xl">{sportIcon}</span>
         <div>
           <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
-          <p className="text-sm text-muted-foreground">{training.sport}</p>
+          <p className="text-sm text-muted-foreground">{sportLabel(training.sport)}</p>
         </div>
       </div>
       <div className="space-y-2">
