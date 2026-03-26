@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import i18n from '@/i18n';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import data from '@emoji-mart/data';
@@ -227,7 +228,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         try {
           convId = await getOrCreateDMConversation(user.id, otherUserId);
         } catch (err: any) {
-          toast.error(err?.message ?? i18n.t('chat.failedCreate'));
+          toast.error(localizeErrorMessage(err, i18n.t('chat.failedCreate')));
           return;
         }
         setLocalConvId(convId);
@@ -251,7 +252,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       if (error) {
         // Rollback optimistic message
         qc.setQueryData(['messages', convId], (old: any[]) => (old ?? []).filter(m => m.id !== tempId));
-        toast.error(`Failed to send: ${error.message}`);
+        toast.error(i18n.t('chat.failedSend'));
         return;
       }
 
@@ -260,7 +261,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
     } catch (err: any) {
-      toast.error(err?.message ?? i18n.t('errors.somethingWentWrong'));
+      toast.error(localizeErrorMessage(err, i18n.t('errors.somethingWentWrong')));
     } finally {
       setIsSending(false);
     }

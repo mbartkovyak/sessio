@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n';
 import { toast } from 'sonner';
 
 // ── Types ──
@@ -418,7 +419,7 @@ export function useMyConversations() {
           result.push({
             id: conv.id,
             type: 'training',
-            name: training?.name ?? 'Training',
+            name: training?.name ?? i18n.t('chat.trainingFallback'),
             sport: training?.sport,
             trainingId: conv.training_id,
             lastMessage: latest ? { content: latest.content, senderName: latest.profiles?.full_name, createdAt: latest.created_at } : undefined,
@@ -430,7 +431,7 @@ export function useMyConversations() {
           result.push({
             id: conv.id,
             type: 'dm',
-            name: otherProfile?.full_name ?? 'User',
+            name: otherProfile?.full_name ?? i18n.t('chat.userFallback'),
             avatarUrl: otherProfile?.avatar_url,
             otherUserId: info?.userId,
             lastMessage: latest ? { content: latest.content, senderName: latest.profiles?.full_name, createdAt: latest.created_at } : undefined,

@@ -14,6 +14,7 @@ import CoachHeader from '@/components/coach/CoachHeader';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import { SPORT_ICONS } from '@/lib/constants';
 import CalendarGrid from '@/components/shared/CalendarGrid';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 function useCoachSessions(coachId: string | undefined) {
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -76,7 +77,7 @@ export default function CoachCalendar() {
       .from('training_sessions')
       .update({ status: 'cancelled' })
       .eq('id', session.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     // Notify in training chat
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
@@ -107,7 +108,7 @@ export default function CoachCalendar() {
       .from('training_sessions')
       .update({ session_date: newDate, start_time: newStart, end_time: newEnd })
       .eq('id', session.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {

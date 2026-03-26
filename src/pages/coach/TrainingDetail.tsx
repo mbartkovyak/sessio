@@ -8,10 +8,12 @@ import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSe
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForLanguage, groupUsersByLanguage } from '@/lib/notificationI18n';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS, dayShortLabel, sportLabel } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -71,16 +73,24 @@ export default function TrainingDetail() {
           content: t('detail.cancelledNotice', { name: training.name }),
         });
       } catch {}
-      notifyUsers(
-        members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean),
-        { title: t('detail.trainingCancelled'), body: t('detail.cancelledNotification', { name: training.name }), tag: `delete-${training.id}`, url: '/player' },
-      );
+      const memberIds = members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean);
+      const usersByLanguage = await groupUsersByLanguage(memberIds);
+      for (const [language, userIds] of Object.entries(usersByLanguage)) {
+        if (!userIds?.length) continue;
+        const tMembers = getFixedTForLanguage(language, 'coach');
+        notifyUsers(userIds, {
+          title: tMembers('detail.trainingCancelled'),
+          body: tMembers('detail.cancelledNotification', { name: training.name }),
+          tag: `delete-${training.id}`,
+          url: '/player',
+        });
+      }
     }
     const { error } = await supabase
       .from('trainings')
       .update({ is_active: false })
       .eq('id', training.id);
-    if (error) { toast.error(error.message); setDeleting(false); }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); }
     else {
       qc.invalidateQueries({ queryKey: ['trainings'] });
       qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
@@ -188,7 +198,7 @@ export default function TrainingDetail() {
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 mb-2.5 text-left w-full">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
                               </div>
                             </button>
                             <div className="grid grid-cols-2 gap-2">
@@ -230,7 +240,7 @@ export default function TrainingDetail() {
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
                                 {m.role === 'waitlist' && (
                                   <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
                                 )}
@@ -418,7 +428,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         .eq('training_id', training.id)
         .gte('session_date', today)
         .eq('status', 'scheduled');
-      if (sessErr) toast.error(sessErr.message);
+      if (sessErr) toast.error(localizeErrorMessage(sessErr, t('common:errors.somethingWentWrong')));
     }
 
     // Regenerate sessions if days changed (new days need new sessions)

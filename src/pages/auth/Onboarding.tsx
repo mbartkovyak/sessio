@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
 
@@ -71,11 +72,11 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'player', onboarding_complete: true })
         .eq('id', user.id);
-      if (error) { setError(error.message); setLoading(false); return; }
+      if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
       navigate(getPostOnboardingPath('player'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -91,11 +92,11 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
         .eq('id', user.id);
-      if (error) { setError(error.message); setLoading(false); return; }
+      if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
       navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -112,7 +113,7 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
         .eq('id', user.id);
-      if (profileError) { setError(profileError.message); setLoading(false); return; }
+      if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       const venues = venueName.trim() && venueAddress.trim()
         ? [{ name: venueName.trim(), address: venueAddress.trim() }]
@@ -122,7 +123,7 @@ export default function Onboarding() {
         .insert({ name: schoolName.trim(), sport: primarySport, city, owner_id: user.id, venues })
         .select('id')
         .single();
-      if (schoolError) { setError(schoolError.message); setLoading(false); return; }
+      if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       // Auto-add owner as coach in the school
       if (newSchool) {
@@ -134,7 +135,7 @@ export default function Onboarding() {
       await refreshProfile();
       navigate(getPostOnboardingPath('school_owner'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }
@@ -171,14 +172,14 @@ export default function Onboarding() {
         .from('profiles')
         .update({ full_name: fullName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
-      if (profileError) { setError(profileError.message); setLoading(false); return; }
+      if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
       // Request to join school (pending approval)
       const { error: memberError } = await supabase
         .from('school_members')
         .insert({ school_id: s.id, coach_id: user.id, status: 'pending' });
       if (memberError && !memberError.message.includes('duplicate')) {
-        setError(memberError.message);
+        setError(localizeErrorMessage(memberError, t('common:errors.somethingWentWrong')));
         setLoading(false);
         return;
       }
@@ -187,7 +188,7 @@ export default function Onboarding() {
       toast.success(t('auth:onboarding.requestSent', { name: s.name }));
       navigate(getPostOnboardingPath('coach'));
     } catch (e: any) {
-      setError(e.message ?? t('common:errors.somethingWentWrong'));
+      setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);
     }
   }

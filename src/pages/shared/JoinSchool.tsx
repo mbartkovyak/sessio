@@ -9,6 +9,7 @@ import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import { sportLabel } from '@/lib/constants';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
@@ -94,7 +95,7 @@ export default function JoinSchool() {
       queryClient.invalidateQueries({ queryKey: ['my-school'] });
       setRequestSent(true);
     } catch (err: any) {
-      toast.error(err.message ?? t('joinSchool.failedToSend'));
+      toast.error(localizeErrorMessage(err, t('joinSchool.failedToSend')));
       setJoining(false);
     }
   }
@@ -115,7 +116,7 @@ export default function JoinSchool() {
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('joinSchool.failedToSend')));
     else setEmailSent(true);
   }
 

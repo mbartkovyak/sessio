@@ -77,9 +77,12 @@
     "noMessagesYet": "Brak wiadomości",
     "beFirst": "Napisz coś jako pierwszy",
     "failedCreate": "Nie udało się utworzyć rozmowy",
+    "failedSend": "Nie udało się wysłać wiadomości",
     "member": "Członek",
     "chatTitle": "Czat",
-    "group": "Grupa"
+    "group": "Grupa",
+    "trainingFallback": "Zajęcia",
+    "userFallback": "Użytkownik"
   },
   "notifications": {
     "enableTitle": "Włącz powiadomienia",
@@ -88,9 +91,19 @@
     "completeDesc": "Kliknij, aby dokończyć konfigurację. Zgoda jest już przyznana, ale konfiguracja nie została dokończona.",
     "enabled": "Powiadomienia włączone",
     "failed": "Nie udało się włączyć powiadomień. Upewnij się, że aplikacja jest dodana do ekranu głównego.",
+    "unsupported": "Powiadomienia nie są obsługiwane na tym urządzeniu.",
+    "permissionDenied": "Powiadomienia są wyłączone w tej przeglądarce lub na tym urządzeniu.",
     "settingUp": "Konfigurowanie...",
     "completeSetup": "Dokończ konfigurację",
-    "turnOn": "Włącz"
+    "turnOn": "Włącz",
+    "playerConfirmedTitle": "Uczestnik potwierdził udział",
+    "playerDeclinedTitle": "Uczestnik zrezygnował",
+    "attendanceConfirmedBody": "{{name}} potwierdził udział w {{training}}.",
+    "attendanceDeclinedBody": "{{name}} zrezygnował z {{training}}.",
+    "requestApprovedTitle": "Prośba zaakceptowana",
+    "requestDeclinedTitle": "Prośba odrzucona",
+    "requestApprovedBody": "Twoja prośba o dołączenie do {{training}} została zaakceptowana.",
+    "requestDeclinedBody": "Twoja prośba o dołączenie do {{training}} została odrzucona."
   },
   "form": {
     "sport": "Sport",

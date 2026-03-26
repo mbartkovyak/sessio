@@ -9,6 +9,8 @@ import { Clock, Users, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/constants';
 import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForLanguage } from '@/lib/notificationI18n';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -125,10 +127,11 @@ export default function JoinTraining() {
               .update({ status: 'pending', created_at: new Date().toISOString() })
               .eq('id', existingReq.id);
             if (training.coach_id) {
+              const tCoach = getFixedTForLanguage(training.coach?.language);
               notifyUsers([training.coach_id], {
-                title: t('join.requestNotificationTitle'),
-                body: t('join.requestNotificationBody', {
-                  name: profile.full_name ?? t('join.anonymousParticipant'),
+                title: tCoach('join.requestNotificationTitle'),
+                body: tCoach('join.requestNotificationBody', {
+                  name: profile.full_name ?? tCoach('join.anonymousParticipant'),
                   training: training.name,
                 }),
                 tag: `join-req-${training.id}`,
@@ -146,10 +149,11 @@ export default function JoinTraining() {
           if (error) throw error;
           // Notify coach about the join request
           if (training.coach_id) {
+            const tCoach = getFixedTForLanguage(training.coach?.language);
             notifyUsers([training.coach_id], {
-              title: t('join.requestNotificationTitle'),
-              body: t('join.requestNotificationBody', {
-                name: profile.full_name ?? t('join.anonymousParticipant'),
+              title: tCoach('join.requestNotificationTitle'),
+              body: tCoach('join.requestNotificationBody', {
+                name: profile.full_name ?? tCoach('join.anonymousParticipant'),
                 training: training.name,
               }),
               tag: `join-req-${training.id}`,
@@ -176,10 +180,11 @@ export default function JoinTraining() {
         }
         // Notify coach about the new member
         if (training.coach_id) {
+          const tCoach = getFixedTForLanguage(training.coach?.language);
           notifyUsers([training.coach_id], {
-            title: t('join.memberJoinedTitle'),
-            body: t('join.memberJoinedBody', {
-              name: profile.full_name ?? t('join.anonymousParticipant'),
+            title: tCoach('join.memberJoinedTitle'),
+            body: tCoach('join.memberJoinedBody', {
+              name: profile.full_name ?? tCoach('join.anonymousParticipant'),
               training: training.name,
             }),
             tag: `joined-${training.id}`,
@@ -202,7 +207,7 @@ export default function JoinTraining() {
         navigate('/player');
       }
     } catch (err: any) {
-      toast.error(err.message ?? t('join.failedToJoin'));
+      toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
       navigate('/player');
     } finally {
       joiningRef.current = false;
@@ -225,7 +230,7 @@ export default function JoinTraining() {
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });
-    if (error) toast.error(error.message);
+    if (error) toast.error(localizeErrorMessage(error, t('join.failedToJoin')));
     else setEmailSent(true);
   }
 

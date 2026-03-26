@@ -15,6 +15,7 @@ import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useTranslation } from 'react-i18next';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Venue = { name: string; address: string };
 
@@ -58,7 +59,7 @@ export default function CoachProfileEditor() {
       .update({ full_name: name, phone: phone || null, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     toast.success(t('profile.profileUpdated'));
     await refreshProfile();
   }
@@ -71,7 +72,7 @@ export default function CoachProfileEditor() {
     setNewVenueAddress('');
     // Auto-save venues
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
-      if (error) toast.error(error.message);
+      if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
       else refreshProfile();
     });
   }
@@ -80,7 +81,7 @@ export default function CoachProfileEditor() {
     const updated = venues.filter((_, i) => i !== idx);
     setVenues(updated);
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
-      if (error) toast.error(error.message);
+      if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
       else refreshProfile();
     });
   }

@@ -77,9 +77,12 @@
     "noMessagesYet": "No messages yet",
     "beFirst": "Be the first to write something",
     "failedCreate": "Couldn't create conversation",
+    "failedSend": "Couldn't send message",
     "member": "Member",
     "chatTitle": "Chat",
-    "group": "Group"
+    "group": "Group",
+    "trainingFallback": "Training",
+    "userFallback": "User"
   },
   "notifications": {
     "enableTitle": "Enable notifications",
@@ -88,9 +91,19 @@
     "completeDesc": "Tap to finish setup. Permission is granted, but setup isn't complete yet.",
     "enabled": "Notifications enabled",
     "failed": "Setup failed. Make sure the app is added to your home screen.",
+    "unsupported": "Notifications aren't supported on this device.",
+    "permissionDenied": "Notifications are turned off for this browser or device.",
     "settingUp": "Setting up...",
     "completeSetup": "Finish setup",
-    "turnOn": "Turn on"
+    "turnOn": "Turn on",
+    "playerConfirmedTitle": "Player confirmed",
+    "playerDeclinedTitle": "Player declined",
+    "attendanceConfirmedBody": "{{name}} confirmed for {{training}}.",
+    "attendanceDeclinedBody": "{{name}} declined {{training}}.",
+    "requestApprovedTitle": "Request approved",
+    "requestDeclinedTitle": "Request declined",
+    "requestApprovedBody": "You've been accepted to {{training}}.",
+    "requestDeclinedBody": "Your request to join {{training}} was declined."
   },
   "form": {
     "sport": "Sport",

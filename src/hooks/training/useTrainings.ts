@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n';
 import { toast } from 'sonner';
 import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForCurrentLanguage, getFixedTForUser } from '@/lib/notificationI18n';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
@@ -134,9 +137,9 @@ export function useCreateTraining() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trainings'] });
-      toast.success('Training created!');
+      toast.success(i18n.t('toast.trainingCreated', { ns: 'common' }));
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -154,7 +157,7 @@ export function useUpdateTraining(trainingId: string) {
       qc.invalidateQueries({ queryKey: ['trainings'] });
       qc.invalidateQueries({ queryKey: ['training', trainingId] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -185,7 +188,7 @@ export function useRemoveTrainingMember(trainingId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
-      toast.success('Member removed');
+      toast.success(i18n.t('toast.memberRemoved', { ns: 'common' }));
     },
   });
 }
@@ -243,7 +246,7 @@ export function useMyUpcomingSessions() {
 
 export function useUpsertAttendance() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   return useMutation({
     mutationFn: async ({ sessionId, status, notify }: {
       sessionId: string;
@@ -259,9 +262,15 @@ export function useUpsertAttendance() {
       if (error) throw error;
 
       if (notify && (status === 'confirmed' || status === 'declined')) {
+        const tNotify = await getFixedTForUser(notify.coachId);
+        const participantName = profile?.full_name ?? tNotify('join.anonymousParticipant');
         notifyUsers([notify.coachId], {
-          title: status === 'confirmed' ? 'Player confirmed' : 'Player declined',
-          body: `A player ${status} for ${notify.trainingName}.`,
+          title: status === 'confirmed'
+            ? tNotify('notifications.playerConfirmedTitle')
+            : tNotify('notifications.playerDeclinedTitle'),
+          body: status === 'confirmed'
+            ? tNotify('notifications.attendanceConfirmedBody', { name: participantName, training: notify.trainingName })
+            : tNotify('notifications.attendanceDeclinedBody', { name: participantName, training: notify.trainingName }),
           tag: `attendance-${sessionId}`,
           url: `/coach/trainings/${notify.trainingId}`,
         });
@@ -271,7 +280,7 @@ export function useUpsertAttendance() {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -339,10 +348,13 @@ export function useRespondJoinRequest() {
         await supabase.from('training_members').upsert({ training_id: trainingId, user_id: userId, role: 'regular' }, { onConflict: 'training_id,user_id' });
       }
       // Notify the athlete about the decision
-      const name = trainingName ?? 'a training';
+      const tNotify = await getFixedTForUser(userId);
+      const name = trainingName ?? '';
       notifyUsers([userId], {
-        title: accept ? 'Request approved!' : 'Request declined',
-        body: accept ? `You've been accepted to ${name}.` : `Your request to join ${name} was declined.`,
+        title: accept ? tNotify('notifications.requestApprovedTitle') : tNotify('notifications.requestDeclinedTitle'),
+        body: accept
+          ? tNotify('notifications.requestApprovedBody', { training: name })
+          : tNotify('notifications.requestDeclinedBody', { training: name }),
         tag: `join-${requestId}`,
         url: '/player',
       });
@@ -377,7 +389,7 @@ export function useCancelSession(trainingId: string) {
           .eq('training_id', trainingId)
           .maybeSingle();
         if (conv) {
-          const msg = `⚠️ ${trainingName} on ${sessionDate} has been cancelled.`;
+          const msg = getFixedTForCurrentLanguage('coach')('home.cancelledMessage', { name: trainingName, date: sessionDate });
           await supabase.from('messages').insert({
             conversation_id: conv.id,
             sender_id: user.id,
@@ -390,7 +402,7 @@ export function useCancelSession(trainingId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
-      toast.success('Session cancelled');
+      toast.success(i18n.t('toast.sessionCancelled', { ns: 'common' }));
     },
   });
 }
@@ -409,9 +421,11 @@ export function useRescheduleSession(trainingId: string) {
         .eq('id', sessionId);
       if (error) throw error;
       // Notify in training chat
-      const chatMsg = oldDate === newDate
-        ? `📅 ${trainingName} on ${newDate} moved to ${newStartTime.slice(0, 5)}–${newEndTime.slice(0, 5)}.`
-        : `📅 ${trainingName} moved from ${oldDate} to ${newDate} at ${newStartTime.slice(0, 5)}.`;
+      const chatMsg = getFixedTForCurrentLanguage('coach')('home.rescheduledMessage', {
+        name: trainingName,
+        date: newDate,
+        time: newStartTime.slice(0, 5),
+      });
       if (user) {
         const { data: conv } = await supabase
           .from('conversations')
@@ -430,7 +444,7 @@ export function useRescheduleSession(trainingId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
-      toast.success('Session rescheduled');
+      toast.success(i18n.t('toast.sessionRescheduled', { ns: 'common' }));
     },
   });
 }

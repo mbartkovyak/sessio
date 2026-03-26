@@ -75,6 +75,15 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
     : undefined;
+  const statusLabel = attendance.status === 'confirmed'
+    ? t('calendar.confirmed')
+    : attendance.status === 'pending'
+      ? t('calendar.pending')
+      : attendance.status === 'declined'
+        ? t('calendar.declined')
+        : attendance.status === 'no_show'
+          ? t('calendar.noShow')
+          : attendance.status;
 
   async function handleChange(newStatus: string) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
@@ -106,7 +115,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <div className={`h-2 w-2 rounded-full ${style.dot}`} />
-          <span className={`text-xs font-medium capitalize ${style.label}`}>{attendance.status}</span>
+          <span className={`text-xs font-medium ${style.label}`}>{statusLabel}</span>
         </div>
       </button>
       {training?.venue && (

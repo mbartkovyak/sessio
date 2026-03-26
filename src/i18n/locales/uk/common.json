@@ -77,9 +77,12 @@
     "noMessagesYet": "Повідомлень поки немає",
     "beFirst": "Напишіть перше повідомлення",
     "failedCreate": "Не вдалося створити розмову",
+    "failedSend": "Не вдалося надіслати повідомлення",
     "member": "Учасник",
     "chatTitle": "Чат",
-    "group": "Група"
+    "group": "Група",
+    "trainingFallback": "Заняття",
+    "userFallback": "Користувач"
   },
   "notifications": {
     "enableTitle": "Увімкнути сповіщення",
@@ -88,9 +91,19 @@
     "completeDesc": "Натисніть, щоб завершити налаштування. Дозвіл уже надано, але налаштування ще не завершено.",
     "enabled": "Сповіщення увімкнено",
     "failed": "Не вдалося завершити налаштування. Переконайтеся, що додаток додано на головний екран.",
+    "unsupported": "Сповіщення не підтримуються на цьому пристрої.",
+    "permissionDenied": "Сповіщення вимкнені в цьому браузері або на цьому пристрої.",
     "settingUp": "Налаштування...",
     "completeSetup": "Завершити налаштування",
-    "turnOn": "Увімкнути"
+    "turnOn": "Увімкнути",
+    "playerConfirmedTitle": "Учасник підтвердив участь",
+    "playerDeclinedTitle": "Учасник відмовився",
+    "attendanceConfirmedBody": "{{name}} підтвердив участь у {{training}}.",
+    "attendanceDeclinedBody": "{{name}} відмовився від {{training}}.",
+    "requestApprovedTitle": "Запит схвалено",
+    "requestDeclinedTitle": "Запит відхилено",
+    "requestApprovedBody": "Ваш запит на приєднання до {{training}} схвалено.",
+    "requestDeclinedBody": "Ваш запит на приєднання до {{training}} відхилено."
   },
   "form": {
     "sport": "Спорт",

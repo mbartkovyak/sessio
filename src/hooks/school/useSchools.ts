@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n';
 import { toast } from 'sonner';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city'>;
@@ -148,10 +150,10 @@ export function useRespondSchoolMember() {
       }
     },
     onSuccess: (_, { accept }) => {
-      toast.success(accept ? 'Coach approved!' : 'Request declined');
+      toast.success(i18n.t(accept ? 'toast.coachApproved' : 'toast.requestDeclined', { ns: 'common' }));
       qc.invalidateQueries({ queryKey: ['my-school'] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -196,7 +198,7 @@ export function useToggleFavouriteSchool() {
     onSuccess: (_, { schoolId, isFav }) => {
       qc.invalidateQueries({ queryKey: ['fav-school'] });
       qc.invalidateQueries({ queryKey: ['favourite-schools'] });
-      toast.success(isFav ? 'Removed from favourites' : 'Added to favourites');
+      toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
     },
   });
 }
@@ -233,9 +235,9 @@ export function useCreateSchool() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-school'] });
-      toast.success('School created!');
+      toast.success(i18n.t('toast.schoolCreated', { ns: 'common' }));
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -249,7 +251,7 @@ export function useUpdateSchool(schoolId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-school'] });
       qc.invalidateQueries({ queryKey: ['school', schoolId] });
-      toast.success('School updated');
+      toast.success(i18n.t('toast.schoolUpdated', { ns: 'common' }));
     },
   });
 }

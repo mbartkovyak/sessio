@@ -10,8 +10,9 @@ import Avatar from '@/components/shared/Avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { SPORT_ICONS } from '@/lib/constants';
+import { SPORT_ICONS, sportLabel } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function CoachOverviewSection() {
   const { user, profile } = useAuth();
@@ -47,7 +48,7 @@ export default function CoachOverviewSection() {
       .from('training_sessions')
       .update({ status: 'cancelled' })
       .eq('id', session.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
@@ -77,7 +78,7 @@ export default function CoachOverviewSection() {
       .from('training_sessions')
       .update({ session_date: newDate, start_time: newStart, end_time: newEnd })
       .eq('id', session.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
@@ -130,7 +131,10 @@ export default function CoachOverviewSection() {
           <div className="flex-1 min-w-0">
             <p className="font-medium text-foreground text-sm truncate">{(schoolMembership.schools as any).name}</p>
             <p className="text-xs text-muted-foreground">
-              {[(schoolMembership.schools as any).sport, (schoolMembership.schools as any).city].filter(Boolean).join(' · ')}
+              {[
+                (schoolMembership.schools as any).sport ? sportLabel((schoolMembership.schools as any).sport) : null,
+                (schoolMembership.schools as any).city,
+              ].filter(Boolean).join(' · ')}
             </p>
           </div>
         </div>

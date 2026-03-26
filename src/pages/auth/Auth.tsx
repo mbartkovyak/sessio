@@ -5,6 +5,7 @@ import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
 import { SessioLogo } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
+import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'email' | 'code';
 
@@ -29,7 +30,7 @@ export default function Auth() {
       },
     });
     if (error) {
-      setError(error.message);
+      setError(localizeErrorMessage(error, t('auth.googleFailed')));
       setGoogleLoading(false);
     }
   }
@@ -44,7 +45,7 @@ export default function Auth() {
     });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(localizeErrorMessage(error, t('auth.sendCodeFailed')));
     } else {
       setStep('code');
     }
