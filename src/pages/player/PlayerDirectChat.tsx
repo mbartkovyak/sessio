@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import Avatar from '@/components/shared/Avatar';
 import ChatView from '@/components/shared/ChatView';
@@ -23,11 +24,12 @@ function useProfile(userId: string | undefined) {
 export default function PlayerDirectChat() {
   const { userId } = useParams<{ userId: string }>();
   const { data: otherProfile } = useProfile(userId);
+  const { t } = useTranslation('common');
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-background">
       <AppHeader
-        title={otherProfile?.full_name ?? 'Chat'}
+        title={otherProfile?.full_name ?? t('chat.chatTitle')}
         back
         inline
         right={<Avatar url={otherProfile?.avatar_url} name={otherProfile?.full_name} size="sm" />}
