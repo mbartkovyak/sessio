@@ -17,7 +17,9 @@
     "deleteAccount": "Delete Account",
     "deleting": "Deleting...",
     "confirmDelete": "Delete all your data? This cannot be undone.",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "shareLink": "Share link",
+    "linkCopied": "Link copied!"
   },
   "sports": {
     "Tennis": "Tennis",
@@ -73,7 +75,9 @@
     "noMessagesYet": "No messages yet",
     "beFirst": "Be the first to say something",
     "failedCreate": "Failed to create conversation",
-    "member": "Member"
+    "member": "Member",
+    "chatTitle": "Chat",
+    "group": "Group"
   },
   "notifications": {
     "enableTitle": "Enable notifications",
@@ -91,7 +95,8 @@
     "selectSport": "Select sport",
     "addSport": "+ Add sport",
     "city": "City",
-    "selectCity": "Select city"
+    "selectCity": "Select city",
+    "select": "Select..."
   },
   "trainingType": {
     "group": "Group",
@@ -99,6 +104,86 @@
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
-    "notSignedIn": "Not signed in — please reload and try again"
+    "notSignedIn": "Not signed in — please reload and try again",
+    "errorTitle": "Something went wrong",
+    "errorDesc": "An unexpected error occurred. Please reload and try again.",
+    "goHome": "Go Home",
+    "reload": "Reload"
+  },
+  "join": {
+    "alreadyOnWaitlist": "You're on the waitlist",
+    "alreadyInTraining": "You're already in this training",
+    "trainingFull": "This training is full",
+    "requestAlreadySent": "Request already sent — waiting for approval",
+    "joinRequestSent": "Join request sent! The coach will review it.",
+    "joinRequestSentAgain": "Join request sent again!",
+    "addedToWaitlist": "Added to waitlist!",
+    "joinedTraining": "Joined {{name}}!",
+    "alreadyInGroup": "Already in this group",
+    "groupFull": "Group is full",
+    "failedToJoin": "Failed to join",
+    "signInFailed": "Sign in failed",
+    "notFound": "Not found",
+    "notFoundDesc": "This invite link may be expired or invalid.",
+    "goHome": "Go home",
+    "spotsPerTraining": "{{count}} spots per training",
+    "joining": "Joining...",
+    "joinName": "Join {{name}}",
+    "invitedToJoin": "{{name}} invited you to join",
+    "beenInvitedToJoin": "You've been invited to join",
+    "joinIn30Seconds": "Join in 30 seconds. No app to download.",
+    "checkEmail": "Check your email",
+    "sentMagicLink": "We sent a magic link to",
+    "continueGoogle": "Continue with Google",
+    "continueEmail": "Continue with Email",
+    "sendMagicLink": "Send Magic Link",
+    "at": "at"
+  },
+  "joinSchool": {
+    "onlyCoaches": "Only coaches can join a school",
+    "alreadyInSchool": "You're already in this school",
+    "failedToSend": "Failed to send request",
+    "signInFailed": "Sign in failed",
+    "notFound": "School not found",
+    "notFoundDesc": "This invite link may be expired or invalid.",
+    "goHome": "Go home",
+    "requestSent": "Request sent",
+    "requestSentDesc": "The school owner will review your request. You'll be added once approved.",
+    "goToDashboard": "Go to dashboard",
+    "invitedToJoin": "You've been invited to join",
+    "sendingRequest": "Sending request...",
+    "requestToJoin": "Request to Join",
+    "ownerWillApprove": "The school owner will approve your request",
+    "signInToJoin": "Sign in to request to join as a coach",
+    "checkEmail": "Check your email",
+    "sentMagicLink": "We sent a magic link to",
+    "continueGoogle": "Continue with Google",
+    "continueEmail": "Continue with Email",
+    "sendMagicLink": "Send Magic Link"
+  },
+  "notFound": {
+    "title": "Out of bounds!",
+    "description": "This page doesn't exist. Maybe the session was cancelled?",
+    "goHome": "Go home"
+  },
+  "pwa": {
+    "title": "Add Sessio to Home Screen",
+    "description": "Works offline. No app store needed.",
+    "notNow": "Not now",
+    "install": "Install"
+  },
+  "dialog": {
+    "unsavedTitle": "Unsaved changes",
+    "unsavedDesc": "You have unsaved changes that will be lost if you leave this page.",
+    "stay": "Stay",
+    "discard": "Discard"
+  },
+  "profile": {
+    "unknown": "Unknown",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "open": "Open",
+    "email": "Email",
+    "noContact": "No contact info available"
   }
 }

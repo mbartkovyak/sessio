@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
-import { CITIES, SPORTS } from '@/lib/constants';
+import { CITIES, SPORTS, sportLabel } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
@@ -107,7 +107,7 @@ export default function CoachProfileEditor() {
             </div>
             <PhoneInput value={phone} onChange={setPhone} />
             <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
-            <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} />
+            <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
                 <FileText className="h-3.5 w-3.5" /> {t('profile.bio')}

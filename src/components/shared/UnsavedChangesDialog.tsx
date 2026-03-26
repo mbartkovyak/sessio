@@ -1,4 +1,5 @@
 import type { Blocker } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -17,15 +18,17 @@ interface Props {
 }
 
 export default function UnsavedChangesDialog({ blocker, onDiscard }: Props) {
+  const { t } = useTranslation('common');
+
   if (blocker.state !== 'blocked') return null;
 
   return (
     <AlertDialog open>
       <AlertDialogContent className="max-w-[calc(100%-2rem)] rounded-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+          <AlertDialogTitle>{t('dialog.unsavedTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
-            You have unsaved changes that will be lost if you leave this page.
+            {t('dialog.unsavedDesc')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-row gap-2 sm:gap-2">
@@ -33,7 +36,7 @@ export default function UnsavedChangesDialog({ blocker, onDiscard }: Props) {
             onClick={() => blocker.reset?.()}
             className="flex-1 mt-0 sm:mt-0"
           >
-            Stay
+            {t('dialog.stay')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
@@ -42,7 +45,7 @@ export default function UnsavedChangesDialog({ blocker, onDiscard }: Props) {
             }}
             className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Discard
+            {t('dialog.discard')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

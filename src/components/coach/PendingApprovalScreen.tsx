@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Clock, LogOut } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +10,8 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t } = useTranslation('coach');
+  const { t: tc } = useTranslation('common');
   const pendingSchool = pendingRequest.schools as any;
 
   return (
@@ -24,9 +27,9 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
             <Clock className="h-8 w-8 text-amber-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Waiting for approval</h1>
+            <h1 className="text-xl font-bold text-foreground">{t('pending.title')}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your request to join <span className="font-semibold text-foreground">{pendingSchool?.name}</span> is being reviewed by the school owner.
+              {t('pending.description', { name: pendingSchool?.name })}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4">
@@ -38,18 +41,18 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
               </div>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">You'll get access once the owner approves your request.</p>
+          <p className="text-xs text-muted-foreground">{t('pending.info')}</p>
           <button
             onClick={() => qc.invalidateQueries({ queryKey: ['my-pending-school-request'] })}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground min-h-[44px]"
           >
-            Check status
+            {t('pending.checkStatus')}
           </button>
           <button
             onClick={async () => { await signOut(); navigate('/auth'); }}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-destructive"
           >
-            <LogOut className="h-4 w-4" /> Sign Out
+            <LogOut className="h-4 w-4" /> {tc('actions.signOut')}
           </button>
         </div>
       </main>

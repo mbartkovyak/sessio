@@ -1,40 +1,50 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, ArrowRight, X } from 'lucide-react';
-
-const STEPS = [
-  {
-    emoji: '🏆',
-    title: 'Welcome to Sessio!',
-    desc: "You're all set up as a coach. Let's get your first group running in 2 minutes.",
-    action: "Let's go!",
-  },
-  {
-    emoji: '👥',
-    title: 'Create your first group',
-    desc: 'Set up a recurring training — sport, day, time, location, and capacity.',
-    action: 'Create a group',
-    route: '/coach/groups/new',
-  },
-  {
-    emoji: '📨',
-    title: 'Invite your athletes',
-    desc: "Share the invite link or code with your athletes. They join in 30 seconds — no app download needed.",
-    action: 'Got it!',
-  },
-  {
-    emoji: '✅',
-    title: "You're all set!",
-    desc: 'Sessio will automatically send confirmation requests before each training and fill empty spots from your waitlist.',
-    action: 'Start coaching',
-  },
-];
 
 export default function CoachWalkthrough({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
+
+  const STEPS = [
+    {
+      emoji: '🏆',
+      title: t('walkthrough.welcomeTitle'),
+      desc: t('walkthrough.welcomeDesc'),
+      action: t('walkthrough.letsGo'),
+    },
+    {
+      emoji: '👥',
+      title: t('walkthrough.createTitle'),
+      desc: t('walkthrough.createDesc'),
+      action: t('walkthrough.createButton'),
+      route: '/coach/groups/new',
+    },
+    {
+      emoji: '📨',
+      title: t('walkthrough.inviteTitle'),
+      desc: t('walkthrough.inviteDesc'),
+      action: t('walkthrough.gotIt'),
+    },
+    {
+      emoji: '✅',
+      title: t('walkthrough.allSetTitle'),
+      desc: t('walkthrough.allSetDesc'),
+      action: t('walkthrough.startCoaching'),
+    },
+  ];
+
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+
+  const checklist = [
+    t('walkthrough.checkGroupCreated'),
+    t('walkthrough.checkInviteReady'),
+    t('walkthrough.checkAutoConfirm'),
+    t('walkthrough.checkWaitlist'),
+  ];
 
   function handleAction() {
     if (current.route) {
@@ -74,7 +84,7 @@ export default function CoachWalkthrough({ onClose }: { onClose: () => void }) {
         {/* Checklist for last step */}
         {isLast && (
           <div className="mb-5 space-y-2">
-            {['Group created', 'Invite link ready', 'Auto-confirmations enabled', 'Waitlist backfill on'].map(item => (
+            {checklist.map(item => (
               <div key={item} className="flex items-center gap-2 text-sm text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                 {item}

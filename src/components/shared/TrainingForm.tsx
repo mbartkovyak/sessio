@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
-import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
+import { DAYS_FULL, DAYS_SHORT, dayShortLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
@@ -384,7 +384,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           <div {...(form.days_of_week.length === 0 && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-2 block">{t('form.days')} <span className="text-destructive">*</span></label>
             <div className="flex gap-1.5 flex-wrap">{DAYS_FULL.map((d, i) => (
               <button type="button" key={d} onClick={() => toggleDay(i)}
-                className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
+                className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{dayShortLabel(DAYS_SHORT[i])}</button>
             ))}</div>
             {form.days_of_week.length === 0 && showErrors && <p className="text-xs text-destructive mt-1">{t('form.selectDay')}</p>}
           </div>

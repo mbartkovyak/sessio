@@ -97,9 +97,7 @@ function SessionRow({ attendance }: { attendance: any }) {
         <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5 ml-9">
           <div className="flex items-start gap-2.5 mb-3">
             <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground">
-              {t('thisWeek.lateCancel', { hours: cancelDeadlineHours })}
-            </p>
+            <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('thisWeek.lateCancel', { hours: cancelDeadlineHours }) }} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button

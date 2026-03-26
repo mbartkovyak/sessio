@@ -1,4 +1,5 @@
 import { X, Phone, MessageCircle, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Avatar from './Avatar';
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export default function ProfileSheet({ profile, onClose }: Props) {
+  const { t } = useTranslation('common');
+
   if (!profile) return null;
 
   const phone = profile.phone?.replace(/\s/g, '');
@@ -39,7 +42,7 @@ export default function ProfileSheet({ profile, onClose }: Props) {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-5">
           <Avatar url={profile.avatar_url} name={profile.full_name} size="2xl" />
-          <h2 className="mt-3 text-lg font-bold text-foreground">{profile.full_name ?? 'Unknown'}</h2>
+          <h2 className="mt-3 text-lg font-bold text-foreground">{profile.full_name ?? t('profile.unknown')}</h2>
           {(profile.sport || profile.city) && (
             <p className="text-sm text-muted-foreground mt-0.5">
               {[profile.sport, profile.city].filter(Boolean).join(' · ')}
@@ -62,7 +65,7 @@ export default function ProfileSheet({ profile, onClose }: Props) {
               >
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span className="flex-1">{profile.phone}</span>
-                <span className="text-xs text-primary">Call</span>
+                <span className="text-xs text-primary">{t('profile.call')}</span>
               </a>
               <a
                 href={`https://wa.me/${phone.replace(/[^0-9]/g, '')}`}
@@ -71,8 +74,8 @@ export default function ProfileSheet({ profile, onClose }: Props) {
                 className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground active:bg-secondary/50 transition-colors"
               >
                 <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                <span className="flex-1">WhatsApp</span>
-                <span className="text-xs text-primary">Open</span>
+                <span className="flex-1">{t('profile.whatsapp')}</span>
+                <span className="text-xs text-primary">{t('profile.open')}</span>
               </a>
             </>
           )}
@@ -83,13 +86,13 @@ export default function ProfileSheet({ profile, onClose }: Props) {
             >
               <span className="text-muted-foreground text-sm">@</span>
               <span className="flex-1 truncate">{profile.email}</span>
-              <span className="text-xs text-primary">Email</span>
+              <span className="text-xs text-primary">{t('profile.email')}</span>
             </a>
           )}
         </div>
 
         {!hasPhone && !profile.email && (
-          <p className="text-sm text-muted-foreground text-center">No contact info available</p>
+          <p className="text-sm text-muted-foreground text-center">{t('profile.noContact')}</p>
         )}
       </div>
     </div>

@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2, MapPin, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
-import { SPORTS, CITIES } from '@/lib/constants';
+import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
@@ -112,7 +112,7 @@ export default function SchoolProfileEditor() {
             <input className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={e => setName(e.target.value)} />
           </div>
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
-          <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} />
+          <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />

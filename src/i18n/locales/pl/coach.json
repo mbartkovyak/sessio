@@ -43,7 +43,8 @@
     "noLessons": "Brak zajęć",
     "createFirst": "Utwórz swoje pierwsze zajęcia →",
     "clearFilters": "Wyczyść filtry",
-    "coachName": "Trener {{name}}"
+    "coachName": "Trener {{name}}",
+    "new": "Nowe"
   },
   "type": {
     "group": "Grupowe",
@@ -141,7 +142,7 @@
     "endTime": "Godzina zakończenia",
     "joining": "Dołączanie",
     "joiningDesc": "Jak sportowcy dołączają po otwarciu linku zaproszenia",
-    "instantJoin": "Natychmiastowe dołączenie",
+    "instantJoin": "Od razu",
     "approvalRequired": "Wymagana akceptacja",
     "visibility": "Widoczność",
     "visibilityDesc": "Czy sportowcy mogą znaleźć te zajęcia w wyszukiwarce",
@@ -156,5 +157,29 @@
     "deleteConfirm": "Czy na pewno? Tego nie można cofnąć.",
     "creating": "Tworzenie...",
     "createLesson": "Utwórz zajęcia"
+  },
+  "walkthrough": {
+    "welcomeTitle": "Witaj w Sessio!",
+    "welcomeDesc": "Jesteś gotowy jako trener. Uruchommy twoją pierwszą grupę w 2 minuty.",
+    "letsGo": "Zaczynamy!",
+    "createTitle": "Utwórz swoją pierwszą grupę",
+    "createDesc": "Skonfiguruj powtarzające się zajęcia — sport, dzień, godzina, lokalizacja i limit miejsc.",
+    "createButton": "Utwórz grupę",
+    "inviteTitle": "Zaproś swoich sportowców",
+    "inviteDesc": "Udostępnij link lub kod zaproszenia. Dołączą w 30 sekund — bez pobierania aplikacji.",
+    "gotIt": "Rozumiem!",
+    "allSetTitle": "Wszystko gotowe!",
+    "allSetDesc": "Sessio automatycznie wyśle prośby o potwierdzenie przed każdymi zajęciami i uzupełni wolne miejsca z listy rezerwowej.",
+    "startCoaching": "Zacznij trenować",
+    "checkGroupCreated": "Grupa utworzona",
+    "checkInviteReady": "Link zaproszenia gotowy",
+    "checkAutoConfirm": "Automatyczne potwierdzenia włączone",
+    "checkWaitlist": "Uzupełnianie z listy rezerwowej włączone"
+  },
+  "pending": {
+    "title": "Oczekiwanie na zatwierdzenie",
+    "description": "Twoja prośba o dołączenie do <1>{{name}}</1> jest rozpatrywana przez właściciela szkółki.",
+    "info": "Otrzymasz dostęp po zatwierdzeniu przez właściciela.",
+    "checkStatus": "Sprawdź status"
   }
 }

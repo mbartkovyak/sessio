@@ -43,7 +43,8 @@
     "noLessons": "No lessons yet",
     "createFirst": "Create your first lesson →",
     "clearFilters": "Clear filters",
-    "coachName": "Coach {{name}}"
+    "coachName": "Coach {{name}}",
+    "new": "New"
   },
   "type": {
     "group": "Group",
@@ -156,5 +157,29 @@
     "deleteConfirm": "Are you sure? This can't be undone.",
     "creating": "Creating...",
     "createLesson": "Create Lesson"
+  },
+  "walkthrough": {
+    "welcomeTitle": "Welcome to Sessio!",
+    "welcomeDesc": "You're all set up as a coach. Let's get your first group running in 2 minutes.",
+    "letsGo": "Let's go!",
+    "createTitle": "Create your first group",
+    "createDesc": "Set up a recurring training — sport, day, time, location, and capacity.",
+    "createButton": "Create a group",
+    "inviteTitle": "Invite your athletes",
+    "inviteDesc": "Share the invite link or code with your athletes. They join in 30 seconds — no app download needed.",
+    "gotIt": "Got it!",
+    "allSetTitle": "You're all set!",
+    "allSetDesc": "Sessio will automatically send confirmation requests before each training and fill empty spots from your waitlist.",
+    "startCoaching": "Start coaching",
+    "checkGroupCreated": "Group created",
+    "checkInviteReady": "Invite link ready",
+    "checkAutoConfirm": "Auto-confirmations enabled",
+    "checkWaitlist": "Waitlist backfill on"
+  },
+  "pending": {
+    "title": "Waiting for approval",
+    "description": "Your request to join <1>{{name}}</1> is being reviewed by the school owner.",
+    "info": "You'll get access once the owner approves your request.",
+    "checkStatus": "Check status"
   }
 }
