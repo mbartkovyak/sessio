@@ -6,6 +6,8 @@ import { useMessages, useTrainingConversation, useDMConversation, getOrCreateDMC
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+import i18n from '@/i18n';
 
 import Avatar from '@/components/shared/Avatar';
 import data from '@emoji-mart/data';
@@ -67,9 +69,9 @@ const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '🎉
 
 function formatDateLabel(dateStr: string) {
   const date = parseISO(dateStr);
-  if (isToday(date)) return 'Today';
-  if (isYesterday(date)) return 'Yesterday';
-  return format(date, 'EEE, d MMM');
+  if (isToday(date)) return i18n.t('calendar.today');
+  if (isYesterday(date)) return i18n.t('calendar.yesterday');
+  return format(date, 'EEE, d MMM', { locale: getDateLocale() });
 }
 
 function formatTime(dateStr: string) {

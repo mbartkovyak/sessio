@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, MoreVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SPORT_ICONS } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 import Avatar from './Avatar';
 import { type ConversationInfo, markConversationSeen, markAsUnread, hideChat, isManuallyUnread } from '@/hooks/shared/useConversations';
 
@@ -17,6 +19,7 @@ interface Props {
 export default function ChatList({ conversations, isLoading, getChatPath, emptyText }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
@@ -36,8 +39,8 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
     return (
       <div className="flex flex-col items-center justify-center pt-20 text-center px-6">
         <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
-        <p className="font-medium text-foreground">No chats yet</p>
-        <p className="text-sm text-muted-foreground mt-1">{emptyText ?? 'Start a conversation'}</p>
+        <p className="font-medium text-foreground">{t('chat.noChats')}</p>
+        <p className="text-sm text-muted-foreground mt-1">{emptyText ?? t('chat.startConversation')}</p>
       </div>
     );
   }
@@ -72,14 +75,14 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                   <p className={`text-sm truncate ${hasUnread ? 'font-bold text-foreground' : 'font-semibold text-foreground'}`}>{conv.name}</p>
                   {conv.lastMessage && (
                     <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                      {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: false })}
+                      {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: false, locale: getDateLocale() })}
                     </span>
                   )}
                 </div>
                 <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                   {conv.lastMessage
-                    ? `${conv.lastMessage.senderName ?? 'Someone'}: ${conv.lastMessage.content}`
-                    : 'No messages yet'}
+                    ? `${conv.lastMessage.senderName ?? t('chat.someone')}: ${conv.lastMessage.content}`
+                    : t('chat.noMessages')}
                 </p>
               </div>
               {hasUnread && (
@@ -109,14 +112,14 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                   onClick={() => { markAsUnread(conv.id); qc.invalidateQueries({ queryKey: ['unread-total'] }); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
                 >
-                  Mark as unread
+                  {t('chat.markAsUnread')}
                 </button>
                 {conv.type === 'dm' && (
                   <button
-                    onClick={() => { if (!confirm('Archive this conversation?')) return; hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
+                    onClick={() => { if (!confirm(t('chat.archiveConfirm'))) return; hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
                     className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
                   >
-                    Archive
+                    {t('chat.archive')}
                   </button>
                 )}
               </div>

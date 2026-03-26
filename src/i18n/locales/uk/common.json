@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Головна",
+    "chats": "Чати",
+    "search": "Пошук",
+    "calendar": "Календар",
+    "profile": "Профіль",
+    "lessons": "Заняття"
+  },
+  "actions": {
+    "save": "Зберегти зміни",
+    "cancel": "Скасувати",
+    "back": "Назад",
+    "continue": "Далі",
+    "loading": "Завантаження...",
+    "signOut": "Вийти",
+    "deleteAccount": "Видалити акаунт",
+    "deleting": "Видалення...",
+    "confirmDelete": "Видалити всі ваші дані? Цю дію неможливо скасувати.",
+    "getStarted": "Почати"
+  },
+  "sports": {
+    "Tennis": "Теніс",
+    "Swimming": "Плавання",
+    "Running": "Біг",
+    "Fitness": "Фітнес",
+    "Yoga": "Йога",
+    "Football": "Футбол",
+    "Badminton": "Бадмінтон",
+    "Boxing": "Бокс",
+    "Other": "Інше"
+  },
+  "days": {
+    "Monday": "Понеділок",
+    "Tuesday": "Вівторок",
+    "Wednesday": "Середа",
+    "Thursday": "Четвер",
+    "Friday": "П'ятниця",
+    "Saturday": "Субота",
+    "Sunday": "Неділя"
+  },
+  "daysShort": {
+    "Mon": "Пн",
+    "Tue": "Вт",
+    "Wed": "Ср",
+    "Thu": "Чт",
+    "Fri": "Пт",
+    "Sat": "Сб",
+    "Sun": "Нд"
+  },
+  "calendar": {
+    "today": "Сьогодні",
+    "yesterday": "Вчора",
+    "tomorrow": "Завтра",
+    "todayAt": "Сьогодні о {{time}}",
+    "tomorrowAt": "Завтра о {{time}}",
+    "at": "о",
+    "noTrainings": "Немає занять"
+  },
+  "chat": {
+    "noChats": "Ще немає чатів",
+    "startConversation": "Почніть розмову",
+    "noMessages": "Ще немає повідомлень",
+    "someone": "Хтось",
+    "markAsUnread": "Позначити як непрочитане",
+    "archive": "Архівувати",
+    "archiveConfirm": "Архівувати цю розмову?"
+  },
+  "notifications": {
+    "enableTitle": "Увімкнути сповіщення",
+    "enableDesc": "Отримуйте нагадування про підтвердження занять",
+    "completeTitle": "Завершіть налаштування сповіщень",
+    "completeDesc": "Натисніть, щоб завершити — дозвіл надано, але налаштування не завершено",
+    "enabled": "Сповіщення увімкнено!",
+    "failed": "Не вдалося — переконайтеся, що додаток додано на головний екран",
+    "settingUp": "Налаштування...",
+    "completeSetup": "Завершити налаштування",
+    "turnOn": "Увімкнути"
+  },
+  "form": {
+    "sport": "Спорт",
+    "selectSport": "Оберіть спорт",
+    "addSport": "+ Додати спорт",
+    "city": "Місто",
+    "selectCity": "Оберіть місто"
+  },
+  "errors": {
+    "somethingWentWrong": "Щось пішло не так",
+    "notSignedIn": "Ви не увійшли — перезавантажте сторінку та спробуйте знову"
+  }
+}

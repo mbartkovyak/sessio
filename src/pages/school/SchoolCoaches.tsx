@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +12,7 @@ import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { useState } from 'react';
 
 export default function SchoolCoaches() {
+  const { t } = useTranslation('school');
   const navigate = useNavigate();
   const { data: school, isLoading } = useMySchool();
   const { profile } = useAuth();
@@ -30,7 +32,7 @@ export default function SchoolCoaches() {
       .insert({ school_id: school.id, coach_id: profile.id, status: 'approved' });
     if (error) toast.error(error.message);
     else {
-      toast.success("Added!");
+      toast.success(t('coaches.added'));
       qc.invalidateQueries({ queryKey: ['my-school'] });
     }
   }
@@ -50,23 +52,23 @@ export default function SchoolCoaches() {
           <button onClick={() => navigate('/coach')} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary -ml-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Coaches</h1>
+          <h1 className="text-lg font-bold text-foreground">{t('coaches.title')}</h1>
         </div>
       </header>
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
         {/* Invite section */}
         <div className="space-y-2">
-          <h2 className="font-semibold text-foreground text-sm">Invite a coach</h2>
-          <p className="text-xs text-muted-foreground">Share this link — coaches request to join and you approve them.</p>
-          <ShareLinkButton url={inviteLink} label="Share invite link" />
+          <h2 className="font-semibold text-foreground text-sm">{t('coaches.inviteCoach')}</h2>
+          <p className="text-xs text-muted-foreground">{t('coaches.inviteDesc')}</p>
+          <ShareLinkButton url={inviteLink} label={t('coaches.shareInvite')} />
         </div>
 
         {/* Pending requests */}
         {pendingMembers.length > 0 && (
           <div>
             <h2 className="font-semibold text-foreground text-sm mb-3">
-              Pending Requests ({pendingMembers.length})
+              {t('coaches.pendingRequests', { count: pendingMembers.length })}
             </h2>
             <div className="space-y-2">
               {pendingMembers.map((m: any) => {
@@ -76,7 +78,7 @@ export default function SchoolCoaches() {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? 'Coach'}</p>
+                        <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? t('coaches.coach')}</p>
                         <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
                       </div>
                     </div>
@@ -86,14 +88,14 @@ export default function SchoolCoaches() {
                         disabled={respond.isPending}
                         className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {t('coaches.approve')}
                       </button>
                       <button
                         onClick={() => respond.mutate({ memberId: m.id, accept: false })}
                         disabled={respond.isPending}
                         className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
                       >
-                        <X className="h-3.5 w-3.5" /> Decline
+                        <X className="h-3.5 w-3.5" /> {t('coaches.decline')}
                       </button>
                     </div>
                   </div>
@@ -110,19 +112,19 @@ export default function SchoolCoaches() {
             className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 py-3 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
           >
             <UserPlus className="h-4 w-4" />
-            Add myself as coach
+            {t('coaches.addMyselfCoach')}
           </button>
         )}
 
         {/* Coach list */}
         <div>
           <h2 className="font-semibold text-foreground text-sm mb-3">
-            {coaches.length} coach{coaches.length !== 1 ? 'es' : ''} in {school?.name}
+            {t('coaches.coachCount', { count: coaches.length, name: school?.name })}
           </h2>
           {coaches.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border p-8 text-center">
               <Users className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">No coaches yet — share the invite link to get started</p>
+              <p className="text-sm text-muted-foreground">{t('coaches.noCoaches')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -134,8 +136,8 @@ export default function SchoolCoaches() {
                     <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">
-                        {coach?.full_name ?? 'Coach'}
-                        {isMe && <span className="text-primary ml-1">(you)</span>}
+                        {coach?.full_name ?? t('coaches.coach')}
+                        {isMe && <span className="text-primary ml-1">{t('coaches.you')}</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">{coach?.sport ?? ''}{coach?.city ? ` · ${coach.city}` : ''}</p>
                     </div>

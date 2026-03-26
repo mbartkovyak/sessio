@@ -8,12 +8,14 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
+import { useTranslation } from 'react-i18next';
 
 type TypeFilter = 'all' | 'group' | 'individual';
 type ScheduleFilter = 'all' | 'recurring' | 'one-time';
 
 export default function CoachTrainings() {
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
@@ -52,20 +54,20 @@ export default function CoachTrainings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title="Lessons" right={canCreate ? <NewLessonButton /> : undefined} />
+      <CoachHeader title={t('trainings.title')} right={canCreate ? <NewLessonButton /> : undefined} />
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-3 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search lessons..."
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('trainings.searchPlaceholder')}
               className="w-full rounded-xl border border-border bg-white pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
           {/* Filters */}
           <div className="flex gap-2">
             {([
-              { value: typeFilter, set: (v: string) => setTypeFilter(v as TypeFilter), label: typeFilter === 'all' ? 'Type' : typeFilter === 'group' ? 'Group' : 'Individual', options: [['all', 'Type'], ['group', 'Group'], ['individual', 'Individual']] },
-              { value: scheduleFilter, set: (v: string) => setScheduleFilter(v as ScheduleFilter), label: scheduleFilter === 'all' ? 'Schedule' : scheduleFilter === 'recurring' ? 'Recurring' : 'One-time', options: [['all', 'Schedule'], ['recurring', 'Recurring'], ['one-time', 'One-time']] },
+              { value: typeFilter, set: (v: string) => setTypeFilter(v as TypeFilter), label: typeFilter === 'all' ? t('trainings.filterType') : typeFilter === 'group' ? t('trainings.group') : t('trainings.individual'), options: [['all', t('trainings.filterType')], ['group', t('trainings.group')], ['individual', t('trainings.individual')]] },
+              { value: scheduleFilter, set: (v: string) => setScheduleFilter(v as ScheduleFilter), label: scheduleFilter === 'all' ? t('trainings.filterSchedule') : scheduleFilter === 'recurring' ? t('trainings.recurring') : t('trainings.oneTime'), options: [['all', t('trainings.filterSchedule')], ['recurring', t('trainings.recurring')], ['one-time', t('trainings.oneTime')]] },
             ] as const).map(({ value, set, label, options }, i) => (
               <div key={i} className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition-colors ${
                 value !== 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
@@ -86,21 +88,21 @@ export default function CoachTrainings() {
           filtered.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-4xl mb-3">🏋️</div>
-              <p className="font-medium text-foreground">{hasFilters ? 'No matching lessons' : 'No lessons yet'}</p>
-              {!hasFilters && canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">Create your first lesson →</button>}
-              {hasFilters && <button onClick={() => { setTypeFilter('all'); setScheduleFilter('all'); }} className="mt-4 text-sm font-medium text-primary">Clear filters</button>}
+              <p className="font-medium text-foreground">{hasFilters ? t('trainings.noMatching') : t('trainings.noLessons')}</p>
+              {!hasFilters && canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">{t('trainings.createFirst')}</button>}
+              {hasFilters && <button onClick={() => { setTypeFilter('all'); setScheduleFilter('all'); }} className="mt-4 text-sm font-medium text-primary">{t('trainings.clearFilters')}</button>}
             </div>
-          ) : filtered.map((t: any) => (
+          ) : filtered.map((tr: any) => (
             <TrainingCard
-              key={t.id}
-              training={t}
-              onClick={() => navigate(`/coach/trainings/${t.id}`)}
+              key={tr.id}
+              training={tr}
+              onClick={() => navigate(`/coach/trainings/${tr.id}`)}
               badge={
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{t.type}</span>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{tr.type}</span>
               }
               extra={
-                isSchoolOwner && t.school_id && t.coach?.full_name && t.coach_id !== profile?.id
-                  ? <span className="mt-1 inline-block text-xs text-primary font-medium">Coach {t.coach.full_name}</span>
+                isSchoolOwner && tr.school_id && tr.coach?.full_name && tr.coach_id !== profile?.id
+                  ? <span className="mt-1 inline-block text-xs text-primary font-medium">{t('trainings.coachName', { name: tr.coach.full_name })}</span>
                   : undefined
               }
             />

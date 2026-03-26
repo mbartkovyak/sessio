@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
 import { format } from 'date-fns';
 import { DAYS_SHORT, SPORT_ICONS } from '@/lib/constants';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+import { useTranslation } from 'react-i18next';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -21,6 +23,7 @@ import TrainingForm, { type TrainingFormValues } from '@/components/shared/Train
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('coach');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') === 'chat' ? 'chat' : 'detail';
   const { data: training, isLoading, error: trainingError } = useTraining(id);
@@ -43,9 +46,9 @@ export default function TrainingDetail() {
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
   if (!training) return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-3 px-6">
-      <p className="text-muted-foreground">Training not found</p>
+      <p className="text-muted-foreground">{t('detail.notFound')}</p>
       {trainingError && <p className="text-xs text-destructive text-center max-w-sm">{(trainingError).message}</p>}
-      <button onClick={() => navigate('/coach/trainings')} className="text-sm text-primary font-medium">Back to Trainings</button>
+      <button onClick={() => navigate('/coach/trainings')} className="text-sm text-primary font-medium">{t('detail.backToTrainings')}</button>
     </div>
   );
 
@@ -65,12 +68,12 @@ export default function TrainingDetail() {
         await supabase.from('messages').insert({
           conversation_id: convId,
           sender_id: user.id,
-          content: `⚠️ "${training.name}" has been cancelled and will no longer take place. Contact your coach for more information.`,
+          content: t('detail.cancelledNotice', { name: training.name }),
         });
       } catch {}
       notifyUsers(
         members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean),
-        { title: 'Training cancelled', body: `"${training.name}" has been cancelled.`, tag: `delete-${training.id}`, url: '/player' },
+        { title: t('detail.trainingCancelled'), body: t('detail.cancelledNotification', { name: training.name }), tag: `delete-${training.id}`, url: '/player' },
       );
     }
     const { error } = await supabase
@@ -82,7 +85,7 @@ export default function TrainingDetail() {
       qc.invalidateQueries({ queryKey: ['trainings'] });
       qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
-      toast.success('Training deleted — members notified');
+      toast.success(t('detail.deletedNotification'));
       navigate('/coach/trainings');
     }
   }
@@ -97,7 +100,7 @@ export default function TrainingDetail() {
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-white truncate">{training.name}</h1>
             <p className="text-xs text-white/60">
-              {isDeleted ? 'Deleted' : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
+              {isDeleted ? t('detail.deleted') : `${training.sport} · ${daysLabel} · ${training.start_time?.slice(0,5)}`}
             </p>
           </div>
           {!isDeleted && (
@@ -112,13 +115,13 @@ export default function TrainingDetail() {
               onClick={() => setSearchParams({}, { replace: true })}
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'detail' ? 'bg-white/20 text-white' : 'text-white/50'}`}
             >
-              Details
+              {t('detail.tabDetails')}
             </button>
             <button
               onClick={() => setSearchParams({ tab: 'chat' }, { replace: true })}
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 ${activeTab === 'chat' ? 'bg-white/20 text-white' : 'text-white/50'}`}
             >
-              <MessageCircle className="h-3.5 w-3.5" /> Chat
+              <MessageCircle className="h-3.5 w-3.5" /> {t('detail.tabChat')}
             </button>
           </div>
         )}
@@ -155,8 +158,8 @@ export default function TrainingDetail() {
 
             {isDeleted && (
               <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-4 text-center">
-                <p className="text-sm font-medium text-destructive">This training has been cancelled</p>
-                <p className="text-xs text-muted-foreground mt-1">Chat is still available for members</p>
+                <p className="text-sm font-medium text-destructive">{t('detail.cancelledInfo')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('detail.chatStillAvailable')}</p>
               </div>
             )}
 
@@ -164,14 +167,14 @@ export default function TrainingDetail() {
               <>
                 {/* Invite */}
                 <div>
-                  <h2 className="font-semibold text-foreground text-sm mb-3">Invite Athletes</h2>
+                  <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.inviteAthletes')}</h2>
                   <ShareLinkButton url={inviteLink} />
                 </div>
 
                 {/* Join Requests */}
                 {joinRequests.length > 0 && (
                   <div>
-                    <h2 className="font-semibold text-foreground text-sm mb-3">Join Requests <span className="text-muted-foreground font-normal">({joinRequests.length})</span></h2>
+                    <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.joinRequests')} <span className="text-muted-foreground font-normal">({joinRequests.length})</span></h2>
                     <div className="space-y-2">
                       {joinRequests.map((req: any) => {
                         const p = req.profiles;
@@ -188,13 +191,13 @@ export default function TrainingDetail() {
                                 onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: true, trainingName: training.name })}
                                 className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
                               >
-                                <CheckCircle2 className="h-3.5 w-3.5" /> Accept
+                                <CheckCircle2 className="h-3.5 w-3.5" /> {t('detail.accept')}
                               </button>
                               <button
                                 onClick={() => respond.mutate({ requestId: req.id, trainingId: training.id, userId: req.user_id, accept: false, trainingName: training.name })}
                                 className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
                               >
-                                Decline
+                                {t('detail.decline')}
                               </button>
                             </div>
                           </div>
@@ -207,11 +210,11 @@ export default function TrainingDetail() {
                 {/* Members */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-semibold text-foreground text-sm">Members <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                    <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
                   </div>
                   {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                      <p className="text-sm text-muted-foreground">No members yet — share the invite link</p>
+                      <p className="text-sm text-muted-foreground">{t('detail.noMembers')}</p>
                     </div>
                   ) : (
                     <div className="rounded-xl border border-border bg-card divide-y divide-border">
@@ -224,7 +227,7 @@ export default function TrainingDetail() {
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? 'Unknown'}</p>
                                 {m.role === 'waitlist' && (
-                                  <span className="text-xs text-warning font-medium">Waitlist</span>
+                                  <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
                                 )}
                               </div>
                             </button>
@@ -232,14 +235,14 @@ export default function TrainingDetail() {
                               <button
                                 onClick={() => navigate(`/coach/dm/${p?.id}`)}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                title="Direct message"
+                                title={t('detail.directMessage')}
                               >
                                 <MessageCircle className="h-3.5 w-3.5 text-primary" />
                               </button>
                               <button
-                                onClick={() => { if (confirm(`Remove ${p?.full_name ?? 'this member'}?`)) removeMember.mutate(m.id); }}
+                                onClick={() => { if (confirm(t('detail.removeConfirm', { name: p?.full_name ?? '' }))) removeMember.mutate(m.id); }}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                title="Remove"
+                                title={t('detail.remove')}
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
                               </button>
@@ -253,9 +256,9 @@ export default function TrainingDetail() {
 
                 {/* Upcoming lessons */}
                 <div>
-                  <h2 className="font-semibold text-foreground text-sm mb-3">Upcoming Lessons</h2>
+                  <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.upcomingLessons')}</h2>
                   {upcoming.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No upcoming lessons</p>
+                    <p className="text-sm text-muted-foreground">{t('detail.noUpcomingLessons')}</p>
                   ) : (
                     <div className="space-y-2">
                       {upcoming.map((s: any) => {
@@ -264,21 +267,21 @@ export default function TrainingDetail() {
                           <div key={s.id} className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}
+                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
                               </p>
                               <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
                             </div>
                             {isCancelled ? (
-                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">Cancelled</span>
+                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.cancelled')}</span>
                             ) : (
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   onClick={() => {
-                                    const newDate = prompt('Reschedule to (YYYY-MM-DD):', s.session_date);
+                                    const newDate = prompt(t('home.rescheduleDate'), s.session_date);
                                     if (!newDate) return;
-                                    const newStart = prompt('Start time (HH:MM):', s.start_time?.slice(0,5));
+                                    const newStart = prompt(t('home.rescheduleStart'), s.start_time?.slice(0,5));
                                     if (!newStart) return;
-                                    const newEnd = prompt('End time (HH:MM):', s.end_time?.slice(0,5));
+                                    const newEnd = prompt(t('home.rescheduleEnd'), s.end_time?.slice(0,5));
                                     if (!newEnd) return;
                                     if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
                                     rescheduleSession.mutate({
@@ -293,7 +296,7 @@ export default function TrainingDetail() {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    if (!confirm(`Cancel ${training.name} on ${format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM')}?`)) return;
+                                    if (!confirm(t('calendar.cancelConfirm', { name: training.name, date: format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) }))) return;
                                     cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
                                   }}
                                   className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
@@ -317,15 +320,15 @@ export default function TrainingDetail() {
                       onClick={() => setConfirmDelete(true)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]"
                     >
-                      <Trash2 className="h-4 w-4" /> Delete training
+                      <Trash2 className="h-4 w-4" /> {t('detail.deleteTraining')}
                     </button>
                   ) : (
                     <div className="rounded-xl border border-destructive/30 p-4 space-y-3">
-                      <p className="text-sm text-destructive text-center font-medium">Delete this training? All members will be notified.</p>
+                      <p className="text-sm text-destructive text-center font-medium">{t('detail.deleteConfirm')}</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
+                        <button onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-2.5 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
                         <button onClick={handleDelete} disabled={deleting} className="rounded-xl bg-destructive py-2.5 text-sm font-bold text-destructive-foreground min-h-[44px] disabled:opacity-60">
-                          {deleting ? 'Deleting...' : 'Delete'}
+                          {deleting ? t('detail.deleting') : t('detail.delete')}
                         </button>
                       </div>
                     </div>
@@ -347,6 +350,7 @@ export default function TrainingDetail() {
 // ── Edit Section ──
 
 function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
+  const { t } = useTranslation('coach');
   const update = useUpdateTraining(training.id);
 
   const initialValues: Partial<TrainingFormValues> = training ? {
@@ -389,7 +393,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     if (timeChanged || daysChanged) {
       const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const days = form.days_of_week.map(d => dayNames[d]).join(', ');
-      const msg = `📅 ${training.name} schedule updated: ${days} ${form.start_time}–${form.end_time}.`;
+      const msg = t('detail.scheduleUpdated', { name: training.name, days, time: `${form.start_time}–${form.end_time}` });
       try {
         const { getOrCreateTrainingConversation } = await import('@/hooks/shared/useConversations');
         const convId = await getOrCreateTrainingConversation(training.id);
@@ -405,7 +409,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
     }
 
-    toast.success('Training updated');
+    toast.success(t('detail.trainingUpdated'));
     onClose();
   }
 

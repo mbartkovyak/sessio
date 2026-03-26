@@ -1,0 +1,76 @@
+{
+  "home": {
+    "greeting": "Hej, {{name}} 👋",
+    "defaultName": "Sportowiec",
+    "pendingCount_one": "{{count}} zajęcia wymagają twojej odpowiedzi",
+    "pendingCount_other": "{{count}} zajęć wymaga twojej odpowiedzi",
+    "overview": "Twój przegląd zajęć",
+    "allSet": "Wszystko gotowe",
+    "allConfirmed": "Wszystkie zajęcia potwierdzone",
+    "next": "Następne: {{time}}",
+    "noUpcoming": "Brak nadchodzących zajęć",
+    "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
+    "findCoach": "Znajdź trenera",
+    "freeWeek": "Masz wolny tydzień",
+    "freeWeekDesc": "Brak zajęć w ciągu najbliższych 7 dni"
+  },
+  "profile": {
+    "title": "Profil",
+    "athlete": "Sportowiec",
+    "fullName": "Imię i nazwisko",
+    "saving": "Zapisywanie...",
+    "profileUpdated": "Profil zaktualizowany"
+  },
+  "search": {
+    "title": "Odkrywaj",
+    "placeholder": "Szukaj trenerów i szkółek...",
+    "allSports": "Wszystkie sporty",
+    "allCities": "Wszystkie miasta",
+    "noResults": "Brak wyników",
+    "noResultsDesc": "Spróbuj innego wyszukiwania lub filtru",
+    "school": "Szkółka",
+    "coach": "Trener",
+    "coachCount_one": "{{count}} trener",
+    "coachCount_other": "{{count}} trenerów",
+    "independentCoach": "Samodzielny trener"
+  },
+  "calendar": {
+    "title": "Kalendarz",
+    "noUpcoming": "Brak nadchodzących zajęć",
+    "noUpcomingDesc": "Dołącz do zajęć, żeby zobaczyć swój harmonogram",
+    "confirmed": "Jesteś zapisany! 🎉",
+    "cancelled": "Odwołano",
+    "navigateTo": "Nawiguj do {{venue}}",
+    "lateCancel": "Mniej niż <strong>{{hours}}h</strong> przed zajęciami. Późne odwołania mogą być odnotowane.",
+    "keepSpot": "Zostaw moje miejsce",
+    "cancelAnyway": "Odwołaj mimo to",
+    "imComing": "Będę",
+    "cantMakeIt": "Nie dam rady",
+    "cantMakeItAnymore": "Jednak nie dam rady",
+    "changedMind": "Zmieniam zdanie — będę"
+  },
+  "messages": {
+    "title": "Czaty",
+    "emptyDesc": "Dołącz do zajęć, żeby rozmawiać z grupą"
+  },
+  "coachProfile": {
+    "title": "Profil trenera",
+    "about": "O mnie",
+    "availableTrainings": "Dostępne zajęcia",
+    "requestToJoin": "Poproś o dołączenie",
+    "joinTraining": "Dołącz do zajęć",
+    "reviews": "Opinie",
+    "reviewsMinimum": "Ocena widoczna po 3 opiniach",
+    "athlete": "Sportowiec",
+    "coachResponse": "Odpowiedź trenera:"
+  },
+  "schoolProfile": {
+    "title": "Szkółka",
+    "groupTrainings": "Zajęcia grupowe",
+    "spots": "{{count}} miejsc",
+    "coachName": "Trener {{name}}",
+    "noTrainings": "Brak dostępnych zajęć",
+    "coachCount_one": "{{count}} trener",
+    "coachCount_other": "{{count}} trenerów"
+  }
+}

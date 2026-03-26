@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, MapPin } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
@@ -16,12 +17,13 @@ const STATUS_STYLE: Record<string, { dot: string; label: string }> = {
 };
 
 export default function PlayerCalendar() {
+  const { t } = useTranslation('player');
   const { data: sessions = [], isLoading } = useMyUpcomingSessions();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <AppHeader title="Calendar" />
+      <AppHeader title={t('calendar.title')} />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">
@@ -32,8 +34,8 @@ export default function PlayerCalendar() {
             emptyState={
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
-                <p className="font-medium text-foreground">No upcoming trainings</p>
-                <p className="text-sm text-muted-foreground mt-1">Join a training to see your schedule</p>
+                <p className="font-medium text-foreground">{t('calendar.noUpcoming')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('calendar.noUpcomingDesc')}</p>
               </div>
             }
             renderItem={(a: any) => (
@@ -56,6 +58,7 @@ export default function PlayerCalendar() {
 function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
   attendance: any; isExpanded: boolean; onToggle: () => void;
 }) {
+  const { t } = useTranslation('player');
   const session = attendance.training_sessions;
   const training = session?.trainings;
   const style = STATUS_STYLE[attendance.status] ?? STATUS_STYLE.pending;
@@ -75,7 +78,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
 
   async function handleChange(newStatus: string) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
-    toast.success(newStatus === 'confirmed' ? "You're in! 🎉" : "Cancelled");
+    toast.success(newStatus === 'confirmed' ? t('calendar.confirmed') : t('calendar.cancelled'));
     setShowCancelWarning(false);
     onToggle(); // collapse
   }
@@ -113,7 +116,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
         >
-          <MapPin className="h-3 w-3" /> Navigate to {training.venue.split(',')[0]}
+          <MapPin className="h-3 w-3" /> {t('calendar.navigateTo', { venue: training.venue.split(',')[0] })}
         </a>
       )}
 
@@ -123,23 +126,21 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
             <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5">
               <div className="flex items-start gap-2.5 mb-3">
                 <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-                <p className="text-sm text-foreground">
-                  Less than <strong>{cancelDeadlineHours}h</strong> before the lesson. Late cancellations may count against your record.
-                </p>
+                <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('calendar.lateCancel', { hours: cancelDeadlineHours }) }} />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => { setShowCancelWarning(false); onToggle(); }}
                   className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
                 >
-                  Keep my spot
+                  {t('calendar.keepSpot')}
                 </button>
                 <button
                   onClick={() => handleChange('declined')}
                   disabled={upsert.isPending}
                   className="rounded-lg bg-destructive/10 py-2 text-xs font-semibold text-destructive min-h-[36px] disabled:opacity-50"
                 >
-                  Cancel anyway
+                  {t('calendar.cancelAnyway')}
                 </button>
               </div>
             </div>
@@ -150,14 +151,14 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
                 disabled={upsert.isPending}
                 className="rounded-lg bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] disabled:opacity-50"
               >
-                I'm coming
+                {t('calendar.imComing')}
               </button>
               <button
                 onClick={() => handleChange('declined')}
                 disabled={upsert.isPending}
                 className="rounded-lg bg-destructive/10 py-2.5 text-xs font-bold text-destructive min-h-[40px] disabled:opacity-50"
               >
-                Can't make it
+                {t('calendar.cantMakeIt')}
               </button>
             </div>
           ) : attendance.status === 'confirmed' ? (
@@ -166,7 +167,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
               disabled={upsert.isPending}
               className="w-full rounded-lg bg-destructive/8 border border-destructive/15 py-2.5 text-xs font-semibold text-destructive min-h-[40px] disabled:opacity-50"
             >
-              Can't make it anymore
+              {t('calendar.cantMakeItAnymore')}
             </button>
           ) : attendance.status === 'declined' ? (
             <button
@@ -174,7 +175,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
               disabled={upsert.isPending}
               className="w-full rounded-lg bg-success/10 border border-success/20 py-2.5 text-xs font-semibold text-success min-h-[40px] disabled:opacity-50"
             >
-              Changed my mind — I'm coming
+              {t('calendar.changedMind')}
             </button>
           ) : null}
         </div>

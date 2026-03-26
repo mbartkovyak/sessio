@@ -4,6 +4,7 @@ import { DAYS_FULL, DAYS_SHORT } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
+import { useTranslation } from 'react-i18next';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -85,6 +86,7 @@ interface Props {
 }
 
 export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors, onAttemptSubmit }: Props) {
+  const { t } = useTranslation('coach');
   // Persist create-mode form to localStorage so it survives app-switch.
   // Save synchronously on every change (useEffect might not fire before page kill).
   const DRAFT_KEY = '_trainingFormDraft';
@@ -238,12 +240,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   // Collect all validation errors
   const errors: string[] = [];
-  if (!form.name) errors.push('Lesson name is required');
-  if (!form.venue) errors.push('Venue is required');
-  if (form.is_recurring && form.days_of_week.length === 0) errors.push('Select at least one day');
-  if (!form.is_recurring && !form.one_off_date) errors.push('Date is required for one-time lessons');
-  if (form.type === 'group' && !form.max_players) errors.push('Max athletes is required');
-  if (hasTimeError) errors.push('End time must be after start time');
+  if (!form.name) errors.push(t('form.lessonNameRequired'));
+  if (!form.venue) errors.push(t('form.venueRequired'));
+  if (form.is_recurring && form.days_of_week.length === 0) errors.push(t('form.selectDay'));
+  if (!form.is_recurring && !form.one_off_date) errors.push(t('form.dateRequired'));
+  if (form.type === 'group' && !form.max_players) errors.push(t('form.maxRequired'));
+  if (hasTimeError) errors.push(t('form.endAfterStart'));
   if (extraErrors) errors.push(...extraErrors);
   const isValid = errors.length === 0;
   const [showErrors, setShowErrors] = useState(false);
@@ -251,14 +253,14 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
       {/* Name */}
-      <div {...(!form.name && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Lesson Name <span className="text-destructive">*</span></label>
-        <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder="e.g. Wednesday Tennis"
+      <div {...(!form.name && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">{t('form.lessonName')} <span className="text-destructive">*</span></label>
+        <input value={form.name} onChange={e => { set('name', e.target.value); touch('name'); }} onBlur={() => touch('name')} placeholder={t('form.lessonNamePlaceholder')}
           className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('name') && !form.name ? 'border-destructive' : 'border-input'}`} />
-        {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">Lesson name is required</p>}
+        {touched.has('name') && !form.name && <p className="text-xs text-destructive mt-1">{t('form.lessonNameRequired')}</p>}
       </div>
       {/* Type */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Type</label>
+        <label className="text-sm font-medium text-foreground mb-2 block">{t('form.type')}</label>
         <div className="grid grid-cols-2 gap-2">
           {['group', 'individual'].map(t => (
             <button type="button" key={t} onClick={() => { set('type', t); if (t === 'individual') set('visibility', 'private'); }}
@@ -270,7 +272,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       </div>
       {/* Capacity — right after type so user sees the difference */}
       {form.type === 'group' && (
-        <div {...(form.type === 'group' && !form.max_players && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Max Athletes <span className="text-destructive">*</span></label>
+        <div {...(form.type === 'group' && !form.max_players && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">{t('form.maxAthletes')} <span className="text-destructive">*</span></label>
           <input
             type="number" min={1} max={50}
             value={form.max_players || ''}
@@ -281,7 +283,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           /></div>
       )}
       {/* Venue */}
-      <div {...(!form.venue && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Venue <span className="text-destructive">*</span></label>
+      <div {...(!form.venue && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">{t('form.venue')} <span className="text-destructive">*</span></label>
         {venueOptions && !addingNewVenue ? (
           <div className="space-y-2">
             <div className="relative">
@@ -299,12 +301,12 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 onBlur={() => touch('venue')}
                 className={`w-full appearance-none rounded-xl border bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
               >
-                {(venueOptions.length !== 1 || !form.venue) && <option value="">Select venue</option>}
+                {(venueOptions.length !== 1 || !form.venue) && <option value="">{t('form.selectVenue')}</option>}
                 {venueOptions.map(v => {
                   const val = `${v.name}, ${v.address}`;
                   return <option key={val} value={val}>{v.name} — {v.address}</option>;
                 })}
-                <option value="__new__">+ Add new venue</option>
+                <option value="__new__">{t('form.addNewVenue')}</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
@@ -314,14 +316,14 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             <input
               value={newVenueName}
               onChange={e => setNewVenueName(e.target.value)}
-              placeholder="Venue name (e.g. Court 3)"
+              placeholder={t('form.venueName')}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <PlaceAutocompleteInput
               value={newVenueAddress}
               onChange={setNewVenueAddress}
               onPlaceSelect={setNewVenueAddress}
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              placeholder={t('form.venueAddress')}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <div className="flex items-center justify-between">
@@ -330,7 +332,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
-                Back to venue list
+                {t('form.backToVenueList')}
               </button>
               <button
                 type="button"
@@ -346,7 +348,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 }}
                 className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
               >
-                Save venue
+                {t('form.saveVenue')}
               </button>
             </div>
           </div>
@@ -354,24 +356,24 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           <PlaceAutocompleteInput
             value={form.venue}
             onChange={v => { set('venue', v); touch('venue'); }}
-            placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+            placeholder={t('form.venueAddress')}
             className={`w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${touched.has('venue') && !form.venue ? 'border-destructive' : 'border-input'}`}
           />
         )}
-        {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">Venue is required</p>}
+        {touched.has('venue') && !form.venue && <p className="text-xs text-destructive mt-1">{t('form.venueRequired')}</p>}
       </div>
 
       {/* Frequency */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">How often?</label>
+        <label className="text-sm font-medium text-foreground mb-2 block">{t('form.howOften')}</label>
         <div className="grid grid-cols-2 gap-2">
           <button type="button" onClick={() => set('is_recurring', true)}
             className={`rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${form.is_recurring ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-            Every week
+            {t('form.everyWeek')}
           </button>
           <button type="button" onClick={() => set('is_recurring', false)}
             className={`rounded-xl border-2 py-3 text-sm font-semibold transition-colors ${!form.is_recurring ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-            One time
+            {t('form.oneTime')}
           </button>
         </div>
       </div>
@@ -379,22 +381,22 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {form.is_recurring ? (
         <>
           {/* Days — multi-select */}
-          <div {...(form.days_of_week.length === 0 && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-2 block">Days <span className="text-destructive">*</span></label>
+          <div {...(form.days_of_week.length === 0 && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-2 block">{t('form.days')} <span className="text-destructive">*</span></label>
             <div className="flex gap-1.5 flex-wrap">{DAYS_FULL.map((d, i) => (
               <button type="button" key={d} onClick={() => toggleDay(i)}
                 className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${form.days_of_week.includes(i) ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{d.slice(0, 3)}</button>
             ))}</div>
-            {form.days_of_week.length === 0 && showErrors && <p className="text-xs text-destructive mt-1">Select at least one day</p>}
+            {form.days_of_week.length === 0 && showErrors && <p className="text-xs text-destructive mt-1">{t('form.selectDay')}</p>}
           </div>
 
           {/* Schedule — time per day */}
           <div {...(hasTimeError && showErrors ? { 'data-field-error': true } : {})}>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-foreground">Schedule</label>
+              <label className="text-sm font-medium text-foreground">{t('form.schedule')}</label>
               {form.days_of_week.length > 1 && (
                 <button type="button" onClick={() => handleSameTimeToggle(!sameTime)}
                   className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Same time on days selected</span>
+                  <span>{t('form.sameTime')}</span>
                   <div className={`relative h-5 w-9 rounded-full transition-colors ${sameTime ? 'bg-primary' : 'bg-muted'}`}>
                     <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${sameTime ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </div>
@@ -403,9 +405,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             </div>
             {sameTime ? (
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs text-muted-foreground mb-1 block">Start</label>
+                <div><label className="text-xs text-muted-foreground mb-1 block">{t('form.start')}</label>
                   <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} /></div>
-                <div><label className="text-xs text-muted-foreground mb-1 block">End</label>
+                <div><label className="text-xs text-muted-foreground mb-1 block">{t('form.end')}</label>
                   <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} /></div>
               </div>
             ) : (
@@ -423,40 +425,40 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
                 })}
               </div>
             )}
-            {hasTimeError && <p className="text-xs text-destructive mt-2">End time must be after start time</p>}
+            {hasTimeError && <p className="text-xs text-destructive mt-2">{t('form.endAfterStart')}</p>}
           </div>
 
           {/* Start / End dates */}
           <div className="space-y-3">
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Starts</label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">{t('form.starts')}</label>
               <input data-transparent type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
                 className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Ends <span className="text-muted-foreground font-normal">(optional)</span></label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">{t('form.ends')} <span className="text-muted-foreground font-normal">{t('form.optional')}</span></label>
               <input data-transparent type="date" value={form.end_date} onChange={e => set('end_date', e.target.value)}
                 className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           </div>
-          {!form.end_date && <p className="text-xs text-muted-foreground -mt-3">No end date = ongoing, sessions generated rolling</p>}
+          {!form.end_date && <p className="text-xs text-muted-foreground -mt-3">{t('form.noEndDate')}</p>}
         </>
       ) : (
         <>
-          <div {...(!form.one_off_date && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">Date</label>
+          <div {...(!form.one_off_date && showErrors ? { 'data-field-error': true } : {})}><label className="text-sm font-medium text-foreground mb-1 block">{t('form.date')}</label>
             <input data-transparent type="date" required value={form.one_off_date} onChange={e => set('one_off_date', e.target.value)}
               className="w-full rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm font-medium text-foreground mb-1 block">Start time</label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">{t('form.startTime')}</label>
               <TimeSelect value={form.start_time} onChange={v => set('start_time', v)} /></div>
-            <div><label className="text-sm font-medium text-foreground mb-1 block">End time</label>
+            <div><label className="text-sm font-medium text-foreground mb-1 block">{t('form.endTime')}</label>
               <TimeSelect value={form.end_time} onChange={v => set('end_time', v)} /></div>
           </div>
-          {hasTimeError && <p className="text-xs text-destructive">End time must be after start time</p>}
+          {hasTimeError && <p className="text-xs text-destructive">{t('form.endAfterStart')}</p>}
         </>
       )}
       {/* Booking Mode */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-1 block">Joining</label>
-        <p className="text-xs text-muted-foreground mb-2">How athletes join when they open the invite link</p>
+        <label className="text-sm font-medium text-foreground mb-1 block">{t('form.joining')}</label>
+        <p className="text-xs text-muted-foreground mb-2">{t('form.joiningDesc')}</p>
         <div className="grid grid-cols-2 gap-2">
-          {[{ v: 'instant', l: 'Instant Join' }, { v: 'approval', l: 'Approval Required' }].map(({ v, l }) => (
+          {[{ v: 'instant', l: t('form.instantJoin') }, { v: 'approval', l: t('form.approvalRequired') }].map(({ v, l }) => (
             <button type="button" key={v} onClick={() => set('booking_mode', v)}
               className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.booking_mode === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
           ))}
@@ -465,10 +467,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {/* Visibility — only for group trainings (individual is always private) */}
       {form.type === 'group' && (
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Visibility</label>
-          <p className="text-xs text-muted-foreground mb-2">Whether athletes can find this lesson in search</p>
+          <label className="text-sm font-medium text-foreground mb-1 block">{t('form.visibility')}</label>
+          <p className="text-xs text-muted-foreground mb-2">{t('form.visibilityDesc')}</p>
           <div className="grid grid-cols-2 gap-2">
-            {[{ v: 'private', l: 'Private' }, { v: 'discoverable', l: 'Public' }].map(({ v, l }) => (
+            {[{ v: 'private', l: t('form.private') }, { v: 'discoverable', l: t('form.public') }].map(({ v, l }) => (
               <button type="button" key={v} onClick={() => set('visibility', v)}
                 className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.visibility === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
             ))}
@@ -480,13 +482,13 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {/* Cancellation deadline */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">Cancellation deadline</label>
-        <p className="text-xs text-muted-foreground mb-2">How many hours before the lesson athletes can cancel for free</p>
+        <label className="text-sm font-medium text-foreground mb-2 block">{t('form.cancelDeadline')}</label>
+        <p className="text-xs text-muted-foreground mb-2">{t('form.cancelDeadlineDesc')}</p>
         <div className="grid grid-cols-4 gap-2">
           {[12, 24, 48, 72].map(h => (
             <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
               className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-              {h}h
+              {t('form.hours', { h })}
             </button>
           ))}
         </div>
@@ -505,10 +507,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       {mode === 'edit' ? (
         <>
           <div className="flex gap-2">
-            <button type="button" onClick={onCancel} className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
+            <button type="button" onClick={onCancel} className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
             <button type="submit" disabled={submitting}
               className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60 min-h-[44px]">
-              {submitting ? 'Saving...' : (submitLabel ?? 'Save')}
+              {submitting ? t('form.saving') : (submitLabel ?? t('form.save'))}
             </button>
           </div>
           {onDelete && (
@@ -516,14 +518,14 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               {!confirmDelete ? (
                 <button type="button" onClick={() => setConfirmDelete(true)}
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 py-3 text-sm font-medium text-destructive min-h-[44px]">
-                  <Trash2 className="h-4 w-4" /> Delete Training
+                  <Trash2 className="h-4 w-4" /> {t('form.deleteTraining')}
                 </button>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm text-destructive text-center font-medium">Are you sure? This can't be undone.</p>
+                  <p className="text-sm text-destructive text-center font-medium">{t('form.deleteConfirm')}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">Cancel</button>
-                    <button type="button" onClick={onDelete} className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]">Delete</button>
+                    <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
+                    <button type="button" onClick={onDelete} className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]">{t('detail.delete')}</button>
                   </div>
                 </div>
               )}
@@ -533,7 +535,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       ) : (
         <button type="submit" disabled={submitting}
           className="w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60">
-          {submitting ? 'Creating...' : (submitLabel ?? 'Create Lesson')}
+          {submitting ? t('form.creating') : (submitLabel ?? t('form.createLesson'))}
         </button>
       )}
       <UnsavedChangesDialog

@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Start",
+    "chats": "Czaty",
+    "search": "Szukaj",
+    "calendar": "Kalendarz",
+    "profile": "Profil",
+    "lessons": "Zajęcia"
+  },
+  "actions": {
+    "save": "Zapisz zmiany",
+    "cancel": "Anuluj",
+    "back": "Wróć",
+    "continue": "Dalej",
+    "loading": "Ładowanie...",
+    "signOut": "Wyloguj się",
+    "deleteAccount": "Usuń konto",
+    "deleting": "Usuwanie...",
+    "confirmDelete": "Usunąć wszystkie dane? Tego nie można cofnąć.",
+    "getStarted": "Zaczynamy"
+  },
+  "sports": {
+    "Tennis": "Tenis",
+    "Swimming": "Pływanie",
+    "Running": "Bieganie",
+    "Fitness": "Fitness",
+    "Yoga": "Joga",
+    "Football": "Piłka nożna",
+    "Badminton": "Badminton",
+    "Boxing": "Boks",
+    "Other": "Inne"
+  },
+  "days": {
+    "Monday": "Poniedziałek",
+    "Tuesday": "Wtorek",
+    "Wednesday": "Środa",
+    "Thursday": "Czwartek",
+    "Friday": "Piątek",
+    "Saturday": "Sobota",
+    "Sunday": "Niedziela"
+  },
+  "daysShort": {
+    "Mon": "Pon",
+    "Tue": "Wt",
+    "Wed": "Śr",
+    "Thu": "Czw",
+    "Fri": "Pt",
+    "Sat": "Sob",
+    "Sun": "Ndz"
+  },
+  "calendar": {
+    "today": "Dzisiaj",
+    "yesterday": "Wczoraj",
+    "tomorrow": "Jutro",
+    "todayAt": "Dzisiaj o {{time}}",
+    "tomorrowAt": "Jutro o {{time}}",
+    "at": "o",
+    "noTrainings": "Brak zajęć"
+  },
+  "chat": {
+    "noChats": "Brak czatów",
+    "startConversation": "Rozpocznij rozmowę",
+    "noMessages": "Brak wiadomości",
+    "someone": "Ktoś",
+    "markAsUnread": "Oznacz jako nieprzeczytane",
+    "archive": "Archiwizuj",
+    "archiveConfirm": "Zarchiwizować tę rozmowę?"
+  },
+  "notifications": {
+    "enableTitle": "Włącz powiadomienia",
+    "enableDesc": "Otrzymuj przypomnienia o potwierdzeniu zajęć",
+    "completeTitle": "Dokończ konfigurację powiadomień",
+    "completeDesc": "Kliknij, aby dokończyć — uprawnienia przyznane, ale konfiguracja niekompletna",
+    "enabled": "Powiadomienia włączone!",
+    "failed": "Nie udało się — upewnij się, że aplikacja jest dodana na ekran główny",
+    "settingUp": "Konfigurowanie...",
+    "completeSetup": "Dokończ konfigurację",
+    "turnOn": "Włącz"
+  },
+  "form": {
+    "sport": "Sport",
+    "selectSport": "Wybierz sport",
+    "addSport": "+ Dodaj sport",
+    "city": "Miasto",
+    "selectCity": "Wybierz miasto"
+  },
+  "errors": {
+    "somethingWentWrong": "Coś poszło nie tak",
+    "notSignedIn": "Nie jesteś zalogowany — odśwież stronę i spróbuj ponownie"
+  }
+}

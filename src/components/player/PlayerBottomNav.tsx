@@ -1,18 +1,20 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, MessageCircle, CalendarDays, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useUnreadMessageCount } from '@/hooks/shared/useConversations';
 
 export default function PlayerBottomNav() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   const unreadCount = useUnreadMessageCount();
 
   const tabs = [
-    { icon: Home, label: 'Home', path: '/player' },
-    { icon: MessageCircle, label: 'Chats', path: '/player/messages' },
-    { icon: Search, label: 'Search', path: '/search' },
-    { icon: CalendarDays, label: 'Calendar', path: '/calendar' },
-    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Home, label: t('nav.home'), path: '/player' },
+    { icon: MessageCircle, label: t('nav.chats'), path: '/player/messages' },
+    { icon: Search, label: t('nav.search'), path: '/search' },
+    { icon: CalendarDays, label: t('nav.calendar'), path: '/calendar' },
+    { icon: User, label: t('nav.profile'), path: '/profile' },
   ];
 
   return (
@@ -41,10 +43,10 @@ export default function PlayerBottomNav() {
         >
           {tabs.map(({ icon: Icon, label, path }) => {
             const active = pathname === path || (path !== '/player' && pathname.startsWith(path));
-            const isMessages = label === 'Chats';
+            const isMessages = path === '/player/messages';
             return (
               <button
-                key={label}
+                key={path}
                 onClick={() => navigate(path)}
                 className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
               >

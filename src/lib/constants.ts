@@ -10,3 +10,20 @@ export const SPORT_ICONS: Record<string, string> = {
   Tennis: '🎾', Swimming: '🏊', Running: '🏃', Fitness: '💪',
   Yoga: '🧘', Football: '⚽', Badminton: '🏸', Boxing: '🥊', Other: '🎯',
 };
+
+import i18n from '@/i18n';
+
+/** Translate a sport key for display. DB stores English key. */
+export function sportLabel(sport: string): string {
+  return i18n.t(`sports.${sport}`, { ns: 'common', defaultValue: sport });
+}
+
+/** Translate a full day name for display. */
+export function dayLabel(day: string): string {
+  return i18n.t(`days.${day}`, { ns: 'common', defaultValue: day });
+}
+
+/** Translate a short day name for display. */
+export function dayShortLabel(day: string): string {
+  return i18n.t(`daysShort.${day}`, { ns: 'common', defaultValue: day });
+}

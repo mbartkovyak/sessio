@@ -13,11 +13,14 @@ import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import PhoneInput from '@/components/shared/PhoneInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
+import LanguageSelector from '@/components/shared/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 type Venue = { name: string; address: string };
 
 export default function CoachProfileEditor() {
   const { profile, user, refreshProfile } = useAuth();
+  const { t } = useTranslation('coach');
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
@@ -56,7 +59,7 @@ export default function CoachProfileEditor() {
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Profile updated');
+    toast.success(t('profile.profileUpdated'));
     await refreshProfile();
   }
 
@@ -84,7 +87,7 @@ export default function CoachProfileEditor() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <CoachHeader title="Profile" />
+      <CoachHeader title={t('profile.title')} />
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-5">
         <div className="rounded-2xl bg-white p-5 shadow-sm space-y-5" style={{ border: '1px solid hsl(203 20% 90%)' }}>
           <div className="flex flex-col items-center gap-3">
@@ -95,7 +98,7 @@ export default function CoachProfileEditor() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
-                <User className="h-3.5 w-3.5" /> Full Name
+                <User className="h-3.5 w-3.5" /> {t('profile.fullName')}
               </label>
               <input
                 className="w-full rounded-xl border border-input px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -103,11 +106,11 @@ export default function CoachProfileEditor() {
               />
             </div>
             <PhoneInput value={phone} onChange={setPhone} />
-            <SelectField label="City" value={city} onChange={setCity} options={CITIES} placeholder="Select city" />
-            <SelectField label="Sport" value={sport} onChange={setSport} options={SPORTS} placeholder="Select sport" />
+            <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
+            <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} />
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
-                <FileText className="h-3.5 w-3.5" /> Bio
+                <FileText className="h-3.5 w-3.5" /> {t('profile.bio')}
               </label>
               <textarea
                 rows={3}
@@ -122,13 +125,13 @@ export default function CoachProfileEditor() {
             disabled={saving}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('profile.saving') : t('common:actions.save')}
           </button>
         </div>
 
         {/* Venues — same pattern as SchoolProfileEditor */}
         <div>
-          <h2 className="font-semibold text-foreground text-sm mb-3">Venues</h2>
+          <h2 className="font-semibold text-foreground text-sm mb-3">{t('profile.venues')}</h2>
           {venues.length > 0 && (
             <div className="space-y-2 mb-3">
               {venues.map((v, i) => (
@@ -149,18 +152,19 @@ export default function CoachProfileEditor() {
             </div>
           )}
           <div className="space-y-2 rounded-xl border border-dashed p-3" style={{ borderColor: 'rgba(0,0,0,0.2)' }}>
-            <input placeholder="Venue name (e.g. Court 3)" value={newVenueName} onChange={e => setNewVenueName(e.target.value)}
+            <input placeholder={t('profile.venueName')} value={newVenueName} onChange={e => setNewVenueName(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             <PlaceAutocompleteInput value={newVenueAddress} onChange={setNewVenueAddress}
-              placeholder="Full address (e.g. ul. Marszałkowska 12, Warszawa)"
+              placeholder={t('profile.venueAddress')}
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             <button type="button" onClick={addVenue} disabled={!newVenueName.trim() || !newVenueAddress.trim()}
               className="flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-40">
-              <Plus className="h-4 w-4" /> Add venue
+              <Plus className="h-4 w-4" /> {t('profile.addVenue')}
             </button>
           </div>
         </div>
 
+        <LanguageSelector />
         <AccountActions />
       </main>
       <CoachBottomNav />

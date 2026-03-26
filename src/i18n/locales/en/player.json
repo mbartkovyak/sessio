@@ -1,0 +1,76 @@
+{
+  "home": {
+    "greeting": "Hey, {{name}} 👋",
+    "defaultName": "Athlete",
+    "pendingCount_one": "{{count}} training needs your response",
+    "pendingCount_other": "{{count}} trainings need your response",
+    "overview": "Your training overview",
+    "allSet": "You're all set",
+    "allConfirmed": "All trainings confirmed",
+    "next": "Next: {{time}}",
+    "noUpcoming": "No upcoming trainings",
+    "noUpcomingDesc": "Find a coach and join a training",
+    "findCoach": "Find a Coach",
+    "freeWeek": "You're all free this week",
+    "freeWeekDesc": "No sessions in the next 7 days"
+  },
+  "profile": {
+    "title": "Profile",
+    "athlete": "Athlete",
+    "fullName": "Full Name",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated"
+  },
+  "search": {
+    "title": "Discover",
+    "placeholder": "Search coaches and schools...",
+    "allSports": "All sports",
+    "allCities": "All cities",
+    "noResults": "No results found",
+    "noResultsDesc": "Try a different search or filter",
+    "school": "School",
+    "coach": "Coach",
+    "coachCount_one": "{{count}} coach",
+    "coachCount_other": "{{count}} coaches",
+    "independentCoach": "Independent coach"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "noUpcoming": "No upcoming trainings",
+    "noUpcomingDesc": "Join a training to see your schedule",
+    "confirmed": "You're in! 🎉",
+    "cancelled": "Cancelled",
+    "navigateTo": "Navigate to {{venue}}",
+    "lateCancel": "Less than <strong>{{hours}}h</strong> before the lesson. Late cancellations may count against your record.",
+    "keepSpot": "Keep my spot",
+    "cancelAnyway": "Cancel anyway",
+    "imComing": "I'm coming",
+    "cantMakeIt": "Can't make it",
+    "cantMakeItAnymore": "Can't make it anymore",
+    "changedMind": "Changed my mind — I'm coming"
+  },
+  "messages": {
+    "title": "Chats",
+    "emptyDesc": "Join a training to start chatting with your group"
+  },
+  "coachProfile": {
+    "title": "Coach Profile",
+    "about": "About",
+    "availableTrainings": "Available Trainings",
+    "requestToJoin": "Request to Join",
+    "joinTraining": "Join Training",
+    "reviews": "Reviews",
+    "reviewsMinimum": "Rating visible after 3 reviews",
+    "athlete": "Athlete",
+    "coachResponse": "Coach's response:"
+  },
+  "schoolProfile": {
+    "title": "School",
+    "groupTrainings": "Group Trainings",
+    "spots": "{{count}} spots",
+    "coachName": "Coach {{name}}",
+    "noTrainings": "No trainings available yet",
+    "coachCount_one": "{{count}} Coach",
+    "coachCount_other": "{{count}} Coaches"
+  }
+}
