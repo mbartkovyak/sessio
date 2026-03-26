@@ -30,13 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
 
-  async function fetchProfile(userId: string) {
+  async function fetchProfile(userId: string, retries = 2) {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
     if (error) {
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, 1000));
+        return fetchProfile(userId, retries - 1);
+      }
       Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
     }
     setProfile(data as Profile | null);
