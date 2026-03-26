@@ -40,7 +40,7 @@ export default function JoinSchool() {
     if (!code) return;
     supabase
       .from('schools')
-      .select('id, name, sport, city, logo_url, invite_code, owner:profiles(language)')
+      .select('id, name, sport, city, logo_url, invite_code, owner:profiles!schools_owner_id_fkey(language)')
       .eq('invite_code', code.toUpperCase())
       .maybeSingle()
       .then(async ({ data }) => {
