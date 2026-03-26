@@ -68,7 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Set loading=true so any waiting components (e.g. AuthCallback) hold until profile is ready
           setLoading(true);
           // Fire and forget — do NOT await here
-          fetchProfile(session.user.id).then(() => setLoading(false));
+          fetchProfile(session.user.id)
+            .then(() => setLoading(false))
+            .catch(() => setLoading(false));
         } else {
           setProfile(null);
           setLoading(false);
