@@ -69,6 +69,7 @@ export default function PlayerProfile() {
           </div>
 
           <PhoneInput value={phone} onChange={setPhone} />
+          <LanguageSelector />
 
           <button
             onClick={handleSave}
@@ -78,7 +79,6 @@ export default function PlayerProfile() {
             {saving ? t('profile.saving') : t('common:actions.save')}
           </button>
 
-          <LanguageSelector />
           <AccountActions />
         </div>
       </main>

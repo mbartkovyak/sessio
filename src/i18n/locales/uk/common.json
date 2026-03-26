@@ -98,7 +98,8 @@
     "addSport": "+ Додати спорт",
     "city": "Місто",
     "selectCity": "Оберіть місто",
-    "select": "Оберіть"
+    "select": "Оберіть",
+    "language": "Мова"
   },
   "trainingType": {
     "group": "Групові",

@@ -106,6 +106,7 @@ export default function CoachProfileEditor() {
               />
             </div>
             <PhoneInput value={phone} onChange={setPhone} />
+            <LanguageSelector />
             <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
             <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
             <div>
@@ -164,7 +165,6 @@ export default function CoachProfileEditor() {
           </div>
         </div>
 
-        <LanguageSelector />
         <AccountActions />
       </main>
       <CoachBottomNav />

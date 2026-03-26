@@ -98,7 +98,8 @@
     "addSport": "+ Dodaj sport",
     "city": "Miasto",
     "selectCity": "Wybierz miasto",
-    "select": "Wybierz"
+    "select": "Wybierz",
+    "language": "Język"
   },
   "trainingType": {
     "group": "Grupowe",

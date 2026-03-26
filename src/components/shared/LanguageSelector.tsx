@@ -1,3 +1,4 @@
+import { ChevronDown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGS } from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,31 +11,34 @@ const LANG_META: Record<string, { label: string; flag: string }> = {
 };
 
 export default function LanguageSelector() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('common');
   const { user } = useAuth();
 
   function handleChange(lang: string) {
     i18n.changeLanguage(lang);
     localStorage.setItem('sessio_lang', lang);
-    // Persist to DB for logged-in users
     if (user) {
       supabase.from('profiles').update({ language: lang }).eq('id', user.id);
     }
   }
 
   return (
-    <div className="relative flex items-center gap-1.5">
-      <span className="text-base leading-none">{LANG_META[i18n.language]?.flag}</span>
-      <span className="text-sm font-medium text-foreground">{LANG_META[i18n.language]?.label}</span>
-      <select
-        value={i18n.language}
-        onChange={e => handleChange(e.target.value)}
-        className="absolute inset-0 opacity-0 cursor-pointer"
-      >
-        {SUPPORTED_LANGS.map(lang => (
-          <option key={lang} value={lang}>{LANG_META[lang]?.label}</option>
-        ))}
-      </select>
+    <div>
+      <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
+        <Globe className="h-3.5 w-3.5" /> {t('form.language')}
+      </label>
+      <div className="relative">
+        <select
+          value={i18n.language}
+          onChange={e => handleChange(e.target.value)}
+          className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {SUPPORTED_LANGS.map(lang => (
+            <option key={lang} value={lang}>{LANG_META[lang]?.flag} {LANG_META[lang]?.label}</option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      </div>
     </div>
   );
 }
