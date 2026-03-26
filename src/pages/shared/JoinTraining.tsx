@@ -63,6 +63,7 @@ export default function JoinTraining() {
     if (loading) return;
     if (!profile.onboarding_complete || !profile.role) {
       sessionStorage.setItem('pending_invite', inviteCode ?? '');
+      sessionStorage.setItem('pending_invite_ts', String(Date.now()));
       navigate('/onboarding');
       return;
     }
@@ -217,6 +218,7 @@ export default function JoinTraining() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
+    sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth/callback' },
@@ -227,6 +229,7 @@ export default function JoinTraining() {
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
+    sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });

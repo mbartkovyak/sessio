@@ -33,6 +33,14 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Fresh training invite → skip role selection, they're an athlete
+  // "Fresh" = set within the last 10 minutes (prevents stale sessionStorage from forcing athlete)
+  const hasTrainingInvite = (() => {
+    const code = sessionStorage.getItem('pending_invite');
+    const ts = Number(sessionStorage.getItem('pending_invite_ts') || 0);
+    return !!code && Date.now() - ts < 10 * 60 * 1000;
+  })();
+
   // Pre-fill invite code from pending school invite (via /join-school/:code link)
   useEffect(() => {
     const pending = sessionStorage.getItem('pending_school_invite');
@@ -47,6 +55,7 @@ export default function Onboarding() {
     const pendingInvite = sessionStorage.getItem('pending_invite');
     if (pendingInvite) {
       sessionStorage.removeItem('pending_invite');
+      sessionStorage.removeItem('pending_invite_ts');
       return `/join/${pendingInvite}`;
     }
     return role === 'player' ? '/player' : '/coach';
@@ -236,12 +245,12 @@ export default function Onboarding() {
                 />
                 <PhoneInput value={phone} onChange={setPhone} required />
                 <button
-                  onClick={() => coachType === 'join' ? submitJoinSchool() : setStep('train-or-coach')}
+                  onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
                   disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {coachType === 'join' ? t('auth:onboarding.joinSchool') : t('common:actions.continue')}
+                  {coachType === 'join' ? t('auth:onboarding.joinSchool') : hasTrainingInvite ? t('auth:onboarding.joinTraining') : t('common:actions.continue')}
                 </button>
                 {error && <p className="text-sm text-destructive mt-2">{error}</p>}
               </div>
