@@ -50,6 +50,8 @@
     "addMyselfCoach": "Додати мене як тренера",
     "added": "Додано!",
     "coachCount_one": "{{count}} тренер у {{name}}",
+    "coachCount_few": "{{count}} тренери у {{name}}",
+    "coachCount_many": "{{count}} тренерів у {{name}}",
     "coachCount_other": "{{count}} тренерів у {{name}}",
     "noCoaches": "Ще немає тренерів — поділіться посиланням, щоб почати",
     "coach": "Тренер",
@@ -58,5 +60,15 @@
   "calendar": {
     "title": "Календар школи",
     "comingSoon": "Календар школи незабаром"
+  },
+  "overview": {
+    "title": "Огляд школи",
+    "schoolProfile": "Профіль школи",
+    "joinRequests": "Заявки на вступ",
+    "accept": "Прийняти",
+    "decline": "Відхилити",
+    "lessons": "Заняття",
+    "noLessons": "Ще немає занять — створіть перше, щоб почати",
+    "showAll": "Показати всі {{count}} занять"
   }
 }

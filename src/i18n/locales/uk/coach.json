@@ -1,7 +1,7 @@
 {
   "home": {
     "greeting": "Привіт, {{name}}",
-    "defaultName": "Тренер",
+    "defaultName": "Тренере",
     "overview": "Ваш огляд занять",
     "athletes": "Спортсмени",
     "lessons": "Заняття",
@@ -22,7 +22,7 @@
   "profile": {
     "title": "Профіль",
     "fullName": "Повне ім'я",
-    "bio": "Біо",
+    "bio": "Про мене",
     "saving": "Збереження...",
     "profileUpdated": "Профіль оновлено",
     "venues": "Об'єкти",
@@ -44,6 +44,10 @@
     "createFirst": "Створіть ваші перші заняття →",
     "clearFilters": "Очистити фільтри",
     "coachName": "Тренер {{name}}"
+  },
+  "type": {
+    "group": "Групові",
+    "individual": "Індивідуальні"
   },
   "create": {
     "title": "Нове заняття",
@@ -110,7 +114,7 @@
     "maxRequired": "Максимальна кількість спортсменів обов'язкова",
     "endAfterStart": "Час закінчення має бути після часу початку",
     "lessonName": "Назва заняття",
-    "lessonNamePlaceholder": "напр. Середовий теніс",
+    "lessonNamePlaceholder": "напр. Теніс у середу",
     "type": "Тип",
     "maxAthletes": "Макс. спортсменів",
     "venue": "Об'єкт",

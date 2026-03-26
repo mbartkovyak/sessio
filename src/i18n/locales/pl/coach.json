@@ -22,7 +22,7 @@
   "profile": {
     "title": "Profil",
     "fullName": "Imię i nazwisko",
-    "bio": "Bio",
+    "bio": "O mnie",
     "saving": "Zapisywanie...",
     "profileUpdated": "Profil zaktualizowany",
     "venues": "Obiekty",
@@ -44,6 +44,10 @@
     "createFirst": "Utwórz swoje pierwsze zajęcia →",
     "clearFilters": "Wyczyść filtry",
     "coachName": "Trener {{name}}"
+  },
+  "type": {
+    "group": "Grupowe",
+    "individual": "Indywidualne"
   },
   "create": {
     "title": "Nowe zajęcia",

@@ -24,7 +24,7 @@ export default function CoachOverviewSection() {
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
   const qc = useQueryClient();
-  const trainingIds = trainings.map((t: any) => t.id);
+  const trainingIds = trainings.map((tr: any) => tr.id);
   const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
     queryKey: ['coach-total-athletes', trainingIds],
     enabled: trainingIds.length > 0,
@@ -212,7 +212,7 @@ export default function CoachOverviewSection() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold text-sm truncate text-foreground">{training?.name}</p>
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{training?.type}</span>
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
                               </div>
                               <span className="text-xs text-muted-foreground mt-0.5 block">
                                 {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}

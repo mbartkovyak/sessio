@@ -57,6 +57,10 @@
     "at": "о",
     "noTrainings": "Немає занять"
   },
+  "phone": {
+    "label": "Телефон",
+    "placeholder": "Номер телефону"
+  },
   "chat": {
     "noChats": "Ще немає чатів",
     "startConversation": "Почніть розмову",
@@ -64,7 +68,12 @@
     "someone": "Хтось",
     "markAsUnread": "Позначити як непрочитане",
     "archive": "Архівувати",
-    "archiveConfirm": "Архівувати цю розмову?"
+    "archiveConfirm": "Архівувати цю розмову?",
+    "messagePlaceholder": "Повідомлення...",
+    "noMessagesYet": "Ще немає повідомлень",
+    "beFirst": "Напишіть першими",
+    "failedCreate": "Не вдалося створити розмову",
+    "member": "Учасник"
   },
   "notifications": {
     "enableTitle": "Увімкнути сповіщення",
@@ -84,8 +93,12 @@
     "city": "Місто",
     "selectCity": "Оберіть місто"
   },
+  "trainingType": {
+    "group": "Групові",
+    "individual": "Індивідуальні"
+  },
   "errors": {
     "somethingWentWrong": "Щось пішло не так",
-    "notSignedIn": "Ви не увійшли — перезавантажте сторінку та спробуйте знову"
+    "notSignedIn": "Ви не увійшли — перезавантажте сторінку та спробуйте ще раз"
   }
 }

@@ -50,6 +50,8 @@
     "addMyselfCoach": "Dodaj mnie jako trenera",
     "added": "Dodano!",
     "coachCount_one": "{{count}} trener w {{name}}",
+    "coachCount_few": "{{count}} trenerów w {{name}}",
+    "coachCount_many": "{{count}} trenerów w {{name}}",
     "coachCount_other": "{{count}} trenerów w {{name}}",
     "noCoaches": "Brak trenerów — udostępnij link zaproszenia, żeby zacząć",
     "coach": "Trener",
@@ -58,5 +60,15 @@
   "calendar": {
     "title": "Kalendarz szkółki",
     "comingSoon": "Kalendarz szkółki wkrótce"
+  },
+  "overview": {
+    "title": "Przegląd szkółki",
+    "schoolProfile": "Profil szkółki",
+    "joinRequests": "Prośby o dołączenie",
+    "accept": "Akceptuj",
+    "decline": "Odrzuć",
+    "lessons": "Zajęcia",
+    "noLessons": "Brak zajęć — utwórz pierwsze, żeby zacząć",
+    "showAll": "Pokaż wszystkie {{count}} zajęć"
   }
 }

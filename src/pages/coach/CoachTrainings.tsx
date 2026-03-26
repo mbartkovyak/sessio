@@ -32,16 +32,16 @@ export default function CoachTrainings() {
   // School owner: merge personal + school trainings (deduplicate)
   const allTrainings = useMemo(() => {
     if (!isSchoolOwner) return myTrainings;
-    const ids = new Set(myTrainings.map((t: any) => t.id));
-    return [...myTrainings, ...schoolTrainings.filter((t: any) => !ids.has(t.id))];
+    const ids = new Set(myTrainings.map((tr: any) => tr.id));
+    return [...myTrainings, ...schoolTrainings.filter((tr: any) => !ids.has(tr.id))];
   }, [myTrainings, schoolTrainings, isSchoolOwner]);
 
   const filtered = useMemo(() => {
     let list = allTrainings;
-    if (search) list = list.filter((t: any) => t.name?.toLowerCase().includes(search.toLowerCase()));
-    if (typeFilter !== 'all') list = list.filter((t: any) => t.type === typeFilter);
-    if (scheduleFilter === 'recurring') list = list.filter((t: any) => t.is_recurring);
-    if (scheduleFilter === 'one-time') list = list.filter((t: any) => !t.is_recurring);
+    if (search) list = list.filter((tr: any) => tr.name?.toLowerCase().includes(search.toLowerCase()));
+    if (typeFilter !== 'all') list = list.filter((tr: any) => tr.type === typeFilter);
+    if (scheduleFilter === 'recurring') list = list.filter((tr: any) => tr.is_recurring);
+    if (scheduleFilter === 'one-time') list = list.filter((tr: any) => !tr.is_recurring);
     // Sort by earliest start_date first
     return [...list].sort((a: any, b: any) => {
       const da = a.start_date ?? '9999';
@@ -98,7 +98,7 @@ export default function CoachTrainings() {
               training={tr}
               onClick={() => navigate(`/coach/trainings/${tr.id}`)}
               badge={
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize shrink-0">{tr.type}</span>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${tr.type}`)}</span>
               }
               extra={
                 isSchoolOwner && tr.school_id && tr.coach?.full_name && tr.coach_id !== profile?.id

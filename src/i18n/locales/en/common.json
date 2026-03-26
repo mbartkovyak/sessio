@@ -57,6 +57,10 @@
     "at": "at",
     "noTrainings": "No trainings"
   },
+  "phone": {
+    "label": "Phone",
+    "placeholder": "Phone number"
+  },
   "chat": {
     "noChats": "No chats yet",
     "startConversation": "Start a conversation",
@@ -64,7 +68,12 @@
     "someone": "Someone",
     "markAsUnread": "Mark as unread",
     "archive": "Archive",
-    "archiveConfirm": "Archive this conversation?"
+    "archiveConfirm": "Archive this conversation?",
+    "messagePlaceholder": "Message...",
+    "noMessagesYet": "No messages yet",
+    "beFirst": "Be the first to say something",
+    "failedCreate": "Failed to create conversation",
+    "member": "Member"
   },
   "notifications": {
     "enableTitle": "Enable notifications",
@@ -83,6 +92,10 @@
     "addSport": "+ Add sport",
     "city": "City",
     "selectCity": "Select city"
+  },
+  "trainingType": {
+    "group": "Group",
+    "individual": "Individual"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

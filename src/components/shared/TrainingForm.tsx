@@ -169,7 +169,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const blocker = useUnsavedChanges(isDirty && !submitted);
 
   const [touched, setTouched] = useState<Set<string>>(new Set());
-  const touch = (field: string) => setTouched(t => new Set(t).add(field));
+  const touch = (field: string) => setTouched(prev => new Set(prev).add(field));
 
   const set = (k: keyof TrainingFormValues, v: any) => setForm(f => ({ ...f, [k]: v }));
 
@@ -262,10 +262,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">{t('form.type')}</label>
         <div className="grid grid-cols-2 gap-2">
-          {['group', 'individual'].map(t => (
-            <button type="button" key={t} onClick={() => { set('type', t); if (t === 'individual') set('visibility', 'private'); }}
-              className={`rounded-xl border-2 py-3 text-sm font-semibold capitalize transition-colors ${form.type === t ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-              {t}
+          {['group', 'individual'].map(typeVal => (
+            <button type="button" key={typeVal} onClick={() => { set('type', typeVal); if (typeVal === 'individual') set('visibility', 'private'); }}
+              className={`rounded-xl border-2 py-3 text-sm font-semibold capitalize transition-colors ${form.type === typeVal ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+              {t(`common:trainingType.${typeVal}`)}
             </button>
           ))}
         </div>

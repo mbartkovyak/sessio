@@ -57,6 +57,10 @@
     "at": "o",
     "noTrainings": "Brak zajęć"
   },
+  "phone": {
+    "label": "Telefon",
+    "placeholder": "Numer telefonu"
+  },
   "chat": {
     "noChats": "Brak czatów",
     "startConversation": "Rozpocznij rozmowę",
@@ -64,7 +68,12 @@
     "someone": "Ktoś",
     "markAsUnread": "Oznacz jako nieprzeczytane",
     "archive": "Archiwizuj",
-    "archiveConfirm": "Zarchiwizować tę rozmowę?"
+    "archiveConfirm": "Zarchiwizować tę rozmowę?",
+    "messagePlaceholder": "Wiadomość...",
+    "noMessagesYet": "Brak wiadomości",
+    "beFirst": "Napisz pierwszy",
+    "failedCreate": "Nie udało się utworzyć rozmowy",
+    "member": "Członek"
   },
   "notifications": {
     "enableTitle": "Włącz powiadomienia",
@@ -83,6 +92,10 @@
     "addSport": "+ Dodaj sport",
     "city": "Miasto",
     "selectCity": "Wybierz miasto"
+  },
+  "trainingType": {
+    "group": "Grupowe",
+    "individual": "Indywidualne"
   },
   "errors": {
     "somethingWentWrong": "Coś poszło nie tak",

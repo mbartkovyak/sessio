@@ -3,6 +3,8 @@
     "greeting": "Привіт, {{name}} 👋",
     "defaultName": "Спортсмен",
     "pendingCount_one": "{{count}} заняття потребує вашої відповіді",
+    "pendingCount_few": "{{count}} заняття потребують вашої відповіді",
+    "pendingCount_many": "{{count}} занять потребують вашої відповіді",
     "pendingCount_other": "{{count}} занять потребують вашої відповіді",
     "overview": "Ваш огляд занять",
     "allSet": "Все готово",
@@ -31,6 +33,8 @@
     "school": "Школа",
     "coach": "Тренер",
     "coachCount_one": "{{count}} тренер",
+    "coachCount_few": "{{count}} тренери",
+    "coachCount_many": "{{count}} тренерів",
     "coachCount_other": "{{count}} тренерів",
     "independentCoach": "Самостійний тренер"
   },
@@ -47,7 +51,7 @@
     "imComing": "Я буду",
     "cantMakeIt": "Не зможу",
     "cantMakeItAnymore": "Вже не зможу",
-    "changedMind": "Передумав — я буду"
+    "changedMind": "Я все ж буду"
   },
   "messages": {
     "title": "Чати",
@@ -67,10 +71,49 @@
   "schoolProfile": {
     "title": "Школа",
     "groupTrainings": "Групові заняття",
-    "spots": "{{count}} місць",
+    "spots_one": "{{count}} місце",
+    "spots_few": "{{count}} місця",
+    "spots_many": "{{count}} місць",
+    "spots_other": "{{count}} місць",
     "coachName": "Тренер {{name}}",
     "noTrainings": "Ще немає доступних занять",
     "coachCount_one": "{{count}} тренер",
+    "coachCount_few": "{{count}} тренери",
+    "coachCount_many": "{{count}} тренерів",
     "coachCount_other": "{{count}} тренерів"
+  },
+  "confirmation": {
+    "imComing": "Я буду",
+    "cantMakeIt": "Не зможу",
+    "confirmed": "Ви записані! 🎉",
+    "markedCantMake": "Позначено як відсутність"
+  },
+  "thisWeek": {
+    "title": "Цей тиждень",
+    "going": "Буду",
+    "notGoing": "Не буду",
+    "backIn": "Ви знову записані! 🎉",
+    "spotReleased": "Місце звільнене",
+    "lateCancel": "Менше ніж <strong>{{hours}}г</strong> до заняття. Ваше місце може бути все одно нараховане.",
+    "keepSpot": "Залишити моє місце",
+    "cancelAnyway": "Скасувати все одно"
+  },
+  "joinRequests": {
+    "title": "Заявки на вступ",
+    "training": "Заняття",
+    "waitingApproval": "Очікування на схвалення",
+    "declined": "Заявку відхилено",
+    "showLess": "Показати менше",
+    "showAll": "Показати всі ({{count}})"
+  },
+  "openSpots": {
+    "title": "Вільні місця",
+    "claimed": "Місце зайняте! 🎉",
+    "tooSlow": "Хтось був швидший!",
+    "claimFailed": "Не вдалося зайняти місце",
+    "claimSpot": "Зайняти місце"
+  },
+  "favouriteSchools": {
+    "title": "Мої школи"
   }
 }

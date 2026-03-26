@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
+import { useTranslation } from 'react-i18next';
 
 export default function OpenSpotsSection() {
+  const { t } = useTranslation('player');
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: spots = [] } = useQuery({
@@ -25,7 +27,7 @@ export default function OpenSpotsSection() {
 
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Open Spots</h2>
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('openSpots.title')}</h2>
       <div className="space-y-3">
         {spots.map((spot: any) => {
           const training = spot.trainings;
@@ -50,15 +52,15 @@ export default function OpenSpotsSection() {
                 onClick={async () => {
                   const { data } = await supabase.rpc('claim_training_spot', { p_spot_id: spot.id, p_player_id: user!.id });
                   if (data?.success) {
-                    toast.success("Spot claimed! 🎉");
+                    toast.success(t('openSpots.claimed'));
                     qc.invalidateQueries({ queryKey: ['training-open-spots'] });
                   } else {
-                    toast.error(data?.error === 'already_claimed' ? 'Someone was faster!' : 'Failed to claim spot');
+                    toast.error(data?.error === 'already_claimed' ? t('openSpots.tooSlow') : t('openSpots.claimFailed'));
                   }
                 }}
                 className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground min-h-[44px] active:scale-[0.97] transition-transform"
               >
-                Claim Spot
+                {t('openSpots.claimSpot')}
               </button>
             </div>
           );

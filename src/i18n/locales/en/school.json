@@ -58,5 +58,15 @@
   "calendar": {
     "title": "School Calendar",
     "comingSoon": "School calendar coming soon"
+  },
+  "overview": {
+    "title": "School overview",
+    "schoolProfile": "School Profile",
+    "joinRequests": "Join Requests",
+    "accept": "Accept",
+    "decline": "Decline",
+    "lessons": "Lessons",
+    "noLessons": "No lessons yet — create one to get started",
+    "showAll": "Show all {{count}} lessons"
   }
 }

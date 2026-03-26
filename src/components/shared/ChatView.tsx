@@ -227,7 +227,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         try {
           convId = await getOrCreateDMConversation(user.id, otherUserId);
         } catch (err: any) {
-          toast.error(err?.message ?? 'Failed to create conversation');
+          toast.error(err?.message ?? i18n.t('chat.failedCreate'));
           return;
         }
         setLocalConvId(convId);
@@ -260,7 +260,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
     } catch (err: any) {
-      toast.error(err?.message ?? 'Something went wrong');
+      toast.error(err?.message ?? i18n.t('errors.somethingWentWrong'));
     } finally {
       setIsSending(false);
     }
@@ -304,8 +304,8 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center px-8 py-20">
               <span className="text-4xl mb-3">💬</span>
-              <p className="font-semibold text-foreground text-sm">No messages yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Be the first to say something</p>
+              <p className="font-semibold text-foreground text-sm">{i18n.t('chat.noMessagesYet')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{i18n.t('chat.beFirst')}</p>
             </div>
           ) : (
             <div className="py-2">
@@ -348,7 +348,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                       <div key={msg.id} className={samePrev ? 'mt-[2px]' : 'mt-3'}>
                         {showName && (
                           <p className="text-[11px] font-semibold text-primary/70 mb-[2px]" style={{ marginLeft: 35 }}>
-                            {sender?.full_name ?? 'Member'}
+                            {sender?.full_name ?? i18n.t('chat.member')}
                           </p>
                         )}
                         <div className={`flex items-end gap-[6px] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -471,7 +471,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                 scrollRef.current?.scrollTo({ top: scrollRef.current!.scrollHeight, behavior: 'smooth' });
               }, 350);
             }}
-            placeholder="Message..."
+            placeholder={i18n.t('chat.messagePlaceholder')}
             rows={1}
             className="flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-snug focus:outline-none overflow-hidden min-h-[36px]"
           />

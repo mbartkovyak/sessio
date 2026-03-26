@@ -88,7 +88,7 @@ export default function CoachPublicProfile() {
                       badge={
                         <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${
                           tr.type === 'individual' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'
-                        }`}>{tr.type}</span>
+                        }`}>{t(`common:trainingType.${tr.type}`)}</span>
                       }
                       extra={
                         <button

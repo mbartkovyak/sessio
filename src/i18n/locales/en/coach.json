@@ -45,6 +45,10 @@
     "clearFilters": "Clear filters",
     "coachName": "Coach {{name}}"
   },
+  "type": {
+    "group": "Group",
+    "individual": "Individual"
+  },
   "create": {
     "title": "New Lesson",
     "selectCoach": "Select coach",

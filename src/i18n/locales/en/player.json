@@ -67,10 +67,45 @@
   "schoolProfile": {
     "title": "School",
     "groupTrainings": "Group Trainings",
-    "spots": "{{count}} spots",
+    "spots_one": "{{count}} spot",
+    "spots_other": "{{count}} spots",
     "coachName": "Coach {{name}}",
     "noTrainings": "No trainings available yet",
     "coachCount_one": "{{count}} Coach",
     "coachCount_other": "{{count}} Coaches"
+  },
+  "confirmation": {
+    "imComing": "I'm coming",
+    "cantMakeIt": "Can't make it",
+    "confirmed": "You're in! 🎉",
+    "markedCantMake": "Marked as can't make it"
+  },
+  "thisWeek": {
+    "title": "This Week",
+    "going": "Going",
+    "notGoing": "Not going",
+    "backIn": "You're back in! 🎉",
+    "spotReleased": "Spot released",
+    "lateCancel": "Less than <strong>{{hours}}h</strong> before the lesson. Your spot may still be charged.",
+    "keepSpot": "Keep my spot",
+    "cancelAnyway": "Cancel anyway"
+  },
+  "joinRequests": {
+    "title": "Join Requests",
+    "training": "Training",
+    "waitingApproval": "Waiting for approval",
+    "declined": "Request declined",
+    "showLess": "Show less",
+    "showAll": "Show all ({{count}})"
+  },
+  "openSpots": {
+    "title": "Open Spots",
+    "claimed": "Spot claimed! 🎉",
+    "tooSlow": "Someone was faster!",
+    "claimFailed": "Failed to claim spot",
+    "claimSpot": "Claim Spot"
+  },
+  "favouriteSchools": {
+    "title": "My Schools"
   }
 }

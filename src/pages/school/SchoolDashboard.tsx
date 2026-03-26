@@ -48,7 +48,7 @@ export default function SchoolDashboard() {
       if (tErr) throw tErr;
       if (!trainings || trainings.length === 0) return 0;
 
-      const trainingIds = trainings.map((t: any) => t.id);
+      const trainingIds = trainings.map((tr: any) => tr.id);
       const { data: members, error: mErr } = await supabase
         .from('training_members')
         .select('user_id')

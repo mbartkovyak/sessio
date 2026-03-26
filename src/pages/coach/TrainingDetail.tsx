@@ -145,7 +145,7 @@ export default function TrainingDetail() {
                 <span className="text-2xl">{SPORT_ICONS[training.sport] ?? '🎯'}</span>
                 <div>
                   <p className="font-semibold text-foreground">{training.name}</p>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{training.type}</span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t(`common:trainingType.${training.type}`)}</span>
                 </div>
               </div>
               <div className="space-y-1.5 text-sm text-muted-foreground">

@@ -3,6 +3,8 @@
     "greeting": "Hej, {{name}} 👋",
     "defaultName": "Sportowiec",
     "pendingCount_one": "{{count}} zajęcia wymagają twojej odpowiedzi",
+    "pendingCount_few": "{{count}} zajęcia wymagają twojej odpowiedzi",
+    "pendingCount_many": "{{count}} zajęć wymaga twojej odpowiedzi",
     "pendingCount_other": "{{count}} zajęć wymaga twojej odpowiedzi",
     "overview": "Twój przegląd zajęć",
     "allSet": "Wszystko gotowe",
@@ -31,6 +33,8 @@
     "school": "Szkółka",
     "coach": "Trener",
     "coachCount_one": "{{count}} trener",
+    "coachCount_few": "{{count}} trenerów",
+    "coachCount_many": "{{count}} trenerów",
     "coachCount_other": "{{count}} trenerów",
     "independentCoach": "Samodzielny trener"
   },
@@ -38,11 +42,11 @@
     "title": "Kalendarz",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Dołącz do zajęć, żeby zobaczyć swój harmonogram",
-    "confirmed": "Jesteś zapisany! 🎉",
+    "confirmed": "Masz miejsce! 🎉",
     "cancelled": "Odwołano",
     "navigateTo": "Nawiguj do {{venue}}",
     "lateCancel": "Mniej niż <strong>{{hours}}h</strong> przed zajęciami. Późne odwołania mogą być odnotowane.",
-    "keepSpot": "Zostaw moje miejsce",
+    "keepSpot": "Zachowaj moje miejsce",
     "cancelAnyway": "Odwołaj mimo to",
     "imComing": "Będę",
     "cantMakeIt": "Nie dam rady",
@@ -67,10 +71,49 @@
   "schoolProfile": {
     "title": "Szkółka",
     "groupTrainings": "Zajęcia grupowe",
-    "spots": "{{count}} miejsc",
+    "spots_one": "{{count}} miejsce",
+    "spots_few": "{{count}} miejsca",
+    "spots_many": "{{count}} miejsc",
+    "spots_other": "{{count}} miejsc",
     "coachName": "Trener {{name}}",
     "noTrainings": "Brak dostępnych zajęć",
     "coachCount_one": "{{count}} trener",
+    "coachCount_few": "{{count}} trenerów",
+    "coachCount_many": "{{count}} trenerów",
     "coachCount_other": "{{count}} trenerów"
+  },
+  "confirmation": {
+    "imComing": "Będę",
+    "cantMakeIt": "Nie dam rady",
+    "confirmed": "Masz miejsce! 🎉",
+    "markedCantMake": "Oznaczono jako nieobecność"
+  },
+  "thisWeek": {
+    "title": "Ten tydzień",
+    "going": "Będę",
+    "notGoing": "Nie będę",
+    "backIn": "Znowu masz miejsce! 🎉",
+    "spotReleased": "Miejsce zwolnione",
+    "lateCancel": "Mniej niż <strong>{{hours}}h</strong> przed zajęciami. Twoje miejsce może być nadal naliczone.",
+    "keepSpot": "Zachowaj moje miejsce",
+    "cancelAnyway": "Odwołaj mimo to"
+  },
+  "joinRequests": {
+    "title": "Prośby o dołączenie",
+    "training": "Zajęcia",
+    "waitingApproval": "Oczekiwanie na akceptację",
+    "declined": "Prośba odrzucona",
+    "showLess": "Pokaż mniej",
+    "showAll": "Pokaż wszystkie ({{count}})"
+  },
+  "openSpots": {
+    "title": "Wolne miejsca",
+    "claimed": "Miejsce zajęte! 🎉",
+    "tooSlow": "Ktoś był szybszy!",
+    "claimFailed": "Nie udało się zająć miejsca",
+    "claimSpot": "Zajmij miejsce"
+  },
+  "favouriteSchools": {
+    "title": "Moje szkółki"
   }
 }
