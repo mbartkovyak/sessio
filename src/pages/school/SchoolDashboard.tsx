@@ -88,7 +88,7 @@ export default function SchoolDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="safe-area-top fixed top-0 left-0 right-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="safe-area-top sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-foreground">{school?.name ?? t('dashboard.defaultName')}</h1>
@@ -97,9 +97,6 @@ export default function SchoolDashboard() {
           <SessioLogoCompact size={24} />
         </div>
       </header>
-      <div className="safe-area-top px-4 py-4" style={{ visibility: 'hidden' }} aria-hidden="true" inert="">
-        <div className="max-w-md mx-auto h-10" />
-      </div>
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
         {/* Stats */}

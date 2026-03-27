@@ -17,14 +17,11 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="safe-area-top fixed top-0 left-0 right-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="safe-area-top sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-2">
           <SessioLogoCompact />
         </div>
       </header>
-      <div className="safe-area-top px-4 py-4" style={{ visibility: 'hidden' }} aria-hidden="true" inert="">
-        <div className="max-w-md mx-auto h-7" />
-      </div>
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center space-y-5">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">

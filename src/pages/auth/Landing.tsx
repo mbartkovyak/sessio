@@ -44,7 +44,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient md:px-8">
+      <nav className="sticky top-0 z-10 px-4 py-4 header-gradient md:px-8">
         <div className="max-w-md mx-auto flex items-center justify-between text-white">
           <SessioLogo size={28} />
           <div className="flex items-center gap-3">
@@ -58,10 +58,6 @@ export default function Landing() {
           </div>
         </div>
       </nav>
-      {/* Spacer for fixed header */}
-      <div className="px-4 py-4 header-gradient" style={{ visibility: 'hidden' }} aria-hidden="true" inert="">
-        <div className="max-w-md mx-auto h-7" />
-      </div>
 
       {/* Hero */}
       <section className="hero-gradient px-5 py-16 md:px-8 md:py-24 text-center">

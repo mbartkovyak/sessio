@@ -203,7 +203,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient">
+      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
         <div className="max-w-md mx-auto flex items-center gap-3 text-white">
           {showBack && (
             <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">
@@ -220,10 +220,6 @@ export default function Onboarding() {
           </button>
         </div>
       </header>
-      {/* Spacer for fixed header */}
-      <div className="px-4 py-4 header-gradient" style={{ visibility: 'hidden' }} aria-hidden="true" inert="">
-        <div className="max-w-md mx-auto h-9" />
-      </div>
 
       <div className="flex flex-1 items-center justify-center px-4 pb-12">
         <div className="w-full max-w-sm">
