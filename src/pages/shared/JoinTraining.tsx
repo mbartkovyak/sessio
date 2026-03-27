@@ -259,19 +259,28 @@ export default function JoinTraining() {
   const coach = training.coach;
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
 
-  const TrainingCard = () => (
+  const timeRange = [training.start_time?.slice(0, 5), training.end_time?.slice(0, 5)].filter(Boolean).join(' – ');
+
+  const TrainingDetails = () => (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center gap-3">
         <span className="text-4xl">{sportIcon}</span>
         <div>
           <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
-          <p className="text-sm text-muted-foreground">{sportLabel(training.sport)}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-sm text-muted-foreground">{sportLabel(training.sport)}</span>
+            {training.type && (
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                training.type === 'individual' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'
+              }`}>{t(`common:trainingType.${training.type}`)}</span>
+            )}
+          </div>
         </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-foreground">
           <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {(training.start_time ?? '').slice(0, 5)}</span>
+          <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {timeRange}</span>
         </div>
         {(training.venue || training.location) && (
           <div className="text-sm">
@@ -288,14 +297,25 @@ export default function JoinTraining() {
     </div>
   );
 
-  // Logged-in view — show training details + explicit join button
+  // Logged-in view — training detail page with explicit join button
   if (session && profile?.onboarding_complete && profile?.role === 'player') {
     const isApproval = training.booking_mode === 'approval';
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <AppHeader title={training.name} back />
-        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
-          <TrainingCard />
+        <main className="flex-1 px-4 py-6 max-w-sm mx-auto w-full space-y-4">
+          <TrainingDetails />
+
+          {coach?.full_name && (
+            <div className="flex items-center gap-3 px-1">
+              <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">{coach.full_name}</p>
+                {training.sport && <p className="text-xs text-muted-foreground">{sportLabel(training.sport)}</p>}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={handleJoin}
             disabled={joining}
@@ -327,7 +347,7 @@ export default function JoinTraining() {
           <p className="text-center text-sm text-muted-foreground">{t('join.beenInvitedToJoin')}</p>
         )}
 
-        <TrainingCard />
+        <TrainingDetails />
 
         <p className="text-center text-sm text-muted-foreground">{t('join.joinIn30Seconds')}</p>
 
