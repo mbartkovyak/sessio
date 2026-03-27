@@ -168,6 +168,9 @@
     border-bottom: 1px solid hsl(var(--header-from) / 0.3);
     padding-top: env(safe-area-inset-top, 0px);
   }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }

@@ -70,7 +70,7 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center justify-between px-6 py-5" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
+      <div className="safe-area-top flex items-center justify-between px-6 pt-12 pb-5">
         <SessioLogo />
         <LanguageSelector />
       </div>

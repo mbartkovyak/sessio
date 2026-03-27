@@ -44,7 +44,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-5 py-4 md:px-8" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
+      <nav className="safe-area-top flex items-center justify-between px-5 pt-12 pb-4 md:px-8">
         <SessioLogo />
         <div className="flex items-center gap-3">
           <LanguageSelector />
