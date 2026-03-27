@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle2, Clock } from 'lucide-react';
 import { SessioLogoCompact } from '@/components/SessioLogo';
-import AppHeader from '@/components/shared/AppHeader';
+import PageHeader from '@/components/shared/PageHeader';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
 import { relativeTime } from '@/components/player/home/relativeTime';
@@ -41,11 +41,11 @@ export default function PlayerHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
+      <PageHeader className="px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="flex-1 pb-24">
         {isLoading ? (
@@ -57,7 +57,7 @@ export default function PlayerHome() {
           {/* Greeting */}
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              {t('home.greeting', { name: profile?.full_name?.split(' ')[0] ?? t('home.defaultName') })}
+              {t('home.greeting', { name: profile?.first_name ?? t('home.defaultName') })}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {pendingConfirmations.length > 0

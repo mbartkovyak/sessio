@@ -10,7 +10,7 @@ const LANG_META: Record<string, { label: string; flag: string }> = {
   uk: { label: 'Українська', flag: '🇺🇦' },
 };
 
-export default function LanguageSelector() {
+export default function LanguageSelector({ compact }: { compact?: boolean } = {}) {
   const { i18n, t } = useTranslation('common');
   const { user } = useAuth();
 
@@ -20,6 +20,25 @@ export default function LanguageSelector() {
     if (user) {
       supabase.from('profiles').update({ language: lang }).eq('id', user.id);
     }
+  }
+
+  if (compact) {
+    return (
+      <div className="relative">
+        <select
+          value={i18n.language}
+          onChange={e => handleChange(e.target.value)}
+          className="appearance-none rounded-lg bg-white/10 border border-white/20 text-white text-sm pl-3 pr-7 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30"
+        >
+          {SUPPORTED_LANGS.map(lang => (
+            <option key={lang} value={lang} className="text-foreground bg-background">
+              {LANG_META[lang]?.flag} {LANG_META[lang]?.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/60" />
+      </div>
+    );
   }
 
   return (

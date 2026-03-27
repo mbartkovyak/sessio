@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
-import { SessioLogo } from '@/components/SessioLogo';
+import { SessioLogoCompact } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
+import PageHeader from '@/components/shared/PageHeader';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'email' | 'code';
@@ -70,10 +71,12 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center justify-between px-6 py-5" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
-        <SessioLogo />
-        <LanguageSelector />
-      </div>
+      <PageHeader className="px-6 py-4">
+        <div className="max-w-md mx-auto flex items-center justify-between text-white">
+          <SessioLogoCompact />
+          <LanguageSelector compact />
+        </div>
+      </PageHeader>
 
       <div className="flex-1 px-4 pt-12">
         <div className="w-full max-w-sm mx-auto">

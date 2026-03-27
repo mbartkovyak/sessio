@@ -1,4 +1,5 @@
 import { SessioLogoCompact } from '@/components/SessioLogo';
+import PageHeader from '@/components/shared/PageHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import PendingApprovalScreen from '@/components/coach/PendingApprovalScreen';
 import SchoolOverviewSection from '@/components/coach/SchoolOverviewSection';
@@ -24,12 +25,11 @@ export default function CoachHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header with teal gradient */}
-      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
+      <PageHeader className="px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-4">
