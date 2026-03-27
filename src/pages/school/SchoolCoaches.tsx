@@ -49,7 +49,7 @@ export default function SchoolCoaches() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-24">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="safe-area-top sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3">
           <button onClick={() => navigate('/coach')} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary -ml-1">
             <ArrowLeft className="h-5 w-5" />

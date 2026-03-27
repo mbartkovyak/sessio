@@ -88,7 +88,7 @@ export default function SchoolDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="safe-area-top sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-foreground">{school?.name ?? t('dashboard.defaultName')}</h1>

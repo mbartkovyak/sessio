@@ -17,7 +17,7 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
+      <header className="safe-area-top sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-2">
           <SessioLogoCompact />
         </div>

@@ -22,7 +22,7 @@ export default function NavigationLoadingBar() {
   if (!visible) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 pointer-events-none">
+    <div className="fixed left-0 right-0 z-[100] h-0.5 pointer-events-none" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
       <div
         className="h-full bg-primary transition-all duration-300 ease-out"
         style={{ width: `${progress}%`, opacity: progress >= 100 ? 0 : 1 }}
