@@ -8,11 +8,21 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
-import { useEffect } from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
+export const ScrollContainerContext = createContext<React.RefObject<HTMLDivElement | null>>({ current: null });
+
 function PushRegistrar() { useAutoRegisterPush(); return null; }
-function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const scrollRef = useContext(ScrollContainerContext);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTo(0, 0);
+    else window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 function RefreshOnResume() {
   useEffect(() => {
     let lastRefresh = 0;
@@ -35,19 +45,24 @@ function RefreshOnResume() {
 }
 
 function RootLayout() {
+  const scrollRef = useRef<HTMLDivElement>(null);
   return (
-    <>
+    <ScrollContainerContext.Provider value={scrollRef}>
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
       <InstallPWA />
-      <ErrorBoundary>
-        <AuthProvider>
-          <PushRegistrar />
-          <Outlet />
-        </AuthProvider>
-      </ErrorBoundary>
-    </>
+      <div className="h-[100dvh] flex flex-col">
+        <ErrorBoundary>
+          <AuthProvider>
+            <PushRegistrar />
+            <div ref={scrollRef} className="flex-1 overflow-y-auto">
+              <Outlet />
+            </div>
+          </AuthProvider>
+        </ErrorBoundary>
+      </div>
+    </ScrollContainerContext.Provider>
   );
 }
 
