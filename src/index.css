@@ -12,6 +12,11 @@
   input, textarea, select { font-size: 16px !important; }
 }
 
+/* Prevent iOS rubber-band bounce so sticky headers stay locked */
+html, body {
+  overscroll-behavior: none;
+}
+
 @layer base {
   :root {
     /* Sessio Design System — black + orange, clean whites */
