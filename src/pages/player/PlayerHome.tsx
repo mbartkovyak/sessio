@@ -41,14 +41,11 @@ export default function PlayerHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient">
+      <header className="sticky top-0 z-10 px-4 py-4 header-gradient">
         <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
       </header>
-      <div className="px-4 py-4 header-gradient invisible" aria-hidden="true">
-        <div className="max-w-md mx-auto h-7" />
-      </div>
 
       <main className="flex-1 pb-24">
         {isLoading ? (

@@ -70,14 +70,9 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center justify-between text-white">
-          <SessioLogo size={28} />
-          <LanguageSelector />
-        </div>
-      </header>
-      <div className="px-4 py-4 header-gradient invisible" aria-hidden="true">
-        <div className="max-w-md mx-auto h-7" />
+      <div className="flex items-center justify-between px-6 py-5" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
+        <SessioLogo />
+        <LanguageSelector />
       </div>
 
       <div className="flex-1 px-4 pt-12">

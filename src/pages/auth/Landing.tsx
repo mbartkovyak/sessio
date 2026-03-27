@@ -44,23 +44,18 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient md:px-8">
-        <div className="max-w-md mx-auto flex items-center justify-between text-white">
-          <SessioLogo size={28} />
-          <div className="flex items-center gap-3">
-            <LanguageSelector />
-            <button
-              onClick={() => navigate('/auth')}
-              className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/25 min-h-[44px]"
-            >
-              {t('landing.signInUp')}
-            </button>
-          </div>
+      <nav className="flex items-center justify-between px-5 py-4 md:px-8" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
+        <SessioLogo />
+        <div className="flex items-center gap-3">
+          <LanguageSelector />
+          <button
+            onClick={() => navigate('/auth')}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 min-h-[44px]"
+          >
+            {t('landing.signInUp')}
+          </button>
         </div>
       </nav>
-      <div className="px-4 py-4 header-gradient invisible" aria-hidden="true">
-        <div className="max-w-md mx-auto h-7" />
-      </div>
 
       {/* Hero */}
       <section className="hero-gradient px-5 py-16 md:px-8 md:py-24 text-center">

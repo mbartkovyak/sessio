@@ -7,36 +7,26 @@ interface AppHeaderProps {
   subtitle?: string;
   back?: boolean;
   right?: ReactNode;
-  /** Use shrink-0 instead of fixed (for full-screen layouts like chat) */
+  /** Use shrink-0 instead of sticky (for full-screen layouts like chat) */
   inline?: boolean;
 }
 
 export default function AppHeader({ title, subtitle, back, right, inline }: AppHeaderProps) {
   const navigate = useNavigate();
-
-  const content = (
-    <div className="max-w-md mx-auto flex items-center">
-      {back && (
-        <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate(location.pathname.startsWith('/coach') ? '/coach' : '/player')} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0 absolute left-4">
-          <ArrowLeft className="h-4.5 w-4.5" />
-        </button>
-      )}
-      <div className="flex-1 text-center">
-        <h1 className={`font-bold text-white ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
-        {subtitle && <p className="text-xs text-white/70">{subtitle}</p>}
-      </div>
-      {right && <div className="absolute right-4">{right}</div>}
-    </div>
-  );
-
-  if (inline) {
-    return <header className="shrink-0 px-4 py-4 header-gradient relative">{content}</header>;
-  }
-
   return (
-    <>
-      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient">{content}</header>
-      <div className="px-4 py-4 header-gradient invisible" aria-hidden="true">{content}</div>
-    </>
+    <header className={`${inline ? 'shrink-0' : 'sticky top-0 z-10'} px-4 py-4 header-gradient relative`}>
+      <div className="max-w-md mx-auto flex items-center">
+        {back && (
+          <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate(location.pathname.startsWith('/coach') ? '/coach' : '/player')} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0 absolute left-4">
+            <ArrowLeft className="h-4.5 w-4.5" />
+          </button>
+        )}
+        <div className="flex-1 text-center">
+          <h1 className={`font-bold text-white ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
+          {subtitle && <p className="text-xs text-white/70">{subtitle}</p>}
+        </div>
+        {right && <div className="absolute right-4">{right}</div>}
+      </div>
+    </header>
   );
 }
