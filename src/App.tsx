@@ -37,11 +37,6 @@ function RefreshOnResume() {
 function RootLayout() {
   return (
     <>
-      {/* Permanent dark bar behind iPhone notch / Dynamic Island */}
-      <div
-        className="fixed top-0 left-0 right-0 pointer-events-none"
-        style={{ height: 'env(safe-area-inset-top, 0px)', background: 'hsl(0, 0%, 6%)', zIndex: 200 }}
-      />
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
