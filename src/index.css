@@ -7,6 +7,12 @@
   top: 55px !important;
 }
 
+/* Lock body scroll — all scrolling happens inside the app scroll container */
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
 /* Prevent iOS from zooming into inputs with font-size < 16px */
 @supports (-webkit-touch-callout: none) {
   input, textarea, select { font-size: 16px !important; }
