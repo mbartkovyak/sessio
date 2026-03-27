@@ -14,6 +14,7 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
+import AppHeader from '@/components/shared/AppHeader';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -292,20 +293,8 @@ export default function JoinTraining() {
     const isApproval = training.booking_mode === 'approval';
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-          <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
-        </header>
+        <AppHeader title={training.name} back />
         <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
-          {coach?.full_name && (
-            <div className="text-center">
-              <div className="mx-auto mb-3 w-fit">
-                <Avatar url={coach.avatar_url} name={coach.full_name} size="xl" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {t('join.invitedToJoin', { name: coach.full_name })}
-              </p>
-            </div>
-          )}
           <TrainingCard />
           <button
             onClick={handleJoin}
