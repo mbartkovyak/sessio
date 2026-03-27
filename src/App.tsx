@@ -49,7 +49,7 @@ function RootLayout() {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <ScrollContainerContext.Provider value={scrollRef}>
-      <div className="h-[100dvh] flex flex-col overflow-hidden">
+      <div className="fixed inset-0 flex flex-col">
         <NavigationLoadingBar />
         <ScrollToTop />
         <RefreshOnResume />
