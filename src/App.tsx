@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
+import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -35,6 +36,7 @@ function RefreshOnResume() {
 }
 
 function RootLayout() {
+  useVisualViewport();
   return (
     <>
       <NavigationLoadingBar />
