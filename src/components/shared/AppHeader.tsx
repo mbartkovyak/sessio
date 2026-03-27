@@ -35,7 +35,7 @@ export default function AppHeader({ title, subtitle, back, right, inline }: AppH
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient relative">{content}</header>
+      <header className="fixed top-0 left-0 right-0 z-10 px-4 py-4 header-gradient">{content}</header>
       <div className="px-4 py-4 header-gradient invisible" aria-hidden="true">{content}</div>
     </>
   );
