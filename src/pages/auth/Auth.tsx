@@ -70,10 +70,12 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="safe-area-top flex items-center justify-between px-6 pt-12 pb-5">
-        <SessioLogo />
-        <LanguageSelector />
-      </div>
+      <header className="px-4 py-4 header-gradient">
+        <div className="max-w-md mx-auto flex items-center justify-between text-white">
+          <SessioLogo size={28} />
+          <LanguageSelector />
+        </div>
+      </header>
 
       <div className="flex-1 px-4 pt-12">
         <div className="w-full max-w-sm mx-auto">

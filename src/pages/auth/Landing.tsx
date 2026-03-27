@@ -44,16 +44,18 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="safe-area-top flex items-center justify-between px-5 pt-12 pb-4 md:px-8">
-        <SessioLogo />
-        <div className="flex items-center gap-3">
-          <LanguageSelector />
-          <button
-            onClick={() => navigate('/auth')}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 min-h-[44px]"
-          >
-            {t('landing.signInUp')}
-          </button>
+      <nav className="px-4 py-4 header-gradient md:px-8">
+        <div className="max-w-md mx-auto flex items-center justify-between text-white">
+          <SessioLogo size={28} />
+          <div className="flex items-center gap-3">
+            <LanguageSelector />
+            <button
+              onClick={() => navigate('/auth')}
+              className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/25 min-h-[44px]"
+            >
+              {t('landing.signInUp')}
+            </button>
+          </div>
         </div>
       </nav>
 
