@@ -56,7 +56,7 @@ function RootLayout() {
         <ErrorBoundary>
           <AuthProvider>
             <PushRegistrar />
-            <div ref={scrollRef} className="flex-1 overflow-y-auto">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
               <Outlet />
             </div>
           </AuthProvider>
