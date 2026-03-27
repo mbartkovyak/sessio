@@ -203,19 +203,18 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="px-4 py-4 header-gradient">
-        <div className="max-w-md mx-auto flex items-center gap-3 text-white">
-          {showBack && (
-            <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">
-              <ArrowLeft className="h-5 w-5 text-white" />
-            </button>
-          )}
-          <SessioLogo size={28} />
-          <div className="flex-1" />
-          <button
-            onClick={async () => { await signOut(); navigate('/auth'); }}
-            className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white"
-          >
+      <div className="safe-area-top flex items-center px-6 pt-12 pb-5 gap-3">
+        {showBack && (
+          <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary -ml-2">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        )}
+        <SessioLogo size={28} />
+        <div className="flex-1" />
+        <button
+          onClick={async () => { await signOut(); navigate('/auth'); }}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
           <LogOut className="h-3.5 w-3.5" /> {t('auth:onboarding.signOut')}
         </button>
       </div>
