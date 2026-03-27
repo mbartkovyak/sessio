@@ -1,10 +1,15 @@
 import { useEffect } from 'react';
 
 /**
- * Tracks the visual viewport offset on iOS Safari.
- * When the virtual keyboard opens, iOS scrolls the visual viewport away from
- * the layout viewport. This hook syncs a CSS custom property (--vv-offset)
- * so fixed-position headers can follow the visual viewport and stay visible.
+ * Tracks the visual viewport offset on iOS Safari — only when the keyboard is open.
+ *
+ * iOS Safari fires visualViewport scroll/resize for TWO reasons:
+ *   1. Virtual keyboard opens → viewport shrinks by 250-400px
+ *   2. URL bar collapses/expands during scroll → viewport changes by ~50px
+ *
+ * We only want to react to (1). A 150px threshold reliably distinguishes the two.
+ * When the keyboard IS open, we sync --vv-offset so fixed headers follow the
+ * visual viewport. Otherwise it stays 0 and the fixed header behaves normally.
  */
 export function useVisualViewport() {
   useEffect(() => {
@@ -12,7 +17,9 @@ export function useVisualViewport() {
     if (!vv) return;
 
     function sync() {
-      document.documentElement.style.setProperty('--vv-offset', `${vv!.offsetTop}px`);
+      const keyboardOpen = (window.innerHeight - vv!.height) > 150;
+      const offset = keyboardOpen ? vv!.offsetTop : 0;
+      document.documentElement.style.setProperty('--vv-offset', `${offset}px`);
     }
 
     vv.addEventListener('scroll', sync);
