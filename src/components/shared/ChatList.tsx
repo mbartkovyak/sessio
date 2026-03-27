@@ -27,9 +27,11 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
   // gives instant feedback after archiving (before query refetches)
   const visible = conversations.filter(c => !hiddenIds.includes(c.id));
 
+  const cardStyle = { border: '1px solid hsl(203 20% 90%)' };
+
   if (isLoading) {
     return (
-      <div className="space-y-1 p-4">
+      <div className="rounded-2xl bg-white shadow-sm p-4 space-y-1" style={cardStyle}>
         {[1, 2, 3].map(i => <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />)}
       </div>
     );
@@ -37,15 +39,18 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
 
   if (visible.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center pt-20 text-center px-6">
-        <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
-        <p className="font-medium text-foreground">{t('chat.noChats')}</p>
-        <p className="text-sm text-muted-foreground mt-1">{emptyText ?? t('chat.startConversation')}</p>
+      <div className="rounded-2xl bg-white shadow-sm" style={cardStyle}>
+        <div className="flex flex-col items-center justify-center pt-20 pb-20 text-center px-6">
+          <MessageCircle className="h-12 w-12 text-muted-foreground/30 mb-3" />
+          <p className="font-medium text-foreground">{t('chat.noChats')}</p>
+          <p className="text-sm text-muted-foreground mt-1">{emptyText ?? t('chat.startConversation')}</p>
+        </div>
       </div>
     );
   }
 
   return (
+    <div className="rounded-2xl bg-white shadow-sm overflow-hidden" style={cardStyle}>
     <div className="divide-y divide-border" onClick={() => menuOpen && setMenuOpen(null)}>
       {visible.map(conv => {
         const isManual = isManuallyUnread(conv.id);
@@ -88,7 +93,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
               {hasUnread && (
                 !isManual && conv.unreadCount > 0 ? (
                   <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 shrink-0">
-                    <span className="text-[10px] font-bold text-primary-foreground">{conv.unreadCount}</span>
+                    <span className="text-xs font-bold text-primary-foreground">{conv.unreadCount}</span>
                   </div>
                 ) : (
                   <div className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
@@ -127,6 +132,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

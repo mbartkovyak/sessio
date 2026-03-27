@@ -24,6 +24,8 @@
   "profile": {
     "title": "Profil",
     "fullName": "Imię i nazwisko",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
     "bio": "O tobie",
     "saving": "Zapisywanie...",
     "profileUpdated": "Profil zaktualizowany",

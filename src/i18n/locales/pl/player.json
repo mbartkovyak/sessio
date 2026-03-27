@@ -20,6 +20,8 @@
     "title": "Profil",
     "athlete": "Uczestnik",
     "fullName": "Imię i nazwisko",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
     "saving": "Zapisywanie...",
     "profileUpdated": "Profil zaktualizowany"
   },

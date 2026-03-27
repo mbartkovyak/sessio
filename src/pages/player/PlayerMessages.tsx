@@ -12,7 +12,7 @@ export default function PlayerMessages() {
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader title={t('messages.title')} />
       <div className="flex-1 pb-24">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto px-4 py-4">
           <ChatList
             conversations={conversations}
             isLoading={isLoading}

@@ -20,6 +20,8 @@
     "title": "Profile",
     "athlete": "Participant",
     "fullName": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
     "saving": "Saving...",
     "profileUpdated": "Profile updated"
   },

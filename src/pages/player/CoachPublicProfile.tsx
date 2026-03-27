@@ -47,7 +47,7 @@ export default function CoachPublicProfile() {
         <div className="max-w-md mx-auto">
           {/* Hero */}
           <div className="bg-card border-b border-border p-6 text-center">
-            <div className="mx-auto mb-3">
+            <div className="mx-auto mb-3 w-fit">
               <Avatar url={profile?.avatar_url} name={profile?.full_name} size="2xl" />
             </div>
             <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>

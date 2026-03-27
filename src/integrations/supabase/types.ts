@@ -467,9 +467,11 @@ export type Database = {
           city: string | null
           created_at: string | null
           email: string
+          first_name: string | null
           full_name: string | null
           id: string
           language: string | null
+          last_name: string | null
           onboarding_complete: boolean | null
           phone: string | null
           role: string | null
@@ -482,9 +484,11 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email: string
+          first_name?: string | null
           full_name?: string | null
           id: string
           language?: string | null
+          last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
           role?: string | null
@@ -497,9 +501,11 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email?: string
+          first_name?: string | null
           full_name?: string | null
           id?: string
           language?: string | null
+          last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
           role?: string | null

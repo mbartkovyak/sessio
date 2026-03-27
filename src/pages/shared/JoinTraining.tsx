@@ -57,7 +57,7 @@ export default function JoinTraining() {
       });
   }, [inviteCode, session, i18n]);
 
-  // Auto-join once auth resolves
+  // Redirect non-players and non-onboarded users
   useEffect(() => {
     if (!session || !profile || !training) return;
     if (loading) return;
@@ -71,10 +71,9 @@ export default function JoinTraining() {
       navigate('/coach');
       return;
     }
-    autoJoin();
   }, [loading, session, profile, training]);
 
-  async function autoJoin() {
+  async function handleJoin() {
     if (!training || !profile) return;
     if (joiningRef.current) return;
     joiningRef.current = true;
@@ -288,21 +287,32 @@ export default function JoinTraining() {
     </div>
   );
 
-  // Logged-in view
-  if (session && profile?.onboarding_complete) {
+  // Logged-in view — show training details + explicit join button
+  if (session && profile?.onboarding_complete && profile?.role === 'player') {
+    const isApproval = training.booking_mode === 'approval';
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
           <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
         </header>
-        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full">
+        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
+          {coach?.full_name && (
+            <div className="text-center">
+              <div className="mx-auto mb-3 w-fit">
+                <Avatar url={coach.avatar_url} name={coach.full_name} size="xl" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('join.invitedToJoin', { name: coach.full_name })}
+              </p>
+            </div>
+          )}
           <TrainingCard />
           <button
-            onClick={autoJoin}
+            onClick={handleJoin}
             disabled={joining}
-            className="mt-6 w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? t('join.joining') : t('join.joinName', { name: training.name })}
+            {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.joinName', { name: training.name })}
           </button>
         </main>
       </div>

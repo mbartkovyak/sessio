@@ -56,19 +56,19 @@ export default function CoachBottomNav({ inline }: { inline?: boolean } = {}) {
                 className="relative flex flex-1 flex-col items-center gap-0.5 transition-all"
               >
                 {isMessages && unreadCount > 0 && (
-                  <span className="absolute top-0 right-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-[10px] font-bold text-accent-foreground z-10">
+                  <span className="absolute top-0 right-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-accent px-0.5 text-xs font-bold text-accent-foreground z-10">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
                 <div className={`flex items-center justify-center rounded-full transition-all ${
                   active
                     ? 'h-12 w-12 bg-foreground text-white'
-                    : 'h-12 w-12 text-foreground/40'
+                    : 'h-12 w-12 text-foreground/55'
                 }`}>
-                  <Icon className="h-[24px] w-[24px]" strokeWidth={active ? 2 : 1.5} />
+                  <Icon className="h-[24px] w-[24px]" strokeWidth={active ? 2 : 1.75} />
                 </div>
-                <span className={`text-[10px] transition-all ${
-                  active ? 'font-semibold text-foreground' : 'text-foreground/40'
+                <span className={`text-xs transition-all ${
+                  active ? 'font-semibold text-foreground' : 'text-foreground/55'
                 }`}>{label}</span>
               </button>
             );
