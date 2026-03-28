@@ -1,6 +1,13 @@
 export const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'] as const;
 
-export const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała'] as const;
+export const COUNTRIES = ['US', 'Poland', 'Ukraine'] as const;
+export type Country = typeof COUNTRIES[number];
+
+export const CITIES_BY_COUNTRY: Record<Country, readonly string[]> = {
+  US: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'Austin', 'Jacksonville', 'San Jose', 'Fort Worth', 'Columbus', 'Charlotte', 'Indianapolis', 'San Francisco', 'Seattle', 'Denver', 'Nashville', 'Washington DC', 'Oklahoma City', 'Boston', 'Portland', 'Miami'],
+  Poland: ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała', 'Gdynia', 'Opole', 'Zielona Góra', 'Tychy', 'Gorzów Wielkopolski'],
+  Ukraine: ['Київ', 'Харків', 'Одеса', 'Дніпро', 'Донецьк', 'Запоріжжя', 'Львів', 'Кривий Ріг', 'Миколаїв', 'Маріуполь', 'Вінниця', 'Херсон', 'Полтава', 'Чернігів', 'Черкаси', 'Житомир', 'Суми', 'Рівне', 'Івано-Франківськ', 'Тернопіль', 'Луцьк', 'Хмельницький', 'Ужгород', 'Чернівці', 'Кропивницький'],
+};
 
 export const DAYS_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
 
@@ -12,6 +19,11 @@ export const SPORT_ICONS: Record<string, string> = {
 };
 
 import i18n from '@/i18n';
+
+/** Translate a country key for display. DB stores English key. */
+export function countryLabel(country: string): string {
+  return i18n.t(`countries.${country}`, { ns: 'common', defaultValue: country });
+}
 
 /** Translate a sport key for display. DB stores English key. */
 export function sportLabel(sport: string): string {

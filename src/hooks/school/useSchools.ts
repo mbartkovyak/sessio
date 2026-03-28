@@ -256,9 +256,9 @@ export function useUpdateSchool(schoolId: string) {
   });
 }
 
-export function useDiscoverableSchools(search?: string, sport?: string, city?: string) {
+export function useDiscoverableSchools(search?: string, sport?: string, city?: string, country?: string) {
   return useQuery({
-    queryKey: ['schools-discover', search, sport, city],
+    queryKey: ['schools-discover', search, sport, city, country],
     queryFn: async () => {
       let q = supabase
         .from('schools')
@@ -267,6 +267,7 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
       if (search) q = q.ilike('name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
       if (city) q = q.ilike('city', `%${city}%`);
+      if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
       if (error) throw error;
       return ((data ?? []) as DiscoverableSchoolRow[]).map(s => ({
@@ -277,9 +278,9 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
   });
 }
 
-export function useDiscoverableCoaches(search?: string, sport?: string, city?: string) {
+export function useDiscoverableCoaches(search?: string, sport?: string, city?: string, country?: string) {
   return useQuery({
-    queryKey: ['coaches-discover', search, sport, city],
+    queryKey: ['coaches-discover', search, sport, city, country],
     queryFn: async () => {
       let q = supabase
         .from('profiles')
@@ -289,6 +290,7 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
       if (search) q = q.ilike('full_name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
       if (city) q = q.ilike('city', `%${city}%`);
+      if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
       if (error) throw error;
       return (data ?? []) as DiscoverableCoach[];

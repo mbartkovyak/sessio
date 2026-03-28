@@ -109,10 +109,17 @@
     "sport": "Sport",
     "selectSport": "Wybierz sport",
     "addSport": "+ Dodaj sport",
+    "country": "Kraj",
+    "selectCountry": "Wybierz kraj",
     "city": "Miasto",
     "selectCity": "Wybierz miasto",
     "select": "Wybierz",
     "language": "Język"
+  },
+  "countries": {
+    "US": "Stany Zjednoczone",
+    "Poland": "Polska",
+    "Ukraine": "Ukraina"
   },
   "trainingType": {
     "group": "Grupowe",

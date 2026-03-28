@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
-import { CITIES, SPORTS, sportLabel } from '@/lib/constants';
+import { COUNTRIES, CITIES_BY_COUNTRY, SPORTS, sportLabel, countryLabel, type Country } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
@@ -25,6 +25,7 @@ export default function CoachProfileEditor() {
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastName, setLastName] = useState(profile?.last_name ?? '');
+  const [country, setCountry] = useState(profile?.country ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [sport, setSport] = useState(profile?.sport ?? '');
@@ -38,6 +39,7 @@ export default function CoachProfileEditor() {
     if (profile) {
       setFirstName(profile.first_name ?? '');
       setLastName(profile.last_name ?? '');
+      setCountry(profile.country ?? '');
       setCity(profile.city ?? '');
       setBio(profile.bio ?? '');
       setSport(profile.sport ?? '');
@@ -49,9 +51,13 @@ export default function CoachProfileEditor() {
   const isDirty = firstName !== (profile?.first_name ?? '')
     || lastName !== (profile?.last_name ?? '')
     || phone !== (profile?.phone ?? '')
+    || country !== (profile?.country ?? '')
     || city !== (profile?.city ?? '')
     || bio !== (profile?.bio ?? '')
     || sport !== (profile?.sport ?? '');
+  const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
+  function handleCountryChange(c: string) { setCountry(c); setCity(''); }
+  const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
   const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
@@ -59,7 +65,7 @@ export default function CoachProfileEditor() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, city, bio, sport, venues })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
@@ -120,7 +126,8 @@ export default function CoachProfileEditor() {
             </div>
             <PhoneInput value={phone} onChange={setPhone} />
             <LanguageSelector />
-            <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
+            <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
+            <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
             <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">

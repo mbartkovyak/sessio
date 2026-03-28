@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import AccountActions from '@/components/shared/AccountActions';
 import LanguageSelector from '@/components/shared/LanguageSelector';
+import SelectField from '@/components/shared/SelectField';
 import PhoneInput from '@/components/shared/PhoneInput';
+import { COUNTRIES, CITIES_BY_COUNTRY, countryLabel, type Country } from '@/lib/constants';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -21,18 +23,27 @@ export default function PlayerProfile() {
   const [firstName, setFirstName] = useState(profile?.first_name ?? '');
   const [lastName, setLastName] = useState(profile?.last_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [country, setCountry] = useState(profile?.country ?? '');
+  const [city, setCity] = useState(profile?.city ?? '');
 
   useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name ?? '');
       setLastName(profile.last_name ?? '');
       setPhone(profile.phone ?? '');
+      setCountry(profile.country ?? '');
+      setCity(profile.city ?? '');
     }
   }, [profile]);
 
   const isDirty = firstName !== (profile?.first_name ?? '')
     || lastName !== (profile?.last_name ?? '')
-    || phone !== (profile?.phone ?? '');
+    || phone !== (profile?.phone ?? '')
+    || country !== (profile?.country ?? '')
+    || city !== (profile?.city ?? '');
+  const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
+  function handleCountryChange(c: string) { setCountry(c); setCity(''); }
+  const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
   const blocker = useUnsavedChanges(isDirty);
 
   async function handleSave() {
@@ -40,7 +51,7 @@ export default function PlayerProfile() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country: country || null, city: city || null })
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
@@ -82,6 +93,8 @@ export default function PlayerProfile() {
           </div>
 
           <PhoneInput value={phone} onChange={setPhone} />
+          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
+          <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
           <LanguageSelector />
 
           <button

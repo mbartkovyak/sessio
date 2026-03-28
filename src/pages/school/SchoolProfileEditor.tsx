@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2, MapPin, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
-import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
+import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
@@ -31,6 +31,7 @@ export default function SchoolProfileEditor() {
   const qc = useQueryClient();
 
   const [name, setName] = useState('');
+  const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [sport, setSport] = useState('');
   const [description, setDescription] = useState('');
@@ -43,6 +44,7 @@ export default function SchoolProfileEditor() {
   useEffect(() => {
     if (school) {
       setName(school.name ?? '');
+      setCountry(school.country ?? '');
       setCity(school.city ?? '');
       setSport(school.sport ?? '');
       setDescription(school.description ?? '');
@@ -51,9 +53,13 @@ export default function SchoolProfileEditor() {
   }, [school]);
 
   const isDirty = name !== (school?.name ?? '')
+    || country !== (school?.country ?? '')
     || city !== (school?.city ?? '')
     || sport !== (school?.sport ?? '')
     || description !== (school?.description ?? '');
+  const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
+  function handleCountryChange(c: string) { setCountry(c); setCity(''); }
+  const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
   const blocker = useUnsavedChanges(isDirty);
 
   function addVenue() {
@@ -113,13 +119,14 @@ export default function SchoolProfileEditor() {
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.schoolName')}</label>
             <input className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={e => setName(e.target.value)} />
           </div>
-          <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={CITIES} placeholder={t('common:form.selectCity')} />
+          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
+          <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
           <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <button onClick={() => update.mutate({ name, city, sport, description, venues })} disabled={update.isPending}
+          <button onClick={() => update.mutate({ name, country, city, sport, description, venues })} disabled={update.isPending}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">
             {update.isPending ? t('profile.saving') : t('common:actions.save')}
           </button>

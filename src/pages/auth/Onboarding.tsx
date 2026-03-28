@@ -7,12 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import PageHeader from '@/components/shared/PageHeader';
 import { toast } from 'sonner';
-import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
+import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
-type Step = 'name' | 'train-or-coach' | 'coach-type' | 'coach-details' | 'school-details';
+type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coach-details' | 'school-details';
 
 export default function Onboarding() {
   const { user, refreshProfile, signOut } = useAuth();
@@ -25,6 +25,7 @@ export default function Onboarding() {
   const [coachType, setCoachType] = useState<'solo' | 'school' | 'join' | null>(null);
   const [sport, setSport] = useState('');
   const [schoolSports, setSchoolSports] = useState<string[]>([]);
+  const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -32,6 +33,10 @@ export default function Onboarding() {
   const [venueAddress, setVenueAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
+  function handleCountryChange(c: string) { setCountry(c); setCity(''); }
+  const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
 
   // Fresh training invite → skip role selection, they're an athlete
   // "Fresh" = set within the last 10 minutes (prevents stale sessionStorage from forcing athlete)
@@ -64,6 +69,7 @@ export default function Onboarding() {
   function goBack() {
     setError('');
     if (step === 'train-or-coach') setStep('name');
+    else if (step === 'athlete-details') setStep('train-or-coach');
     else if (step === 'coach-type') setStep('train-or-coach');
     else if (step === 'coach-details' || step === 'school-details') setStep('coach-type');
   }
@@ -76,7 +82,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', country: country || null, city: city || null, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -96,7 +102,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport, country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -117,7 +123,7 @@ export default function Onboarding() {
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: primarySport, country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -126,7 +132,7 @@ export default function Onboarding() {
         : [];
       const { data: newSchool, error: schoolError } = await supabase
         .from('schools')
-        .insert({ name: schoolName.trim(), sport: primarySport, city, owner_id: user.id, venues })
+        .insert({ name: schoolName.trim(), sport: primarySport, country, city, owner_id: user.id, venues })
         .select('id')
         .single();
       if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
@@ -161,7 +167,7 @@ export default function Onboarding() {
       // Look up school by invite code
       const { data: school, error: lookupError } = await supabase
         .from('schools')
-        .select('id, name, sport, city')
+        .select('id, name, sport, city, country')
         .eq('invite_code', code)
         .maybeSingle();
 
@@ -176,7 +182,7 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport, country: s.country, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -272,8 +278,7 @@ export default function Onboarding() {
               <p className="mb-6 text-muted-foreground">{t('auth:onboarding.roleSubtitle')}</p>
               <div className="space-y-3">
                 <button
-                  onClick={() => submitAthlete()}
-                  disabled={loading}
+                  onClick={() => setStep('athlete-details')}
                   className="w-full rounded-xl border-2 border-border bg-card p-5 text-left transition-all hover:border-primary/40 active:scale-[0.98]"
                 >
                   <div className="mb-1 text-2xl">🎾</div>
@@ -292,6 +297,49 @@ export default function Onboarding() {
                   <div className="flex justify-center py-2"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
                 )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Athlete Details ── */}
+          {step === 'athlete-details' && (
+            <div>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.coachingSetup')}</h1>
+              <p className="mb-6 text-muted-foreground"></p>
+              <div className="space-y-5">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.country')}</label>
+                  <div className="relative">
+                    <select value={country} onChange={e => handleCountryChange(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
+                      <option value="">{t('common:form.selectCountry')}</option>
+                      {COUNTRIES.map(c => <option key={c} value={c}>{countryLabels[c]}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                {country && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.city')}</label>
+                    <div className="relative">
+                      <select value={city} onChange={e => setCity(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
+                        <option value="">{t('common:form.selectCity')}</option>
+                        {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <button
+                  onClick={submitAthlete}
+                  disabled={!country || !city || loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {t('common:actions.getStarted')}
+                </button>
               </div>
             </div>
           )}
@@ -348,20 +396,33 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.city')}</label>
+                  <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.country')}</label>
                   <div className="relative">
-                    <select value={city} onChange={e => setCity(e.target.value)}
+                    <select value={country} onChange={e => handleCountryChange(e.target.value)}
                       className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
-                      <option value="">{t('common:form.selectCity')}</option>
-                      {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">{t('common:form.selectCountry')}</option>
+                      {COUNTRIES.map(c => <option key={c} value={c}>{countryLabels[c]}</option>)}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
+                {country && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.city')}</label>
+                    <div className="relative">
+                      <select value={city} onChange={e => setCity(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
+                        <option value="">{t('common:form.selectCity')}</option>
+                        {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={submitSoloCoach}
-                  disabled={!city || !sport || loading}
+                  disabled={!country || !city || !sport || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -446,16 +507,29 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.city')}</label>
+                  <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.country')}</label>
                   <div className="relative">
-                    <select value={city} onChange={e => setCity(e.target.value)}
+                    <select value={country} onChange={e => handleCountryChange(e.target.value)}
                       className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
-                      <option value="">{t('common:form.selectCity')}</option>
-                      {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">{t('common:form.selectCountry')}</option>
+                      {COUNTRIES.map(c => <option key={c} value={c}>{countryLabels[c]}</option>)}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
+                {country && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.city')}</label>
+                    <div className="relative">
+                      <select value={city} onChange={e => setCity(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-border bg-card px-4 py-3.5 pr-9 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]">
+                        <option value="">{t('common:form.selectCity')}</option>
+                        {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.mainVenue')}</label>
                   <div className="space-y-2">
@@ -479,7 +553,7 @@ export default function Onboarding() {
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={submitSchoolOwner}
-                  disabled={!city || !schoolName.trim() || schoolSports.length === 0 || loading}
+                  disabled={!country || !city || !schoolName.trim() || schoolSports.length === 0 || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
