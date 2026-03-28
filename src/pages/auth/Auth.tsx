@@ -100,7 +100,7 @@ export default function Auth() {
                 <button
                   onClick={handleGoogle}
                   disabled={googleLoading}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-60 min-h-[44px]"
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 py-3.5 font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-60 min-h-[44px]"
                 >
                   {googleLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -130,7 +130,7 @@ export default function Auth() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     autoFocus
-                    className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    className="w-full rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 py-3.5 text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                   />
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   <button
@@ -175,7 +175,7 @@ export default function Auth() {
                   onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   required
                   autoFocus
-                  className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-white placeholder:text-white/30 placeholder:tracking-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
+                  className="w-full rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-white placeholder:text-white/30 placeholder:tracking-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
                 />
                 {error && <p className="text-sm text-destructive text-center">{error}</p>}
                 <button
