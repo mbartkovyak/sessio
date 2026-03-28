@@ -23,21 +23,17 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
   }
 
   if (compact) {
+    const nextLang = SUPPORTED_LANGS[(SUPPORTED_LANGS.indexOf(i18n.language) + 1) % SUPPORTED_LANGS.length];
     return (
-      <div className="relative">
-        <select
-          value={i18n.language}
-          onChange={e => handleChange(e.target.value)}
-          className="auth-glass-input appearance-none rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 text-white text-sm pl-3 pr-7 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30"
-        >
-          {SUPPORTED_LANGS.map(lang => (
-            <option key={lang} value={lang} className="text-foreground bg-background">
-              {LANG_META[lang]?.flag} {LANG_META[lang]?.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/60" />
-      </div>
+      <button
+        type="button"
+        onClick={() => handleChange(nextLang)}
+        className="flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-sm text-white"
+        style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
+      >
+        <span>{LANG_META[i18n.language]?.flag}</span>
+        <span>{LANG_META[i18n.language]?.label}</span>
+      </button>
     );
   }
 

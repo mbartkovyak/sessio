@@ -142,7 +142,8 @@ export default function Auth() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     autoFocus
-                    className="auth-glass-input w-full rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 py-3.5 text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    className="w-full rounded-xl border border-white/20 px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.35)', color: 'white', WebkitTextFillColor: 'white', WebkitAppearance: 'none' }}
                   />
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   <button
