@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, MapPin, X, RotateCcw } from 'lucide-react';
+import { AlertTriangle, MapPin, X, RotateCcw, MessageCircle } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
@@ -42,11 +43,7 @@ export default function PlayerCalendar() {
   );
 }
 
-function CalendarSessionItem({ attendance }: {
-  attendance: any;
-  isExpanded?: boolean;
-  onToggle?: () => void;
-}) {
+function CalendarSessionItem({ attendance }: { attendance: any }) {
   const { t } = useTranslation('player');
   const session = attendance.training_sessions;
   const training = session?.trainings;
@@ -88,27 +85,29 @@ function CalendarSessionItem({ attendance }: {
             {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
           </span>
         </div>
-        {/* Cancel / rejoin button — inline like coach sessions */}
-        {isDeclined ? (
-          <button
-            onClick={() => handleChange('confirmed')}
-            disabled={upsert.isPending}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
-            title={t('calendar.changedMind')}
-          >
-            <RotateCcw className="h-3.5 w-3.5 text-success" />
-          </button>
-        ) : isNoShow ? (
-          <span className="text-xs font-medium text-destructive shrink-0">{t('calendar.noShow')}</span>
-        ) : (
-          <button
-            onClick={handleCancelClick}
-            disabled={upsert.isPending}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors shrink-0 disabled:opacity-50"
-            title={t('calendar.cantMakeItAnymore')}
-          >
-            <X className="h-3.5 w-3.5 text-destructive" />
-          </button>
+        {/* Cancel / rejoin button — hidden when late cancel warning is showing */}
+        {!showCancelWarning && (
+          isDeclined ? (
+            <button
+              onClick={() => handleChange('confirmed')}
+              disabled={upsert.isPending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
+              title={t('calendar.changedMind')}
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-success" />
+            </button>
+          ) : isNoShow ? (
+            <span className="text-xs font-medium text-destructive shrink-0">{t('calendar.noShow')}</span>
+          ) : (
+            <button
+              onClick={handleCancelClick}
+              disabled={upsert.isPending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors shrink-0 disabled:opacity-50"
+              title={t('calendar.cantMakeItAnymore')}
+            >
+              <X className="h-3.5 w-3.5 text-destructive" />
+            </button>
+          )
         )}
       </div>
       {training?.venue && (
