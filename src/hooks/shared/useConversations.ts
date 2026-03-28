@@ -41,7 +41,8 @@ function getManualUnread(): string[] {
 export function markConversationSeen(conversationId: string, qc?: QueryClient, userId?: string) {
   // Clear manual unread
   const manual = getManualUnread();
-  if (manual.includes(conversationId)) {
+  const wasManuallyUnread = manual.includes(conversationId);
+  if (wasManuallyUnread) {
     localStorage.setItem(MANUAL_UNREAD_KEY, JSON.stringify(manual.filter(id => id !== conversationId)));
   }
 
@@ -56,9 +57,11 @@ export function markConversationSeen(conversationId: string, qc?: QueryClient, u
       );
     }
 
-    if (oldUnread > 0) {
+    // Subtract both real unreads and manual unread from badge
+    const badgeDelta = oldUnread + (wasManuallyUnread ? 1 : 0);
+    if (badgeDelta > 0) {
       qc.setQueryData<number>(['unread-total', userId], old =>
-        Math.max(0, (old ?? 0) - oldUnread)
+        Math.max(0, (old ?? 0) - badgeDelta)
       );
     }
   }
