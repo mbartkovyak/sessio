@@ -105,7 +105,7 @@ export default function Auth() {
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-      <PageHeader className="px-6 py-4">
+      <PageHeader inline className="px-6 py-4">
         <div className="max-w-md mx-auto flex items-center justify-between text-white">
           <SessioLogoCompact />
           <LanguageSelector compact />
