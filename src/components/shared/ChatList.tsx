@@ -114,7 +114,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                 onClick={e => e.stopPropagation()}
               >
                 <button
-                  onClick={() => { markAsUnread(conv.id); qc.invalidateQueries({ queryKey: ['unread-total'] }); setMenuOpen(null); }}
+                  onClick={() => { markAsUnread(conv.id); qc.setQueryData(['unread-total', user?.id], (old: number | undefined) => (old ?? 0) + 1); setMenuOpen(null); }}
                   className="w-full px-4 py-2.5 text-sm text-left text-foreground hover:bg-secondary transition-colors"
                 >
                   {t('chat.markAsUnread')}
