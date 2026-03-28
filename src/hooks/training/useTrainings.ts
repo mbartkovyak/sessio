@@ -26,7 +26,7 @@ type SessionAttendanceWithProfile = Tables<'session_attendance'> & {
   profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null;
 };
 
-type TrainingBasic = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'confirmation_window_hours'> & { coach: CoachProfile | null };
+type TrainingBasic = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'max_players' | 'confirmation_window_hours'> & { coach: CoachProfile | null };
 type SessionAttendanceWithSession = Tables<'session_attendance'> & {
   training_sessions: (Tables<'training_sessions'> & { trainings: TrainingBasic | null }) | null;
 };
@@ -234,7 +234,7 @@ export function useMyUpcomingSessions() {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('session_attendance')
-        .select('*, training_sessions(*, trainings(id, name, sport, venue, confirmation_window_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
+        .select('*, training_sessions(*, trainings(id, name, sport, venue, max_players, confirmation_window_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
         .eq('user_id', user!.id);
       if (error) throw error;
       return (data ?? [])
@@ -253,6 +253,26 @@ export function useUpsertAttendance() {
       status: string;
       notify?: { coachId: string; trainingName: string; trainingId: string };
     }) => {
+      // Check capacity before re-confirming (rejoin after cancel)
+      if (status === 'confirmed') {
+        const { data: sess } = await supabase
+          .from('training_sessions')
+          .select('id, trainings(max_players)')
+          .eq('id', sessionId)
+          .single();
+        const maxPlayers = (sess?.trainings as any)?.max_players;
+        if (maxPlayers) {
+          const { count } = await supabase
+            .from('session_attendance')
+            .select('*', { count: 'exact', head: true })
+            .eq('session_id', sessionId)
+            .eq('status', 'confirmed');
+          if ((count ?? 0) >= maxPlayers) {
+            throw new Error(i18n.t('join.trainingFull', { ns: 'common' }));
+          }
+        }
+      }
+
       const update: any = { session_id: sessionId, user_id: user!.id, status };
       if (status === 'confirmed') update.confirmed_at = new Date().toISOString();
       if (status === 'declined') update.declined_at = new Date().toISOString();
