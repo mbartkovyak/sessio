@@ -32,7 +32,6 @@ export default function PlayerChat() {
         title={training?.name ?? t('chat.chatTitle')}
         subtitle={training?.sport ? `${sportLabel(training.sport)} · ${t('chat.group')}` : undefined}
         back
-        inline
       />
       {id && <ChatView trainingId={id} className="flex-1 min-h-0" />}
     </div>

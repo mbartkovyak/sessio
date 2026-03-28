@@ -21,6 +21,7 @@ import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
+import PageHeader from '@/components/shared/PageHeader';
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -104,7 +105,7 @@ export default function TrainingDetail() {
 
   return (
     <div className={`flex flex-col bg-background ${activeTab === 'chat' && !showEdit ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
-      <header className="sticky top-0 z-10 header-gradient">
+      <PageHeader>
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0"><ArrowLeft className="h-5 w-5" /></button>
           <div className="flex-1 min-w-0">
@@ -135,7 +136,7 @@ export default function TrainingDetail() {
             </button>
           </div>
         )}
-      </header>
+      </PageHeader>
 
       {activeTab === 'chat' && !showEdit ? (
         <>

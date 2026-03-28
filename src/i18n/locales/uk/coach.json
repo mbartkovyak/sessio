@@ -24,6 +24,8 @@
   "profile": {
     "title": "Профіль",
     "fullName": "Ім'я та прізвище",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
     "bio": "Про вас",
     "saving": "Збереження...",
     "profileUpdated": "Профіль оновлено",

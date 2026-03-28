@@ -14,6 +14,7 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
+import AppHeader from '@/components/shared/AppHeader';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -57,7 +58,7 @@ export default function JoinTraining() {
       });
   }, [inviteCode, session, i18n]);
 
-  // Auto-join once auth resolves
+  // Redirect non-players and non-onboarded users
   useEffect(() => {
     if (!session || !profile || !training) return;
     if (loading) return;
@@ -71,10 +72,9 @@ export default function JoinTraining() {
       navigate('/coach');
       return;
     }
-    autoJoin();
   }, [loading, session, profile, training]);
 
-  async function autoJoin() {
+  async function handleJoin() {
     if (!training || !profile) return;
     if (joiningRef.current) return;
     joiningRef.current = true;
@@ -259,19 +259,28 @@ export default function JoinTraining() {
   const coach = training.coach;
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
 
-  const TrainingCard = () => (
+  const timeRange = [training.start_time?.slice(0, 5), training.end_time?.slice(0, 5)].filter(Boolean).join(' – ');
+
+  const TrainingDetails = () => (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center gap-3">
         <span className="text-4xl">{sportIcon}</span>
         <div>
           <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
-          <p className="text-sm text-muted-foreground">{sportLabel(training.sport)}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-sm text-muted-foreground">{sportLabel(training.sport)}</span>
+            {training.type && (
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                training.type === 'individual' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'
+              }`}>{t(`common:trainingType.${training.type}`)}</span>
+            )}
+          </div>
         </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-foreground">
           <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {(training.start_time ?? '').slice(0, 5)}</span>
+          <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {timeRange}</span>
         </div>
         {(training.venue || training.location) && (
           <div className="text-sm">
@@ -288,21 +297,31 @@ export default function JoinTraining() {
     </div>
   );
 
-  // Logged-in view
-  if (session && profile?.onboarding_complete) {
+  // Logged-in view — training detail page with explicit join button
+  if (session && profile?.onboarding_complete && profile?.role === 'player') {
+    const isApproval = training.booking_mode === 'approval';
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-          <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
-        </header>
-        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full">
-          <TrainingCard />
+        <AppHeader title={training.name} back />
+        <main className="flex-1 px-4 py-6 max-w-sm mx-auto w-full space-y-4">
+          <TrainingDetails />
+
+          {coach?.full_name && (
+            <div className="flex items-center gap-3 px-1">
+              <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">{coach.full_name}</p>
+                {training.sport && <p className="text-xs text-muted-foreground">{sportLabel(training.sport)}</p>}
+              </div>
+            </div>
+          )}
+
           <button
-            onClick={autoJoin}
+            onClick={handleJoin}
             disabled={joining}
-            className="mt-6 w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? t('join.joining') : t('join.joinName', { name: training.name })}
+            {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.joinName', { name: training.name })}
           </button>
         </main>
       </div>
@@ -328,7 +347,7 @@ export default function JoinTraining() {
           <p className="text-center text-sm text-muted-foreground">{t('join.beenInvitedToJoin')}</p>
         )}
 
-        <TrainingCard />
+        <TrainingDetails />
 
         <p className="text-center text-sm text-muted-foreground">{t('join.joinIn30Seconds')}</p>
 

@@ -88,7 +88,7 @@ export default function PlayerSearch() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                           <Building2 className="h-2.5 w-2.5" />{t('search.school')}
                         </span>
                       </div>
@@ -118,7 +118,7 @@ export default function PlayerSearch() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.full_name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">
+                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">
                           <UserCheck className="h-2.5 w-2.5" />{t('search.coach')}
                         </span>
                       </div>

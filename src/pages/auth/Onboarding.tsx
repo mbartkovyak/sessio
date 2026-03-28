@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SessioLogo } from '@/components/SessioLogo';
+import { SessioLogoCompact } from '@/components/SessioLogo';
+import PageHeader from '@/components/shared/PageHeader';
 import { toast } from 'sonner';
 import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
@@ -21,7 +22,6 @@ export default function Onboarding() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   const [coachType, setCoachType] = useState<'solo' | 'school' | 'join' | null>(null);
   const [sport, setSport] = useState('');
   const [schoolSports, setSchoolSports] = useState<string[]>([]);
@@ -76,7 +76,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone, role: 'player', onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -96,7 +96,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -117,7 +117,7 @@ export default function Onboarding() {
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: primarySport, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -176,7 +176,7 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -203,21 +203,23 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center px-6 py-5 gap-3" style={{ paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))' }}>
-        {showBack && (
-          <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary -ml-2">
-            <ArrowLeft className="h-5 w-5" />
+      <PageHeader className="px-6 py-4">
+        <div className="max-w-md mx-auto flex items-center gap-3 text-white">
+          {showBack && (
+            <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
+          <SessioLogoCompact />
+          <div className="flex-1" />
+          <button
+            onClick={async () => { await signOut(); navigate('/auth'); }}
+            className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white"
+          >
+            <LogOut className="h-3.5 w-3.5" /> {t('auth:onboarding.signOut')}
           </button>
-        )}
-        <SessioLogo size={28} />
-        <div className="flex-1" />
-        <button
-          onClick={async () => { await signOut(); navigate('/auth'); }}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="h-3.5 w-3.5" /> {t('auth:onboarding.signOut')}
-        </button>
-      </div>
+        </div>
+      </PageHeader>
 
       <div className="flex flex-1 items-center justify-center px-4 pb-12">
         <div className="w-full max-w-sm">
@@ -228,21 +230,27 @@ export default function Onboarding() {
               <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.nameTitle')}</h1>
               <p className="mb-6 text-muted-foreground">{t('auth:onboarding.nameSubtitle')}</p>
               <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder={t('auth:onboarding.firstName')}
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                  autoFocus
-                  className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                />
-                <input
-                  type="text"
-                  placeholder={t('auth:onboarding.lastName')}
-                  value={lastName}
-                  onChange={e => setLastName(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                />
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">{t('auth:onboarding.firstName')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('auth:onboarding.firstName')}
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    autoFocus
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">{t('auth:onboarding.lastName')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('auth:onboarding.lastName')}
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                  />
+                </div>
                 <PhoneInput value={phone} onChange={setPhone} required />
                 <button
                   onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}

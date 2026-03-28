@@ -31,7 +31,6 @@ export default function PlayerDirectChat() {
       <AppHeader
         title={otherProfile?.full_name ?? t('chat.chatTitle')}
         back
-        inline
         right={<Avatar url={otherProfile?.avatar_url} name={otherProfile?.full_name} size="sm" />}
       />
       <ChatView otherUserId={userId} className="flex-1 min-h-0" />

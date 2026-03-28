@@ -23,7 +23,8 @@ export default function CoachProfileEditor() {
   const { profile, user, refreshProfile } = useAuth();
   const { t } = useTranslation('coach');
   const [saving, setSaving] = useState(false);
-  const [name, setName] = useState(profile?.full_name ?? '');
+  const [firstName, setFirstName] = useState(profile?.first_name ?? '');
+  const [lastName, setLastName] = useState(profile?.last_name ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [sport, setSport] = useState(profile?.sport ?? '');
@@ -35,7 +36,8 @@ export default function CoachProfileEditor() {
   // Sync form state when profile updates (e.g. after save + refreshProfile)
   useEffect(() => {
     if (profile) {
-      setName(profile.full_name ?? '');
+      setFirstName(profile.first_name ?? '');
+      setLastName(profile.last_name ?? '');
       setCity(profile.city ?? '');
       setBio(profile.bio ?? '');
       setSport(profile.sport ?? '');
@@ -44,7 +46,8 @@ export default function CoachProfileEditor() {
     }
   }, [profile]);
 
-  const isDirty = name !== (profile?.full_name ?? '')
+  const isDirty = firstName !== (profile?.first_name ?? '')
+    || lastName !== (profile?.last_name ?? '')
     || phone !== (profile?.phone ?? '')
     || city !== (profile?.city ?? '')
     || bio !== (profile?.bio ?? '')
@@ -56,7 +59,7 @@ export default function CoachProfileEditor() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: name, phone: phone || null, city, bio, sport, venues })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, city, bio, sport, venues })
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
@@ -99,11 +102,20 @@ export default function CoachProfileEditor() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
-                <User className="h-3.5 w-3.5" /> {t('profile.fullName')}
+                <User className="h-3.5 w-3.5" /> {t('profile.firstName')}
               </label>
               <input
                 className="w-full rounded-xl border border-input px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                value={name} onChange={e => setName(e.target.value)}
+                value={firstName} onChange={e => setFirstName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
+                <User className="h-3.5 w-3.5" /> {t('profile.lastName')}
+              </label>
+              <input
+                className="w-full rounded-xl border border-input px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={lastName} onChange={e => setLastName(e.target.value)}
               />
             </div>
             <PhoneInput value={phone} onChange={setPhone} />

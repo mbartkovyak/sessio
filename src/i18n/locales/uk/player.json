@@ -20,6 +20,8 @@
     "title": "Профіль",
     "athlete": "Учасник",
     "fullName": "Ім'я та прізвище",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
     "saving": "Збереження...",
     "profileUpdated": "Профіль оновлено"
   },

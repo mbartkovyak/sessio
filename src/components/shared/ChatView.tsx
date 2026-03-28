@@ -127,7 +127,7 @@ function ReactionsDisplay({ reactions, userId, messageId }: { reactions: any[]; 
         <button
           key={emoji}
           onClick={() => toggle.mutate({ messageId, emoji, userId })}
-          className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-[1px] text-[11px] transition-colors ${
+          className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-[1px] text-xs transition-colors ${
             mine
               ? 'bg-primary/15 border border-primary/30'
               : 'bg-secondary/80 border border-transparent'
@@ -313,7 +313,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
               {grouped.map(group => (
                 <div key={group.date}>
                   <div className="flex justify-center py-2 sticky top-0 z-[1]">
-                    <span className="rounded-full bg-foreground/[0.06] backdrop-blur-sm px-3 py-[3px] text-[11px] font-medium text-muted-foreground">
+                    <span className="rounded-full bg-foreground/[0.06] backdrop-blur-sm px-3 py-[3px] text-xs font-medium text-muted-foreground">
                       {formatDateLabel(group.date)}
                     </span>
                   </div>
@@ -348,7 +348,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                     return (
                       <div key={msg.id} className={samePrev ? 'mt-[2px]' : 'mt-3'}>
                         {showName && (
-                          <p className="text-[11px] font-semibold text-primary/70 mb-[2px]" style={{ marginLeft: 35 }}>
+                          <p className="text-xs font-semibold text-primary/70 mb-[2px]" style={{ marginLeft: 35 }}>
                             {sender?.full_name ?? i18n.t('chat.member')}
                           </p>
                         )}
@@ -384,7 +384,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                             >
                               {msg.content}
                               {showTime && msg.content.length < 30 && (
-                                <span className={`inline-block ml-2 align-bottom text-[10px] leading-none translate-y-[1px] ${
+                                <span className={`inline-block ml-2 align-bottom text-xs leading-none translate-y-[1px] ${
                                   isMe ? 'text-primary-foreground/50' : 'text-muted-foreground/50'
                                 }`}>
                                   {formatTime(msg.created_at)}
@@ -394,7 +394,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                             </div>
 
                             {showTime && msg.content.length >= 30 && (
-                              <p className={`text-[10px] text-muted-foreground/50 mt-[2px] px-1 ${isMe ? 'text-right' : 'text-left'}`}>
+                              <p className={`text-xs text-muted-foreground/50 mt-[2px] px-1 ${isMe ? 'text-right' : 'text-left'}`}>
                                 {formatTime(msg.created_at)}
                                 {isMe && !msg._optimistic && ' ✓'}
                               </p>
@@ -452,6 +452,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           }}
         >
           <button
+            tabIndex={-1}
             onClick={() => setShowEmojis(prev => !prev)}
             className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors shrink-0 ${
               showEmojis ? 'text-foreground' : 'text-foreground/40'
@@ -462,6 +463,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           <textarea
             ref={textareaRef}
             data-transparent
+            enterKeyHint="send"
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
@@ -477,6 +479,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
             className="flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-snug focus:outline-none overflow-hidden min-h-[36px]"
           />
           <button
+            tabIndex={-1}
             onClick={handleSend}
             disabled={!text.trim() || isSending}
             className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 active:scale-90 ${

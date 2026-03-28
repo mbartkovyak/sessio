@@ -65,31 +65,33 @@ function SessionRow({ attendance }: { attendance: any }) {
           {training?.venue && <VenueLink venue={training.venue} className="text-xs text-muted-foreground" />}
         </div>
 
-        {/* Segmented control — Google Calendar style */}
-        <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
-          <button
-            onClick={isGoing ? undefined : () => switchTo('confirmed')}
-            disabled={upsert.isPending || isGoing}
-            className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-              isGoing
-                ? 'bg-success/15 text-success'
-                : 'text-muted-foreground hover:bg-muted/50'
-            } disabled:opacity-100`}
-          >
-            {t('thisWeek.going')}
-          </button>
-          <button
-            onClick={isGoing ? handleNotGoing : undefined}
-            disabled={upsert.isPending || !isGoing}
-            className={`px-3 py-1.5 text-xs font-semibold border-l border-border transition-colors ${
-              !isGoing
-                ? 'bg-muted text-muted-foreground'
-                : 'text-muted-foreground hover:bg-destructive/5 hover:text-destructive'
-            } disabled:opacity-100`}
-          >
-            {t('thisWeek.notGoing')}
-          </button>
-        </div>
+        {/* Segmented control — hidden when late cancel warning is showing */}
+        {!showWarning && (
+          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+            <button
+              onClick={isGoing ? undefined : () => switchTo('confirmed')}
+              disabled={upsert.isPending || isGoing}
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                isGoing
+                  ? 'bg-success/15 text-success'
+                  : 'text-muted-foreground hover:bg-muted/50'
+              } disabled:opacity-100`}
+            >
+              {t('thisWeek.going')}
+            </button>
+            <button
+              onClick={isGoing ? handleNotGoing : undefined}
+              disabled={upsert.isPending || !isGoing}
+              className={`px-3 py-1.5 text-xs font-semibold border-l border-border transition-colors ${
+                !isGoing
+                  ? 'bg-muted text-muted-foreground'
+                  : 'text-muted-foreground hover:bg-destructive/5 hover:text-destructive'
+              } disabled:opacity-100`}
+            >
+              {t('thisWeek.notGoing')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Late cancellation warning — inline */}
