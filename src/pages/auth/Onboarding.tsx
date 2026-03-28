@@ -96,7 +96,7 @@ export default function Onboarding() {
   // ── Submit: Solo Coach ──
   async function submitSoloCoach() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
-    if (!city || !sport) return;
+    if (!country || !city || !sport) return;
     setLoading(true);
     setError('');
     try {
@@ -116,7 +116,7 @@ export default function Onboarding() {
   // ── Submit: Open School ──
   async function submitSchoolOwner() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
-    if (!city || !schoolName.trim() || schoolSports.length === 0) return;
+    if (!country || !city || !schoolName.trim() || schoolSports.length === 0) return;
     setLoading(true);
     setError('');
     const primarySport = schoolSports[0];
