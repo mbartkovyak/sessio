@@ -7,27 +7,6 @@
   top: 55px !important;
 }
 
-/* Force autofill text color on auth page */
-input:-webkit-autofill {
-  -webkit-text-fill-color: inherit !important;
-  transition: background-color 9999s ease-in-out 0s;
-}
-
-/* iOS overrides input/select styling — force dark glass look on auth */
-.auth-glass-input {
-  -webkit-appearance: none;
-  -webkit-text-fill-color: white !important;
-  background-color: rgba(0, 0, 0, 0.35) !important;
-  color: white !important;
-}
-.auth-glass-input::placeholder {
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.4) !important;
-}
-.auth-glass-input option {
-  background-color: #1a1a1a;
-  color: white;
-}
-
 /* Prevent iOS from zooming into inputs with font-size < 16px */
 @supports (-webkit-touch-callout: none) {
   input, textarea, select { font-size: 16px !important; }
