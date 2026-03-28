@@ -32,8 +32,8 @@ export default function Auth() {
     });
     if (error) {
       setError(localizeErrorMessage(error, t('auth.googleFailed')));
-      setGoogleLoading(false);
     }
+    setGoogleLoading(false);
   }
 
   async function handleSendCode(e: React.FormEvent) {
