@@ -31,6 +31,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [bgLoaded, setBgLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/auth-bg.jpg';
+    img.onload = () => setBgLoaded(true);
+  }, []);
 
   async function handleGoogle() {
     setGoogleLoading(true);
@@ -79,6 +86,14 @@ export default function Auth() {
     } else {
       navigate('/auth/callback');
     }
+  }
+
+  if (!bgLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+      </div>
+    );
   }
 
   return (
