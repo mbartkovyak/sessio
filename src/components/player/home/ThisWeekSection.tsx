@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X, RotateCcw } from 'lucide-react';
 import { useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -32,7 +32,7 @@ function SessionRow({ attendance }: { attendance: any }) {
   const [showWarning, setShowWarning] = useState(false);
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
 
-  const isGoing = attendance.status === 'confirmed';
+  const isDeclined = attendance.status === 'declined';
   const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
@@ -47,7 +47,7 @@ function SessionRow({ attendance }: { attendance: any }) {
     setShowWarning(false);
   }
 
-  function handleNotGoing() {
+  function handleCancel() {
     if (isLateCancel) {
       setShowWarning(true);
     } else {
@@ -60,37 +60,32 @@ function SessionRow({ attendance }: { attendance: any }) {
       <div className="flex items-center gap-3">
         <span className="text-lg shrink-0">{sportIcon}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{training?.name}</p>
+          <p className={`text-sm font-semibold truncate ${isDeclined ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
           <p className="text-xs text-muted-foreground">{relativeTime(session?.session_date, session?.start_time)}</p>
           {training?.venue && <VenueLink venue={training.venue} className="text-xs text-muted-foreground" />}
         </div>
 
-        {/* Segmented control — hidden when late cancel warning is showing */}
+        {/* Cancel or rejoin — direct button like coach sessions */}
         {!showWarning && (
-          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+          isDeclined ? (
             <button
-              onClick={isGoing ? undefined : () => switchTo('confirmed')}
-              disabled={upsert.isPending || isGoing}
-              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                isGoing
-                  ? 'bg-success/15 text-success'
-                  : 'text-muted-foreground hover:bg-muted/50'
-              } disabled:opacity-100`}
+              onClick={() => switchTo('confirmed')}
+              disabled={upsert.isPending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
+              title={t('thisWeek.backIn')}
             >
-              {t('thisWeek.going')}
+              <RotateCcw className="h-3.5 w-3.5 text-success" />
             </button>
+          ) : (
             <button
-              onClick={isGoing ? handleNotGoing : undefined}
-              disabled={upsert.isPending || !isGoing}
-              className={`px-3 py-1.5 text-xs font-semibold border-l border-border transition-colors ${
-                !isGoing
-                  ? 'bg-muted text-muted-foreground'
-                  : 'text-muted-foreground hover:bg-destructive/5 hover:text-destructive'
-              } disabled:opacity-100`}
+              onClick={handleCancel}
+              disabled={upsert.isPending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors shrink-0 disabled:opacity-50"
+              title={t('thisWeek.notGoing')}
             >
-              {t('thisWeek.notGoing')}
+              <X className="h-3.5 w-3.5 text-destructive" />
             </button>
-          </div>
+          )
         )}
       </div>
 

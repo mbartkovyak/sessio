@@ -23,6 +23,7 @@
     "title": "Search",
     "placeholder": "Search coaches and schools",
     "allSports": "All sports",
+    "allCountries": "All countries",
     "allCities": "All cities",
     "noResults": "No results found",
     "noResultsDesc": "Try different filters or a different search",
@@ -84,7 +85,6 @@
   },
   "thisWeek": {
     "title": "This week",
-    "going": "Going",
     "notGoing": "Not going",
     "backIn": "You're back in",
     "spotReleased": "Spot released",

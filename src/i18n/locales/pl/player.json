@@ -23,6 +23,7 @@
     "title": "Szukaj",
     "placeholder": "Szukaj trenerów i szkół",
     "allSports": "Wszystkie sporty",
+    "allCountries": "Wszystkie kraje",
     "allCities": "Wszystkie miasta",
     "noResults": "Brak wyników",
     "noResultsDesc": "Spróbuj zmienić wyszukiwanie albo filtry",
@@ -84,7 +85,6 @@
   },
   "thisWeek": {
     "title": "Ten tydzień",
-    "going": "Będę",
     "notGoing": "Nie będę",
     "backIn": "Znowu masz miejsce",
     "spotReleased": "Miejsce zwolnione",
