@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, MoreVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 import { SPORT_ICONS } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
@@ -19,6 +20,7 @@ interface Props {
 export default function ChatList({ conversations, isLoading, getChatPath, emptyText }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { user } = useAuth();
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
@@ -61,9 +63,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
           <div key={conv.id} className="relative flex items-center">
             <button
               onClick={() => {
-                markConversationSeen(conv.id);
-                qc.invalidateQueries({ queryKey: ['unread-total'] });
-                qc.invalidateQueries({ queryKey: ['my-conversations'] });
+                markConversationSeen(conv.id, qc, user?.id);
                 navigate(getChatPath(conv));
               }}
               className="flex flex-1 min-w-0 items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"

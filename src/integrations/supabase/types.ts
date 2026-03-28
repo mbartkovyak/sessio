@@ -1050,6 +1050,27 @@ export type Database = {
         Args: { p_training_id: string }
         Returns: Json
       }
+      get_my_conversations: {
+        Args: Record<string, never>
+        Returns: {
+          conversation_id: string
+          training_id: string | null
+          training_name: string | null
+          training_sport: string | null
+          dm_user_id: string | null
+          dm_user_name: string | null
+          dm_avatar_url: string | null
+          hidden: boolean
+          last_message_content: string | null
+          last_message_sender_name: string | null
+          last_message_at: string | null
+          unread_count: number
+        }[]
+      }
+      get_my_unread_count: {
+        Args: Record<string, never>
+        Returns: number
+      }
       handle_no_response_deadline: { Args: never; Returns: Json }
       is_group_member: {
         Args: { _group_id: string; _player_id: string }

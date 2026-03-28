@@ -206,11 +206,9 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
   useEffect(() => {
     if (conversationId) {
-      markConversationSeen(conversationId);
-      qc.invalidateQueries({ queryKey: ['unread-total'] });
-      qc.invalidateQueries({ queryKey: ['my-conversations'] });
+      markConversationSeen(conversationId, qc, user?.id);
     }
-  }, [conversationId, qc]);
+  }, [conversationId, qc, user?.id]);
 
   async function handleSend() {
     if (!text.trim() || !user || isSending) return;
