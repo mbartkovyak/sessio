@@ -13,7 +13,11 @@ export default function Landing() {
 
   useEffect(() => {
     if (loading) return;
-    if (!profile) return;
+    if (!profile) {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      if (isStandalone) navigate('/auth', { replace: true });
+      return;
+    }
     if (!profile.onboarding_complete) {
       navigate('/onboarding', { replace: true });
     } else {
