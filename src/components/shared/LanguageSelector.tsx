@@ -28,7 +28,7 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
         <select
           value={i18n.language}
           onChange={e => handleChange(e.target.value)}
-          className="appearance-none rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 text-white text-sm pl-3 pr-7 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30"
+          className="auth-glass-input appearance-none rounded-lg bg-black/30 backdrop-blur-sm border border-white/20 text-white text-sm pl-3 pr-7 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30"
         >
           {SUPPORTED_LANGS.map(lang => (
             <option key={lang} value={lang} className="text-foreground bg-background">
