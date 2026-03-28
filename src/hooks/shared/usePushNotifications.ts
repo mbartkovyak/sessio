@@ -35,7 +35,7 @@ export function usePushNotifications() {
     }
   }, []);
 
-  const subscribe = useCallback(async (): Promise<true | string> => {
+  const subscribe = useCallback(async (retry = true): Promise<true | string> => {
     if (!user) return i18n.t('errors.notSignedIn', { ns: 'common' });
     if (!supported) return i18n.t('notifications.unsupported', { ns: 'common' });
 
@@ -71,6 +71,11 @@ export function usePushNotifications() {
       setSubscribed(true);
       return true;
     } catch (err: any) {
+      // SW may have been evicted (common on iOS). Wait for re-registration and retry once.
+      if (retry && String(err).toLowerCase().includes('service worker')) {
+        await new Promise(r => setTimeout(r, 2500));
+        return subscribe(false);
+      }
       return localizeErrorMessage(err, i18n.t('notifications.failed', { ns: 'common' }));
     }
   }, [user, supported]);
