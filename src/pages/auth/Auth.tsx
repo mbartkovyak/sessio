@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
@@ -7,12 +7,24 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import PageHeader from '@/components/shared/PageHeader';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Step = 'email' | 'code';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
+  const { profile, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!profile) return;
+    if (!profile.onboarding_complete) {
+      navigate('/onboarding', { replace: true });
+    } else {
+      navigate(profile.role === 'player' ? '/player' : '/coach', { replace: true });
+    }
+  }, [authLoading, profile, navigate]);
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
