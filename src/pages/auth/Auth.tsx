@@ -70,7 +70,14 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="relative flex min-h-screen flex-col">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: 'url(/auth-bg.jpg)' }}
+      />
+      <div className="absolute inset-0 bg-black/40" />
+
+      <div className="relative z-10 flex min-h-screen flex-col">
       <PageHeader className="px-6 py-4">
         <div className="max-w-md mx-auto flex items-center justify-between text-white">
           <SessioLogoCompact />
@@ -84,8 +91,8 @@ export default function Auth() {
           {step === 'email' && (
             <>
               <div className="mb-8 text-center">
-                <h1 className="mb-2 text-2xl font-bold text-foreground">{t('auth.welcomeTitle')}</h1>
-                <p className="text-muted-foreground">{t('auth.welcomeSubtitle')}</p>
+                <h1 className="mb-2 text-2xl font-bold text-white">{t('auth.welcomeTitle')}</h1>
+                <p className="text-white/70">{t('auth.welcomeSubtitle')}</p>
               </div>
 
               <div className="space-y-4">
@@ -93,7 +100,7 @@ export default function Auth() {
                 <button
                   onClick={handleGoogle}
                   disabled={googleLoading}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-60 min-h-[44px]"
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-60 min-h-[44px]"
                 >
                   {googleLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -109,9 +116,9 @@ export default function Auth() {
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs text-muted-foreground">{t('auth.or')}</span>
-                  <div className="h-px flex-1 bg-border" />
+                  <div className="h-px flex-1 bg-white/20" />
+                  <span className="text-xs text-white/50">{t('auth.or')}</span>
+                  <div className="h-px flex-1 bg-white/20" />
                 </div>
 
                 {/* Email OTP */}
@@ -123,7 +130,7 @@ export default function Auth() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     autoFocus
-                    className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                    className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                   />
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   <button
@@ -144,15 +151,15 @@ export default function Auth() {
             <>
               <button
                 onClick={() => { setStep('email'); setCode(''); setError(''); }}
-                className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                className="mb-6 flex items-center gap-1.5 text-sm text-white/70 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" /> {t('common:actions.back')}
               </button>
 
               <div className="mb-8 text-center">
                 <div className="mb-3 text-4xl">📬</div>
-                <h1 className="mb-2 text-2xl font-bold text-foreground">{t('auth.checkEmail')}</h1>
-                <p className="text-muted-foreground text-sm">
+                <h1 className="mb-2 text-2xl font-bold text-white">{t('auth.checkEmail')}</h1>
+                <p className="text-white/70 text-sm">
                   <Trans i18nKey="auth.codeSentTo" ns="auth" values={{ email }}>
                     We sent a code to <strong>{{ email } as any}</strong>
                   </Trans>
@@ -168,7 +175,7 @@ export default function Auth() {
                   onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   required
                   autoFocus
-                  className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-foreground placeholder:text-muted-foreground/40 placeholder:tracking-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
+                  className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-white placeholder:text-white/30 placeholder:tracking-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
                 />
                 {error && <p className="text-sm text-destructive text-center">{error}</p>}
                 <button
@@ -182,7 +189,7 @@ export default function Auth() {
                   type="button"
                   onClick={handleSendCode}
                   disabled={loading}
-                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  className="w-full text-center text-sm text-white/60 hover:text-white disabled:opacity-40"
                 >
                   {t('auth.resendCode')}
                 </button>
@@ -191,6 +198,7 @@ export default function Auth() {
           )}
 
         </div>
+      </div>
       </div>
     </div>
   );
