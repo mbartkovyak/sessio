@@ -2,19 +2,13 @@
   "home": {
     "greeting": "Cześć, {{name}}",
     "defaultName": "uczestniku",
-    "pendingCount_one": "{{count}} zajęcie czeka na twoją odpowiedź",
-    "pendingCount_few": "{{count}} zajęcia czekają na twoją odpowiedź",
-    "pendingCount_many": "{{count}} zajęć czeka na twoją odpowiedź",
-    "pendingCount_other": "{{count}} zajęcia czekają na twoją odpowiedź",
     "overview": "Tu masz plan na najbliższe dni",
     "allSet": "Wszystko gotowe",
-    "allConfirmed": "Twoje najbliższe zajęcia są potwierdzone",
+    "allConfirmed": "Twoje najbli��sze zajęcia są zaplanowane",
     "next": "Następne: {{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
-    "findCoach": "Znajdź trenera",
-    "freeWeek": "Wszystko aktualne",
-    "freeWeekDesc": "Na razie nic nie musisz potwierdzać"
+    "findCoach": "Znajdź trenera"
   },
   "profile": {
     "title": "Profil",
@@ -49,16 +43,13 @@
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Dołącz do zajęć, aby zobaczyć swój plan",
     "confirmed": "Masz miejsce",
-    "pending": "Czeka na odpowiedź",
     "declined": "Rezygnacja",
     "noShow": "Nieobecność",
     "cancelled": "Odwołane",
     "navigateTo": "Pokaż trasę do {{venue}}",
-    "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. Późna rezygnacja może zostać odnotowana.",
+    "lateCancel": "Do zaj��ć zostało mniej niż <strong>{{hours}} godzin</strong>. Późna rezygnacja może zostać odnotowana.",
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj mimo to",
-    "imComing": "Będę",
-    "cantMakeIt": "Nie dam rady",
     "cantMakeItAnymore": "Jednak nie dam rady",
     "changedMind": "Jednak będę"
   },
@@ -90,12 +81,6 @@
     "coachCount_few": "{{count}} trenerów",
     "coachCount_many": "{{count}} trenerów",
     "coachCount_other": "{{count}} trenerów"
-  },
-  "confirmation": {
-    "imComing": "Będę",
-    "cantMakeIt": "Nie dam rady",
-    "confirmed": "Masz miejsce",
-    "markedCantMake": "Zaznaczono nieobecność"
   },
   "thisWeek": {
     "title": "Ten tydzień",

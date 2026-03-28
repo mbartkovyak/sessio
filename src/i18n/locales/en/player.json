@@ -2,19 +2,13 @@
   "home": {
     "greeting": "Hi, {{name}}",
     "defaultName": "there",
-    "pendingCount_one": "{{count}} training needs your reply",
-    "pendingCount_few": "{{count}} trainings need your reply",
-    "pendingCount_many": "{{count}} trainings need your reply",
-    "pendingCount_other": "{{count}} trainings need your reply",
-    "overview": "Here's your schedule at a glance",
+    "overview": "Your upcoming schedule",
     "allSet": "All set",
-    "allConfirmed": "Your upcoming trainings are confirmed",
+    "allConfirmed": "Your upcoming trainings are set",
     "next": "Next: {{time}}",
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Find a coach and join a training",
-    "findCoach": "Find a coach",
-    "freeWeek": "You're up to date",
-    "freeWeekDesc": "Nothing needs a reply right now"
+    "findCoach": "Find a coach"
   },
   "profile": {
     "title": "Profile",
@@ -49,17 +43,14 @@
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Join a training to see it here",
     "confirmed": "You're in",
-    "pending": "Awaiting reply",
     "declined": "Not coming",
     "noShow": "No-show",
     "cancelled": "Cancelled",
     "navigateTo": "Get directions to {{venue}}",
-    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still count against your record.",
+    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still be counted.",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel anyway",
-    "imComing": "I'm coming",
-    "cantMakeIt": "Can't make it",
-    "cantMakeItAnymore": "I can't make it after all",
+    "cantMakeItAnymore": "Can't make it anymore",
     "changedMind": "Actually, I can make it"
   },
   "messages": {
@@ -90,12 +81,6 @@
     "coachCount_few": "{{count}} coaches",
     "coachCount_many": "{{count}} coaches",
     "coachCount_other": "{{count}} coaches"
-  },
-  "confirmation": {
-    "imComing": "I'm coming",
-    "cantMakeIt": "Can't make it",
-    "confirmed": "You're in",
-    "markedCantMake": "Marked as not coming"
   },
   "thisWeek": {
     "title": "This week",

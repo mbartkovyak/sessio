@@ -1,78 +1,70 @@
-# Confirmation & Backfill Flow
+# Cancellation & Reminders
 
-The core loop. This is what replaces WhatsApp.
+Athletes are **assumed attending by default**. No confirmation needed. The only action is to cancel if you can't make it.
 
 ---
 
-## Confirmation settings (coach configures per training)
+## How it works
+
+1. Coach creates a training → sessions are generated → all members are auto-enrolled as **confirmed**
+2. Before each session, Sessio sends a reminder: "Cancel if you can't make it"
+3. If the athlete can't come, they cancel → spot opens for backfill
+4. If the athlete does nothing → they're coming (default)
+
+---
+
+## Cancellation settings (coach configures per training)
 
 | Setting | Default | Options |
 |---|---|---|
-| Confirmation required | Yes | Yes / No (auto-confirm everyone) |
-| Confirmation window | 48h before | 12h / 24h / 48h / 72h / custom |
-| No-response behavior | Coach decides | Mark absent / Keep pending / Auto-decline |
-| Cancel option | Enabled | Enabled / Disabled |
+| Cancellation deadline | 24h before | 12h / 24h / 48h / 72h |
 | Notification channel | Push + email | Push only / Push + email |
 
-All set during training creation. Editable anytime from training settings. Quick menu — not buried in advanced settings.
+Set during training creation. Editable from training settings.
 
 ---
 
-## The loop
+## The flow
 
 ```
-[Confirmation window opens]
+[Reminder window opens]
         ↓
-Athlete gets push notification + email (if enabled)
-  "Tuesday Tennis tomorrow at 16:00 — are you coming?"
+Athlete gets push notification
+  "Tuesday Tennis tomorrow at 16:00 — cancel if you can't make it."
         ↓
-    ┌─────────┐
-    │ Confirm │ → Athlete locked in. Done.
-    └─────────┘
-    ┌─────────┐
-    │ Decline │ → Spot opens. Backfill triggers.
-    └─────────┘
-    ┌─────────────┐
-    │ No response │ → Coach's default kicks in.
-    └─────────────┘
+    ┌──────────────────┐
+    │ Does nothing     │ → Athlete is coming. Done.
+    └──────────────────┘
+    ┌──────────────────┐
+    │ Cancels          │ → Spot opens. Backfill triggers.
+    └──────────────────┘
+    ┌──────────────────┐
+    │ Re-joins later   │ → Back in the session.
+    └──────────────────┘
 ```
 
 ---
 
-## Decline → Backfill
+## Cancel → Backfill
 
-**TBD — asking the coach tomorrow.** Questions to answer:
-
-1. Who gets offered the spot? Options:
-   - Everyone in the group who isn't already in this training
-   - A waitlist (athletes who explicitly signed up for "notify me")
-   - All athletes of this coach across all trainings
-   - Open to all athletes on the platform (marketplace mode)
-2. Is it first-come-first-served or does the coach approve?
-3. Is there a deadline to claim? (e.g. 2h before training)
-4. What if nobody claims? Coach gets notified → decides (run with fewer or cancel)
-
-Coach needs to be informed about backfill mechanics before we finalize.
+When someone cancels, an open spot is created. Waitlist or flex members can claim it first-come-first-served via `claim_training_spot()` RPC.
 
 ---
 
-## Cancel after confirming
+## Late cancellation
 
-Athlete confirmed but needs to cancel later:
-
-- Cancel allowed until X hours before training (coach configures, default: 2h before?)
+- Cancel allowed until X hours before training (coach configures, default: 24h)
 - Late cancellation → counted in reliability/strike system
-- Cancelled spot → triggers same backfill as decline
+- Cancelled spot → triggers backfill
 
 ---
 
 ## Coach override
 
 Coach can always:
-- Manually add a athlete to a training
-- Remove a athlete from a training
-- Close a training (cancel entirely, all athletes notified)
-- Override the no-response behavior for specific athletes
+- Manually add/remove an athlete
+- Cancel a session entirely (all athletes notified)
+- Mark no-show post-session
 
 ---
 
@@ -80,11 +72,9 @@ Coach can always:
 
 | Event | Athlete gets | Coach gets |
 |---|---|---|
-| Confirmation window opens | Push + email | — |
-| Athlete confirms | — | — (silent, visible in dashboard) |
-| Athlete declines | — | Push (spot opened) |
-| Spot available (backfill) | Push (TBD: who) | — |
+| Reminder (before session) | Push | — |
+| Athlete cancels | — | Push ("Player cancelled") |
+| Athlete re-joins after cancel | — | Push ("Player is back") |
+| Spot available (backfill) | Push (waitlist) | — |
 | Spot claimed | — | Push (spot filled) |
-| No response at deadline | Depends on setting | Push (if still pending) |
-| Training cancelled by coach | Push + email | — |
-| Coach message in chat | Push | — |
+| Training cancelled by coach | Push + chat message | — |

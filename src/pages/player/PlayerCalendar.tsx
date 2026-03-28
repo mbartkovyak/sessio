@@ -11,7 +11,6 @@ import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
 const STATUS_STYLE: Record<string, { dot: string; label: string }> = {
   confirmed: { dot: 'bg-success', label: 'text-success' },
-  pending: { dot: 'bg-warning', label: 'text-warning' },
   declined: { dot: 'bg-muted-foreground/40', label: 'text-muted-foreground' },
   no_show: { dot: 'bg-destructive', label: 'text-destructive' },
 };
@@ -61,7 +60,7 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
   const { t } = useTranslation('player');
   const session = attendance.training_sessions;
   const training = session?.trainings;
-  const style = STATUS_STYLE[attendance.status] ?? STATUS_STYLE.pending;
+  const style = STATUS_STYLE[attendance.status] ?? STATUS_STYLE.confirmed;
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
   const upsert = useUpsertAttendance();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
@@ -70,20 +69,18 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
 
-  const canAct = attendance.status === 'confirmed' || attendance.status === 'declined' || attendance.status === 'pending';
+  const canAct = attendance.status === 'confirmed' || attendance.status === 'declined';
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
     : undefined;
   const statusLabel = attendance.status === 'confirmed'
     ? t('calendar.confirmed')
-    : attendance.status === 'pending'
-      ? t('calendar.pending')
-      : attendance.status === 'declined'
-        ? t('calendar.declined')
-        : attendance.status === 'no_show'
-          ? t('calendar.noShow')
-          : attendance.status;
+    : attendance.status === 'declined'
+      ? t('calendar.declined')
+      : attendance.status === 'no_show'
+        ? t('calendar.noShow')
+        : attendance.status;
 
   async function handleChange(newStatus: string) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
@@ -152,23 +149,6 @@ function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
                   {t('calendar.cancelAnyway')}
                 </button>
               </div>
-            </div>
-          ) : attendance.status === 'pending' ? (
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleChange('confirmed')}
-                disabled={upsert.isPending}
-                className="rounded-lg bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] disabled:opacity-50"
-              >
-                {t('calendar.imComing')}
-              </button>
-              <button
-                onClick={() => handleChange('declined')}
-                disabled={upsert.isPending}
-                className="rounded-lg bg-destructive/10 py-2.5 text-xs font-bold text-destructive min-h-[40px] disabled:opacity-50"
-              >
-                {t('calendar.cantMakeIt')}
-              </button>
             </div>
           ) : attendance.status === 'confirmed' ? (
             <button

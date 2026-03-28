@@ -174,11 +174,11 @@
     "inviteDesc": "Share the invite link or code. People can join in about 30 seconds.",
     "gotIt": "Got it",
     "allSetTitle": "You're all set",
-    "allSetDesc": "Sessio will send confirmation requests automatically before each training and fill open spots from the waitlist.",
+    "allSetDesc": "Participants are auto-enrolled. Sessio sends reminders before each training — they cancel if they can't make it.",
     "startCoaching": "Open dashboard",
     "checkGroupCreated": "Group created",
     "checkInviteReady": "Invite link ready",
-    "checkAutoConfirm": "Auto-confirmations on",
+    "checkAutoConfirm": "Participants auto-enrolled",
     "checkWaitlist": "Waitlist automation on"
   },
   "pending": {

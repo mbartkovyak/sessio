@@ -174,11 +174,11 @@
     "inviteDesc": "Udostępnij link lub kod zaproszenia. Dołączenie zajmuje około 30 sekund.",
     "gotIt": "Rozumiem",
     "allSetTitle": "Wszystko gotowe",
-    "allSetDesc": "Sessio automatycznie wyśle prośby o potwierdzenie przed zajęciami i uzupełni wolne miejsca z listy rezerwowej.",
+    "allSetDesc": "Uczestnicy są zapisywani automatycznie. Sessio wysyła przypomnienia — mogą zrezygnować, jeśli nie dadzą rady.",
     "startCoaching": "Przejdź do panelu",
     "checkGroupCreated": "Grupa utworzona",
     "checkInviteReady": "Link zaproszenia gotowy",
-    "checkAutoConfirm": "Automatyczne potwierdzenia włączone",
+    "checkAutoConfirm": "Uczestnicy zapisani automatycznie",
     "checkWaitlist": "Automatyczna lista rezerwowa włączona"
   },
   "pending": {

@@ -7,7 +7,6 @@ import PageHeader from '@/components/shared/PageHeader';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
 import { relativeTime } from '@/components/player/home/relativeTime';
-import ConfirmationCard from '@/components/player/home/ConfirmationCard';
 import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
 import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
@@ -22,22 +21,14 @@ export default function PlayerHome() {
   const navigate = useNavigate();
   const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
 
-  // Only show pending confirmations for sessions within next 7 days
-  const pendingConfirmations = upcoming.filter((a: any) => {
-    if (a.status !== 'pending') return false;
+  // All sessions within next 7 days (athletes are auto-enrolled, can cancel if needed)
+  const thisWeekSessions = upcoming.filter((a: any) => {
     const sessionDate = new Date(a.training_sessions?.session_date + 'T00:00:00');
     return sessionDate.getTime() - Date.now() < SEVEN_DAYS_MS;
   });
 
-  // Responded sessions (confirmed + declined) within next 7 days — can be changed
-  const respondedSessions = upcoming.filter((a: any) => {
-    if (a.status !== 'confirmed' && a.status !== 'declined') return false;
-    const sessionDate = new Date(a.training_sessions?.session_date + 'T00:00:00');
-    return sessionDate.getTime() - Date.now() < SEVEN_DAYS_MS;
-  });
-
-  const nextConfirmed = respondedSessions.find((a: any) => a.status === 'confirmed');
-  const allConfirmed = pendingConfirmations.length === 0 && upcoming.length > 0;
+  const nextConfirmed = thisWeekSessions.find((a: any) => a.status === 'confirmed');
+  const hasUpcoming = upcoming.length > 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -60,21 +51,12 @@ export default function PlayerHome() {
               {t('home.greeting', { name: profile?.first_name ?? t('home.defaultName') })}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {pendingConfirmations.length > 0
-                ? t('home.pendingCount', { count: pendingConfirmations.length })
-                : t('home.overview')}
+              {t('home.overview')}
             </p>
           </div>
 
-          {/* Confirmation cards — most important */}
-          {pendingConfirmations.length > 0 ? (
-            <div className="space-y-3">
-              {pendingConfirmations.slice(0, 3).map((a: any) => (
-                <ConfirmationCard key={a.id} attendance={a} />
-              ))}
-            </div>
-          ) : allConfirmed && nextConfirmed ? (
-            /* All confirmed — calm state */
+          {/* Status card */}
+          {hasUpcoming && nextConfirmed ? (
             <div className="card-elevated rounded-2xl p-5 border-l-4 border-l-success">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
@@ -95,7 +77,7 @@ export default function PlayerHome() {
                 </p>
               </div>
             </div>
-          ) : upcoming.length === 0 ? (
+          ) : !hasUpcoming ? (
             <div className="card-elevated rounded-2xl p-8 text-center">
               <div className="text-4xl mb-3">📅</div>
               <p className="font-semibold text-foreground">{t('home.noUpcoming')}</p>
@@ -107,12 +89,7 @@ export default function PlayerHome() {
                 {t('home.findCoach')}
               </button>
             </div>
-          ) : (
-            <div className="card-elevated rounded-2xl p-6 text-center">
-              <p className="font-semibold text-foreground">{t('home.freeWeek')}</p>
-              <p className="text-sm text-muted-foreground mt-1">{t('home.freeWeekDesc')}</p>
-            </div>
-          )}
+          ) : null}
 
           {/* Pending / declined join requests */}
           <MyJoinRequests />
@@ -126,8 +103,8 @@ export default function PlayerHome() {
           {/* Favourite schools */}
           <FavouriteSchoolsSection />
 
-          {/* This week — responded sessions with change option */}
-          <ThisWeekSection sessions={respondedSessions} />
+          {/* This week — all sessions with cancel option */}
+          <ThisWeekSection sessions={thisWeekSessions} />
         </div>
         )}
       </main>
