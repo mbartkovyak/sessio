@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SessioLogo } from '@/components/SessioLogo';
+import { SessioLogo, SessioLoader } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 
 export default function Landing() {
@@ -28,7 +28,7 @@ export default function Landing() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }

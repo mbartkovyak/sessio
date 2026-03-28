@@ -1,4 +1,4 @@
-import { SessioLogoCompact } from '@/components/SessioLogo';
+import { SessioLogoCompact, SessioLoader } from '@/components/SessioLogo';
 import PageHeader from '@/components/shared/PageHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import PendingApprovalScreen from '@/components/coach/PendingApprovalScreen';
@@ -37,7 +37,7 @@ export default function CoachHome() {
         </div>
         {showLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <SessioLoader />
           </div>
         ) : isSchoolOwner && school ? (
           <SchoolOverviewSection school={school} />

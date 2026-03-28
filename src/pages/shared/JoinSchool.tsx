@@ -9,6 +9,7 @@ import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import { sportLabel } from '@/lib/constants';
+import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function JoinSchool() {
@@ -135,7 +136,7 @@ export default function JoinSchool() {
   if (schoolLoading || (loading && session)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }

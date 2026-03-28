@@ -10,6 +10,7 @@ import { sportLabel } from '@/lib/constants';
 import TrainingCard from '@/components/shared/TrainingCard';
 
 import Avatar from '@/components/shared/Avatar';
+import { SessioLoader } from '@/components/SessioLogo';
 
 export default function CoachPublicProfile() {
   const { t } = useTranslation('player');
@@ -41,7 +42,7 @@ export default function CoachPublicProfile() {
       <main className="flex-1 pb-24">
         {isLoading ? (
           <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <SessioLoader />
           </div>
         ) : (
         <div className="max-w-md mx-auto">

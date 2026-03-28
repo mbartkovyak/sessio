@@ -15,6 +15,7 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import AppHeader from '@/components/shared/AppHeader';
+import { SessioLoader } from '@/components/SessioLogo';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -240,7 +241,7 @@ export default function JoinTraining() {
   if (trainingLoading || (loading && session)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }

@@ -22,6 +22,7 @@ import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 import PageHeader from '@/components/shared/PageHeader';
+import { SessioLoader } from '@/components/SessioLogo';
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -46,7 +47,7 @@ export default function TrainingDetail() {
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
 
-  if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><SessioLoader /></div>;
   if (!training) return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-3 px-6">
       <p className="text-muted-foreground">{t('detail.notFound')}</p>

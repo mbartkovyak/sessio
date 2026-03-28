@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { SPORT_ICONS, sportLabel } from '@/lib/constants';
+import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
@@ -108,7 +109,7 @@ export default function CoachOverviewSection() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }
