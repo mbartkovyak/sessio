@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { SessioLoader } from '@/components/SessioLogo';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ export default function AuthCallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="mb-4"><SessioLoader /></div>
         <p className="text-muted-foreground">{t('auth.signingIn')}</p>
       </div>
     </div>

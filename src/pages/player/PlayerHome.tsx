@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle2, Clock } from 'lucide-react';
-import { SessioLogoCompact } from '@/components/SessioLogo';
+import { SessioLogoCompact, SessioLoader } from '@/components/SessioLogo';
 import PageHeader from '@/components/shared/PageHeader';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
@@ -50,7 +50,7 @@ export default function PlayerHome() {
       <main className="flex-1 pb-24">
         {isLoading ? (
           <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <SessioLoader />
           </div>
         ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">

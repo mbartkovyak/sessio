@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
-import { SessioLogoCompact } from '@/components/SessioLogo';
+import { SessioLogoCompact, SessioLoader } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import PageHeader from '@/components/shared/PageHeader';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -91,7 +91,7 @@ export default function Auth() {
   if (!bgLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+        <SessioLoader />
       </div>
     );
   }

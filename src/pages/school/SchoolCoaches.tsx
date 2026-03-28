@@ -11,6 +11,7 @@ import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { useState } from 'react';
 import { sportLabel } from '@/lib/constants';
+import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function SchoolCoaches() {
@@ -42,7 +43,7 @@ export default function SchoolCoaches() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }

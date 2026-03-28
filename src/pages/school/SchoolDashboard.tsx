@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, UserPlus, LogOut, Calendar, Settings } from 'lucide-react';
-import { SessioLogoCompact } from '@/components/SessioLogo';
+import { SessioLogoCompact, SessioLoader } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import { useState } from 'react';
@@ -81,7 +81,7 @@ export default function SchoolDashboard() {
   if (isLoading || trainingsLoading || athletesLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }

@@ -17,6 +17,7 @@ import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { SessioLoader } from '@/components/SessioLogo';
 
 type Venue = { name: string; address: string };
 
@@ -96,7 +97,7 @@ export default function SchoolProfileEditor() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <SessioLoader />
       </div>
     );
   }
