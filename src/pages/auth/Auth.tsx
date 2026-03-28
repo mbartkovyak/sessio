@@ -135,20 +135,15 @@ export default function Auth() {
 
                 {/* Email OTP */}
                 <form onSubmit={handleSendCode} className="space-y-3">
-                  <div className="flex items-center rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 min-h-[44px] focus-within:ring-2 focus-within:ring-primary/20">
-                    <input
-                      type="text"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder={t('auth.emailPlaceholder')}
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                      autoFocus
-                      className="w-full bg-transparent py-3.5 text-white placeholder:text-white/40 outline-none border-none"
-                      style={{ WebkitAppearance: 'none', fontSize: '16px' }}
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    placeholder={t('auth.emailPlaceholder')}
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                    className="w-full rounded-xl bg-white px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
+                  />
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   <button
                     type="submit"
@@ -184,19 +179,16 @@ export default function Auth() {
               </div>
 
               <form onSubmit={handleVerifyCode} className="space-y-3">
-                <div className="flex items-center justify-center rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm px-4 min-h-[60px] focus-within:ring-2 focus-within:ring-primary/20">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder={t('auth.codePlaceholder')}
-                    value={code}
-                    onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                    required
-                    autoFocus
-                    className="w-full bg-transparent py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-white placeholder:text-white/30 placeholder:tracking-normal outline-none border-none"
-                    style={{ WebkitAppearance: 'none', fontSize: '24px' }}
-                  />
-                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder={t('auth.codePlaceholder')}
+                  value={code}
+                  onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  required
+                  autoFocus
+                  className="w-full rounded-xl bg-white px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-foreground placeholder:text-muted-foreground/40 placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
+                />
                 {error && <p className="text-sm text-destructive text-center">{error}</p>}
                 <button
                   type="submit"
