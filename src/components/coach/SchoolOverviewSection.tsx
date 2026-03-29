@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Settings, CheckCircle2, UserPlus, Users, X, Copy, Share2, CalendarDays, MapPin } from 'lucide-react';
+import { Settings, CheckCircle2, UserPlus, Users, X, Copy, Share2 } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
+import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useSchoolUpcomingSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
@@ -10,7 +11,7 @@ import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { SPORT_ICONS, sportLabel } from '@/lib/constants';
+import { sportLabel } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -206,8 +207,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
               {(() => {
                 let lastDate = '';
                 return upcomingSessions.slice(0, 4).map((session) => {
-                  const training = session.trainings;
-                  const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
                   const showLabel = session.session_date !== lastDate;
                   lastDate = session.session_date;
                   const label = session.session_date === today ? t('common:calendar.today')
@@ -217,49 +216,12 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
                   return (
                     <div key={session.id}>
                       {showLabel && <p className="text-xs font-medium text-muted-foreground mt-2 mb-1">{label}</p>}
-                      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                        <div className="flex items-center gap-2 px-4 py-3">
-                          <button
-                            onClick={() => navigate(`/coach/trainings/${training?.id}`)}
-                            className="flex flex-1 items-center gap-3 text-left min-w-0"
-                          >
-                            <span className="text-xl shrink-0">{sportIcon}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-sm truncate text-foreground">{training?.name}</p>
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
-                              </div>
-                              <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
-                                {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                                {attendanceSummary[session.id] && attendanceSummary[session.id].total > 0 && (
-                                  <span className="inline-flex items-center gap-0.5 text-success font-medium">
-                                    <CheckCircle2 className="h-3 w-3" />
-                                    {tc('detail.attendanceSummary', { confirmed: attendanceSummary[session.id].confirmed, total: attendanceSummary[session.id].total })}
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                          </button>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button onClick={() => handleRescheduleSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title={t('common:actions.reschedule')}>
-                              <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                            </button>
-                            <button onClick={() => handleCancelSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors" title={t('common:actions.cancelSession')}>
-                              <X className="h-3.5 w-3.5 text-destructive" />
-                            </button>
-                          </div>
-                        </div>
-                        {training?.venue && (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-                          >
-                            <MapPin className="h-3 w-3" /> {tc('home.navigateTo', { venue: training.venue.split(',')[0] })}
-                          </a>
-                        )}
-                      </div>
+                      <CoachSessionCard
+                        session={session}
+                        attendance={attendanceSummary[session.id]}
+                        onCancel={handleCancelSession}
+                        onReschedule={handleRescheduleSession}
+                      />
                     </div>
                   );
                 });
