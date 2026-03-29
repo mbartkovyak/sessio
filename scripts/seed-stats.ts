@@ -4,6 +4,7 @@
  * Usage:
  *   SUPABASE_URL=https://iindwpdpmtztwwsejarz.supabase.co \
  *   SUPABASE_SERVICE_ROLE_KEY=<your-key> \
+ *   DEMO_PASSWORD=<your-password> \
  *   bun scripts/seed-stats.ts
  *
  * What it creates:
@@ -19,9 +20,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !DEMO_PASSWORD) {
+  console.error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or DEMO_PASSWORD env vars');
   process.exit(1);
 }
 
@@ -54,7 +56,7 @@ async function createDummyUsers(): Promise<string[]> {
 
     const { data, error } = await supabase.auth.admin.createUser({
       email: u.email,
-      password: 'sessio-demo-2026',
+      password: DEMO_PASSWORD,
       email_confirm: true,
     });
 
