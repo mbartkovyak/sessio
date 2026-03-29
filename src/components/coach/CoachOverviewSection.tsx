@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { CheckCircle2, Users, CalendarDays, X, MapPin } from 'lucide-react';
+import { CheckCircle2, Users, CalendarDays, X, MapPin, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
@@ -254,16 +254,26 @@ export default function CoachOverviewSection() {
                             </button>
                           </div>
                         </div>
-                        {training?.venue && (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-                          >
-                            <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: training.venue.split(',')[0] })}
-                          </a>
-                        )}
+                        <div className="flex border-t border-border divide-x divide-border">
+                          {training?.venue && (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                            >
+                              <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: training.venue.split(',')[0] })}
+                            </a>
+                          )}
+                          {training?.id && (
+                            <button
+                              onClick={() => navigate(`/coach/messages/${training.id}`)}
+                              className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                            >
+                              <MessageCircle className="h-3 w-3" /> {t('common:chat.group')}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
