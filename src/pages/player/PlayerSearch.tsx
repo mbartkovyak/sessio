@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
+import { Search, MapPin, Users, Building2, UserCheck, ChevronDown } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
 import { SPORTS, sportLabel } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
-import SelectField from '@/components/shared/SelectField';
 
 export default function PlayerSearch() {
   const { t } = useTranslation('player');
@@ -50,8 +49,18 @@ export default function PlayerSearch() {
               className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
-          <div>
-            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabels} />
+          <div className="flex gap-2">
+            <div className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition-colors ${
+              selectedSport ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+            }`}>
+              <span className="text-xs font-semibold pointer-events-none">{selectedSport ? sportLabels[selectedSport] : t('search.allSports')}</span>
+              <ChevronDown className={`h-3 w-3 pointer-events-none ${selectedSport ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+              <select value={selectedSport} onChange={e => setSelectedSport(e.target.value)}
+                className="absolute inset-0 w-full opacity-0 cursor-pointer" aria-label={t('search.allSports')}>
+                <option value="">{t('search.allSports')}</option>
+                {SPORTS.map(s => <option key={s} value={s}>{sportLabels[s]}</option>)}
+              </select>
+            </div>
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-2">
