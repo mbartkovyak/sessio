@@ -165,7 +165,7 @@ export default function CreateTraining() {
             submitting={create.isPending}
             schoolSlot={schoolSlot}
             venueOptions={localVenues}
-            onNewVenue={isSchoolOwner ? handleNewVenue : isSchoolMember ? undefined : handleNewCoachVenue}
+            onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
           />
