@@ -194,7 +194,7 @@
   },
   "pending": {
     "title": "Oczekiwanie na zatwierdzenie",
-    "description": "Twoja prośba o dołączenie do <1>{{name}}</1> czeka na decyzję właściciela szkoły.",
+    "description": "Twoja prośba o dołączenie do {{name}} czeka na decyzję właściciela szkoły.",
     "info": "Dostęp pojawi się po zatwierdzeniu.",
     "checkStatus": "Odśwież"
   }

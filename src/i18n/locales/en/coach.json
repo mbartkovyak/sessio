@@ -194,7 +194,7 @@
   },
   "pending": {
     "title": "Waiting for approval",
-    "description": "Your request to join <1>{{name}}</1> is being reviewed by the school owner.",
+    "description": "Your request to join {{name}} is being reviewed by the school owner.",
     "info": "You'll get access once the owner approves you.",
     "checkStatus": "Refresh"
   }
