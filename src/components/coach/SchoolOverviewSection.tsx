@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Settings, CheckCircle2, UserPlus, Users, X, Copy, Share2 } from 'lucide-react';
+import { Settings, CheckCircle2, UserPlus, Users, X, Copy, Share2, BarChart3 } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
@@ -156,6 +156,16 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
           </div>
         ))}
       </div>
+
+      {/* Stats button */}
+      <button
+        onClick={() => navigate('/coach/stats')}
+        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
+      >
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        {tc('home.viewStats')}
+      </button>
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (

@@ -19,7 +19,8 @@
     "rescheduleStart": "Новий час початку (ГГ:ХХ):",
     "rescheduleEnd": "Новий час завершення (ГГ:ХХ):",
     "cancelledMessage": "⚠️ {{name}} на {{date}} скасовано.",
-    "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}."
+    "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
+    "viewStats": "Статистика відвідуваності"
   },
   "profile": {
     "title": "Профіль",
@@ -197,5 +198,14 @@
     "description": "Ваш запит на приєднання до {{name}} чекає на рішення власника школи.",
     "info": "Доступ з'явиться після схвалення.",
     "checkStatus": "Оновити"
+  },
+  "stats": {
+    "title": "Статистика",
+    "week": "Тиждень",
+    "month": "Місяць",
+    "confirmed": "Підтверджено",
+    "declined": "Скасовано",
+    "totalSessions": "Заняття",
+    "noData": "Ще немає даних про відвідуваність"
   }
 }

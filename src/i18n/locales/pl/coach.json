@@ -19,7 +19,8 @@
     "rescheduleStart": "Nowa godzina rozpoczęcia (GG:MM):",
     "rescheduleEnd": "Nowa godzina zakończenia (GG:MM):",
     "cancelledMessage": "⚠️ {{name}} w dniu {{date}} zostały odwołane.",
-    "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}."
+    "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}.",
+    "viewStats": "Statystyki obecności"
   },
   "profile": {
     "title": "Profil",
@@ -197,5 +198,14 @@
     "description": "Twoja prośba o dołączenie do {{name}} czeka na decyzję właściciela szkoły.",
     "info": "Dostęp pojawi się po zatwierdzeniu.",
     "checkStatus": "Odśwież"
+  },
+  "stats": {
+    "title": "Statystyki",
+    "week": "Tydzień",
+    "month": "Miesiąc",
+    "confirmed": "Obecni",
+    "declined": "Nieobecni",
+    "totalSessions": "Zajęcia",
+    "noData": "Brak danych o obecności"
   }
 }

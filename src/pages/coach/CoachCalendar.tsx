@@ -17,9 +17,9 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { useAttendanceSummary } from '@/hooks/training/useTrainings';
 
 function useCoachSessions(coachId: string | undefined) {
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['coach-calendar-sessions', coachId, today],
+    queryKey: ['coach-calendar-sessions', coachId, lookback],
     enabled: !!coachId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,7 +27,7 @@ function useCoachSessions(coachId: string | undefined) {
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name))')
         .eq('trainings.coach_id', coachId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', today)
+        .gte('session_date', lookback)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -37,9 +37,9 @@ function useCoachSessions(coachId: string | undefined) {
 }
 
 function useSchoolSessions(schoolId: string | undefined) {
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['school-calendar-sessions', schoolId, today],
+    queryKey: ['school-calendar-sessions', schoolId, lookback],
     enabled: !!schoolId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,7 +47,7 @@ function useSchoolSessions(schoolId: string | undefined) {
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name), coach:profiles(full_name))')
         .eq('trainings.school_id', schoolId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', today)
+        .gte('session_date', lookback)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -66,6 +66,7 @@ export default function CoachCalendar() {
   const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolOwner ? school?.id : undefined);
 
   const canCreate = true;
+  const today = format(new Date(), 'yyyy-MM-dd');
   const qc = useQueryClient();
 
   async function handleCancelSession(session: any) {
@@ -164,16 +165,20 @@ export default function CoachCalendar() {
                 )}
               </div>
             }
-            renderItem={(session: any) => (
-              <CoachSessionCard
-                key={session.id}
-                session={session}
-                attendance={attendanceSummary[session.id]}
-                coachName={isSchoolOwner && session.trainings?.coach?.full_name ? t('trainings.coachName', { name: session.trainings.coach.full_name }) : undefined}
-                onCancel={handleCancelSession}
-                onReschedule={handleRescheduleSession}
-              />
-            )}
+            renderItem={(session: any) => {
+              const isPast = session.session_date < today;
+              return (
+                <CoachSessionCard
+                  key={session.id}
+                  session={session}
+                  attendance={attendanceSummary[session.id]}
+                  showActions={!isPast}
+                  coachName={isSchoolOwner && session.trainings?.coach?.full_name ? t('trainings.coachName', { name: session.trainings.coach.full_name }) : undefined}
+                  onCancel={handleCancelSession}
+                  onReschedule={handleRescheduleSession}
+                />
+              );
+            }}
           />
         </div>
       </main>

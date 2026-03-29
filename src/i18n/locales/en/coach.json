@@ -19,7 +19,8 @@
     "rescheduleStart": "New start time (HH:MM):",
     "rescheduleEnd": "New end time (HH:MM):",
     "cancelledMessage": "⚠️ {{name}} on {{date}} has been cancelled.",
-    "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}."
+    "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
+    "viewStats": "Attendance stats"
   },
   "profile": {
     "title": "Profile",
@@ -197,5 +198,14 @@
     "description": "Your request to join {{name}} is being reviewed by the school owner.",
     "info": "You'll get access once the owner approves you.",
     "checkStatus": "Refresh"
+  },
+  "stats": {
+    "title": "Stats",
+    "week": "Week",
+    "month": "Month",
+    "confirmed": "Confirmed",
+    "declined": "Declined",
+    "totalSessions": "Sessions",
+    "noData": "No attendance data yet"
   }
 }
