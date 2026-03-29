@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, MapPin, MessageCircle } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { useState, useMemo } from 'react';
@@ -102,6 +102,26 @@ export default function CoachTrainings() {
                 isSchoolOwner && tr.school_id && tr.coach?.full_name
                   ? <span className="mt-1 inline-block text-xs text-primary font-medium">{t('trainings.coachName', { name: tr.coach.full_name })}</span>
                   : undefined
+              }
+              footer={
+                <div className="flex border-t border-border divide-x divide-border">
+                  {tr.venue && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tr.venue)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                    >
+                      <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: tr.venue.split(',')[0] })}
+                    </a>
+                  )}
+                  <button
+                    onClick={() => navigate(`/coach/messages/${tr.id}`)}
+                    className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <MessageCircle className="h-3 w-3" /> {t('common:chat.group')}
+                  </button>
+                </div>
               }
             />
           ))}

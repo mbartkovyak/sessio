@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { MapPin, CalendarDays, X, CheckCircle2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +11,7 @@ import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
 import CoachHeader from '@/components/coach/CoachHeader';
 import NewLessonButton from '@/components/coach/NewLessonButton';
-import { SPORT_ICONS } from '@/lib/constants';
+import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import CalendarGrid from '@/components/shared/CalendarGrid';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { useAttendanceSummary } from '@/hooks/training/useTrainings';
@@ -165,62 +164,16 @@ export default function CoachCalendar() {
                 )}
               </div>
             }
-            renderItem={(session: any) => {
-              const training = session.trainings;
-              const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
-              const statusColor = session.status === 'cancelled' ? 'bg-destructive/10 border-destructive/20' : 'bg-card';
-
-              return (
-                <div key={session.id} className={`rounded-xl border border-border ${statusColor} shadow-sm overflow-hidden`}>
-                  <div className="flex items-center gap-2 px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/coach/trainings/${training?.id}`)}
-                      className="flex flex-1 items-center gap-3 text-left min-w-0"
-                    >
-                      <span className="text-xl shrink-0">{sportIcon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className={`font-semibold text-sm truncate ${session.status === 'cancelled' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
-                          {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                          {isSchoolOwner && training?.coach?.full_name && ` · ${t('trainings.coachName', { name: training.coach.full_name })}`}
-                          {session.status !== 'cancelled' && attendanceSummary[session.id] && attendanceSummary[session.id].total > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-success font-medium">
-                              <CheckCircle2 className="h-3 w-3" />
-                              {t('detail.attendanceSummary', { confirmed: attendanceSummary[session.id].confirmed, total: attendanceSummary[session.id].total })}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    </button>
-                    {session.status === 'cancelled' ? (
-                      <span className="text-xs font-medium text-destructive shrink-0">{t('calendar.cancelled')}</span>
-                    ) : (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => handleRescheduleSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title={t('common:actions.reschedule')}>
-                          <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                        </button>
-                        <button onClick={() => handleCancelSession(session)} className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors" title={t('common:actions.cancelSession')}>
-                          <X className="h-3.5 w-3.5 text-destructive" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {training?.venue && (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-                    >
-                      <MapPin className="h-3 w-3" /> {t('calendar.navigateTo', { venue: training.venue.split(',')[0] })}
-                    </a>
-                  )}
-                </div>
-              );
-            }}
+            renderItem={(session: any) => (
+              <CoachSessionCard
+                key={session.id}
+                session={session}
+                attendance={attendanceSummary[session.id]}
+                coachName={isSchoolOwner && session.trainings?.coach?.full_name ? t('trainings.coachName', { name: session.trainings.coach.full_name }) : undefined}
+                onCancel={handleCancelSession}
+                onReschedule={handleRescheduleSession}
+              />
+            )}
           />
         </div>
       </main>
