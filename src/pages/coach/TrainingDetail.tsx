@@ -496,7 +496,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
 
     // Regenerate sessions if days changed (new days need new sessions)
     if (daysChanged) {
-      await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }).catch(() => {});
+      try { await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }); } catch {}
     }
 
     qc.invalidateQueries({ queryKey: ['training-sessions', training.id] });
