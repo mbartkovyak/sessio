@@ -196,17 +196,6 @@ export default function JoinTraining() {
         queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
         toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
         navigate('/player');
-      } else {
-        // Legacy group join
-        const { data: existing } = await supabase.from('group_members').select('id, status').eq('group_id', training.id).eq('player_id', profile.id).maybeSingle();
-        if (existing) { toast.info(t('join.alreadyInGroup')); navigate('/player'); return; }
-        const { count: activeCount } = await supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('group_id', training.id).eq('status', 'active');
-        const isFull = (activeCount ?? 0) >= training.capacity;
-        const status = (isFull && training.allow_waitlist) ? 'waitlist' : isFull ? null : 'active';
-        if (!status) { toast.error(t('join.groupFull')); navigate('/player'); return; }
-        await supabase.from('group_members').insert({ group_id: training.id, player_id: profile.id, status });
-        toast.success(t('join.joinedTraining', { name: training.name }));
-        navigate('/player');
       }
     } catch (err: any) {
       toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
