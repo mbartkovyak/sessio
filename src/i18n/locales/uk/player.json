@@ -49,8 +49,9 @@
     "cancelled": "Скасовано",
     "navigateTo": "Прокласти маршрут до {{venue}}",
     "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Пізнє скасування може бути враховане як запізніла відмова.",
+    "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
-    "cancelAnyway": "Скасувати все одно",
+    "cancelAnyway": "Скасувати",
     "cantMakeItAnymore": "Все ж не зможу",
     "changedMind": "Все ж зможу прийти"
   },
@@ -89,8 +90,9 @@
     "backIn": "Вас знову записано",
     "spotReleased": "Місце звільнено",
     "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Це все одно може зараховуватися як пізнє скасування.",
+    "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
-    "cancelAnyway": "Скасувати все одно"
+    "cancelAnyway": "Скасувати"
   },
   "joinRequests": {
     "title": "Запити на приєднання",

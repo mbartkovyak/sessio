@@ -49,8 +49,9 @@
     "cancelled": "Cancelled",
     "navigateTo": "Get directions to {{venue}}",
     "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still be counted.",
+    "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
-    "cancelAnyway": "Cancel anyway",
+    "cancelAnyway": "Cancel",
     "cantMakeItAnymore": "Can't make it anymore",
     "changedMind": "Actually, I can make it"
   },
@@ -89,8 +90,9 @@
     "backIn": "You're back in",
     "spotReleased": "Spot released",
     "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. This may still count as a late cancellation.",
+    "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
-    "cancelAnyway": "Cancel anyway"
+    "cancelAnyway": "Cancel"
   },
   "joinRequests": {
     "title": "Join requests",

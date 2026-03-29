@@ -68,11 +68,7 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
   }
 
   function handleCancelClick() {
-    if (isLateCancel) {
-      setShowCancelWarning(true);
-    } else {
-      handleChange('declined');
-    }
+    setShowCancelWarning(true);
   }
 
   return (
@@ -112,14 +108,19 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
       </div>
       <CalendarSessionFooter training={training} />
 
-      {/* Late cancellation warning — inline */}
+      {/* Cancel confirmation — inline */}
       {showCancelWarning && (
         <div className="px-4 pb-3.5 border-t border-border pt-3">
-          <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5">
-            <div className="flex items-start gap-2.5 mb-3">
-              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-              <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('calendar.lateCancel', { hours: cancelDeadlineHours }) }} />
-            </div>
+          <div className={`rounded-xl p-3.5 ${isLateCancel ? 'bg-warning/8 border border-warning/20' : 'bg-muted/50 border border-border'}`}>
+            {isLateCancel && (
+              <div className="flex items-start gap-2.5 mb-3">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('calendar.lateCancel', { hours: cancelDeadlineHours }) }} />
+              </div>
+            )}
+            {!isLateCancel && (
+              <p className="text-sm text-foreground mb-3">{t('calendar.cancelConfirm')}</p>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowCancelWarning(false)}

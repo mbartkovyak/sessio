@@ -48,11 +48,7 @@ function SessionRow({ attendance }: { attendance: any }) {
   }
 
   function handleCancel() {
-    if (isLateCancel) {
-      setShowWarning(true);
-    } else {
-      switchTo('declined');
-    }
+    setShowWarning(true);
   }
 
   return (
@@ -89,13 +85,18 @@ function SessionRow({ attendance }: { attendance: any }) {
         )}
       </div>
 
-      {/* Late cancellation warning — inline */}
+      {/* Cancel confirmation — inline */}
       {showWarning && (
-        <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5 ml-9">
-          <div className="flex items-start gap-2.5 mb-3">
-            <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-            <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('thisWeek.lateCancel', { hours: cancelDeadlineHours }) }} />
-          </div>
+        <div className={`rounded-xl p-3.5 ml-9 ${isLateCancel ? 'bg-warning/8 border border-warning/20' : 'bg-muted/50 border border-border'}`}>
+          {isLateCancel && (
+            <div className="flex items-start gap-2.5 mb-3">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('thisWeek.lateCancel', { hours: cancelDeadlineHours }) }} />
+            </div>
+          )}
+          {!isLateCancel && (
+            <p className="text-sm text-foreground mb-3">{t('thisWeek.cancelConfirm')}</p>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setShowWarning(false)}

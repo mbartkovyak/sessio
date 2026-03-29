@@ -49,8 +49,9 @@
     "cancelled": "Odwołane",
     "navigateTo": "Pokaż trasę do {{venue}}",
     "lateCancel": "Do zaj��ć zostało mniej niż <strong>{{hours}} godzin</strong>. Późna rezygnacja może zostać odnotowana.",
+    "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
-    "cancelAnyway": "Zrezygnuj mimo to",
+    "cancelAnyway": "Zrezygnuj",
     "cantMakeItAnymore": "Jednak nie dam rady",
     "changedMind": "Jednak będę"
   },
@@ -89,8 +90,9 @@
     "backIn": "Znowu masz miejsce",
     "spotReleased": "Miejsce zwolnione",
     "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. To nadal może zostać policzone jako późna rezygnacja.",
+    "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
-    "cancelAnyway": "Zrezygnuj mimo to"
+    "cancelAnyway": "Zrezygnuj"
   },
   "joinRequests": {
     "title": "Prośby o dołączenie",
