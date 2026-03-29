@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { useState, useMemo } from 'react';
@@ -8,10 +8,11 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
+import SelectField from '@/components/shared/SelectField';
 import { useTranslation } from 'react-i18next';
 
-type TypeFilter = 'all' | 'group' | 'individual';
-type ScheduleFilter = 'all' | 'recurring' | 'one-time';
+type TypeFilter = '' | 'group' | 'individual';
+type ScheduleFilter = '' | 'recurring' | 'one-time';
 
 export default function CoachTrainings() {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ export default function CoachTrainings() {
   const { data: myTrainings = [], isLoading } = useTrainings();
   const { data: schoolTrainings = [] } = useSchoolTrainings(isSchoolOwner ? school?.id : undefined);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('');
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('');
 
   const canCreate = true;
 
@@ -37,7 +38,7 @@ export default function CoachTrainings() {
   const filtered = useMemo(() => {
     let list = allTrainings;
     if (search) list = list.filter((tr: any) => tr.name?.toLowerCase().includes(search.toLowerCase()));
-    if (typeFilter !== 'all') list = list.filter((tr: any) => tr.type === typeFilter);
+    if (typeFilter) list = list.filter((tr: any) => tr.type === typeFilter);
     if (scheduleFilter === 'recurring') list = list.filter((tr: any) => tr.is_recurring);
     if (scheduleFilter === 'one-time') list = list.filter((tr: any) => !tr.is_recurring);
     // Sort by earliest start_date first
@@ -48,7 +49,7 @@ export default function CoachTrainings() {
     });
   }, [allTrainings, search, typeFilter, scheduleFilter]);
 
-  const hasFilters = typeFilter !== 'all' || scheduleFilter !== 'all';
+  const hasFilters = !!typeFilter || !!scheduleFilter;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -62,22 +63,21 @@ export default function CoachTrainings() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-2">
-            {([
-              { value: typeFilter, set: (v: string) => setTypeFilter(v as TypeFilter), label: typeFilter === 'all' ? t('trainings.filterType') : typeFilter === 'group' ? t('trainings.group') : t('trainings.individual'), options: [['all', t('trainings.filterType')], ['group', t('trainings.group')], ['individual', t('trainings.individual')]] },
-              { value: scheduleFilter, set: (v: string) => setScheduleFilter(v as ScheduleFilter), label: scheduleFilter === 'all' ? t('trainings.filterSchedule') : scheduleFilter === 'recurring' ? t('trainings.recurring') : t('trainings.oneTime'), options: [['all', t('trainings.filterSchedule')], ['recurring', t('trainings.recurring')], ['one-time', t('trainings.oneTime')]] },
-            ] as const).map(({ value, set, label, options }, i) => (
-              <div key={i} className={`relative inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition-colors ${
-                value !== 'all' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
-              }`}>
-                <span className="text-xs font-semibold pointer-events-none">{label}</span>
-                <ChevronDown className={`h-3 w-3 pointer-events-none ${value !== 'all' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                <select value={value} onChange={e => set(e.target.value)}
-                  className="absolute inset-0 w-full opacity-0 cursor-pointer" aria-label={label}>
-                  {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 gap-2">
+            <SelectField
+              value={typeFilter}
+              onChange={v => setTypeFilter(v as TypeFilter)}
+              options={['group', 'individual'] as const}
+              placeholder={t('trainings.filterType')}
+              labels={{ group: t('trainings.group'), individual: t('trainings.individual') }}
+            />
+            <SelectField
+              value={scheduleFilter}
+              onChange={v => setScheduleFilter(v as ScheduleFilter)}
+              options={['recurring', 'one-time'] as const}
+              placeholder={t('trainings.filterSchedule')}
+              labels={{ recurring: t('trainings.recurring'), 'one-time': t('trainings.oneTime') }}
+            />
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export default function CoachTrainings() {
               <div className="text-4xl mb-3">🏋️</div>
               <p className="font-medium text-foreground">{hasFilters ? t('trainings.noMatching') : t('trainings.noLessons')}</p>
               {!hasFilters && canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">{t('trainings.createFirst')}</button>}
-              {hasFilters && <button onClick={() => { setTypeFilter('all'); setScheduleFilter('all'); }} className="mt-4 text-sm font-medium text-primary">{t('trainings.clearFilters')}</button>}
+              {hasFilters && <button onClick={() => { setTypeFilter(''); setScheduleFilter(''); }} className="mt-4 text-sm font-medium text-primary">{t('trainings.clearFilters')}</button>}
             </div>
           ) : filtered.map((tr: any) => (
             <TrainingCard
