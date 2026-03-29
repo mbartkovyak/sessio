@@ -45,11 +45,13 @@ export default function PlayerCalendar() {
 
 function CalendarSessionItem({ attendance }: { attendance: any }) {
   const { t } = useTranslation('player');
+  const navigate = useNavigate();
   const session = attendance.training_sessions;
   const training = session?.trainings;
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
   const upsert = useUpsertAttendance();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
 
   const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
@@ -65,27 +67,32 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
     toast.success(newStatus === 'confirmed' ? t('calendar.confirmed') : t('calendar.cancelled'));
     setShowCancelWarning(false);
+    setShowRejoinConfirm(false);
   }
 
   function handleCancelClick() {
     setShowCancelWarning(true);
   }
 
+  function handleRejoinClick() {
+    setShowRejoinConfirm(true);
+  }
+
   return (
     <div className={`rounded-xl border border-border bg-card shadow-sm overflow-hidden ${isDeclined ? 'opacity-60' : ''}`}>
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="text-xl shrink-0">{sportIcon}</span>
-        <div className="flex-1 min-w-0">
+        <button onClick={() => navigate(`/player/training/${training?.id}`)} className="flex-1 min-w-0 text-left">
           <p className={`text-sm font-semibold truncate ${isDeclined ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
           <span className="text-xs text-muted-foreground mt-0.5 block">
             {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
           </span>
-        </div>
-        {/* Cancel / rejoin button — hidden when late cancel warning is showing */}
-        {!showCancelWarning && (
+        </button>
+        {/* Cancel / rejoin button — hidden when confirmation is showing */}
+        {!showCancelWarning && !showRejoinConfirm && (
           isDeclined ? (
             <button
-              onClick={() => handleChange('confirmed')}
+              onClick={handleRejoinClick}
               disabled={upsert.isPending}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
               title={t('calendar.changedMind')}
@@ -107,6 +114,30 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
         )}
       </div>
       <CalendarSessionFooter training={training} />
+
+      {/* Rejoin confirmation — inline */}
+      {showRejoinConfirm && (
+        <div className="px-4 pb-3.5 border-t border-border pt-3">
+          <div className="rounded-xl p-3.5 bg-muted/50 border border-border">
+            <p className="text-sm text-foreground mb-3">{t('calendar.rejoinConfirm')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setShowRejoinConfirm(false)}
+                className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
+              >
+                {t('calendar.stayOut')}
+              </button>
+              <button
+                onClick={() => handleChange('confirmed')}
+                disabled={upsert.isPending}
+                className="rounded-lg bg-success/15 py-2 text-xs font-semibold text-success min-h-[36px] disabled:opacity-50"
+              >
+                {t('calendar.rejoin')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel confirmation — inline */}
       {showCancelWarning && (
@@ -147,9 +178,9 @@ function CalendarSessionFooter({ training }: { training: any }) {
   const navigate = useNavigate();
   const { t } = useTranslation('common');
   const hasVenue = !!training?.venue;
-  const hasCoach = !!training?.coach?.id;
+  const hasChat = !!training?.id;
 
-  if (!hasVenue && !hasCoach) return null;
+  if (!hasVenue && !hasChat) return null;
 
   return (
     <div className="flex border-t border-border divide-x divide-border">
@@ -163,12 +194,12 @@ function CalendarSessionFooter({ training }: { training: any }) {
           <MapPin className="h-3 w-3" /> {training.venue.split(',')[0]}
         </a>
       )}
-      {hasCoach && (
+      {hasChat && (
         <button
-          onClick={() => navigate(`/player/dm/${training.coach.id}`)}
+          onClick={() => navigate(`/player/messages/${training.id}`)}
           className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
         >
-          <MessageCircle className="h-3 w-3" /> {t('chat.messageCoach')}
+          <MessageCircle className="h-3 w-3" /> {t('chat.group')}
         </button>
       )}
     </div>

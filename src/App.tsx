@@ -74,6 +74,7 @@ import PlayerProfile from "./pages/player/PlayerProfile";
 import PlayerMessages from "./pages/player/PlayerMessages";
 import PlayerChat from "./pages/player/PlayerChat";
 import PlayerDirectChat from "./pages/player/PlayerDirectChat";
+import PlayerTrainingDetail from "./pages/player/PlayerTrainingDetail";
 
 // Coach pages
 import CoachHome from "./pages/coach/CoachHome";
@@ -122,6 +123,7 @@ const router = createBrowserRouter(
       <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
       <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><PlayerChat /></ProtectedRoute>} />
       <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><PlayerDirectChat /></ProtectedRoute>} />
+      <Route path="/player/training/:id" element={<ProtectedRoute requiredRole="player"><PlayerTrainingDetail /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><PlayerCalendar /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
 

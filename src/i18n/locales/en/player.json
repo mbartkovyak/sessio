@@ -59,6 +59,15 @@
     "title": "Chats",
     "emptyDesc": "Join a training to start chatting with the group"
   },
+  "trainingDetail": {
+    "notFound": "Training not found",
+    "goHome": "Go home",
+    "coach": "Coach",
+    "participants": "participants",
+    "openChat": "Group chat",
+    "leave": "Leave training",
+    "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore."
+  },
   "coachProfile": {
     "title": "Coach",
     "about": "About",

@@ -59,6 +59,15 @@
     "title": "Czaty",
     "emptyDesc": "Dołącz do zajęć, aby rozmawiać z grupą"
   },
+  "trainingDetail": {
+    "notFound": "Nie znaleziono zajęć",
+    "goHome": "Strona główna",
+    "coach": "Trener",
+    "participants": "uczestników",
+    "openChat": "Czat grupowy",
+    "leave": "Opuść zajęcia",
+    "leaveConfirm": "Opuścić {{name}}? Nie będziesz otrzymywać zaproszeń na zajęcia."
+  },
   "coachProfile": {
     "title": "Trener",
     "about": "O mnie",
