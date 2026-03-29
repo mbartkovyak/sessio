@@ -185,7 +185,7 @@ export default function CoachCalendar() {
                         </div>
                         <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                           {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                          {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · ${t('trainings.coachName', { name: training.coach.full_name })}`}
+                          {isSchoolOwner && training?.coach?.full_name && ` · ${t('trainings.coachName', { name: training.coach.full_name })}`}
                           {session.status !== 'cancelled' && attendanceSummary[session.id] && attendanceSummary[session.id].total > 0 && (
                             <span className="inline-flex items-center gap-0.5 text-success font-medium">
                               <CheckCircle2 className="h-3 w-3" />

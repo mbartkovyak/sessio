@@ -164,6 +164,9 @@ export default function TrainingDetail() {
                 </div>
               </div>
               <div className="space-y-1.5 text-sm text-muted-foreground">
+                {(training as any).coach?.full_name && (
+                  <div className="flex items-center gap-2"><Users className="h-3.5 w-3.5 shrink-0" /> {(training as any).coach.full_name}</div>
+                )}
                 <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5 shrink-0" /> {daysLabel}</div>
                 <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /> {training.start_time?.slice(0,5)} – {training.end_time?.slice(0,5)}</div>
                 {training.venue && <div className="flex items-center gap-2"><VenueLink venue={training.venue} className="text-sm text-muted-foreground" /></div>}

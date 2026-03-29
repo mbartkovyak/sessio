@@ -99,7 +99,7 @@ export default function CoachTrainings() {
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${tr.type}`)}</span>
               }
               extra={
-                isSchoolOwner && tr.school_id && tr.coach?.full_name && tr.coach_id !== profile?.id
+                isSchoolOwner && tr.school_id && tr.coach?.full_name
                   ? <span className="mt-1 inline-block text-xs text-primary font-medium">{t('trainings.coachName', { name: tr.coach.full_name })}</span>
                   : undefined
               }
