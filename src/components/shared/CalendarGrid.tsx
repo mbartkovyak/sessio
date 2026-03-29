@@ -73,7 +73,7 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
         lastMonth = month;
 
         return (
-          <div key={dateKey} ref={isToday_ ? todayRef : undefined}>
+          <div key={dateKey} ref={isToday_ ? todayRef : undefined} style={isToday_ ? { scrollMarginTop: 72 } : undefined}>
             {showMonthHeader && (
               <div className="pt-4 pb-1">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
