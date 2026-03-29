@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { CheckCircle2, Users, CalendarDays, X, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
+import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
 import { useUpcomingSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import Avatar from '@/components/shared/Avatar';
@@ -25,6 +25,8 @@ export default function CoachOverviewSection() {
   const respond = useRespondJoinRequest();
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: schoolMembership } = useMySchoolMembership();
+  const sessionIds = (upcomingSessions ?? []).filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
+  const { data: attendanceSummary = {} } = useAttendanceSummary(sessionIds);
   const qc = useQueryClient();
   const trainingIds = trainings.map((tr: any) => tr.id);
   const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
@@ -232,8 +234,14 @@ export default function CoachOverviewSection() {
                                 <p className="font-semibold text-sm truncate text-foreground">{training?.name}</p>
                                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
                               </div>
-                              <span className="text-xs text-muted-foreground mt-0.5 block">
+                              <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                                 {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
+                                {attendanceSummary[session.id] && attendanceSummary[session.id].total > 0 && (
+                                  <span className="inline-flex items-center gap-0.5 text-success font-medium">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    {t('detail.attendanceSummary', { confirmed: attendanceSummary[session.id].confirmed, total: attendanceSummary[session.id].total })}
+                                  </span>
+                                )}
                               </span>
                             </div>
                           </button>

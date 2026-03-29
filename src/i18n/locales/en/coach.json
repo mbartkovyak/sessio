@@ -110,7 +110,18 @@
     "deleting": "Deleting...",
     "delete": "Delete",
     "trainingUpdated": "Training updated",
-    "scheduleUpdated": "📅 {{name}} schedule updated: {{days}} {{time}}."
+    "scheduleUpdated": "📅 {{name}} schedule updated: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Confirmed",
+    "statusDeclined": "Declined",
+    "statusPending": "Pending",
+    "noAttendance": "No athletes in this session",
+    "addMember": "Add",
+    "addMemberTitle": "Add participant",
+    "searchAthletes": "Search by name...",
+    "noAthletesFound": "No athletes found",
+    "noAthletesToAdd": "No athletes available to add",
+    "alreadyInTraining": "Already in training"
   },
   "form": {
     "lessonNameRequired": "Training name is required",

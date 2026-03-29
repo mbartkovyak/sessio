@@ -81,6 +81,9 @@
     "member": "Member",
     "chatTitle": "Chat",
     "group": "Group",
+    "leaveTraining": "Leave training",
+    "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore.",
+    "messageCoach": "Message",
     "trainingFallback": "Training",
     "userFallback": "User"
   },
@@ -103,7 +106,11 @@
     "requestApprovedTitle": "Request approved",
     "requestDeclinedTitle": "Request declined",
     "requestApprovedBody": "You've been accepted to {{training}}.",
-    "requestDeclinedBody": "Your request to join {{training}} was declined."
+    "requestDeclinedBody": "Your request to join {{training}} was declined.",
+    "playerLeftTitle": "Participant left",
+    "playerLeftBody": "{{name}} left {{training}}.",
+    "addedToTrainingTitle": "You've been added",
+    "addedToTrainingBody": "You've been added to {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -223,6 +230,8 @@
     "memberRemoved": "Member removed",
     "sessionCancelled": "Session cancelled",
     "sessionRescheduled": "Session rescheduled",
+    "leftTraining": "You left the training",
+    "memberAdded": "Member added",
     "coachApproved": "Coach approved",
     "requestDeclined": "Request declined",
     "removedFromFavourites": "Removed from favourites",

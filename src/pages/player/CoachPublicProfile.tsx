@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin } from 'lucide-react';
+import { Star, MapPin, MessageCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
@@ -26,6 +27,7 @@ export default function CoachPublicProfile() {
     },
   });
 
+  const { user } = useAuth();
   const { data: reviews = [], isLoading: reviewsLoading } = useCoachReviews(id);
   const { data: trainings = [], isLoading: trainingsLoading } = useCoachTrainings(id);
 
@@ -66,6 +68,15 @@ export default function CoachPublicProfile() {
                 <span className="font-semibold text-foreground">{avgRating}</span>
                 <span className="text-sm text-muted-foreground">({reviews.length} {t('coachProfile.reviews').toLowerCase()})</span>
               </div>
+            )}
+            {user && id && user.id !== id && (
+              <button
+                onClick={() => navigate(`/player/dm/${id}`)}
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 min-h-[40px]"
+              >
+                <MessageCircle className="h-4 w-4" />
+                {t('common:chat.messageCoach')}
+              </button>
             )}
           </div>
 

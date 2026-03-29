@@ -110,7 +110,18 @@
     "deleting": "Usuwanie...",
     "delete": "Usuń",
     "trainingUpdated": "Zapisano zmiany",
-    "scheduleUpdated": "📅 Zmieniono harmonogram {{name}}: {{days}} {{time}}."
+    "scheduleUpdated": "📅 Zmieniono harmonogram {{name}}: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Potwierdzone",
+    "statusDeclined": "Odmówione",
+    "statusPending": "Oczekujące",
+    "noAttendance": "Brak uczestników tej sesji",
+    "addMember": "Dodaj",
+    "addMemberTitle": "Dodaj uczestnika",
+    "searchAthletes": "Szukaj po imieniu...",
+    "noAthletesFound": "Nie znaleziono uczestników",
+    "noAthletesToAdd": "Brak uczestników do dodania",
+    "alreadyInTraining": "Już w zajęciach"
   },
   "form": {
     "lessonNameRequired": "Nazwa zajęć jest wymagana",

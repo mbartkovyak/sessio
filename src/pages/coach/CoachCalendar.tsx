@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { MapPin, CalendarDays, X } from 'lucide-react';
+import { MapPin, CalendarDays, X, CheckCircle2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import NewLessonButton from '@/components/coach/NewLessonButton';
 import { SPORT_ICONS } from '@/lib/constants';
 import CalendarGrid from '@/components/shared/CalendarGrid';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { useAttendanceSummary } from '@/hooks/training/useTrainings';
 
 function useCoachSessions(coachId: string | undefined) {
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -133,6 +134,9 @@ export default function CoachCalendar() {
     return [...coachSessions, ...schoolSessions.filter((s: any) => !ids.has(s.id))];
   }, [coachSessions, schoolSessions, isSchoolOwner]);
 
+  const scheduledSessionIds = useMemo(() => sessions.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id), [sessions]);
+  const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledSessionIds);
+
   const isLoading = coachLoading || (isSchoolOwner && schoolLoading);
 
   return (
@@ -180,9 +184,15 @@ export default function CoachCalendar() {
                           <p className={`font-semibold text-sm truncate ${session.status === 'cancelled' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
                           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary shrink-0">{t(`common:trainingType.${training?.type}`)}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground mt-0.5 block">
+                        <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                           {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
                           {isSchoolOwner && training?.coach?.full_name && training?.coach_id !== user?.id && ` · ${t('trainings.coachName', { name: training.coach.full_name })}`}
+                          {session.status !== 'cancelled' && attendanceSummary[session.id] && attendanceSummary[session.id].total > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-success font-medium">
+                              <CheckCircle2 className="h-3 w-3" />
+                              {t('detail.attendanceSummary', { confirmed: attendanceSummary[session.id].confirmed, total: attendanceSummary[session.id].total })}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </button>

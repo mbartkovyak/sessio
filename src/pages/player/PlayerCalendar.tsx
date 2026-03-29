@@ -110,16 +110,7 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
           )
         )}
       </div>
-      {training?.venue && (
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-        >
-          <MapPin className="h-3 w-3" /> {t('calendar.navigateTo', { venue: training.venue.split(',')[0] })}
-        </a>
-      )}
+      <CalendarSessionFooter training={training} />
 
       {/* Late cancellation warning — inline */}
       {showCancelWarning && (
@@ -146,6 +137,38 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarSessionFooter({ training }: { training: any }) {
+  const navigate = useNavigate();
+  const { t } = useTranslation('common');
+  const hasVenue = !!training?.venue;
+  const hasCoach = !!training?.coach?.id;
+
+  if (!hasVenue && !hasCoach) return null;
+
+  return (
+    <div className="flex border-t border-border divide-x divide-border">
+      {hasVenue && (
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+        >
+          <MapPin className="h-3 w-3" /> {training.venue.split(',')[0]}
+        </a>
+      )}
+      {hasCoach && (
+        <button
+          onClick={() => navigate(`/player/dm/${training.coach.id}`)}
+          className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+        >
+          <MessageCircle className="h-3 w-3" /> {t('chat.messageCoach')}
+        </button>
       )}
     </div>
   );

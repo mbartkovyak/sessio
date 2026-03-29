@@ -193,6 +193,123 @@ export function useRemoveTrainingMember(trainingId: string) {
   });
 }
 
+export function useLeaveTraining() {
+  const qc = useQueryClient();
+  const { user, profile } = useAuth();
+  return useMutation({
+    mutationFn: async ({ trainingId, coachId, trainingName }: {
+      trainingId: string; coachId: string; trainingName: string;
+    }) => {
+      if (!user) throw new Error('Not signed in');
+      const { error } = await supabase
+        .from('training_members')
+        .delete()
+        .eq('training_id', trainingId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+
+      // Hide the group chat for the athlete
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('training_id', trainingId)
+        .maybeSingle();
+      if (conv) {
+        await supabase
+          .from('conversation_participants')
+          .update({ hidden: true })
+          .eq('conversation_id', conv.id)
+          .eq('user_id', user.id);
+      }
+
+      // Notify coach
+      const tNotify = await getFixedTForUser(coachId);
+      const participantName = profile?.full_name ?? i18n.t('join.anonymousParticipant', { ns: 'common' });
+      notifyUsers([coachId], {
+        title: tNotify('notifications.playerLeftTitle', { ns: 'common' }),
+        body: tNotify('notifications.playerLeftBody', { ns: 'common', name: participantName, training: trainingName }),
+        tag: `leave-${trainingId}`,
+        url: `/coach/trainings/${trainingId}`,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['my-trainings'] });
+      qc.invalidateQueries({ queryKey: ['my-conversations'] });
+      qc.invalidateQueries({ queryKey: ['training-members'] });
+      toast.success(i18n.t('toast.leftTraining', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+export function useAddTrainingMember(trainingId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, trainingName }: { userId: string; trainingName: string }) => {
+      const { error } = await supabase
+        .from('training_members')
+        .insert({ training_id: trainingId, user_id: userId, role: 'regular' });
+      if (error) {
+        if (error.code === '23505') return; // already a member — treat as success
+        throw error;
+      }
+
+      // Notify athlete
+      const tNotify = await getFixedTForUser(userId);
+      notifyUsers([userId], {
+        title: tNotify('notifications.addedToTrainingTitle', { ns: 'common' }),
+        body: tNotify('notifications.addedToTrainingBody', { ns: 'common', training: trainingName }),
+        tag: `added-${trainingId}`,
+        url: '/player',
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      toast.success(i18n.t('toast.memberAdded', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+export function useMyAthletes(coachId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-athletes', coachId],
+    enabled: !!coachId,
+    queryFn: async () => {
+      // Get all trainings for this coach
+      const { data: trainings, error: tErr } = await supabase
+        .from('trainings')
+        .select('id')
+        .eq('coach_id', coachId!)
+        .eq('is_active', true);
+      if (tErr) throw tErr;
+      const trainingIds = (trainings ?? []).map(t => t.id);
+      if (!trainingIds.length) return [];
+
+      // Get all unique members across trainings
+      const { data: members, error: mErr } = await supabase
+        .from('training_members')
+        .select('user_id, training_id, profiles:user_id(id, full_name, avatar_url, email)')
+        .in('training_id', trainingIds)
+        .eq('role', 'regular');
+      if (mErr) throw mErr;
+
+      // Deduplicate by user_id
+      const seen = new Map<string, any>();
+      for (const m of members ?? []) {
+        if (!seen.has(m.user_id)) {
+          seen.set(m.user_id, { ...m.profiles, trainingIds: [m.training_id] });
+        } else {
+          seen.get(m.user_id).trainingIds.push(m.training_id);
+        }
+      }
+      return Array.from(seen.values());
+    },
+  });
+}
+
 export function useTrainingSessions(trainingId: string | undefined) {
   return useQuery({
     queryKey: ['training-sessions', trainingId],
@@ -220,6 +337,31 @@ export function useSessionAttendance(sessionId: string | undefined) {
         .eq('session_id', sessionId!);
       if (error) throw error;
       return (data ?? []) as SessionAttendanceWithProfile[];
+    },
+  });
+}
+
+export type AttendanceSummary = { confirmed: number; declined: number; pending: number; total: number };
+
+export function useAttendanceSummary(sessionIds: string[]) {
+  return useQuery({
+    queryKey: ['attendance-summary', sessionIds],
+    enabled: sessionIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('session_attendance')
+        .select('session_id, status')
+        .in('session_id', sessionIds);
+      if (error) throw error;
+      const summary: Record<string, AttendanceSummary> = {};
+      for (const row of data ?? []) {
+        if (!summary[row.session_id]) summary[row.session_id] = { confirmed: 0, declined: 0, pending: 0, total: 0 };
+        summary[row.session_id].total++;
+        if (row.status === 'confirmed') summary[row.session_id].confirmed++;
+        else if (row.status === 'declined') summary[row.session_id].declined++;
+        else summary[row.session_id].pending++;
+      }
+      return summary;
     },
   });
 }

@@ -1,10 +1,10 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance, useMyAthletes, useAddTrainingMember } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -23,6 +23,7 @@ import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 import PageHeader from '@/components/shared/PageHeader';
 import { SessioLoader } from '@/components/SessioLogo';
+import AddMemberSheet from '@/components/coach/AddMemberSheet';
 
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,10 @@ export default function TrainingDetail() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const { data: myAthletes = [] } = useMyAthletes(user?.id);
+  const addMember = useAddTrainingMember(id!);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
 
@@ -59,6 +64,8 @@ export default function TrainingDetail() {
   const today = new Date().toISOString().split('T')[0];
   const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
   const regularMembers = members.filter((m: any) => m.role === 'regular');
+  const scheduledIds = upcoming.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
+  const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
   const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
   const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ');
 
@@ -228,6 +235,14 @@ export default function TrainingDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                    {myAthletes.length > 0 && (
+                      <button
+                        onClick={() => setShowAddMember(true)}
+                        className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        <UserPlus className="h-3.5 w-3.5" /> {t('detail.addMember')}
+                      </button>
+                    )}
                   </div>
                   {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
@@ -280,49 +295,65 @@ export default function TrainingDetail() {
                     <div className="space-y-2">
                       {upcoming.map((s: any) => {
                         const isCancelled = s.status === 'cancelled';
+                        const summary = attendanceSummary[s.id];
+                        const isExpanded = expandedSession === s.id;
                         return (
-                          <div key={s.id} className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</p>
+                          <div key={s.id} className={`rounded-xl border bg-card overflow-hidden ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
+                            <div className="flex items-center gap-3 px-4 py-3">
+                              <button
+                                onClick={() => !isCancelled && setExpandedSession(isExpanded ? null : s.id)}
+                                className="flex-1 min-w-0 text-left"
+                              >
+                                <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                  {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</span>
+                                  {!isCancelled && summary && summary.total > 0 && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">
+                                      <CheckCircle2 className="h-3 w-3" />
+                                      {t('detail.attendanceSummary', { confirmed: summary.confirmed, total: summary.total })}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                              {isCancelled ? (
+                                <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.cancelled')}</span>
+                              ) : (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={() => {
+                                      const newDate = prompt(t('home.rescheduleDate'), s.session_date);
+                                      if (!newDate) return;
+                                      const newStart = prompt(t('home.rescheduleStart'), s.start_time?.slice(0,5));
+                                      if (!newStart) return;
+                                      const newEnd = prompt(t('home.rescheduleEnd'), s.end_time?.slice(0,5));
+                                      if (!newEnd) return;
+                                      if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
+                                      rescheduleSession.mutate({
+                                        sessionId: s.id, trainingName: training.name,
+                                        oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
+                                      });
+                                    }}
+                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                                    title={t('common:actions.reschedule')}
+                                  >
+                                    <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (!confirm(t('calendar.cancelConfirm', { name: training.name, date: format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) }))) return;
+                                      cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
+                                    }}
+                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                                    title={t('common:actions.cancelSession')}
+                                  >
+                                    <X className="h-3.5 w-3.5 text-destructive" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            {isCancelled ? (
-                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.cancelled')}</span>
-                            ) : (
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  onClick={() => {
-                                    const newDate = prompt(t('home.rescheduleDate'), s.session_date);
-                                    if (!newDate) return;
-                                    const newStart = prompt(t('home.rescheduleStart'), s.start_time?.slice(0,5));
-                                    if (!newStart) return;
-                                    const newEnd = prompt(t('home.rescheduleEnd'), s.end_time?.slice(0,5));
-                                    if (!newEnd) return;
-                                    if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
-                                    rescheduleSession.mutate({
-                                      sessionId: s.id, trainingName: training.name,
-                                      oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
-                                    });
-                                  }}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                  title={t('common:actions.reschedule')}
-                                >
-                                  <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (!confirm(t('calendar.cancelConfirm', { name: training.name, date: format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) }))) return;
-                                    cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
-                                  }}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                  title={t('common:actions.cancelSession')}
-                                >
-                                  <X className="h-3.5 w-3.5 text-destructive" />
-                                </button>
-                              </div>
-                            )}
+                            {isExpanded && <SessionAttendancePanel sessionId={s.id} />}
                           </div>
                         );
                       })}
@@ -360,6 +391,58 @@ export default function TrainingDetail() {
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
       {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
+      {showAddMember && training && (
+        <AddMemberSheet
+          athletes={myAthletes}
+          existingMemberIds={members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean)}
+          onAdd={(userId) => {
+            addMember.mutate({ userId, trainingName: training.name }, {
+              onSuccess: () => setShowAddMember(false),
+            });
+          }}
+          onClose={() => setShowAddMember(false)}
+          adding={addMember.isPending}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Session Attendance Panel ──
+
+function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
+  const { t } = useTranslation('coach');
+  const { data: attendance = [], isLoading } = useSessionAttendance(sessionId);
+
+  if (isLoading) return <div className="px-4 py-3 border-t border-border"><div className="h-4 w-24 bg-muted animate-pulse rounded" /></div>;
+  if (attendance.length === 0) return (
+    <div className="px-4 py-3 border-t border-border">
+      <p className="text-xs text-muted-foreground">{t('detail.noAttendance')}</p>
+    </div>
+  );
+
+  const sorted = [...attendance].sort((a, b) => {
+    const order = { confirmed: 0, pending: 1, declined: 2 };
+    return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
+  });
+
+  return (
+    <div className="border-t border-border divide-y divide-border">
+      {sorted.map((a) => (
+        <div key={a.id} className="flex items-center gap-3 px-4 py-2.5">
+          <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="xs" />
+          <span className="flex-1 text-sm text-foreground truncate">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+            a.status === 'confirmed' ? 'bg-success/10 text-success' :
+            a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
+            'bg-warning/10 text-warning'
+          }`}>
+            {a.status === 'confirmed' ? t('detail.statusConfirmed') :
+             a.status === 'declined' ? t('detail.statusDeclined') :
+             t('detail.statusPending')}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

@@ -81,6 +81,9 @@
     "member": "Учасник",
     "chatTitle": "Чат",
     "group": "Група",
+    "leaveTraining": "Покинути заняття",
+    "leaveConfirm": "Покинути {{name}}? Ви більше не отримуватимете запрошень на заняття.",
+    "messageCoach": "Написати",
     "trainingFallback": "Заняття",
     "userFallback": "Користувач"
   },
@@ -103,7 +106,11 @@
     "requestApprovedTitle": "Запит схвалено",
     "requestDeclinedTitle": "Запит відхилено",
     "requestApprovedBody": "Ваш запит на приєднання до {{training}} схвалено.",
-    "requestDeclinedBody": "Ваш запит на приєднання до {{training}} відхилено."
+    "requestDeclinedBody": "Ваш запит на приєднання до {{training}} відхилено.",
+    "playerLeftTitle": "Учасник покинув заняття",
+    "playerLeftBody": "{{name}} покинув {{training}}.",
+    "addedToTrainingTitle": "Вас додано до заняття",
+    "addedToTrainingBody": "Вас додано до {{training}}."
   },
   "form": {
     "sport": "Спорт",
@@ -223,6 +230,8 @@
     "memberRemoved": "Учасника видалено",
     "sessionCancelled": "Заняття скасовано",
     "sessionRescheduled": "Заняття перенесено",
+    "leftTraining": "Ви покинули заняття",
+    "memberAdded": "Учасника додано",
     "coachApproved": "Тренера підтверджено",
     "requestDeclined": "Запит відхилено",
     "removedFromFavourites": "Видалено з обраного",

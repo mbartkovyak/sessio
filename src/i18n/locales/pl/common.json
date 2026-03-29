@@ -81,6 +81,9 @@
     "member": "Członek",
     "chatTitle": "Czat",
     "group": "Grupa",
+    "leaveTraining": "Opuść zajęcia",
+    "leaveConfirm": "Opuścić {{name}}? Nie będziesz otrzymywać zaproszeń na zajęcia.",
+    "messageCoach": "Napisz",
     "trainingFallback": "Zajęcia",
     "userFallback": "Użytkownik"
   },
@@ -103,7 +106,11 @@
     "requestApprovedTitle": "Prośba zaakceptowana",
     "requestDeclinedTitle": "Prośba odrzucona",
     "requestApprovedBody": "Twoja prośba o dołączenie do {{training}} została zaakceptowana.",
-    "requestDeclinedBody": "Twoja prośba o dołączenie do {{training}} została odrzucona."
+    "requestDeclinedBody": "Twoja prośba o dołączenie do {{training}} została odrzucona.",
+    "playerLeftTitle": "Uczestnik opuścił zajęcia",
+    "playerLeftBody": "{{name}} opuścił {{training}}.",
+    "addedToTrainingTitle": "Dodano do zajęć",
+    "addedToTrainingBody": "Dodano Cię do {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -223,6 +230,8 @@
     "memberRemoved": "Usunięto uczestnika",
     "sessionCancelled": "Termin odwołany",
     "sessionRescheduled": "Termin przełożony",
+    "leftTraining": "Opuściłeś zajęcia",
+    "memberAdded": "Dodano uczestnika",
     "coachApproved": "Trener zatwierdzony",
     "requestDeclined": "Prośba odrzucona",
     "removedFromFavourites": "Usunięto z ulubionych",

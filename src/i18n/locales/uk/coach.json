@@ -110,7 +110,18 @@
     "deleting": "Видалення...",
     "delete": "Видалити",
     "trainingUpdated": "Зміни збережено",
-    "scheduleUpdated": "📅 Оновлено розклад {{name}}: {{days}} {{time}}."
+    "scheduleUpdated": "📅 Оновлено розклад {{name}}: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Підтверджено",
+    "statusDeclined": "Відхилено",
+    "statusPending": "Очікує",
+    "noAttendance": "Немає учасників цього заняття",
+    "addMember": "Додати",
+    "addMemberTitle": "Додати учасника",
+    "searchAthletes": "Пошук за ім'ям...",
+    "noAthletesFound": "Учасників не знайдено",
+    "noAthletesToAdd": "Немає учасників для додавання",
+    "alreadyInTraining": "Вже в занятті"
   },
   "form": {
     "lessonNameRequired": "Назва заняття обов'язкова",
