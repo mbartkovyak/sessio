@@ -74,6 +74,7 @@ import PlayerProfile from "./pages/player/PlayerProfile";
 import PlayerMessages from "./pages/player/PlayerMessages";
 import PlayerChat from "./pages/player/PlayerChat";
 import PlayerDirectChat from "./pages/player/PlayerDirectChat";
+import PlayerTrainingDetail from "./pages/player/PlayerTrainingDetail";
 
 // Coach pages
 import CoachHome from "./pages/coach/CoachHome";
@@ -86,9 +87,6 @@ import CoachMessages from "./pages/coach/CoachMessages";
 import DirectChat from "./pages/coach/DirectChat";
 
 // School pages
-import SchoolDashboard from "./pages/school/SchoolDashboard";
-import SchoolCalendar from "./pages/school/SchoolCalendar";
-import SchoolCoaches from "./pages/school/SchoolCoaches";
 import SchoolProfileEditor from "./pages/school/SchoolProfileEditor";
 
 const queryClient = new QueryClient({
@@ -122,6 +120,7 @@ const router = createBrowserRouter(
       <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
       <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><PlayerChat /></ProtectedRoute>} />
       <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><PlayerDirectChat /></ProtectedRoute>} />
+      <Route path="/player/training/:id" element={<ProtectedRoute requiredRole="player"><PlayerTrainingDetail /></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><PlayerCalendar /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
 
@@ -136,9 +135,6 @@ const router = createBrowserRouter(
       <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><CoachProfileEditor /></ProtectedRoute>} />
 
       {/* School routes */}
-      <Route path="/school" element={<ProtectedRoute requiredRole="school_owner"><SchoolDashboard /></ProtectedRoute>} />
-      <Route path="/school/calendar" element={<ProtectedRoute requiredRole="school_owner"><SchoolCalendar /></ProtectedRoute>} />
-      <Route path="/school/coaches" element={<ProtectedRoute requiredRole="school_owner"><SchoolCoaches /></ProtectedRoute>} />
       <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><SchoolProfileEditor /></ProtectedRoute>} />
 
       {/* Legacy redirect support */}

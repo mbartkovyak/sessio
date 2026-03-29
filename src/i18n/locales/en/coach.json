@@ -11,7 +11,7 @@
     "upcoming": "Upcoming sessions",
     "noUpcoming": "No upcoming sessions",
     "showAll": "See everything in calendar",
-    "navigateTo": "Get directions to {{venue}}",
+    "navigateTo": "Navigate to {{venue}}",
     "cancelConfirm": "Cancel {{name}} on {{date}}?",
     "sessionCancelled": "Session cancelled",
     "sessionRescheduled": "Session rescheduled",
@@ -77,7 +77,7 @@
     "sessionCancelled": "Session cancelled",
     "sessionRescheduled": "Session rescheduled",
     "cancelled": "Cancelled",
-    "navigateTo": "Get directions to {{venue}}"
+    "navigateTo": "Navigate to {{venue}}"
   },
   "detail": {
     "notFound": "Training not found",
@@ -110,7 +110,18 @@
     "deleting": "Deleting...",
     "delete": "Delete",
     "trainingUpdated": "Training updated",
-    "scheduleUpdated": "📅 {{name}} schedule updated: {{days}} {{time}}."
+    "scheduleUpdated": "📅 {{name}} schedule updated: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Confirmed",
+    "statusDeclined": "Declined",
+    "statusPending": "Pending",
+    "noAttendance": "No athletes in this session",
+    "addMember": "Add",
+    "addMemberTitle": "Add participant",
+    "searchAthletes": "Search by name...",
+    "noAthletesFound": "No athletes found",
+    "noAthletesToAdd": "No athletes available to add",
+    "alreadyInTraining": "Already in training"
   },
   "form": {
     "lessonNameRequired": "Training name is required",
@@ -174,16 +185,16 @@
     "inviteDesc": "Share the invite link or code. People can join in about 30 seconds.",
     "gotIt": "Got it",
     "allSetTitle": "You're all set",
-    "allSetDesc": "Sessio will send confirmation requests automatically before each training and fill open spots from the waitlist.",
+    "allSetDesc": "Participants are auto-enrolled. Sessio sends reminders before each training — they cancel if they can't make it.",
     "startCoaching": "Open dashboard",
     "checkGroupCreated": "Group created",
     "checkInviteReady": "Invite link ready",
-    "checkAutoConfirm": "Auto-confirmations on",
+    "checkAutoConfirm": "Participants auto-enrolled",
     "checkWaitlist": "Waitlist automation on"
   },
   "pending": {
     "title": "Waiting for approval",
-    "description": "Your request to join <1>{{name}}</1> is being reviewed by the school owner.",
+    "description": "Your request to join {{name}} is being reviewed by the school owner.",
     "info": "You'll get access once the owner approves you.",
     "checkStatus": "Refresh"
   }

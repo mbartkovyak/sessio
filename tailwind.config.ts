@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        xs: ['0.875rem', { lineHeight: '1.25rem' }],   // 14px (was 12px)
+        sm: ['1rem', { lineHeight: '1.5rem' }],         // 16px (was 14px)
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin } from 'lucide-react';
+import { Star, MapPin, MessageCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
@@ -26,6 +27,7 @@ export default function CoachPublicProfile() {
     },
   });
 
+  const { user } = useAuth();
   const { data: reviews = [], isLoading: reviewsLoading } = useCoachReviews(id);
   const { data: trainings = [], isLoading: trainingsLoading } = useCoachTrainings(id);
 
@@ -45,9 +47,9 @@ export default function CoachPublicProfile() {
             <SessioLoader />
           </div>
         ) : (
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           {/* Hero */}
-          <div className="bg-card border-b border-border p-6 text-center">
+          <div className="text-center bg-card border border-border rounded-2xl p-6">
             <div className="mx-auto mb-3 w-fit">
               <Avatar url={profile?.avatar_url} name={profile?.full_name} size="2xl" />
             </div>
@@ -67,16 +69,21 @@ export default function CoachPublicProfile() {
                 <span className="text-sm text-muted-foreground">({reviews.length} {t('coachProfile.reviews').toLowerCase()})</span>
               </div>
             )}
+            {profile?.bio && (
+              <p className="text-sm text-muted-foreground leading-relaxed mt-3">{profile.bio}</p>
+            )}
+            {user && id && user.id !== id && (
+              <button
+                onClick={() => navigate(`/player/dm/${id}`)}
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 min-h-[40px]"
+              >
+                <MessageCircle className="h-4 w-4" />
+                {t('common:chat.messageCoach')}
+              </button>
+            )}
           </div>
 
-          <div className="px-4 py-4 space-y-6">
-            {/* Bio */}
-            {profile?.bio && (
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">{t('coachProfile.about')}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
-              </div>
-            )}
+          <div className="space-y-6">
 
             {/* Available Trainings */}
             {trainings.length > 0 && (

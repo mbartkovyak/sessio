@@ -62,7 +62,7 @@ export default function PlayerBottomNav() {
                 }`}>
                   <Icon className="h-[24px] w-[24px]" strokeWidth={active ? 2 : 1.75} />
                 </div>
-                <span className={`text-xs transition-all ${
+                <span className={`text-[12px] leading-4 transition-all ${
                   active ? 'font-semibold text-foreground' : 'text-foreground/55'
                 }`}>{label}</span>
               </button>

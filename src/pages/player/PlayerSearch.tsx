@@ -5,7 +5,7 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, CITIES, sportLabel } from '@/lib/constants';
+import { SPORTS, sportLabel } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 
@@ -14,9 +14,8 @@ export default function PlayerSearch() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
-  const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined, selectedCity || undefined);
-  const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined, selectedCity || undefined);
+  const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined);
+  const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined);
   const sportLabels = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
 
   const isLoading = coachesLoading || schoolsLoading;
@@ -51,9 +50,8 @@ export default function PlayerSearch() {
               className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div>
             <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabels} />
-            <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={CITIES} placeholder={t('search.allCities')} />
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-2">

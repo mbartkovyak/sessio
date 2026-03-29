@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 2. Listen for subsequent sign-in / sign-out changes (fire-and-forget, no await)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (event === 'INITIAL_SESSION') return; // getSession() handles initial load
         setSession(session);
         setUser(session?.user ?? null);
         userRef.current = session?.user ?? null;

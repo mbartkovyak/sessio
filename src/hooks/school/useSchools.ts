@@ -13,7 +13,7 @@ type SchoolWithMembers = Tables<'schools'> & {
   pending_members?: SchoolMemberWithCoach[];
 };
 
-type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'city' | 'logo_url'>;
+type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'city' | 'logo_url' | 'venues'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
 
 type TrainingWithCoach = Tables<'trainings'> & { coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
@@ -40,7 +40,7 @@ export function useMySchool() {
     queryFn: async () => {
       const { data } = await supabase
         .from('schools')
-        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
         .eq('owner_id', user!.id)
         .maybeSingle();
       if (!data) return data;
@@ -62,7 +62,7 @@ export function useMySchoolMembership() {
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members')
-        .select('id, school_id, status, schools:school_id(id, name, sport, city, logo_url)')
+        .select('id, school_id, status, schools:school_id(id, name, sport, city, logo_url, venues)')
         .eq('coach_id', user!.id)
         .eq('status', 'approved')
         .maybeSingle();
@@ -97,7 +97,7 @@ export function useSchool(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('schools')
-        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
         .eq('id', id!)
         .single();
       if (error) throw error;
@@ -256,9 +256,9 @@ export function useUpdateSchool(schoolId: string) {
   });
 }
 
-export function useDiscoverableSchools(search?: string, sport?: string, city?: string) {
+export function useDiscoverableSchools(search?: string, sport?: string, city?: string, country?: string) {
   return useQuery({
-    queryKey: ['schools-discover', search, sport, city],
+    queryKey: ['schools-discover', search, sport, city, country],
     queryFn: async () => {
       let q = supabase
         .from('schools')
@@ -267,6 +267,7 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
       if (search) q = q.ilike('name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
       if (city) q = q.ilike('city', `%${city}%`);
+      if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
       if (error) throw error;
       return ((data ?? []) as DiscoverableSchoolRow[]).map(s => ({
@@ -277,9 +278,9 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
   });
 }
 
-export function useDiscoverableCoaches(search?: string, sport?: string, city?: string) {
+export function useDiscoverableCoaches(search?: string, sport?: string, city?: string, country?: string) {
   return useQuery({
-    queryKey: ['coaches-discover', search, sport, city],
+    queryKey: ['coaches-discover', search, sport, city, country],
     queryFn: async () => {
       let q = supabase
         .from('profiles')
@@ -289,6 +290,7 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
       if (search) q = q.ilike('full_name', `%${search}%`);
       if (sport) q = q.eq('sport', sport);
       if (city) q = q.ilike('city', `%${city}%`);
+      if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
       if (error) throw error;
       return (data ?? []) as DiscoverableCoach[];

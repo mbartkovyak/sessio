@@ -2,19 +2,13 @@
   "home": {
     "greeting": "Привіт, {{name}}",
     "defaultName": "учаснику",
-    "pendingCount_one": "{{count}} заняття чекає на вашу відповідь",
-    "pendingCount_few": "{{count}} заняття чекають на вашу відповідь",
-    "pendingCount_many": "{{count}} занять чекають на вашу відповідь",
-    "pendingCount_other": "{{count}} заняття чекають на вашу відповідь",
     "overview": "Ось ваш план на найближчі дні",
     "allSet": "Усе готово",
-    "allConfirmed": "Усі найближчі заняття підтверджені",
+    "allConfirmed": "Усі найближчі заняття заплановані",
     "next": "Наступне: {{time}}",
     "noUpcoming": "Немає найближчих занять",
     "noUpcomingDesc": "Знайдіть тренера та приєднайтеся до занять",
-    "findCoach": "Знайти тренера",
-    "freeWeek": "Усе актуально",
-    "freeWeekDesc": "Зараз нічого не потрібно підтверджувати"
+    "findCoach": "Знайти тренера"
   },
   "profile": {
     "title": "Профіль",
@@ -29,6 +23,7 @@
     "title": "Пошук",
     "placeholder": "Шукайте тренерів і школи",
     "allSports": "Усі види спорту",
+    "allCountries": "Усі країни",
     "allCities": "Усі міста",
     "noResults": "Нічого не знайдено",
     "noResultsDesc": "Спробуйте змінити пошук або фільтри",
@@ -49,22 +44,36 @@
     "noUpcoming": "Немає найближчих занять",
     "noUpcomingDesc": "Приєднайтеся до занять, щоб побачити свій план",
     "confirmed": "Вас записано",
-    "pending": "Очікує відповіді",
     "declined": "Відмова",
     "noShow": "Неявка",
     "cancelled": "Скасовано",
     "navigateTo": "Прокласти маршрут до {{venue}}",
     "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Пізнє скасування може бути враховане як запізніла відмова.",
+    "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
-    "cancelAnyway": "Скасувати все одно",
-    "imComing": "Я буду",
-    "cantMakeIt": "Не зможу",
+    "cancelAnyway": "Скасувати",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити",
     "cantMakeItAnymore": "Все ж не зможу",
-    "changedMind": "Все ж зможу прийти"
+    "changedMind": "Все ж зможу прийти",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити"
   },
   "messages": {
     "title": "Чати",
     "emptyDesc": "Приєднайтеся до занять, щоб спілкуватися з групою"
+  },
+  "trainingDetail": {
+    "notFound": "Заняття не знайдено",
+    "goHome": "На головну",
+    "coach": "Тренер",
+    "participants": "учасників",
+    "openChat": "Груповий чат",
+    "viewProfile": "Переглянути профіль",
+    "leave": "Покинути заняття",
+    "leaveConfirm": "Покинути {{name}}? Ви більше не отримуватимете запрошень на заняття."
   },
   "coachProfile": {
     "title": "Тренер",
@@ -91,21 +100,18 @@
     "coachCount_many": "{{count}} тренерів",
     "coachCount_other": "{{count}} тренери"
   },
-  "confirmation": {
-    "imComing": "Я буду",
-    "cantMakeIt": "Не зможу",
-    "confirmed": "Вас записано",
-    "markedCantMake": "Позначено як відсутність"
-  },
   "thisWeek": {
     "title": "Цей тиждень",
-    "going": "Буду",
     "notGoing": "Не буду",
     "backIn": "Вас знову записано",
     "spotReleased": "Місце звільнено",
     "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Це все одно може зараховуватися як пізнє скасування.",
+    "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
-    "cancelAnyway": "Скасувати все одно"
+    "cancelAnyway": "Скасувати",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити"
   },
   "joinRequests": {
     "title": "Запити на приєднання",

@@ -2,19 +2,13 @@
   "home": {
     "greeting": "Cześć, {{name}}",
     "defaultName": "uczestniku",
-    "pendingCount_one": "{{count}} zajęcie czeka na twoją odpowiedź",
-    "pendingCount_few": "{{count}} zajęcia czekają na twoją odpowiedź",
-    "pendingCount_many": "{{count}} zajęć czeka na twoją odpowiedź",
-    "pendingCount_other": "{{count}} zajęcia czekają na twoją odpowiedź",
     "overview": "Tu masz plan na najbliższe dni",
     "allSet": "Wszystko gotowe",
-    "allConfirmed": "Twoje najbliższe zajęcia są potwierdzone",
+    "allConfirmed": "Twoje najbliższe zajęcia są zaplanowane",
     "next": "Następne: {{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
-    "findCoach": "Znajdź trenera",
-    "freeWeek": "Wszystko aktualne",
-    "freeWeekDesc": "Na razie nic nie musisz potwierdzać"
+    "findCoach": "Znajdź trenera"
   },
   "profile": {
     "title": "Profil",
@@ -29,6 +23,7 @@
     "title": "Szukaj",
     "placeholder": "Szukaj trenerów i szkół",
     "allSports": "Wszystkie sporty",
+    "allCountries": "Wszystkie kraje",
     "allCities": "Wszystkie miasta",
     "noResults": "Brak wyników",
     "noResultsDesc": "Spróbuj zmienić wyszukiwanie albo filtry",
@@ -49,22 +44,36 @@
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Dołącz do zajęć, aby zobaczyć swój plan",
     "confirmed": "Masz miejsce",
-    "pending": "Czeka na odpowiedź",
     "declined": "Rezygnacja",
     "noShow": "Nieobecność",
     "cancelled": "Odwołane",
     "navigateTo": "Pokaż trasę do {{venue}}",
     "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. Późna rezygnacja może zostać odnotowana.",
+    "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
-    "cancelAnyway": "Zrezygnuj mimo to",
-    "imComing": "Będę",
-    "cantMakeIt": "Nie dam rady",
+    "cancelAnyway": "Zrezygnuj",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw",
     "cantMakeItAnymore": "Jednak nie dam rady",
-    "changedMind": "Jednak będę"
+    "changedMind": "Jednak będę",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw"
   },
   "messages": {
     "title": "Czaty",
     "emptyDesc": "Dołącz do zajęć, aby rozmawiać z grupą"
+  },
+  "trainingDetail": {
+    "notFound": "Nie znaleziono zajęć",
+    "goHome": "Strona główna",
+    "coach": "Trener",
+    "participants": "uczestników",
+    "openChat": "Czat grupowy",
+    "viewProfile": "Zobacz profil",
+    "leave": "Opuść zajęcia",
+    "leaveConfirm": "Opuścić {{name}}? Nie będziesz otrzymywać zaproszeń na zajęcia."
   },
   "coachProfile": {
     "title": "Trener",
@@ -91,21 +100,18 @@
     "coachCount_many": "{{count}} trenerów",
     "coachCount_other": "{{count}} trenerów"
   },
-  "confirmation": {
-    "imComing": "Będę",
-    "cantMakeIt": "Nie dam rady",
-    "confirmed": "Masz miejsce",
-    "markedCantMake": "Zaznaczono nieobecność"
-  },
   "thisWeek": {
     "title": "Ten tydzień",
-    "going": "Będę",
     "notGoing": "Nie będę",
     "backIn": "Znowu masz miejsce",
     "spotReleased": "Miejsce zwolnione",
     "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. To nadal może zostać policzone jako późna rezygnacja.",
+    "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
-    "cancelAnyway": "Zrezygnuj mimo to"
+    "cancelAnyway": "Zrezygnuj",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw"
   },
   "joinRequests": {
     "title": "Prośby o dołączenie",

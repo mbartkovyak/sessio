@@ -1,7 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight } from 'lucide-react';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SessioLogo, SessioLoader } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
@@ -11,20 +10,6 @@ export default function Landing() {
   const { profile, loading } = useAuth();
   const { t } = useTranslation('auth');
 
-  useEffect(() => {
-    if (loading) return;
-    if (!profile) {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      if (isStandalone) navigate('/auth', { replace: true });
-      return;
-    }
-    if (!profile.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate(profile.role === 'player' ? '/player' : '/coach', { replace: true });
-    }
-  }, [loading, profile, navigate]);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -32,6 +17,17 @@ export default function Landing() {
       </div>
     );
   }
+
+  // Redirect authenticated users immediately (render-phase, no effect delay)
+  if (profile) {
+    const target = !profile.onboarding_complete ? '/onboarding'
+      : profile.role === 'player' ? '/player' : '/coach';
+    return <Navigate to={target} replace />;
+  }
+
+  // PWA standalone with no session: go straight to auth
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) return <Navigate to="/auth" replace />;
 
   const features = [
     { emoji: '📬', title: t('landing.feature1Title'), desc: t('landing.feature1Desc') },

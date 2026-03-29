@@ -110,7 +110,18 @@
     "deleting": "Usuwanie...",
     "delete": "Usuń",
     "trainingUpdated": "Zapisano zmiany",
-    "scheduleUpdated": "📅 Zmieniono harmonogram {{name}}: {{days}} {{time}}."
+    "scheduleUpdated": "📅 Zmieniono harmonogram {{name}}: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Potwierdzone",
+    "statusDeclined": "Odmówione",
+    "statusPending": "Oczekujące",
+    "noAttendance": "Brak uczestników tej sesji",
+    "addMember": "Dodaj",
+    "addMemberTitle": "Dodaj uczestnika",
+    "searchAthletes": "Szukaj po imieniu...",
+    "noAthletesFound": "Nie znaleziono uczestników",
+    "noAthletesToAdd": "Brak uczestników do dodania",
+    "alreadyInTraining": "Już w zajęciach"
   },
   "form": {
     "lessonNameRequired": "Nazwa zajęć jest wymagana",
@@ -174,16 +185,16 @@
     "inviteDesc": "Udostępnij link lub kod zaproszenia. Dołączenie zajmuje około 30 sekund.",
     "gotIt": "Rozumiem",
     "allSetTitle": "Wszystko gotowe",
-    "allSetDesc": "Sessio automatycznie wyśle prośby o potwierdzenie przed zajęciami i uzupełni wolne miejsca z listy rezerwowej.",
+    "allSetDesc": "Uczestnicy są zapisywani automatycznie. Sessio wysyła przypomnienia — mogą zrezygnować, jeśli nie dadzą rady.",
     "startCoaching": "Przejdź do panelu",
     "checkGroupCreated": "Grupa utworzona",
     "checkInviteReady": "Link zaproszenia gotowy",
-    "checkAutoConfirm": "Automatyczne potwierdzenia włączone",
+    "checkAutoConfirm": "Uczestnicy zapisani automatycznie",
     "checkWaitlist": "Automatyczna lista rezerwowa włączona"
   },
   "pending": {
     "title": "Oczekiwanie na zatwierdzenie",
-    "description": "Twoja prośba o dołączenie do <1>{{name}}</1> czeka na decyzję właściciela szkoły.",
+    "description": "Twoja prośba o dołączenie do {{name}} czeka na decyzję właściciela szkoły.",
     "info": "Dostęp pojawi się po zatwierdzeniu.",
     "checkStatus": "Odśwież"
   }

@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
               trainings(id, name, confirmation_window_hours)
             )
           `)
-          .eq('status', 'pending')
+          .eq('status', 'confirmed')
           .lt('reminder_count', 2)
           .in('session_id', sessionIds);
         if (err) throw err;
@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
 
         const payload = JSON.stringify({
           title: training.name,
-          body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — confirm or cancel if you can't make it.`,
+          body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — cancel if you can't make it.`,
           tag: `confirm-${att.session_id}`,
           url: '/player',
         });
@@ -207,70 +207,9 @@ Deno.serve(async (req) => {
       } // end hours check
     }
 
-    // ── 4. Handle no-response deadline ──
-    if (action === 'full' || action === 'deadline') {
-      // Only check sessions within the next 3 days
-      const dlCutoff = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const dlToday = new Date().toISOString().slice(0, 10);
-
-      const { data: dlSessions } = await supabase
-        .from('training_sessions')
-        .select('id')
-        .gte('session_date', dlToday)
-        .lte('session_date', dlCutoff);
-
-      const dlSessionIds = (dlSessions ?? []).map((s: any) => s.id);
-
-      let pending: any[] = [];
-      if (dlSessionIds.length) {
-        const { data } = await supabase
-          .from('session_attendance')
-          .select(`
-            id, user_id, session_id, status,
-            training_sessions(id, session_date, start_time, training_id,
-              trainings(id, name, no_response_behavior, confirmation_window_hours)
-            )
-          `)
-          .eq('status', 'pending')
-          .in('session_id', dlSessionIds);
-        pending = data ?? [];
-      }
-
-      const now = Date.now();
-      let handled = 0;
-
-      for (const att of pending ?? []) {
-        const session = att.training_sessions as any;
-        const training = session?.trainings;
-        if (!session || !training) continue;
-
-        const sessionStart = warsawToUtcMs(session.session_date, session.start_time);
-        const deadlineHours = training.confirmation_window_hours ?? 24;
-
-        // Deadline = confirmation_window_hours before session (+1h buffer for hourly cron)
-        if (sessionStart - now > (deadlineHours + 1) * 60 * 60 * 1000) continue;
-        if (sessionStart < now) continue; // session already happened
-
-        const behavior = training.no_response_behavior ?? 'mark_absent';
-        if (behavior === 'keep_pending') continue;
-
-        // Mark as no_response
-        await supabase
-          .from('session_attendance')
-          .update({ status: 'no_response' })
-          .eq('id', att.id);
-
-        // Create open spot
-        await supabase.from('training_open_spots').insert({
-          training_id: session.training_id,
-          session_id: att.session_id,
-          created_by: att.user_id,
-        }).then(() => {}, () => {}); // ignore duplicate errors
-
-        handled++;
-      }
-
-      results.no_response_handled = handled;
+    // ── 4. Deadline handler — no-op (all attendance starts as confirmed) ──
+    if (action === 'deadline') {
+      results.no_response_handled = 0;
     }
 
     return new Response(JSON.stringify({ ok: true, ...results }), {

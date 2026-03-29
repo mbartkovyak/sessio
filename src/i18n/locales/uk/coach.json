@@ -110,7 +110,18 @@
     "deleting": "Видалення...",
     "delete": "Видалити",
     "trainingUpdated": "Зміни збережено",
-    "scheduleUpdated": "📅 Оновлено розклад {{name}}: {{days}} {{time}}."
+    "scheduleUpdated": "📅 Оновлено розклад {{name}}: {{days}} {{time}}.",
+    "attendanceSummary": "{{confirmed}}/{{total}}",
+    "statusConfirmed": "Підтверджено",
+    "statusDeclined": "Відхилено",
+    "statusPending": "Очікує",
+    "noAttendance": "Немає учасників цього заняття",
+    "addMember": "Додати",
+    "addMemberTitle": "Додати учасника",
+    "searchAthletes": "Пошук за ім'ям...",
+    "noAthletesFound": "Учасників не знайдено",
+    "noAthletesToAdd": "Немає учасників для додавання",
+    "alreadyInTraining": "Вже в занятті"
   },
   "form": {
     "lessonNameRequired": "Назва заняття обов'язкова",
@@ -174,16 +185,16 @@
     "inviteDesc": "Поділіться посиланням або кодом запрошення. Приєднання займає близько 30 секунд.",
     "gotIt": "Зрозуміло",
     "allSetTitle": "Усе готово",
-    "allSetDesc": "Sessio автоматично надсилатиме запити на підтвердження перед заняттями й заповнюватиме вільні місця зі списку очікування.",
+    "allSetDesc": "Учасники записуються автоматично. Sessio надсилає нагадування — вони скасовують, якщо не зможуть прийти.",
     "startCoaching": "Відкрити панель",
     "checkGroupCreated": "Групу створено",
     "checkInviteReady": "Посилання-запрошення готове",
-    "checkAutoConfirm": "Автопідтвердження увімкнено",
+    "checkAutoConfirm": "Учасники записані автоматично",
     "checkWaitlist": "Автосписок очікування увімкнено"
   },
   "pending": {
     "title": "Очікування на схвалення",
-    "description": "Ваш запит на приєднання до <1>{{name}}</1> чекає на рішення власника школи.",
+    "description": "Ваш запит на приєднання до {{name}} чекає на рішення власника школи.",
     "info": "Доступ з'явиться після схвалення.",
     "checkStatus": "Оновити"
   }

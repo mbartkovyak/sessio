@@ -7,7 +7,7 @@ import { useSchool, useSchoolPublicTrainings, useIsFavouriteSchool, useToggleFav
 import { useAuth } from '@/contexts/AuthContext';
 import { sportLabel } from '@/lib/constants';
 import TrainingCard from '@/components/shared/TrainingCard';
-import Avatar from '@/components/shared/Avatar';
+import CoachCard from '@/components/shared/CoachCard';
 import { SessioLoader } from '@/components/SessioLogo';
 
 export default function SchoolPublicProfile() {
@@ -110,19 +110,7 @@ export default function SchoolPublicProfile() {
                 {coaches.map((m: any) => {
                   const coach = m.coach;
                   if (!coach) return null;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => navigate(`/search/coach/${coach.id}`)}
-                      className="w-full flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 shadow-sm"
-                    >
-                      <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground truncate">{coach.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{coach.sport ? sportLabel(coach.sport) : ''}</p>
-                      </div>
-                    </button>
-                  );
+                  return <CoachCard key={m.id} coach={coach} />;
                 })}
               </div>
             </div>

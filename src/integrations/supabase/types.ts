@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      _config: {
+        Row: {
+          key: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       coaches: {
         Row: {
           bio: string | null
@@ -96,6 +111,68 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          hidden: boolean
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          hidden?: boolean
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          hidden?: boolean
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          training_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          training_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          training_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: true
+            referencedRelation: "trainings"
             referencedColumns: ["id"]
           },
         ]
@@ -328,12 +405,51 @@ export type Database = {
             foreignKeyName: "message_reactions_message_id_fkey"
             columns: ["message_id"]
             isOneToOne: false
-            referencedRelation: "training_messages"
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "message_reactions_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -465,6 +581,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           city: string | null
+          country: string | null
           created_at: string | null
           email: string
           first_name: string | null
@@ -477,11 +594,13 @@ export type Database = {
           role: string | null
           school_id: string | null
           sport: string | null
+          venues: Json | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string | null
           email: string
           first_name?: string | null
@@ -494,11 +613,13 @@ export type Database = {
           role?: string | null
           school_id?: string | null
           sport?: string | null
+          venues?: Json | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
@@ -511,6 +632,7 @@ export type Database = {
           role?: string | null
           school_id?: string | null
           sport?: string | null
+          venues?: Json | null
         }
         Relationships: [
           {
@@ -521,6 +643,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          keys: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          keys: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          keys?: Json
+          user_id?: string
+        }
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -619,6 +765,7 @@ export type Database = {
       schools: {
         Row: {
           city: string | null
+          country: string | null
           created_at: string
           description: string | null
           id: string
@@ -628,9 +775,11 @@ export type Database = {
           owner_id: string
           sport: string | null
           updated_at: string
+          venues: Json | null
         }
         Insert: {
           city?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -640,9 +789,11 @@ export type Database = {
           owner_id: string
           sport?: string | null
           updated_at?: string
+          venues?: Json | null
         }
         Update: {
           city?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -652,6 +803,7 @@ export type Database = {
           owner_id?: string
           sport?: string | null
           updated_at?: string
+          venues?: Json | null
         }
         Relationships: [
           {
@@ -669,6 +821,8 @@ export type Database = {
           created_at: string
           declined_at: string | null
           id: string
+          reminder_count: number
+          reminder_sent_at: string | null
           session_id: string
           status: string
           user_id: string
@@ -678,6 +832,8 @@ export type Database = {
           created_at?: string
           declined_at?: string | null
           id?: string
+          reminder_count?: number
+          reminder_sent_at?: string | null
           session_id: string
           status?: string
           user_id: string
@@ -687,6 +843,8 @@ export type Database = {
           created_at?: string
           declined_at?: string | null
           id?: string
+          reminder_count?: number
+          reminder_sent_at?: string | null
           session_id?: string
           status?: string
           user_id?: string
@@ -784,45 +942,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      training_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          sender_id: string
-          training_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          sender_id: string
-          training_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          sender_id?: string
-          training_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "training_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "training_messages_training_id_fkey"
-            columns: ["training_id"]
-            isOneToOne: false
-            referencedRelation: "trainings"
             referencedColumns: ["id"]
           },
         ]
@@ -930,6 +1049,7 @@ export type Database = {
           confirmation_window_hours: number
           created_at: string
           day_of_week: number
+          day_schedules: Json | null
           days_of_week: number[] | null
           end_date: string | null
           end_time: string
@@ -960,6 +1080,7 @@ export type Database = {
           confirmation_window_hours?: number
           created_at?: string
           day_of_week: number
+          day_schedules?: Json | null
           days_of_week?: number[] | null
           end_date?: string | null
           end_time: string
@@ -990,6 +1111,7 @@ export type Database = {
           confirmation_window_hours?: number
           created_at?: string
           day_of_week?: number
+          day_schedules?: Json | null
           days_of_week?: number[] | null
           end_date?: string | null
           end_time?: string
@@ -1050,6 +1172,24 @@ export type Database = {
         Args: { p_training_id: string }
         Returns: Json
       }
+      get_my_conversations: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          dm_avatar_url: string
+          dm_user_id: string
+          dm_user_name: string
+          hidden: boolean
+          last_message_at: string
+          last_message_content: string
+          last_message_sender_name: string
+          training_id: string
+          training_name: string
+          training_sport: string
+          unread_count: number
+        }[]
+      }
+      get_my_unread_count: { Args: never; Returns: number }
       handle_no_response_deadline: { Args: never; Returns: Json }
       is_group_member: {
         Args: { _group_id: string; _player_id: string }
@@ -1197,5 +1337,5 @@ export const Constants = {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.78.1 (currently installed v2.75.0)
+A new version of Supabase CLI is available: v2.84.2 (currently installed v2.75.0)
 We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

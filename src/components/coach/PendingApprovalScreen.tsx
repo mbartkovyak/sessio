@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Clock, LogOut } from 'lucide-react';
-import { SessioLogoCompact } from '@/components/SessioLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { sportLabel } from '@/lib/constants';
@@ -17,11 +16,6 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4">
-        <div className="max-w-md mx-auto flex items-center gap-2">
-          <SessioLogoCompact />
-        </div>
-      </header>
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center space-y-5">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">

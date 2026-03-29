@@ -2,19 +2,13 @@
   "home": {
     "greeting": "Hi, {{name}}",
     "defaultName": "there",
-    "pendingCount_one": "{{count}} training needs your reply",
-    "pendingCount_few": "{{count}} trainings need your reply",
-    "pendingCount_many": "{{count}} trainings need your reply",
-    "pendingCount_other": "{{count}} trainings need your reply",
-    "overview": "Here's your schedule at a glance",
+    "overview": "Your upcoming schedule",
     "allSet": "All set",
-    "allConfirmed": "Your upcoming trainings are confirmed",
+    "allConfirmed": "Your upcoming trainings are set",
     "next": "Next: {{time}}",
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Find a coach and join a training",
-    "findCoach": "Find a coach",
-    "freeWeek": "You're up to date",
-    "freeWeekDesc": "Nothing needs a reply right now"
+    "findCoach": "Find a coach"
   },
   "profile": {
     "title": "Profile",
@@ -29,6 +23,7 @@
     "title": "Search",
     "placeholder": "Search coaches and schools",
     "allSports": "All sports",
+    "allCountries": "All countries",
     "allCities": "All cities",
     "noResults": "No results found",
     "noResultsDesc": "Try different filters or a different search",
@@ -49,22 +44,33 @@
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Join a training to see it here",
     "confirmed": "You're in",
-    "pending": "Awaiting reply",
     "declined": "Not coming",
     "noShow": "No-show",
     "cancelled": "Cancelled",
     "navigateTo": "Get directions to {{venue}}",
-    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still count against your record.",
+    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still be counted.",
+    "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
-    "cancelAnyway": "Cancel anyway",
-    "imComing": "I'm coming",
-    "cantMakeIt": "Can't make it",
-    "cantMakeItAnymore": "I can't make it after all",
-    "changedMind": "Actually, I can make it"
+    "cancelAnyway": "Cancel",
+    "cantMakeItAnymore": "Can't make it anymore",
+    "changedMind": "Actually, I can make it",
+    "rejoinConfirm": "Get back in this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
   },
   "messages": {
     "title": "Chats",
     "emptyDesc": "Join a training to start chatting with the group"
+  },
+  "trainingDetail": {
+    "notFound": "Training not found",
+    "goHome": "Go home",
+    "coach": "Coach",
+    "participants": "participants",
+    "openChat": "Group chat",
+    "viewProfile": "View profile",
+    "leave": "Leave training",
+    "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore."
   },
   "coachProfile": {
     "title": "Coach",
@@ -91,21 +97,18 @@
     "coachCount_many": "{{count}} coaches",
     "coachCount_other": "{{count}} coaches"
   },
-  "confirmation": {
-    "imComing": "I'm coming",
-    "cantMakeIt": "Can't make it",
-    "confirmed": "You're in",
-    "markedCantMake": "Marked as not coming"
-  },
   "thisWeek": {
     "title": "This week",
-    "going": "Going",
     "notGoing": "Not going",
     "backIn": "You're back in",
     "spotReleased": "Spot released",
     "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. This may still count as a late cancellation.",
+    "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
-    "cancelAnyway": "Cancel anyway"
+    "cancelAnyway": "Cancel",
+    "rejoinConfirm": "Get back in this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
   },
   "joinRequests": {
     "title": "Join requests",

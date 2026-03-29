@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, MapPin } from 'lucide-react';
+import { AlertTriangle, MapPin, MessageCircle } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
@@ -9,17 +10,9 @@ import { toast } from 'sonner';
 import CalendarGrid from '@/components/shared/CalendarGrid';
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
-const STATUS_STYLE: Record<string, { dot: string; label: string }> = {
-  confirmed: { dot: 'bg-success', label: 'text-success' },
-  pending: { dot: 'bg-warning', label: 'text-warning' },
-  declined: { dot: 'bg-muted-foreground/40', label: 'text-muted-foreground' },
-  no_show: { dot: 'bg-destructive', label: 'text-destructive' },
-};
-
 export default function PlayerCalendar() {
   const { t } = useTranslation('player');
   const { data: sessions = [], isLoading } = useMyUpcomingSessions();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -39,12 +32,7 @@ export default function PlayerCalendar() {
               </div>
             }
             renderItem={(a: any) => (
-              <CalendarSessionItem
-                key={a.id}
-                attendance={a}
-                isExpanded={expandedId === a.id}
-                onToggle={() => setExpandedId(expandedId === a.id ? null : a.id)}
-              />
+              <CalendarSessionItem key={a.id} attendance={a} />
             )}
           />
         </div>
@@ -55,139 +43,162 @@ export default function PlayerCalendar() {
   );
 }
 
-function CalendarSessionItem({ attendance, isExpanded, onToggle }: {
-  attendance: any; isExpanded: boolean; onToggle: () => void;
-}) {
+function CalendarSessionItem({ attendance }: { attendance: any }) {
   const { t } = useTranslation('player');
+  const navigate = useNavigate();
   const session = attendance.training_sessions;
   const training = session?.trainings;
-  const style = STATUS_STYLE[attendance.status] ?? STATUS_STYLE.pending;
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
   const upsert = useUpsertAttendance();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
 
   const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = hoursUntil < cancelDeadlineHours;
-
-  const canAct = attendance.status === 'confirmed' || attendance.status === 'declined' || attendance.status === 'pending';
+  const isDeclined = attendance.status === 'declined';
+  const isNoShow = attendance.status === 'no_show';
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
     : undefined;
-  const statusLabel = attendance.status === 'confirmed'
-    ? t('calendar.confirmed')
-    : attendance.status === 'pending'
-      ? t('calendar.pending')
-      : attendance.status === 'declined'
-        ? t('calendar.declined')
-        : attendance.status === 'no_show'
-          ? t('calendar.noShow')
-          : attendance.status;
 
   async function handleChange(newStatus: string) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
     toast.success(newStatus === 'confirmed' ? t('calendar.confirmed') : t('calendar.cancelled'));
     setShowCancelWarning(false);
-    onToggle(); // collapse
+    setShowRejoinConfirm(false);
   }
 
   function handleCancelClick() {
-    if (isLateCancel) {
-      setShowCancelWarning(true);
-    } else {
-      handleChange('declined');
-    }
+    setShowCancelWarning(true);
+  }
+
+  function handleRejoinClick() {
+    setShowRejoinConfirm(true);
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-      <button
-        onClick={canAct ? onToggle : undefined}
-        className="flex items-center gap-3 px-4 py-3 w-full text-left"
-      >
+    <div className={`rounded-xl border border-border bg-card shadow-sm overflow-hidden ${isDeclined ? 'opacity-60' : ''}`}>
+      <div className="flex items-center gap-3 px-4 py-3">
         <span className="text-xl shrink-0">{sportIcon}</span>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{training?.name}</p>
+        <button onClick={() => navigate(`/player/training/${training?.id}`)} className="flex-1 min-w-0 text-left">
+          <p className={`text-sm font-semibold truncate ${isDeclined ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{training?.name}</p>
           <span className="text-xs text-muted-foreground mt-0.5 block">
             {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
           </span>
+        </button>
+        {/* Cancel / rejoin pill — hidden when confirmation is showing */}
+        {!showCancelWarning && !showRejoinConfirm && (
+          isDeclined ? (
+            <button
+              onClick={handleRejoinClick}
+              disabled={upsert.isPending}
+              className="rounded-full bg-success/10 px-3 py-1.5 text-xs font-semibold text-success shrink-0 disabled:opacity-50"
+            >
+              {t('calendar.rejoin')}
+            </button>
+          ) : isNoShow ? (
+            <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
+          ) : (
+            <button
+              onClick={handleCancelClick}
+              disabled={upsert.isPending}
+              className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0 disabled:opacity-50"
+            >
+              {t('calendar.cancelAnyway')}
+            </button>
+          )
+        )}
+      </div>
+      <CalendarSessionFooter training={training} />
+
+      {/* Rejoin confirmation — inline */}
+      {showRejoinConfirm && (
+        <div className="px-4 pb-3.5 border-t border-border pt-3">
+          <div className="rounded-xl p-3.5 bg-muted/50 border border-border">
+            <p className="text-sm text-foreground mb-3">{t('calendar.rejoinConfirm')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setShowRejoinConfirm(false)}
+                className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
+              >
+                {t('calendar.stayOut')}
+              </button>
+              <button
+                onClick={() => handleChange('confirmed')}
+                disabled={upsert.isPending}
+                className="rounded-lg bg-success/15 py-2 text-xs font-semibold text-success min-h-[36px] disabled:opacity-50"
+              >
+                {t('calendar.rejoin')}
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div className={`h-2 w-2 rounded-full ${style.dot}`} />
-          <span className={`text-xs font-medium ${style.label}`}>{statusLabel}</span>
-        </div>
-      </button>
-      {training?.venue && (
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
-        >
-          <MapPin className="h-3 w-3" /> {t('calendar.navigateTo', { venue: training.venue.split(',')[0] })}
-        </a>
       )}
 
-      {isExpanded && (
+      {/* Cancel confirmation — inline */}
+      {showCancelWarning && (
         <div className="px-4 pb-3.5 border-t border-border pt-3">
-          {showCancelWarning ? (
-            <div className="rounded-xl bg-warning/8 border border-warning/20 p-3.5">
+          <div className={`rounded-xl p-3.5 ${isLateCancel ? 'bg-warning/8 border border-warning/20' : 'bg-muted/50 border border-border'}`}>
+            {isLateCancel && (
               <div className="flex items-start gap-2.5 mb-3">
                 <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
                 <p className="text-sm text-foreground" dangerouslySetInnerHTML={{ __html: t('calendar.lateCancel', { hours: cancelDeadlineHours }) }} />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => { setShowCancelWarning(false); onToggle(); }}
-                  className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
-                >
-                  {t('calendar.keepSpot')}
-                </button>
-                <button
-                  onClick={() => handleChange('declined')}
-                  disabled={upsert.isPending}
-                  className="rounded-lg bg-destructive/10 py-2 text-xs font-semibold text-destructive min-h-[36px] disabled:opacity-50"
-                >
-                  {t('calendar.cancelAnyway')}
-                </button>
-              </div>
-            </div>
-          ) : attendance.status === 'pending' ? (
+            )}
+            {!isLateCancel && (
+              <p className="text-sm text-foreground mb-3">{t('calendar.cancelConfirm')}</p>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => handleChange('confirmed')}
-                disabled={upsert.isPending}
-                className="rounded-lg bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] disabled:opacity-50"
+                onClick={() => setShowCancelWarning(false)}
+                className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
               >
-                {t('calendar.imComing')}
+                {t('calendar.keepSpot')}
               </button>
               <button
                 onClick={() => handleChange('declined')}
                 disabled={upsert.isPending}
-                className="rounded-lg bg-destructive/10 py-2.5 text-xs font-bold text-destructive min-h-[40px] disabled:opacity-50"
+                className="rounded-lg bg-destructive/10 py-2 text-xs font-semibold text-destructive min-h-[36px] disabled:opacity-50"
               >
-                {t('calendar.cantMakeIt')}
+                {t('calendar.cancelAnyway')}
               </button>
             </div>
-          ) : attendance.status === 'confirmed' ? (
-            <button
-              onClick={handleCancelClick}
-              disabled={upsert.isPending}
-              className="w-full rounded-lg bg-destructive/8 border border-destructive/15 py-2.5 text-xs font-semibold text-destructive min-h-[40px] disabled:opacity-50"
-            >
-              {t('calendar.cantMakeItAnymore')}
-            </button>
-          ) : attendance.status === 'declined' ? (
-            <button
-              onClick={() => handleChange('confirmed')}
-              disabled={upsert.isPending}
-              className="w-full rounded-lg bg-success/10 border border-success/20 py-2.5 text-xs font-semibold text-success min-h-[40px] disabled:opacity-50"
-            >
-              {t('calendar.changedMind')}
-            </button>
-          ) : null}
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarSessionFooter({ training }: { training: any }) {
+  const navigate = useNavigate();
+  const { t } = useTranslation('common');
+  const hasVenue = !!training?.venue;
+  const hasChat = !!training?.id;
+
+  if (!hasVenue && !hasChat) return null;
+
+  return (
+    <div className="flex border-t border-border divide-x divide-border">
+      {hasVenue && (
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+        >
+          <MapPin className="h-3 w-3" /> {training.venue.split(',')[0]}
+        </a>
+      )}
+      {hasChat && (
+        <button
+          onClick={() => navigate(`/player/messages/${training.id}`)}
+          className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+        >
+          <MessageCircle className="h-3 w-3" /> {t('chat.group')}
+        </button>
       )}
     </div>
   );
