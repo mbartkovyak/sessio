@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { useMemo, useRef } from 'react';
+import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,8 +147,9 @@ export default function CoachCalendar() {
         left={
           <button
             onClick={() => calendarRef.current?.scrollToToday()}
-            className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
           >
+            <ArrowDown className="h-3 w-3" />
             {t('common:calendar.today')}
           </button>
         }
