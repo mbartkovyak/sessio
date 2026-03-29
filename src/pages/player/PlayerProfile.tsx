@@ -51,7 +51,7 @@ export default function PlayerProfile() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country: country || null, city: city || null })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country, city: city || null })
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
@@ -99,7 +99,7 @@ export default function PlayerProfile() {
 
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !country}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {saving ? t('profile.saving') : t('common:actions.save')}

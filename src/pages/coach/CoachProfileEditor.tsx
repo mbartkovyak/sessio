@@ -143,7 +143,7 @@ export default function CoachProfileEditor() {
 
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !country}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {saving ? t('profile.saving') : t('common:actions.save')}

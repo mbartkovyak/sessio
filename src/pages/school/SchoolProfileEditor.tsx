@@ -126,7 +126,7 @@ export default function SchoolProfileEditor() {
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <button onClick={() => update.mutate({ name, country, city, sport, description, venues })} disabled={update.isPending}
+          <button onClick={() => update.mutate({ name, country, city, sport, description, venues })} disabled={update.isPending || !country}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">
             {update.isPending ? t('profile.saving') : t('common:actions.save')}
           </button>
