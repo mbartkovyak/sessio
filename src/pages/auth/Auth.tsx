@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
@@ -15,16 +15,6 @@ export default function Auth() {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const { profile, loading: authLoading } = useAuth();
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!profile) return;
-    if (!profile.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate(profile.role === 'player' ? '/player' : '/coach', { replace: true });
-    }
-  }, [authLoading, profile, navigate]);
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -38,6 +28,20 @@ export default function Auth() {
     img.src = '/auth-bg.jpg';
     img.onload = () => setBgLoaded(true);
   }, []);
+
+  // Redirect authenticated users immediately (render-phase, no effect delay)
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <SessioLoader />
+      </div>
+    );
+  }
+  if (profile) {
+    const target = !profile.onboarding_complete ? '/onboarding'
+      : profile.role === 'player' ? '/player' : '/coach';
+    return <Navigate to={target} replace />;
+  }
 
   async function handleGoogle() {
     setGoogleLoading(true);

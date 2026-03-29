@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useMySchool } from '@/hooks/school/useSchools';
+import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, UserPlus, LogOut, Calendar, Settings } from 'lucide-react';
+import { Users, UserPlus, LogOut, Calendar, Settings, X, CheckCircle2 } from 'lucide-react';
 import { SessioLogoCompact, SessioLoader } from '@/components/SessioLogo';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
+import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { useState } from 'react';
 import { sportLabel } from '@/lib/constants';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -18,10 +19,15 @@ export default function SchoolDashboard() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const respond = useRespondSchoolMember();
   const [addingSelf, setAddingSelf] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
 
   const coaches = (school)?.school_members ?? [];
+  const pendingMembers = (school)?.pending_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === user?.id);
+  const inviteCode = school?.invite_code;
+  const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
 
   const { data: trainingsCount = 0, isLoading: trainingsLoading } = useQuery({
     queryKey: ['school-trainings-count', school?.id],
@@ -138,15 +144,45 @@ export default function SchoolDashboard() {
 
         {/* Coaches */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-foreground">{t('dashboard.coachesSection')}</h2>
-            <button
-              onClick={() => navigate('/school/coaches')}
-              className="flex items-center gap-1 text-sm font-medium text-primary px-2 min-h-[44px]"
-            >
-              <Plus className="h-4 w-4" /> {t('dashboard.add')}
-            </button>
-          </div>
+          <h2 className="font-semibold text-foreground mb-3">{t('dashboard.coachesSection')}</h2>
+
+          {/* Pending requests */}
+          {pendingMembers.length > 0 && (
+            <div className="mb-3 space-y-2">
+              <p className="text-xs font-medium text-amber-600">{t('dashboard.pendingRequests')} ({pendingMembers.length})</p>
+              {pendingMembers.map((m: any) => {
+                const coach = m.coach;
+                return (
+                  <div key={m.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar url={coach?.avatar_url} name={coach?.full_name} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground text-sm truncate">{coach?.full_name ?? t('dashboard.coach')}</p>
+                        <p className="text-xs text-muted-foreground">{coach?.sport ? sportLabel(coach.sport) : ''}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => respond.mutate({ memberId: m.id, accept: true })}
+                        disabled={respond.isPending}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {t('coaches.approve')}
+                      </button>
+                      <button
+                        onClick={() => respond.mutate({ memberId: m.id, accept: false })}
+                        disabled={respond.isPending}
+                        className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
+                      >
+                        <X className="h-3.5 w-3.5" /> {t('coaches.decline')}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {coaches.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border p-8 text-center">
               <Users className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
@@ -173,15 +209,20 @@ export default function SchoolDashboard() {
               })}
             </div>
           )}
+
+          {/* Add Coach button */}
+          <button
+            onClick={() => setShowInvite(true)}
+            className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground min-h-[44px] active:scale-[0.98] transition-transform"
+          >
+            <UserPlus className="h-4 w-4" /> {t('dashboard.addCoach')}
+          </button>
         </div>
 
         {/* Navigation */}
         <div className="rounded-xl border border-border bg-card divide-y divide-border">
           <button onClick={() => navigate('/school/calendar')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
             <Calendar className="h-4 w-4 text-muted-foreground" /> {t('dashboard.schoolCalendar')}
-          </button>
-          <button onClick={() => navigate('/school/coaches')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
-            <Users className="h-4 w-4 text-muted-foreground" /> {t('dashboard.manageCoaches')}
           </button>
           <button onClick={() => navigate('/school/profile')} className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground min-h-[44px]">
             <Settings className="h-4 w-4 text-muted-foreground" /> {t('dashboard.schoolSettings')}
@@ -195,6 +236,25 @@ export default function SchoolDashboard() {
           <LogOut className="h-4 w-4" /> {t('common:actions.signOut')}
         </button>
       </main>
+
+      {/* Invite coach bottom sheet */}
+      {showInvite && (
+        <>
+          <div className="fixed inset-0 z-40 bg-foreground/50 backdrop-blur-sm animate-fade-in" onClick={() => setShowInvite(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-card shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <h3 className="font-semibold text-foreground">{t('dashboard.inviteTitle')}</h3>
+              <button onClick={() => setShowInvite(false)} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary">
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="px-4 pb-6 space-y-4">
+              <p className="text-sm text-muted-foreground">{t('dashboard.inviteSteps')}</p>
+              <ShareLinkButton url={inviteLink} label={t('coaches.shareInvite')} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
