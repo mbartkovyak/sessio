@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, MapPin, X, RotateCcw, MessageCircle } from 'lucide-react';
+import { AlertTriangle, MapPin, MessageCircle } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
@@ -88,27 +88,25 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
             {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
           </span>
         </button>
-        {/* Cancel / rejoin button — hidden when confirmation is showing */}
+        {/* Cancel / rejoin pill — hidden when confirmation is showing */}
         {!showCancelWarning && !showRejoinConfirm && (
           isDeclined ? (
             <button
               onClick={handleRejoinClick}
               disabled={upsert.isPending}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
-              title={t('calendar.changedMind')}
+              className="rounded-full bg-success/10 px-3 py-1.5 text-xs font-semibold text-success shrink-0 disabled:opacity-50"
             >
-              <RotateCcw className="h-3.5 w-3.5 text-success" />
+              {t('calendar.rejoin')}
             </button>
           ) : isNoShow ? (
-            <span className="text-xs font-medium text-destructive shrink-0">{t('calendar.noShow')}</span>
+            <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
           ) : (
             <button
               onClick={handleCancelClick}
               disabled={upsert.isPending}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors shrink-0 disabled:opacity-50"
-              title={t('calendar.cantMakeItAnymore')}
+              className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0 disabled:opacity-50"
             >
-              <X className="h-3.5 w-3.5 text-destructive" />
+              {t('calendar.cancelAnyway')}
             </button>
           )
         )}

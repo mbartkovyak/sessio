@@ -83,7 +83,7 @@ export default function PlayerTrainingDetail() {
             {/* Coach */}
             {coach && (
               <button
-                onClick={() => navigate(`/player/dm/${coach.id}`)}
+                onClick={() => navigate(`/search/coach/${coach.id}`)}
                 className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 hover:bg-secondary/50 transition-colors text-left"
               >
                 <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
@@ -91,7 +91,7 @@ export default function PlayerTrainingDetail() {
                   <p className="text-sm font-semibold text-foreground truncate">{coach.full_name}</p>
                   <p className="text-xs text-muted-foreground">{t('trainingDetail.coach')}</p>
                 </div>
-                <MessageCircle className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs text-primary font-medium shrink-0">{t('trainingDetail.viewProfile')}</span>
               </button>
             )}
 

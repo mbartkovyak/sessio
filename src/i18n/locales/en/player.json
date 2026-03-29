@@ -68,6 +68,7 @@
     "coach": "Coach",
     "participants": "participants",
     "openChat": "Group chat",
+    "viewProfile": "View profile",
     "leave": "Leave training",
     "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore."
   },
