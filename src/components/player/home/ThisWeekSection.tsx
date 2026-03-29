@@ -30,6 +30,7 @@ function SessionRow({ attendance }: { attendance: any }) {
   const training = session?.trainings;
   const upsert = useUpsertAttendance();
   const [showWarning, setShowWarning] = useState(false);
+  const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
 
   const isDeclined = attendance.status === 'declined';
@@ -45,10 +46,15 @@ function SessionRow({ attendance }: { attendance: any }) {
     await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
     toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
     setShowWarning(false);
+    setShowRejoinConfirm(false);
   }
 
   function handleCancel() {
     setShowWarning(true);
+  }
+
+  function handleRejoin() {
+    setShowRejoinConfirm(true);
   }
 
   return (
@@ -61,11 +67,11 @@ function SessionRow({ attendance }: { attendance: any }) {
           {training?.venue && <VenueLink venue={training.venue} className="text-xs text-muted-foreground" />}
         </div>
 
-        {/* Cancel or rejoin — direct button like coach sessions */}
-        {!showWarning && (
+        {/* Cancel or rejoin — direct button, hidden when confirmation is showing */}
+        {!showWarning && !showRejoinConfirm && (
           isDeclined ? (
             <button
-              onClick={() => switchTo('confirmed')}
+              onClick={handleRejoin}
               disabled={upsert.isPending}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 hover:bg-success/20 transition-colors shrink-0 disabled:opacity-50"
               title={t('thisWeek.backIn')}
@@ -84,6 +90,28 @@ function SessionRow({ attendance }: { attendance: any }) {
           )
         )}
       </div>
+
+      {/* Rejoin confirmation — inline */}
+      {showRejoinConfirm && (
+        <div className="rounded-xl p-3.5 ml-9 bg-muted/50 border border-border">
+          <p className="text-sm text-foreground mb-3">{t('thisWeek.rejoinConfirm')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setShowRejoinConfirm(false)}
+              className="rounded-lg bg-card border border-border py-2 text-xs font-semibold text-foreground min-h-[36px]"
+            >
+              {t('thisWeek.stayOut')}
+            </button>
+            <button
+              onClick={() => switchTo('confirmed')}
+              disabled={upsert.isPending}
+              className="rounded-lg bg-success/15 py-2 text-xs font-semibold text-success min-h-[36px] disabled:opacity-50"
+            >
+              {t('thisWeek.rejoin')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Cancel confirmation — inline */}
       {showWarning && (

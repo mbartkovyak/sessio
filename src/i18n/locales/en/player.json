@@ -53,7 +53,10 @@
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
     "cantMakeItAnymore": "Can't make it anymore",
-    "changedMind": "Actually, I can make it"
+    "changedMind": "Actually, I can make it",
+    "rejoinConfirm": "Get back in this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
   },
   "messages": {
     "title": "Chats",
@@ -101,7 +104,10 @@
     "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. This may still count as a late cancellation.",
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
-    "cancelAnyway": "Cancel"
+    "cancelAnyway": "Cancel",
+    "rejoinConfirm": "Get back in this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
   },
   "joinRequests": {
     "title": "Join requests",

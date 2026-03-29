@@ -52,8 +52,14 @@
     "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw",
     "cantMakeItAnymore": "Jednak nie dam rady",
-    "changedMind": "Jednak będę"
+    "changedMind": "Jednak będę",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw"
   },
   "messages": {
     "title": "Czaty",
@@ -101,7 +107,10 @@
     "lateCancel": "Do zajęć zostało mniej niż <strong>{{hours}} godzin</strong>. To nadal może zostać policzone jako późna rezygnacja.",
     "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",
-    "cancelAnyway": "Zrezygnuj"
+    "cancelAnyway": "Zrezygnuj",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
+    "rejoin": "Wróć",
+    "stayOut": "Nie, zostaw"
   },
   "joinRequests": {
     "title": "Prośby o dołączenie",

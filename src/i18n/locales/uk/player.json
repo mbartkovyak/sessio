@@ -52,8 +52,14 @@
     "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
     "cancelAnyway": "Скасувати",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити",
     "cantMakeItAnymore": "Все ж не зможу",
-    "changedMind": "Все ж зможу прийти"
+    "changedMind": "Все ж зможу прийти",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити"
   },
   "messages": {
     "title": "Чати",
@@ -101,7 +107,10 @@
     "lateCancel": "До заняття менше ніж <strong>{{hours}} годин</strong>. Це все одно може зараховуватися як пізнє скасування.",
     "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
-    "cancelAnyway": "Скасувати"
+    "cancelAnyway": "Скасувати",
+    "rejoinConfirm": "Повернутися на це заняття?",
+    "rejoin": "Повернутися",
+    "stayOut": "Ні, залишити"
   },
   "joinRequests": {
     "title": "Запити на приєднання",
