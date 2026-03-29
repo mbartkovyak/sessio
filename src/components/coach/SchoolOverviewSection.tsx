@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, CheckCircle2, UserPlus, Users, X } from 'lucide-react';
+import { Settings, CheckCircle2, UserPlus, Users, X, Copy, Share2 } from 'lucide-react';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest } from '@/hooks/training/useTrainings';
 import Avatar from '@/components/shared/Avatar';
 import TrainingCard from '@/components/shared/TrainingCard';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { sportLabel } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
@@ -197,9 +198,33 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
-            <div className="px-4 pb-6 space-y-4">
-              <p className="text-sm text-muted-foreground">{t('dashboard.inviteSteps')}</p>
-              <ShareLinkButton url={inviteLink} label={t('coaches.shareInvite')} />
+            <div className="px-4 pb-6 space-y-5">
+              {/* Option 1: Share link */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">{t('dashboard.inviteOptionLink')}</p>
+                <ShareLinkButton url={inviteLink} label={t('coaches.shareInvite')} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">{t('dashboard.inviteOr')}</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
+              {/* Option 2: Code */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">{t('dashboard.inviteOptionCode')}</p>
+                <button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(inviteCode ?? '');
+                    toast.success(t('common:actions.linkCopied'));
+                  }}
+                  className="w-full flex items-center justify-between rounded-xl border border-border bg-secondary px-4 py-3 min-h-[44px] active:scale-[0.98] transition-transform"
+                >
+                  <span className="text-base font-mono font-bold tracking-widest text-foreground">{inviteCode}</span>
+                  <Copy className="h-4 w-4 text-muted-foreground shrink-0" />
+                </button>
+              </div>
             </div>
           </div>
         </>
