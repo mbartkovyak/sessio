@@ -166,7 +166,6 @@
   .header-gradient {
     background: linear-gradient(135deg, hsl(var(--header-from)) 0%, hsl(var(--header-to)) 100%);
     border-bottom: 1px solid hsl(var(--header-from) / 0.3);
-    border-radius: 0 0 1rem 1rem;
     padding-top: env(safe-area-inset-top, 0px);
   }
   .safe-area-bottom {
