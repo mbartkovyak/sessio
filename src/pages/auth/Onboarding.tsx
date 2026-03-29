@@ -69,7 +69,7 @@ export default function Onboarding() {
   function goBack() {
     setError('');
     if (step === 'train-or-coach') setStep('name');
-    else if (step === 'athlete-details') setStep('train-or-coach');
+    else if (step === 'athlete-details') setStep(hasTrainingInvite ? 'name' : 'train-or-coach');
     else if (step === 'coach-type') setStep('train-or-coach');
     else if (step === 'coach-details' || step === 'school-details') setStep('coach-type');
   }
@@ -82,7 +82,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', country: country || null, city: city || null, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', country, city: city || null, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -259,7 +259,7 @@ export default function Onboarding() {
                 </div>
                 <PhoneInput value={phone} onChange={setPhone} required />
                 <button
-                  onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? submitAthlete() : setStep('train-or-coach')}
+                  onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? setStep('athlete-details') : setStep('train-or-coach')}
                   disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
