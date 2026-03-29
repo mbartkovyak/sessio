@@ -1,5 +1,5 @@
 import { Send, Smile, X } from 'lucide-react';
-import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useMessages, useTrainingConversation, useDMConversation, getOrCreateDMConversation, markConversationSeen, unhideChat } from '@/hooks/shared/useConversations';
@@ -11,8 +11,29 @@ import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 import Avatar from '@/components/shared/Avatar';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import { SessioLoader } from '@/components/SessioLogo';
+
+const EmojiPickerLazy = lazy(() =>
+  Promise.all([
+    import('@emoji-mart/data'),
+    import('@emoji-mart/react'),
+  ]).then(([dataModule, pickerModule]) => ({
+    default: function EmojiPicker(props: { onEmojiSelect: (e: any) => void }) {
+      const Picker = pickerModule.default;
+      return (
+        <Picker
+          data={dataModule.default}
+          onEmojiSelect={props.onEmojiSelect}
+          theme="light"
+          previewPosition="none"
+          skinTonePosition="none"
+          maxFrequentRows={1}
+          perLine={8}
+        />
+      );
+    },
+  }))
+);
 
 // ── Hooks ──
 
@@ -282,13 +303,16 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
   }
 
   // Group messages by date
-  const grouped: { date: string; msgs: any[] }[] = [];
-  messages.forEach((msg: any) => {
-    const date = msg.created_at?.split('T')[0] ?? '';
-    const last = grouped[grouped.length - 1];
-    if (last && last.date === date) last.msgs.push(msg);
-    else grouped.push({ date, msgs: [msg] });
-  });
+  const grouped = useMemo(() => {
+    const result: { date: string; msgs: any[] }[] = [];
+    messages.forEach((msg: any) => {
+      const date = msg.created_at?.split('T')[0] ?? '';
+      const last = result[result.length - 1];
+      if (last && last.date === date) last.msgs.push(msg);
+      else result.push({ date, msgs: [msg] });
+    });
+    return result;
+  }, [messages]);
 
   return (
     <div className={`flex flex-col ${className ?? ''}`} style={style}>
@@ -423,18 +447,9 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           >
             <X className="h-4 w-4" />
           </button>
-          <Picker
-            data={data}
-            onEmojiSelect={(e: any) => {
-              setText(prev => prev + e.native);
-              textareaRef.current?.focus();
-            }}
-            theme="light"
-            previewPosition="none"
-            skinTonePosition="none"
-            maxFrequentRows={1}
-            perLine={8}
-          />
+          <Suspense fallback={<div className="h-[350px] flex items-center justify-center"><SessioLoader size={40} /></div>}>
+            <EmojiPickerLazy onEmojiSelect={(e: any) => { setText(prev => prev + e.native); textareaRef.current?.focus(); }} />
+          </Suspense>
         </div>
       )}
 

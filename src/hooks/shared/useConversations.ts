@@ -229,9 +229,10 @@ export function useMessages(conversationId: string | undefined) {
         .from('messages')
         .select('*, profiles:sender_id(id, full_name, avatar_url)')
         .eq('conversation_id', conversationId!)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
-      return (data ?? []) as MessageWithSender[];
+      return ((data ?? []) as MessageWithSender[]).reverse();
     },
   });
 
@@ -336,6 +337,7 @@ export function useMyConversations() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
+          qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
         }, 1000);
       })
       .subscribe();
@@ -416,7 +418,7 @@ export function useUnreadMessageCount() {
   const { data: count = 0 } = useQuery({
     queryKey: ['unread-total', user?.id],
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_my_unread_count');
       if (error) throw error;
@@ -437,7 +439,6 @@ export function useUnreadMessageCount() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload: any) => {
         if (payload.new.sender_id !== user.id) {
           qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
-          qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
         }
       })
       .subscribe();

@@ -26,7 +26,12 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    try {
+      const cached = localStorage.getItem('sessio_cached_profile');
+      return cached ? JSON.parse(cached) : null;
+    } catch { return null; }
+  });
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
 
@@ -44,6 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
     }
     setProfile(data as Profile | null);
+    if (data) {
+      try { localStorage.setItem('sessio_cached_profile', JSON.stringify(data)); } catch {}
+    }
   }
 
   const refreshProfile = useCallback(async () => {
@@ -61,9 +69,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       userRef.current = session?.user ?? null;
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        // Use cached profile for instant load if it matches the current user
+        const cached = profile; // from localStorage initializer
+        if (cached && cached.id === session.user.id) {
+          setLoading(false);
+          fetchProfile(session.user.id); // silent background refresh
+        } else {
+          await fetchProfile(session.user.id);
+          setLoading(false);
+        }
+      } else {
+        setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     // 2. Listen for subsequent sign-in / sign-out changes (fire-and-forget, no await)
@@ -104,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile?.id, profile?.language]);
 
   async function signOut() {
+    localStorage.removeItem('sessio_cached_profile');
     await supabase.auth.signOut({ scope: 'global' });
   }
 
