@@ -81,8 +81,9 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
                 </span>
               </div>
             )}
-            <div className={`py-3 ${isToday_ ? '' : 'border-t border-border'}`}>
-              <div className="flex items-baseline gap-2 mb-2">
+            <div className={`py-3 ${isToday_ ? 'border-l-3 border-l-primary pl-3 -ml-1 rounded-sm' : 'border-t border-border'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {isToday_ && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
                 <span className={`text-sm font-semibold ${isToday_ ? 'text-primary' : isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {dayLabel(day)}
                 </span>
