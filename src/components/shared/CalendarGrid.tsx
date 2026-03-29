@@ -1,7 +1,11 @@
 import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getDateLocale } from '@/lib/dateFnsLocale';
+
+export interface CalendarGridHandle {
+  scrollToToday: () => void;
+}
 
 interface CalendarGridProps<T> {
   items: T[];
@@ -11,10 +15,16 @@ interface CalendarGridProps<T> {
   emptyState?: React.ReactNode;
 }
 
-export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading, emptyState }: CalendarGridProps<T>) {
+function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyState }: CalendarGridProps<T>, ref: React.Ref<CalendarGridHandle>) {
   const { t } = useTranslation();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const todayRef = useRef<HTMLDivElement>(null);
+
+  const scrollToToday = useCallback(() => {
+    todayRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, []);
+
+  useImperativeHandle(ref, () => ({ scrollToToday }), [scrollToToday]);
 
   useEffect(() => {
     if (!isLoading && todayRef.current) {
@@ -95,3 +105,9 @@ export default function CalendarGrid<T>({ items, getDate, renderItem, isLoading,
     </>
   );
 }
+
+const CalendarGrid = forwardRef(CalendarGridInner) as <T>(
+  props: CalendarGridProps<T> & { ref?: React.Ref<CalendarGridHandle> }
+) => React.ReactElement | null;
+
+export default CalendarGrid;
