@@ -4,13 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
 import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
 import InstallPWA from "@/components/layout/InstallPWA";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { SessioLoader } from "@/components/SessioLogo";
 
 function PushRegistrar() { useAutoRegisterPush(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
@@ -46,6 +47,7 @@ function RootLayout() {
       <ErrorBoundary>
         <AuthProvider>
           <PushRegistrar />
+          <PrefetchRoutes />
           <Outlet />
         </AuthProvider>
       </ErrorBoundary>
@@ -53,46 +55,74 @@ function RootLayout() {
   );
 }
 
-// Auth pages
+// Auth pages — static (critical path, always needed first)
 import Landing from "./pages/auth/Landing";
 import Auth from "./pages/auth/Auth";
 import AuthCallback from "./pages/auth/AuthCallback";
-import Onboarding from "./pages/auth/Onboarding";
 
-// Shared pages
-import JoinTraining from "./pages/shared/JoinTraining";
-import JoinSchool from "./pages/shared/JoinSchool";
-import NotFound from "./pages/shared/NotFound";
+// All other pages — lazy loaded
+const Onboarding = lazy(() => import("./pages/auth/Onboarding"));
+const JoinTraining = lazy(() => import("./pages/shared/JoinTraining"));
+const JoinSchool = lazy(() => import("./pages/shared/JoinSchool"));
+const NotFound = lazy(() => import("./pages/shared/NotFound"));
+const PlayerHome = lazy(() => import("./pages/player/PlayerHome"));
+const PlayerSearch = lazy(() => import("./pages/player/PlayerSearch"));
+const CoachPublicProfile = lazy(() => import("./pages/player/CoachPublicProfile"));
+const SchoolPublicProfile = lazy(() => import("./pages/player/SchoolPublicProfile"));
+const PlayerCalendar = lazy(() => import("./pages/player/PlayerCalendar"));
+const PlayerProfile = lazy(() => import("./pages/player/PlayerProfile"));
+const PlayerMessages = lazy(() => import("./pages/player/PlayerMessages"));
+const PlayerChat = lazy(() => import("./pages/player/PlayerChat"));
+const PlayerDirectChat = lazy(() => import("./pages/player/PlayerDirectChat"));
+const PlayerTrainingDetail = lazy(() => import("./pages/player/PlayerTrainingDetail"));
+const CoachHome = lazy(() => import("./pages/coach/CoachHome"));
+const CoachCalendar = lazy(() => import("./pages/coach/CoachCalendar"));
+const CoachTrainings = lazy(() => import("./pages/coach/CoachTrainings"));
+const CreateTraining = lazy(() => import("./pages/coach/CreateTraining"));
+const TrainingDetail = lazy(() => import("./pages/coach/TrainingDetail"));
+const CoachProfileEditor = lazy(() => import("./pages/coach/CoachProfileEditor"));
+const CoachMessages = lazy(() => import("./pages/coach/CoachMessages"));
+const DirectChat = lazy(() => import("./pages/coach/DirectChat"));
+const CoachStats = lazy(() => import("./pages/coach/CoachStats"));
+const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEditor"));
 
-// Player pages
-import PlayerHome from "./pages/player/PlayerHome";
-import PlayerSearch from "./pages/player/PlayerSearch";
-import CoachPublicProfile from "./pages/player/CoachPublicProfile";
-import SchoolPublicProfile from "./pages/player/SchoolPublicProfile";
-import PlayerCalendar from "./pages/player/PlayerCalendar";
-import PlayerProfile from "./pages/player/PlayerProfile";
-import PlayerMessages from "./pages/player/PlayerMessages";
-import PlayerChat from "./pages/player/PlayerChat";
-import PlayerDirectChat from "./pages/player/PlayerDirectChat";
-import PlayerTrainingDetail from "./pages/player/PlayerTrainingDetail";
+function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <SessioLoader />
+      </div>
+    }>
+      <Component />
+    </Suspense>
+  );
+}
 
-// Coach pages
-import CoachHome from "./pages/coach/CoachHome";
-import CoachCalendar from "./pages/coach/CoachCalendar";
-import CoachTrainings from "./pages/coach/CoachTrainings";
-import CreateTraining from "./pages/coach/CreateTraining";
-import TrainingDetail from "./pages/coach/TrainingDetail";
-import CoachProfileEditor from "./pages/coach/CoachProfileEditor";
-import CoachMessages from "./pages/coach/CoachMessages";
-import DirectChat from "./pages/coach/DirectChat";
-
-// School pages
-import SchoolProfileEditor from "./pages/school/SchoolProfileEditor";
+function PrefetchRoutes() {
+  const { profile } = useAuth();
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.role === 'player') {
+      import('./pages/player/PlayerHome');
+      import('./pages/player/PlayerSearch');
+      import('./pages/player/PlayerCalendar');
+      import('./pages/player/PlayerProfile');
+      import('./pages/player/PlayerMessages');
+    } else {
+      import('./pages/coach/CoachHome');
+      import('./pages/coach/CoachCalendar');
+      import('./pages/coach/CoachTrainings');
+      import('./pages/coach/CoachMessages');
+      import('./pages/coach/CoachProfileEditor');
+    }
+  }, [profile?.role]);
+  return null;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 2 * 60 * 1000,   // 2 min — data stays fresh, no refetch on mount
+      staleTime: 5 * 60 * 1000,   // 5 min — data stays fresh, realtime + RefreshOnResume handle updates
       gcTime: 10 * 60 * 1000,     // 10 min — keep unused cache in memory
       refetchOnWindowFocus: false, // mobile PWA: no refetch on tab switch
       retry: 1,                    // fail fast
@@ -107,41 +137,42 @@ const router = createBrowserRouter(
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/join/:inviteCode" element={<JoinTraining />} />
-      <Route path="/join-school/:code" element={<JoinSchool />} />
-      <Route path="/s/:id" element={<SchoolPublicProfile />} />
+      <Route path="/onboarding" element={<LazyPage component={Onboarding} />} />
+      <Route path="/join/:inviteCode" element={<LazyPage component={JoinTraining} />} />
+      <Route path="/join-school/:code" element={<LazyPage component={JoinSchool} />} />
+      <Route path="/s/:id" element={<LazyPage component={SchoolPublicProfile} />} />
 
       {/* Player routes */}
-      <Route path="/player" element={<ProtectedRoute requiredRole="player"><PlayerHome /></ProtectedRoute>} />
-      <Route path="/search" element={<ProtectedRoute requiredRole="player"><PlayerSearch /></ProtectedRoute>} />
-      <Route path="/search/coach/:id" element={<ProtectedRoute requiredRole="player"><CoachPublicProfile /></ProtectedRoute>} />
-      <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><SchoolPublicProfile /></ProtectedRoute>} />
-      <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><PlayerMessages /></ProtectedRoute>} />
-      <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><PlayerChat /></ProtectedRoute>} />
-      <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><PlayerDirectChat /></ProtectedRoute>} />
-      <Route path="/player/training/:id" element={<ProtectedRoute requiredRole="player"><PlayerTrainingDetail /></ProtectedRoute>} />
-      <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><PlayerCalendar /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute requiredRole="player"><PlayerProfile /></ProtectedRoute>} />
+      <Route path="/player" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerHome} /></ProtectedRoute>} />
+      <Route path="/search" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerSearch} /></ProtectedRoute>} />
+      <Route path="/search/coach/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={CoachPublicProfile} /></ProtectedRoute>} />
+      <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={SchoolPublicProfile} /></ProtectedRoute>} />
+      <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerMessages} /></ProtectedRoute>} />
+      <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerChat} /></ProtectedRoute>} />
+      <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerDirectChat} /></ProtectedRoute>} />
+      <Route path="/player/training/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerTrainingDetail} /></ProtectedRoute>} />
+      <Route path="/calendar" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerCalendar} /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerProfile} /></ProtectedRoute>} />
 
       {/* Coach routes */}
-      <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachHome /></ProtectedRoute>} />
-      <Route path="/coach/calendar" element={<ProtectedRoute requiredRole="coach"><CoachCalendar /></ProtectedRoute>} />
-      <Route path="/coach/messages" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
-      <Route path="/coach/dm/:userId" element={<ProtectedRoute requiredRole="coach"><DirectChat /></ProtectedRoute>} />
-      <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><CoachTrainings /></ProtectedRoute>} />
-      <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><CreateTraining /></ProtectedRoute>} />
-      <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><TrainingDetail /></ProtectedRoute>} />
-      <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><CoachProfileEditor /></ProtectedRoute>} />
+      <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachHome} /></ProtectedRoute>} />
+      <Route path="/coach/calendar" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachCalendar} /></ProtectedRoute>} />
+      <Route path="/coach/messages" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachMessages} /></ProtectedRoute>} />
+      <Route path="/coach/dm/:userId" element={<ProtectedRoute requiredRole="coach"><LazyPage component={DirectChat} /></ProtectedRoute>} />
+      <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachTrainings} /></ProtectedRoute>} />
+      <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CreateTraining} /></ProtectedRoute>} />
+      <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><LazyPage component={TrainingDetail} /></ProtectedRoute>} />
+      <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachProfileEditor} /></ProtectedRoute>} />
+      <Route path="/coach/stats" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachStats} /></ProtectedRoute>} />
 
       {/* School routes */}
-      <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><SchoolProfileEditor /></ProtectedRoute>} />
+      <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><LazyPage component={SchoolProfileEditor} /></ProtectedRoute>} />
 
       {/* Legacy redirect support */}
-      <Route path="/player/dashboard" element={<ProtectedRoute requiredRole="player"><PlayerHome /></ProtectedRoute>} />
-      <Route path="/coach/dashboard" element={<ProtectedRoute requiredRole="coach"><CoachHome /></ProtectedRoute>} />
+      <Route path="/player/dashboard" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerHome} /></ProtectedRoute>} />
+      <Route path="/coach/dashboard" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachHome} /></ProtectedRoute>} />
 
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<LazyPage component={NotFound} />} />
     </Route>
   )
 );

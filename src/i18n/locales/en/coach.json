@@ -19,7 +19,8 @@
     "rescheduleStart": "New start time (HH:MM):",
     "rescheduleEnd": "New end time (HH:MM):",
     "cancelledMessage": "⚠️ {{name}} on {{date}} has been cancelled.",
-    "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}."
+    "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
+    "viewStats": "Attendance stats"
   },
   "profile": {
     "title": "Profile",
@@ -106,7 +107,7 @@
     "noUpcomingLessons": "No upcoming sessions",
     "cancelled": "Cancelled",
     "deleteTraining": "Delete training",
-    "deleteConfirm": "Delete this training? All members will be notified.",
+    "deleteConfirm": "Delete this training and all its sessions? Members will be notified.",
     "deleting": "Deleting...",
     "delete": "Delete",
     "trainingUpdated": "Training updated",
@@ -157,45 +158,54 @@
     "startTime": "Start time",
     "endTime": "End time",
     "joining": "Joining flow",
-    "joiningDesc": "How people join when they open the invite link",
+    "joiningDesc": "Approve each request, or let people join instantly",
     "instantJoin": "Join instantly",
     "approvalRequired": "Approve requests manually",
     "visibility": "Visibility",
-    "visibilityDesc": "Whether people can find this training in search",
+    "visibilityDesc": "Public: anyone can find this. Private: invite link only.",
     "private": "Private",
     "public": "Public",
     "cancelDeadline": "Cancellation deadline",
-    "cancelDeadlineDesc": "How many hours before the session people can cancel without it counting as late",
+    "cancelDeadlineDesc": "Cancellation deadline before each session (hours)",
     "hours": "{{h}}h",
     "saving": "Saving...",
     "save": "Save",
     "deleteTraining": "Delete training",
-    "deleteConfirm": "Are you sure? This can't be undone.",
+    "deleteConfirm": "Delete this training and all its sessions? This can't be undone.",
     "creating": "Creating...",
     "createLesson": "Create training"
   },
   "walkthrough": {
     "welcomeTitle": "Welcome to Sessio",
-    "welcomeDesc": "You're set up as a coach. Let's create your first group in 2 minutes.",
+    "welcomeDesc": "You're set up as a coach. Let's create your first training in 2 minutes.",
     "letsGo": "Let's go",
-    "createTitle": "Create your first group",
+    "createTitle": "Create your first training",
     "createDesc": "Set up a recurring training with sport, day, time, location, and capacity.",
-    "createButton": "Create a group",
+    "createButton": "Create training",
     "inviteTitle": "Invite your participants",
     "inviteDesc": "Share the invite link or code. People can join in about 30 seconds.",
     "gotIt": "Got it",
     "allSetTitle": "You're all set",
     "allSetDesc": "Participants are auto-enrolled. Sessio sends reminders before each training — they cancel if they can't make it.",
     "startCoaching": "Open dashboard",
-    "checkGroupCreated": "Group created",
+    "checkGroupCreated": "Training created",
     "checkInviteReady": "Invite link ready",
     "checkAutoConfirm": "Participants auto-enrolled",
-    "checkWaitlist": "Waitlist automation on"
+    "checkWaitlist": "Waitlist enabled"
   },
   "pending": {
     "title": "Waiting for approval",
     "description": "Your request to join {{name}} is being reviewed by the school owner.",
     "info": "You'll get access once the owner approves you.",
     "checkStatus": "Refresh"
+  },
+  "stats": {
+    "title": "Stats",
+    "week": "Week",
+    "month": "Month",
+    "confirmed": "Confirmed",
+    "declined": "Declined",
+    "totalSessions": "Sessions",
+    "noData": "No attendance data yet"
   }
 }

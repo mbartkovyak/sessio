@@ -5,7 +5,7 @@
     "trainings": "Zajęcia",
     "athletes": "Uczestnicy",
     "alsoCoach": "Prowadzę tu też zajęcia",
-    "alsoCoachDesc": "Dodaj siebie jako trenera w tej szkole",
+    "alsoCoachDesc": "Twórz i zarządzaj swoimi zajęciami w tej szkole",
     "coachesSection": "Trenerzy",
     "addCoach": "Dodaj trenera",
     "noCoaches": "Nie ma jeszcze trenerów",
@@ -73,7 +73,7 @@
     "accept": "Akceptuj",
     "decline": "Odrzuć",
     "lessons": "Zajęcia",
-    "noLessons": "Nie ma jeszcze żadnych zajęć. Utwórz pierwsze, żeby zacząć.",
+    "noLessons": "Nie ma jeszcze zajęć. Utwórz pierwsze zajęcia, żeby zacząć.",
     "showAll": "Pokaż wszystkie zajęcia ({{count}})"
   }
 }

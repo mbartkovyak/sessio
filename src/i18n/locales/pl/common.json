@@ -83,7 +83,7 @@
     "group": "Czat",
     "groupType": "Grupa",
     "leaveTraining": "Opuść zajęcia",
-    "leaveConfirm": "Opuścić {{name}}? Nie będziesz otrzymywać zaproszeń na zajęcia.",
+    "leaveConfirm": "Opuścić {{name}}? Nie będziesz dostawać aktualizacji ani zaproszeń.",
     "messageCoach": "Napisz",
     "trainingFallback": "Zajęcia",
     "userFallback": "Użytkownik"
@@ -150,8 +150,8 @@
     "joinRequestSentAgain": "Wysłano prośbę ponownie.",
     "addedToWaitlist": "Dodano do listy rezerwowej",
     "joinedTraining": "Udało się dołączyć do {{name}}",
-    "alreadyInGroup": "Już jesteś w tej grupie",
-    "groupFull": "Ta grupa jest pełna",
+    "alreadyInGroup": "Już jesteś w tych zajęciach",
+    "groupFull": "Te zajęcia są pełne",
     "failedToJoin": "Nie udało się dołączyć",
     "signInFailed": "Logowanie nie powiodło się",
     "notFound": "Nie znaleziono zaproszenia",
@@ -180,7 +180,7 @@
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
-    "soloCoachBlocked": "Niezależni trenerzy nie mogą dołączać do szkół. Skontaktuj się z właścicielem szkoły.",
+    "soloCoachBlocked": "Szkoły zarządzają swoimi trenerami. Poproś właściciela szkoły.",
     "alreadyInSchool": "Już należysz do tej szkoły",
     "failedToSend": "Nie udało się wysłać prośby",
     "signInFailed": "Logowanie nie powiodło się",

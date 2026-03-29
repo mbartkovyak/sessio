@@ -83,7 +83,7 @@
     "group": "Chat",
     "groupType": "Group",
     "leaveTraining": "Leave training",
-    "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore.",
+    "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training.",
     "messageCoach": "Message",
     "trainingFallback": "Training",
     "userFallback": "User"
@@ -150,8 +150,8 @@
     "joinRequestSentAgain": "Request sent again.",
     "addedToWaitlist": "Added to the waitlist",
     "joinedTraining": "You're in {{name}}",
-    "alreadyInGroup": "You're already in this group",
-    "groupFull": "This group is full",
+    "alreadyInGroup": "You're already in this training",
+    "groupFull": "This training is full",
     "failedToJoin": "Couldn't join",
     "signInFailed": "Sign-in failed",
     "notFound": "Invite not found",
@@ -180,7 +180,7 @@
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
-    "soloCoachBlocked": "Independent coaches can't join schools. Contact the school owner to be added.",
+    "soloCoachBlocked": "Schools manage their own coaches. Ask the school owner to add you.",
     "alreadyInSchool": "You're already part of this school",
     "failedToSend": "Couldn't send request",
     "signInFailed": "Sign-in failed",

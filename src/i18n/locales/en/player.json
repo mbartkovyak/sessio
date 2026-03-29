@@ -48,13 +48,13 @@
     "noShow": "No-show",
     "cancelled": "Cancelled",
     "navigateTo": "Get directions to {{venue}}",
-    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. Late cancellations may still be counted.",
+    "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
-    "cantMakeItAnymore": "Can't make it anymore",
+    "cantMakeItAnymore": "I can't make it",
     "changedMind": "Actually, I can make it",
-    "rejoinConfirm": "Get back in this session?",
+    "rejoinConfirm": "Rejoin this session?",
     "rejoin": "Rejoin",
     "stayOut": "No, stay out"
   },
@@ -70,7 +70,7 @@
     "openChat": "Group chat",
     "viewProfile": "View profile",
     "leave": "Leave training",
-    "leaveConfirm": "Leave {{name}}? You won't receive session requests anymore."
+    "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training."
   },
   "coachProfile": {
     "title": "Coach",
@@ -102,11 +102,11 @@
     "notGoing": "Not going",
     "backIn": "You're back in",
     "spotReleased": "Spot released",
-    "lateCancel": "It's less than <strong>{{hours}} hours</strong> before the session. This may still count as a late cancellation.",
+    "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
-    "rejoinConfirm": "Get back in this session?",
+    "rejoinConfirm": "Rejoin this session?",
     "rejoin": "Rejoin",
     "stayOut": "No, stay out"
   },
@@ -121,7 +121,7 @@
   "openSpots": {
     "title": "Open spots",
     "claimed": "Spot claimed",
-    "tooSlow": "Someone got there first",
+    "tooSlow": "This spot was just taken",
     "claimFailed": "Couldn't claim the spot",
     "claimSpot": "Take this spot"
   },

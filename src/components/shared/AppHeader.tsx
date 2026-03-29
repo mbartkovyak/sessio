@@ -7,12 +7,13 @@ interface AppHeaderProps {
   title: string;
   subtitle?: string;
   back?: boolean;
+  left?: ReactNode;
   right?: ReactNode;
   /** Use shrink-0 instead of sticky (for full-screen layouts like chat) */
   inline?: boolean;
 }
 
-export default function AppHeader({ title, subtitle, back, right, inline }: AppHeaderProps) {
+export default function AppHeader({ title, subtitle, back, left, right, inline }: AppHeaderProps) {
   const navigate = useNavigate();
   return (
     <PageHeader inline={inline} className="px-4 py-4">
@@ -22,6 +23,7 @@ export default function AppHeader({ title, subtitle, back, right, inline }: AppH
             <ArrowLeft className="h-4.5 w-4.5" />
           </button>
         )}
+        {!back && left && <div className="absolute left-4">{left}</div>}
         <div className="flex-1 text-center">
           <h1 className={`font-bold text-white ${back ? 'text-base' : 'text-lg'}`}>{title}</h1>
           {subtitle && <p className="text-xs text-white/70">{subtitle}</p>}

@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,14 +13,14 @@ import { useTranslation } from 'react-i18next';
 import CoachHeader from '@/components/coach/CoachHeader';
 import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
-import CalendarGrid from '@/components/shared/CalendarGrid';
+import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/CalendarGrid';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { useAttendanceSummary } from '@/hooks/training/useTrainings';
 
 function useCoachSessions(coachId: string | undefined) {
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['coach-calendar-sessions', coachId, today],
+    queryKey: ['coach-calendar-sessions', coachId, lookback],
     enabled: !!coachId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,7 +28,7 @@ function useCoachSessions(coachId: string | undefined) {
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name))')
         .eq('trainings.coach_id', coachId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', today)
+        .gte('session_date', lookback)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -37,9 +38,9 @@ function useCoachSessions(coachId: string | undefined) {
 }
 
 function useSchoolSessions(schoolId: string | undefined) {
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['school-calendar-sessions', schoolId, today],
+    queryKey: ['school-calendar-sessions', schoolId, lookback],
     enabled: !!schoolId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,7 +48,7 @@ function useSchoolSessions(schoolId: string | undefined) {
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name), coach:profiles(full_name))')
         .eq('trainings.school_id', schoolId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', today)
+        .gte('session_date', lookback)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -66,6 +67,8 @@ export default function CoachCalendar() {
   const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolOwner ? school?.id : undefined);
 
   const canCreate = true;
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const calendarRef = useRef<CalendarGridHandle>(null);
   const qc = useQueryClient();
 
   async function handleCancelSession(session: any) {
@@ -139,11 +142,24 @@ export default function CoachCalendar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title={t('calendar.title')} right={canCreate ? <NewLessonButton /> : undefined} />
+      <CoachHeader
+        title={t('calendar.title')}
+        left={
+          <button
+            onClick={() => calendarRef.current?.scrollToToday()}
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
+          >
+            <ArrowDown className="h-3 w-3" />
+            {t('common:calendar.today')}
+          </button>
+        }
+        right={canCreate ? <NewLessonButton /> : undefined}
+      />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">
           <CalendarGrid
+            ref={calendarRef}
             items={sessions}
             getDate={(s: any) => s.session_date}
             isLoading={isLoading}
@@ -164,16 +180,20 @@ export default function CoachCalendar() {
                 )}
               </div>
             }
-            renderItem={(session: any) => (
-              <CoachSessionCard
-                key={session.id}
-                session={session}
-                attendance={attendanceSummary[session.id]}
-                coachName={isSchoolOwner && session.trainings?.coach?.full_name ? t('trainings.coachName', { name: session.trainings.coach.full_name }) : undefined}
-                onCancel={handleCancelSession}
-                onReschedule={handleRescheduleSession}
-              />
-            )}
+            renderItem={(session: any) => {
+              const isPast = session.session_date < today;
+              return (
+                <CoachSessionCard
+                  key={session.id}
+                  session={session}
+                  attendance={attendanceSummary[session.id]}
+                  showActions={!isPast}
+                  coachName={isSchoolOwner && session.trainings?.coach?.full_name ? t('trainings.coachName', { name: session.trainings.coach.full_name }) : undefined}
+                  onCancel={handleCancelSession}
+                  onReschedule={handleRescheduleSession}
+                />
+              );
+            }}
           />
         </div>
       </main>
