@@ -68,31 +68,49 @@ export default function TrainingCard({
     );
   }
 
-  const defaultVenueFooter = training.venue ? (
-    <div className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs text-muted-foreground">
-      <MapPin className="h-3 w-3 shrink-0" />{training.venue.split(',')[0]}
-    </div>
-  ) : null;
-
-  const resolvedFooter = footer ?? defaultVenueFooter;
-
-  return (
-    <div className={`w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden text-left ${className}`}>
-      <Tag
-        onClick={onClick}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all active:scale-[0.98]"
-      >
-        <span className="text-xl shrink-0">{icon}</span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm text-foreground truncate">{training.name}</p>
-            {badge}
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">{[days, timeRange].filter(Boolean).join(' · ')}</p>
-          {extra}
+  const content = (
+    <>
+      <span className="text-xl shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-sm text-foreground truncate">{training.name}</p>
+          {badge}
         </div>
-      </Tag>
-      {resolvedFooter}
-    </div>
+        <p className="text-xs text-muted-foreground mt-0.5">{[days, timeRange].filter(Boolean).join(' · ')}</p>
+        {extra}
+      </div>
+    </>
+  );
+
+  // Custom footer with interactive elements — split from clickable area
+  if (footer) {
+    return (
+      <div className={`w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden text-left ${className}`}>
+        <Tag
+          onClick={onClick}
+          className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all active:scale-[0.98]"
+        >
+          {content}
+        </Tag>
+        {footer}
+      </div>
+    );
+  }
+
+  // No custom footer — entire card (including venue) is clickable
+  return (
+    <Tag
+      onClick={onClick}
+      className={`w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden text-left transition-all active:scale-[0.98] ${className}`}
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        {content}
+      </div>
+      {training.venue && (
+        <div className="flex items-center gap-1.5 border-t border-border px-4 py-2 text-xs text-muted-foreground">
+          <MapPin className="h-3 w-3 shrink-0" />{training.venue.split(',')[0]}
+        </div>
+      )}
+    </Tag>
   );
 }
