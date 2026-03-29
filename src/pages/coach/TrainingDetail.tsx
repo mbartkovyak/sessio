@@ -1,10 +1,10 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, UserPlus } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance, useMyAthletes, useAddTrainingMember } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -23,8 +23,6 @@ import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 import PageHeader from '@/components/shared/PageHeader';
 import { SessioLoader } from '@/components/SessioLogo';
-import AddMemberSheet from '@/components/coach/AddMemberSheet';
-
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,9 +44,6 @@ export default function TrainingDetail() {
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
-  const [showAddMember, setShowAddMember] = useState(false);
-  const { data: myAthletes = [] } = useMyAthletes(user?.id);
-  const addMember = useAddTrainingMember(id!);
 
   // All hooks must be called before any early return to avoid "Rendered more hooks" error
   const today = new Date().toISOString().split('T')[0];
@@ -236,14 +231,6 @@ export default function TrainingDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
-                    {myAthletes.length > 0 && (
-                      <button
-                        onClick={() => setShowAddMember(true)}
-                        className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
-                      >
-                        <UserPlus className="h-3.5 w-3.5" /> {t('detail.addMember')}
-                      </button>
-                    )}
                   </div>
                   {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
@@ -392,19 +379,6 @@ export default function TrainingDetail() {
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
       {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
-      {showAddMember && training && (
-        <AddMemberSheet
-          athletes={myAthletes}
-          existingMemberIds={members.map((m: any) => m.user_id ?? m.profiles?.id).filter(Boolean)}
-          onAdd={(userId) => {
-            addMember.mutate({ userId, trainingName: training.name }, {
-              onSuccess: () => setShowAddMember(false),
-            });
-          }}
-          onClose={() => setShowAddMember(false)}
-          adding={addMember.isPending}
-        />
-      )}
     </div>
   );
 }
