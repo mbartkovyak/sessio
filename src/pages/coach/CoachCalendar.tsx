@@ -143,17 +143,15 @@ export default function CoachCalendar() {
     <div className="flex min-h-screen flex-col bg-background">
       <CoachHeader
         title={t('calendar.title')}
-        right={
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => calendarRef.current?.scrollToToday()}
-              className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
-            >
-              {t('common:calendar.today')}
-            </button>
-            {canCreate && <NewLessonButton />}
-          </div>
+        left={
+          <button
+            onClick={() => calendarRef.current?.scrollToToday()}
+            className="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
+          >
+            {t('common:calendar.today')}
+          </button>
         }
+        right={canCreate ? <NewLessonButton /> : undefined}
       />
 
       <main className="flex-1 pb-24">
