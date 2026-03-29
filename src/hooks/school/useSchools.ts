@@ -40,7 +40,7 @@ export function useMySchool() {
     queryFn: async () => {
       const { data } = await supabase
         .from('schools')
-        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
         .eq('owner_id', user!.id)
         .maybeSingle();
       if (!data) return data;
@@ -97,7 +97,7 @@ export function useSchool(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('schools')
-        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city))')
+        .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
         .eq('id', id!)
         .single();
       if (error) throw error;

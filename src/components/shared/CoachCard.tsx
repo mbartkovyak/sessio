@@ -10,6 +10,7 @@ interface CoachCardProps {
     full_name: string | null;
     avatar_url?: string | null;
     sport?: string | null;
+    bio?: string | null;
   };
   /** Subtitle override — defaults to sport label */
   subtitle?: string;
@@ -33,6 +34,9 @@ export default function CoachCard({ coach, subtitle, showMessage = true }: Coach
           <p className="text-xs text-muted-foreground">
             {subtitle ?? (coach.sport ? sportLabel(coach.sport) : '')}
           </p>
+          {coach.bio && (
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{coach.bio}</p>
+          )}
         </div>
       </button>
       {showMessage && (
