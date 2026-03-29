@@ -5,7 +5,7 @@
     "trainings": "Trainings",
     "athletes": "Participants",
     "alsoCoach": "I also coach here",
-    "alsoCoachDesc": "Add yourself as a coach in this school",
+    "alsoCoachDesc": "Create and manage your own trainings at this school",
     "coachesSection": "Coaches",
     "addCoach": "Add Coach",
     "noCoaches": "No coaches yet",
@@ -73,7 +73,7 @@
     "accept": "Accept",
     "decline": "Decline",
     "lessons": "Trainings",
-    "noLessons": "No trainings yet. Create one to get started.",
+    "noLessons": "No trainings yet. Create your first training to get started.",
     "showAll": "Show all trainings ({{count}})"
   }
 }
