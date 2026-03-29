@@ -30,7 +30,7 @@ export default function PlayerChat() {
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-background">
       <AppHeader
         title={training?.name ?? t('chat.chatTitle')}
-        subtitle={training?.sport ? `${sportLabel(training.sport)} · ${t('chat.group')}` : undefined}
+        subtitle={training?.sport ? `${sportLabel(training.sport)} · ${t('chat.groupType')}` : undefined}
         back
       />
       {id && <ChatView trainingId={id} className="flex-1 min-h-0" />}
