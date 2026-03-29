@@ -137,6 +137,7 @@ export function useCreateTraining() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trainings'] });
+      qc.invalidateQueries({ queryKey: ['school-trainings'] });
       toast.success(i18n.t('toast.trainingCreated', { ns: 'common' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),

@@ -5,7 +5,7 @@ import CoachHeader from '@/components/coach/CoachHeader';
 import { useState, useMemo } from 'react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
-import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
+import { useMySchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
 import { useTranslation } from 'react-i18next';
@@ -19,15 +19,13 @@ export default function CoachTrainings() {
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
-  const { data: schoolMembership } = useMySchoolMembership();
   const { data: myTrainings = [], isLoading } = useTrainings();
   const { data: schoolTrainings = [] } = useSchoolTrainings(isSchoolOwner ? school?.id : undefined);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('all');
 
-  // Coach in a school cannot create lessons
-  const canCreate = isSchoolOwner || !schoolMembership;
+  const canCreate = true;
 
   // School owner: merge personal + school trainings (deduplicate)
   const allTrainings = useMemo(() => {

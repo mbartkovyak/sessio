@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
+import { useMySchool } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
@@ -63,11 +63,10 @@ export default function CoachCalendar() {
   const { user, profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
-  const { data: schoolMembership } = useMySchoolMembership();
   const { data: coachSessions = [], isLoading: coachLoading } = useCoachSessions(user?.id);
   const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolOwner ? school?.id : undefined);
 
-  const canCreate = isSchoolOwner || !schoolMembership;
+  const canCreate = true;
   const qc = useQueryClient();
 
   async function handleCancelSession(session: any) {

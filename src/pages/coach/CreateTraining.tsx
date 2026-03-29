@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, UserPlus } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
@@ -30,11 +30,16 @@ export default function CreateTraining() {
   const { data: school } = useMySchool();
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
+  const isSchoolMember = !isSchoolOwner && !!schoolMembership;
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
   const qc = useQueryClient();
-  const sourceVenues: VenueOption[] = isSchoolOwner ? ((school as any)?.venues ?? []) : ((profile as any)?.venues ?? []);
+  const sourceVenues: VenueOption[] = isSchoolOwner
+    ? ((school as any)?.venues ?? [])
+    : isSchoolMember
+      ? ((schoolMembership?.schools as any)?.venues ?? [])
+      : ((profile as any)?.venues ?? []);
   const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
 
   // Sync when source data loads (profile/school async)
@@ -64,11 +69,6 @@ export default function CreateTraining() {
     qc.invalidateQueries({ queryKey: ['my-school'] });
   }
 
-  // Coaches in a school cannot create lessons — only school owners can
-  if (!isSchoolOwner && schoolMembership) {
-    return <Navigate to="/coach/trainings" replace />;
-  }
-
   const extraErrors = isSchoolOwner && !selectedCoachId ? [t('create.coachRequired')] : [];
 
   async function handleSubmit(form: TrainingFormValues) {
@@ -86,12 +86,20 @@ export default function CreateTraining() {
       // Per-day schedules (null when same time for all)
       payload.day_schedules = form.day_schedules || null;
       if (form.type === 'individual') delete payload.max_players;
-      // Sport inherited from school or coach profile
-      payload.sport = (isSchoolOwner && school) ? school.sport : (profile?.sport ?? 'Tennis');
-      // School owner: always a school lesson with assigned coach
+      // Sport inherited from school (owner or member) or coach profile
+      payload.sport = (isSchoolOwner && school)
+        ? school.sport
+        : (isSchoolMember && schoolMembership?.schools)
+          ? (schoolMembership.schools as any).sport
+          : (profile?.sport ?? 'Tennis');
+      // School owner: school lesson with assigned coach
       if (isSchoolOwner && school) {
         payload.school_id = school.id;
         if (selectedCoachId) payload.coach_id = selectedCoachId;
+      }
+      // School member coach: auto-link to school
+      if (isSchoolMember && schoolMembership?.school_id) {
+        payload.school_id = schoolMembership.school_id;
       }
       if (!form.is_recurring) {
         const d = new Date(form.one_off_date + 'T00:00:00');
@@ -157,7 +165,7 @@ export default function CreateTraining() {
             submitting={create.isPending}
             schoolSlot={schoolSlot}
             venueOptions={localVenues}
-            onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
+            onNewVenue={isSchoolOwner ? handleNewVenue : isSchoolMember ? undefined : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
           />
