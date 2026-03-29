@@ -50,7 +50,16 @@ export default function TrainingDetail() {
   const { data: myAthletes = [] } = useMyAthletes(user?.id);
   const addMember = useAddTrainingMember(id!);
 
+  // All hooks must be called before any early return to avoid "Rendered more hooks" error
+  const today = new Date().toISOString().split('T')[0];
+  const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
+  const regularMembers = members.filter((m: any) => m.role === 'regular');
+  const scheduledIds = upcoming.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
+  const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
+  const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
+
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
+  const daysLabel = training ? (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ') : '';
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><SessioLoader /></div>;
   if (!training) return (
@@ -60,14 +69,6 @@ export default function TrainingDetail() {
       <button onClick={() => navigate('/coach/trainings')} className="text-sm text-primary font-medium">{t('detail.backToTrainings')}</button>
     </div>
   );
-
-  const today = new Date().toISOString().split('T')[0];
-  const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
-  const regularMembers = members.filter((m: any) => m.role === 'regular');
-  const scheduledIds = upcoming.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
-  const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
-  const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
-  const daysLabel = (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ');
 
   async function handleDelete() {
     setDeleting(true);
