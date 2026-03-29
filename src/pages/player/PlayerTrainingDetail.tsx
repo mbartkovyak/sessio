@@ -1,11 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MessageCircle, LogOut, Users } from 'lucide-react';
+import CoachCard from '@/components/shared/CoachCard';
 import { useTraining, useTrainingMembers, useLeaveTraining } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { SPORT_ICONS, DAYS_SHORT, dayShortLabel, sportLabel } from '@/lib/constants';
 import AppHeader from '@/components/shared/AppHeader';
-import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -82,17 +82,7 @@ export default function PlayerTrainingDetail() {
 
             {/* Coach */}
             {coach && (
-              <button
-                onClick={() => navigate(`/search/coach/${coach.id}`)}
-                className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 hover:bg-secondary/50 transition-colors text-left"
-              >
-                <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{coach.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{t('trainingDetail.coach')}</p>
-                </div>
-                <span className="text-xs text-primary font-medium shrink-0">{t('trainingDetail.viewProfile')}</span>
-              </button>
+              <CoachCard coach={coach} subtitle={t('trainingDetail.coach')} />
             )}
 
             {/* Group chat */}
