@@ -116,7 +116,7 @@ export default function CoachTrainings() {
                     </a>
                   )}
                   <button
-                    onClick={() => navigate(`/coach/messages/${tr.id}`)}
+                    onClick={() => navigate(`/coach/trainings/${tr.id}?tab=chat`)}
                     className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
                     <MessageCircle className="h-3 w-3" /> {t('common:chat.group')}
