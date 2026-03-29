@@ -214,16 +214,28 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
               {/* Option 2: Code */}
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-muted-foreground">{t('dashboard.inviteOptionCode')}</p>
-                <button
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(inviteCode ?? '');
-                    toast.success(t('common:actions.linkCopied'));
-                  }}
-                  className="w-full flex items-center justify-between rounded-xl border border-border bg-secondary px-4 py-3 min-h-[44px] active:scale-[0.98] transition-transform"
-                >
-                  <span className="text-base font-mono font-bold tracking-widest text-foreground">{inviteCode}</span>
-                  <Copy className="h-4 w-4 text-muted-foreground shrink-0" />
-                </button>
+                <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary px-4 py-3 min-h-[44px]">
+                  <span className="flex-1 text-base font-mono font-bold tracking-widest text-foreground">{inviteCode}</span>
+                  <button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(inviteCode ?? '');
+                      toast.success(t('common:actions.linkCopied'));
+                    }}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-background/50 active:scale-[0.95] transition-transform shrink-0"
+                  >
+                    <Copy className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  {navigator.share && (
+                    <button
+                      onClick={async () => {
+                        try { await navigator.share({ text: inviteCode ?? '' }); } catch {}
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-background/50 active:scale-[0.95] transition-transform shrink-0"
+                    >
+                      <Share2 className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
