@@ -37,31 +37,17 @@ export function usePushNotifications() {
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
   const [supported, setSupported] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
+  // When permission is already granted, assume subscribed (auto-register handles it).
+  // Only show the banner for first-time permission request (permission === 'default').
+  const [subscribed, setSubscribed] = useState(
+    () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  );
 
   useEffect(() => {
     const ok = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY;
     setSupported(ok);
 
-    // Check if already subscribed — verify both browser AND database
-    if (ok && Notification.permission === 'granted' && user) {
-      ensureSwReady().then(async (reg) => {
-        if (!reg) return;
-        const sub = await reg.pushManager.getSubscription();
-        if (!sub) return;
-        setSubscribed(true); // Assume good initially (prevents prompt flash)
-        // Then verify it's actually in the DB
-        const { data } = await supabase
-          .from('push_subscriptions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('endpoint', sub.endpoint)
-          .maybeSingle();
-        if (!data) setSubscribed(false); // DB missing — re-show prompt
-      }).catch(() => {});
-    }
-
-    // Listen for auto-register completing (fixes race with useAutoRegisterPush)
+    // Listen for auto-register completing
     const onRegistered = () => setSubscribed(true);
     pushRegistrationBus.addEventListener('registered', onRegistered);
     return () => pushRegistrationBus.removeEventListener('registered', onRegistered);
