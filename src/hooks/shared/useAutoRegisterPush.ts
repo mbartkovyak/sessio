@@ -12,6 +12,17 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 }
 
+/** Resolves with the SW registration, or null if it takes longer than `ms`. */
+function swReadyWithTimeout(ms = 8000): Promise<ServiceWorkerRegistration | null> {
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>(r => setTimeout(() => r(null), ms)),
+  ]);
+}
+
+/** Event target so usePushNotifications can listen for auto-register completion. */
+export const pushRegistrationBus = new EventTarget();
+
 /**
  * Call at app root. Ensures the browser's push subscription
  * is saved to Supabase whenever permission is granted.
@@ -31,7 +42,8 @@ export function useAutoRegisterPush() {
 
     (async () => {
       try {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await swReadyWithTimeout();
+        if (!reg) return; // SW not available — prompt will handle manual retry
         let sub = await reg.pushManager.getSubscription();
 
         // If VAPID key changed, unsubscribe old and force re-subscribe
@@ -64,8 +76,11 @@ export function useAutoRegisterPush() {
               level: 'warning',
               extra: { upsertError: error.message, insertError: insertErr.message, userId: user.id },
             });
+            return;
           }
         }
+        // Notify subscribers that registration completed successfully
+        pushRegistrationBus.dispatchEvent(new Event('registered'));
       } catch (e) {
         Sentry.captureException(e, { extra: { context: 'auto push registration', userId: user?.id } });
       }

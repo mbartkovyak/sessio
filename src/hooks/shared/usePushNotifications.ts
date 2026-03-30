@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { pushRegistrationBus } from './useAutoRegisterPush';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -12,6 +13,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = atob(base64);
   return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
+}
+
+/** Resolves with the SW registration, or null after timeout. */
+function swReadyWithTimeout(ms = 8000): Promise<ServiceWorkerRegistration | null> {
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>(r => setTimeout(() => r(null), ms)),
+  ]);
 }
 
 export function usePushNotifications() {
@@ -28,7 +37,8 @@ export function usePushNotifications() {
 
     // Check if already subscribed — verify both browser AND database
     if (ok && Notification.permission === 'granted' && user) {
-      navigator.serviceWorker.ready.then(async (reg) => {
+      swReadyWithTimeout().then(async (reg) => {
+        if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (!sub) return;
         setSubscribed(true); // Assume good initially (prevents prompt flash)
@@ -42,6 +52,11 @@ export function usePushNotifications() {
         if (!data) setSubscribed(false); // DB missing — re-show prompt
       }).catch(() => {});
     }
+
+    // Listen for auto-register completing (fixes race with useAutoRegisterPush)
+    const onRegistered = () => setSubscribed(true);
+    pushRegistrationBus.addEventListener('registered', onRegistered);
+    return () => pushRegistrationBus.removeEventListener('registered', onRegistered);
   }, [user]);
 
   const subscribe = useCallback(async (retry = true): Promise<true | string> => {
@@ -56,7 +71,10 @@ export function usePushNotifications() {
         if (perm !== 'granted') return i18n.t('notifications.permissionDenied', { ns: 'common' });
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await swReadyWithTimeout();
+      if (!registration) {
+        return i18n.t('notifications.failed', { ns: 'common' });
+      }
 
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
