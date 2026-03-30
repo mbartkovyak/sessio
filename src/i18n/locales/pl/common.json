@@ -229,8 +229,8 @@
   "toast": {
     "trainingCreated": "Utworzono zajęcia",
     "memberRemoved": "Usunięto uczestnika",
-    "sessionCancelled": "Termin odwołany",
-    "sessionRescheduled": "Termin przełożony",
+    "sessionCancelled": "Zajęcia odwołane",
+    "sessionRescheduled": "Zajęcia przełożone",
     "leftTraining": "Opuściłeś zajęcia",
     "memberAdded": "Dodano uczestnika",
     "coachApproved": "Trener zatwierdzony",
