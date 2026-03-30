@@ -60,7 +60,7 @@ export default function CoachTrainings() {
             <div className="text-center py-16">
               <div className="text-4xl mb-3">🏋️</div>
               <p className="font-medium text-foreground">{t('trainings.noLessons')}</p>
-              {canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">{t('trainings.createFirst')}</button>}
+              {canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground active:scale-[0.97] transition-transform">{t('trainings.createFirst')}</button>}
             </div>
           ) : filtered.map((tr: any) => (
             <TrainingCard
