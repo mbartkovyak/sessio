@@ -1302,6 +1302,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      join_single_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
       deduct_abonament_session: {
         Args: { p_player_abonament_id: string; p_session_id: string }
         Returns: undefined

@@ -5,6 +5,9 @@ import type { Tables } from '@/integrations/supabase/types';
 type SessionTraining = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'type' | 'coach_id'>;
 export type UpcomingSession = Tables<'training_sessions'> & { trainings: SessionTraining };
 
+type SessionDetailTraining = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'type' | 'coach_id'> & { invite_code: string | null; max_players: number | null; school_id: string | null };
+export type SessionDetail = Tables<'training_sessions'> & { trainings: SessionDetailTraining };
+
 export function useUpcomingSessions(coachId: string | undefined, limit?: number) {
   return useQuery({
     queryKey: ['upcoming-sessions', coachId, limit],
@@ -62,6 +65,22 @@ export function usePastUnmarkedSessions(coachId?: string, schoolId?: string) {
       });
     },
     refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+export function useSessionDetail(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['session-detail', sessionId],
+    enabled: !!sessionId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('training_sessions')
+        .select('*, trainings(id, name, sport, venue, type, coach_id, invite_code, max_players, school_id)')
+        .eq('id', sessionId!)
+        .single();
+      if (error) throw error;
+      return data as SessionDetail;
+    },
   });
 }
 

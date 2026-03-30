@@ -176,7 +176,14 @@
     "continueGoogle": "Zaloguj się przez Google",
     "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania",
-    "at": "o"
+    "at": "o",
+    "requestToJoin": "Wyślij prośbę",
+    "alreadyInSession": "Jesteś już w tej sesji",
+    "sessionFull": "Ta sesja jest pełna",
+    "joinedSession": "Dołączyłeś do {{name}}",
+    "joinSessionOn": "Dołącz do {{name}} w dniu {{date}}",
+    "guestJoinedTitle": "Nowy gość",
+    "guestJoinedBody": "{{name}} dołączył(a) do {{training}} jako gość."
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",

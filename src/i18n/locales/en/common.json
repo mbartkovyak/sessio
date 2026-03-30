@@ -176,7 +176,14 @@
     "continueGoogle": "Continue with Google",
     "continueEmail": "Continue with email",
     "sendMagicLink": "Email me a sign-in link",
-    "at": "at"
+    "at": "at",
+    "requestToJoin": "Request to join",
+    "alreadyInSession": "You're already in this session",
+    "sessionFull": "This session is full",
+    "joinedSession": "You're in for {{name}}",
+    "joinSessionOn": "Join {{name}} on {{date}}",
+    "guestJoinedTitle": "Guest signed up",
+    "guestJoinedBody": "{{name}} joined {{training}} as a guest."
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

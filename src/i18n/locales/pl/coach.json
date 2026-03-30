@@ -244,5 +244,15 @@
     "declined": "Nieobecni",
     "totalSessions": "Zajęcia",
     "noData": "Brak danych o obecności"
+  },
+  "session": {
+    "viewTraining": "Pokaż zajęcia",
+    "participants": "Uczestnicy",
+    "noParticipants": "Nikt się jeszcze nie zapisał",
+    "guest": "Gość",
+    "shareSessionLink": "Udostępnij zaproszenie na sesję",
+    "participantCount": "{{confirmed}}/{{total}} potwierdzonych",
+    "cancelled": "Ta sesja została odwołana",
+    "pastSession": "Ta sesja się już odbyła"
   }
 }

@@ -499,6 +499,22 @@ export function useMarkAttendance() {
   });
 }
 
+export function useJoinSingleSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 export function useJoinRequests(trainingId: string | undefined) {
   return useQuery({
     queryKey: ['join-requests', trainingId],

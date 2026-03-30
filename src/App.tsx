@@ -80,6 +80,7 @@ const CoachCalendar = lazy(() => import("./pages/coach/CoachCalendar"));
 const CoachTrainings = lazy(() => import("./pages/coach/CoachTrainings"));
 const CreateTraining = lazy(() => import("./pages/coach/CreateTraining"));
 const TrainingDetail = lazy(() => import("./pages/coach/TrainingDetail"));
+const SessionDetail = lazy(() => import("./pages/coach/SessionDetail"));
 const CoachProfileEditor = lazy(() => import("./pages/coach/CoachProfileEditor"));
 const CoachMessages = lazy(() => import("./pages/coach/CoachMessages"));
 const DirectChat = lazy(() => import("./pages/coach/DirectChat"));
@@ -162,6 +163,7 @@ const router = createBrowserRouter(
       <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachTrainings} /></ProtectedRoute>} />
       <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CreateTraining} /></ProtectedRoute>} />
       <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><LazyPage component={TrainingDetail} /></ProtectedRoute>} />
+      <Route path="/coach/sessions/:id" element={<ProtectedRoute requiredRole="coach"><LazyPage component={SessionDetail} /></ProtectedRoute>} />
       <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachProfileEditor} /></ProtectedRoute>} />
       <Route path="/coach/stats" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachStats} /></ProtectedRoute>} />
 

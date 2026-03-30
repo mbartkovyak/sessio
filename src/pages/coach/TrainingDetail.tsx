@@ -1,11 +1,10 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
-import { useSchoolAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -36,15 +35,12 @@ export default function TrainingDetail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const removeMember = useRemoveTrainingMember(id!);
-  const cancelSession = useCancelSession(id!);
-  const rescheduleSession = useRescheduleSession(id!);
   const { data: joinRequests = [] } = useJoinRequests(id);
   const respond = useRespondJoinRequest();
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
-  const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
   // All hooks must be called before any early return to avoid "Rendered more hooks" error
   const today = new Date().toISOString().split('T')[0];
@@ -278,7 +274,7 @@ export default function TrainingDetail() {
                   )}
                 </div>
 
-                {/* Upcoming lessons */}
+                {/* Upcoming lessons — link to Session Detail */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.upcomingLessons')}</h2>
                   {upcoming.length === 0 ? (
@@ -288,65 +284,32 @@ export default function TrainingDetail() {
                       {upcoming.map((s: any) => {
                         const isCancelled = s.status === 'cancelled';
                         const summary = attendanceSummary[s.id];
-                        const isExpanded = expandedSession === s.id;
                         return (
-                          <div key={s.id} className={`rounded-xl border bg-card overflow-hidden ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
-                            <div className="flex items-center gap-3 px-4 py-3">
-                              <button
-                                onClick={() => !isCancelled && setExpandedSession(isExpanded ? null : s.id)}
-                                className="flex-1 min-w-0 text-left"
-                              >
-                                <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                  {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
-                                </p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</span>
-                                  {!isCancelled && summary && summary.total > 0 && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">
-                                      <CheckCircle2 className="h-3 w-3" />
-                                      {t('detail.attendanceSummary', { confirmed: summary.confirmed, total: summary.total })}
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                              {isCancelled ? (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.cancelled')}</span>
-                              ) : (
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <button
-                                    onClick={() => {
-                                      const newDate = prompt(t('home.rescheduleDate'), s.session_date);
-                                      if (!newDate) return;
-                                      const newStart = prompt(t('home.rescheduleStart'), s.start_time?.slice(0,5));
-                                      if (!newStart) return;
-                                      const newEnd = prompt(t('home.rescheduleEnd'), s.end_time?.slice(0,5));
-                                      if (!newEnd) return;
-                                      if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
-                                      rescheduleSession.mutate({
-                                        sessionId: s.id, trainingName: training.name,
-                                        oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
-                                      });
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                    title={t('common:actions.reschedule')}
-                                  >
-                                    <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (!confirm(t('calendar.cancelConfirm', { name: training.name, date: format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) }))) return;
-                                      cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                    title={t('common:actions.cancelSession')}
-                                  >
-                                    <X className="h-3.5 w-3.5 text-destructive" />
-                                  </button>
-                                </div>
-                              )}
+                          <button
+                            key={s.id}
+                            onClick={() => !isCancelled && navigate(`/coach/sessions/${s.id}`)}
+                            className={`flex w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left active:bg-muted/50 transition-colors ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</span>
+                                {!isCancelled && summary && summary.total > 0 && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    {t('detail.attendanceSummary', { confirmed: summary.confirmed, total: summary.total })}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            {isExpanded && <SessionAttendancePanel sessionId={s.id} schoolId={training.school_id} />}
-                          </div>
+                            {isCancelled ? (
+                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive shrink-0">{t('detail.cancelled')}</span>
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                            )}
+                          </button>
                         );
                       })}
                     </div>
@@ -383,98 +346,6 @@ export default function TrainingDetail() {
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
       {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
-    </div>
-  );
-}
-
-// ── Session Attendance Panel ──
-
-function SessionAttendancePanel({ sessionId, schoolId }: { sessionId: string; schoolId: string | null }) {
-  const { t } = useTranslation('coach');
-  const { data: attendance = [], isLoading } = useSessionAttendance(sessionId);
-  const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
-  const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
-  const deduct = useDeductSession();
-  const undo = useUndoDeduction();
-
-  if (isLoading) return <div className="px-4 py-3 border-t border-border"><div className="h-4 w-24 bg-muted animate-pulse rounded" /></div>;
-  if (attendance.length === 0) return (
-    <div className="px-4 py-3 border-t border-border">
-      <p className="text-xs text-muted-foreground">{t('detail.noAttendance')}</p>
-    </div>
-  );
-
-  // Build lookup: playerId → effectively active abonament
-  const abonamentByPlayer = new Map<string, any>();
-  for (const pa of playerAbonaments) {
-    if (isAbonamentActive(pa)) {
-      abonamentByPlayer.set(pa.player_id, pa);
-    }
-  }
-
-  // Build lookup: playerAbonamentId → usage exists for this session
-  const usedAbonamentIds = new Set(usageRecords.map((u: any) => u.player_abonament_id));
-
-  const sorted = [...attendance].sort((a, b) => {
-    const order = { confirmed: 0, pending: 1, declined: 2 };
-    return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
-  });
-
-  return (
-    <div className="border-t border-border divide-y divide-border">
-      {sorted.map((a) => {
-        const playerId = a.user_id;
-        const playerAbonament = abonamentByPlayer.get(playerId);
-        const isDeducted = playerAbonament ? usedAbonamentIds.has(playerAbonament.id) : false;
-
-        return (
-          <div key={a.id} className="flex items-center gap-3 px-4 py-2.5">
-            <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="xs" />
-            <div className="flex-1 min-w-0">
-              <span className="text-sm text-foreground truncate block">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
-              {playerAbonament && (
-                <span className="text-[10px] text-muted-foreground">
-                  {playerAbonament.sessions_remaining != null
-                    ? t('abonaments.remaining', { remaining: playerAbonament.sessions_remaining, total: playerAbonament.sessions_total })
-                    : t('abonaments.unlimited')}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                a.status === 'confirmed' ? 'bg-success/10 text-success' :
-                a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
-                'bg-warning/10 text-warning'
-              }`}>
-                {a.status === 'confirmed' ? t('detail.statusConfirmed') :
-                 a.status === 'declined' ? t('detail.statusDeclined') :
-                 t('detail.statusPending')}
-              </span>
-              {playerAbonament && (
-                isDeducted ? (
-                  <button
-                    onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId, schoolId: schoolId! })}
-                    disabled={undo.isPending}
-                    className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
-                    title={t('abonaments.undoAttended')}
-                  >
-                    <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId, schoolId: schoolId! })}
-                    disabled={deduct.isPending || (playerAbonament.sessions_remaining != null && playerAbonament.sessions_remaining <= 0)}
-                    className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
-                    title={t('abonaments.markAttended')}
-                  >
-                    {t('abonaments.markAttended')}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }

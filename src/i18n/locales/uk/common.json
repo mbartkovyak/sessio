@@ -176,7 +176,14 @@
     "continueGoogle": "Продовжити з Google",
     "continueEmail": "Продовжити через email",
     "sendMagicLink": "Надіслати посилання для входу",
-    "at": "о"
+    "at": "о",
+    "requestToJoin": "Надіслати запит",
+    "alreadyInSession": "Ви вже записані на цю сесію",
+    "sessionFull": "Ця сесія заповнена",
+    "joinedSession": "Ви записані на {{name}}",
+    "joinSessionOn": "Приєднатися до {{name}} {{date}}",
+    "guestJoinedTitle": "Новий гість",
+    "guestJoinedBody": "{{name}} приєднався до {{training}} як гість."
   },
   "joinSchool": {
     "onlyCoaches": "Тільки тренер може приєднатися до школи",

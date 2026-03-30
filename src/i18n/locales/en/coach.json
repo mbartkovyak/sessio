@@ -244,5 +244,15 @@
     "declined": "Declined",
     "totalSessions": "Sessions",
     "noData": "No attendance data yet"
+  },
+  "session": {
+    "viewTraining": "View training",
+    "participants": "Participants",
+    "noParticipants": "No one signed up yet",
+    "guest": "Guest",
+    "shareSessionLink": "Share session invite",
+    "participantCount": "{{confirmed}}/{{total}} confirmed",
+    "cancelled": "This session has been cancelled",
+    "pastSession": "This session has ended"
   }
 }

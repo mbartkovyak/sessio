@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
-import { Clock, Users, Mail, Calendar } from 'lucide-react';
+import { Clock, Users, Mail, Calendar, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 import { toast } from 'sonner';
 import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/constants';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -19,6 +21,8 @@ import { SessioLoader } from '@/components/SessioLogo';
 
 export default function JoinTraining() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
+  const [searchParams] = useSearchParams();
+  const sessionParam = searchParams.get('session');
   const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -26,6 +30,7 @@ export default function JoinTraining() {
 
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
+  const [sessionInfo, setSessionInfo] = useState<any>(null);
   const [joining, setJoining] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -59,6 +64,19 @@ export default function JoinTraining() {
       });
   }, [inviteCode, session, i18n]);
 
+  // Fetch session info for one-off join
+  useEffect(() => {
+    if (!sessionParam || !training) return;
+    supabase
+      .from('training_sessions')
+      .select('id, session_date, start_time, end_time, status')
+      .eq('id', sessionParam)
+      .eq('training_id', training.id)
+      .eq('status', 'scheduled')
+      .maybeSingle()
+      .then(({ data }) => setSessionInfo(data));
+  }, [sessionParam, training]);
+
   // Redirect non-players and non-onboarded users
   useEffect(() => {
     if (!session || !profile || !training) return;
@@ -81,6 +99,51 @@ export default function JoinTraining() {
     joiningRef.current = true;
     setJoining(true);
     try {
+      // ── One-off session join ──
+      if (training._type === 'training' && sessionParam && sessionInfo) {
+        const { data: existingAtt } = await supabase
+          .from('session_attendance')
+          .select('id')
+          .eq('session_id', sessionParam)
+          .eq('user_id', profile.id)
+          .maybeSingle();
+        if (existingAtt) {
+          toast.info(t('join.alreadyInSession'));
+          navigate('/player');
+          return;
+        }
+        const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionParam });
+        if (error) {
+          if (error.message?.includes('full')) {
+            toast.error(t('join.sessionFull'));
+          } else if (error.message?.includes('duplicate') || error.code === '23505') {
+            toast.info(t('join.alreadyInSession'));
+          } else {
+            throw error;
+          }
+          navigate('/player');
+          return;
+        }
+        if (training.coach_id) {
+          const tCoach = getFixedTForLanguage(training.coach?.language);
+          notifyUsers([training.coach_id], {
+            title: tCoach('join.guestJoinedTitle'),
+            body: tCoach('join.guestJoinedBody', {
+              name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+              training: training.name,
+            }),
+            tag: `guest-${sessionParam}`,
+            url: `/coach/sessions/${sessionParam}`,
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
+        toast.success(t('join.joinedSession', { name: training.name }));
+        navigate('/player');
+        return;
+      }
+
+      // ── Regular training join ──
       if (training._type === 'training') {
         const { data: existing } = await supabase
           .from('training_members')
@@ -209,6 +272,7 @@ export default function JoinTraining() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
+    if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth/callback' },
@@ -220,6 +284,7 @@ export default function JoinTraining() {
     e.preventDefault();
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
+    if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
     });
@@ -268,10 +333,17 @@ export default function JoinTraining() {
         </div>
       </div>
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-foreground">
-          <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {timeRange}</span>
-        </div>
+        {sessionInfo ? (
+          <div className="flex items-center gap-2 text-sm text-foreground">
+            <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span>{format(new Date(sessionInfo.session_date + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() })} {t('join.at')} {sessionInfo.start_time?.slice(0, 5)} – {sessionInfo.end_time?.slice(0, 5)}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-foreground">
+            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span>{dayLabel(DAYS[(training.day_of_week ?? 0)])} {t('join.at')} {timeRange}</span>
+          </div>
+        )}
         {(training.venue || training.location) && (
           <div className="text-sm">
             <VenueLink venue={training.venue ?? training.location} className="text-foreground" />
@@ -311,7 +383,9 @@ export default function JoinTraining() {
             disabled={joining}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.joinName', { name: training.name })}
+            {joining ? t('join.joining') :
+              sessionInfo ? t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) }) :
+              isApproval ? t('join.requestToJoin') : t('join.joinName', { name: training.name })}
           </button>
         </main>
       </div>

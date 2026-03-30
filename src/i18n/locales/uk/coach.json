@@ -244,5 +244,15 @@
     "declined": "Відсутні",
     "totalSessions": "Заняття",
     "noData": "Ще немає даних про відвідуваність"
+  },
+  "session": {
+    "viewTraining": "Переглянути заняття",
+    "participants": "Учасники",
+    "noParticipants": "Ще ніхто не записався",
+    "guest": "Гість",
+    "shareSessionLink": "Поділитися запрошенням на сесію",
+    "participantCount": "{{confirmed}}/{{total}} підтверджено",
+    "cancelled": "Цю сесію скасовано",
+    "pastSession": "Ця сесія вже відбулася"
   }
 }
