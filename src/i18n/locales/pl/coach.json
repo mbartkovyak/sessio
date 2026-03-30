@@ -46,7 +46,7 @@
     "oneTime": "Jednorazowe",
     "noMatching": "Brak zajęć pasujących do filtrów",
     "noLessons": "Nie masz jeszcze żadnych zajęć",
-    "createFirst": "Utwórz pierwsze zajęcia",
+    "createFirst": "Dodaj pierwsze zajęcia",
     "clearFilters": "Wyczyść filtry",
     "coachName": "Trener {{name}}",
     "new": "Dodaj"
