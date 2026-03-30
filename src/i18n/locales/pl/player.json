@@ -2,7 +2,7 @@
   "home": {
     "greeting": "Cześć, {{name}}",
     "defaultName": "uczestniku",
-    "overview": "Tu masz plan na najbliższe dni",
+    "overview": "Twój plan na najbliższe dni",
     "allSet": "Następne zajęcia",
     "next": "Następne: {{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
