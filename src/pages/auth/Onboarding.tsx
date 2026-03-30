@@ -181,7 +181,7 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport, country: s.country, city: s.city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport?.[0] ?? null, country: s.country, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
