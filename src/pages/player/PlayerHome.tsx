@@ -82,9 +82,9 @@ export default function PlayerHome() {
               <p className="font-semibold text-foreground">{t('home.noUpcoming')}</p>
               <button
                 onClick={() => navigate('/search')}
-                className="text-sm text-primary font-medium mt-1"
+                className="mt-3 px-5 py-2 rounded-full bg-yellow-400 text-black text-sm font-semibold"
               >
-                {t('home.noUpcomingDesc')}
+                {t('home.findCoach')}
               </button>
             </div>
           ) : null}
