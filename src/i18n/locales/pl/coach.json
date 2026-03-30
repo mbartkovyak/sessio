@@ -172,8 +172,8 @@
     "save": "Zapisz",
     "deleteTraining": "Usuń zajęcia",
     "deleteConfirm": "Usunąć te zajęcia i wszystkie terminy? Tego nie da się cofnąć.",
-    "creating": "Tworzenie...",
-    "createLesson": "Utwórz zajęcia"
+    "creating": "Zapisywanie...",
+    "createLesson": "Zapisz zajęcia"
   },
   "walkthrough": {
     "welcomeTitle": "Witaj w Sessio",
