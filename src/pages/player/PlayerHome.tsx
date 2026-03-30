@@ -64,7 +64,6 @@ export default function PlayerHome() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">{t('home.allSet')}</p>
-                  <p className="text-xs text-muted-foreground">{t('home.allConfirmed')}</p>
                 </div>
               </div>
               <div className="mt-2 rounded-lg bg-background/60 px-3 py-2.5">
@@ -81,12 +80,11 @@ export default function PlayerHome() {
             <div className="card-elevated rounded-2xl p-8 text-center">
               <div className="text-4xl mb-3">📅</div>
               <p className="font-semibold text-foreground">{t('home.noUpcoming')}</p>
-              <p className="text-sm text-muted-foreground mt-1">{t('home.noUpcomingDesc')}</p>
               <button
                 onClick={() => navigate('/search')}
-                className="mt-4 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground min-h-[44px] active:scale-[0.97] transition-transform"
+                className="text-sm text-primary font-medium mt-1"
               >
-                {t('home.findCoach')}
+                {t('home.noUpcomingDesc')}
               </button>
             </div>
           ) : null}

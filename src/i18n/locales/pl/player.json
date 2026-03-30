@@ -3,8 +3,7 @@
     "greeting": "Cześć, {{name}}",
     "defaultName": "uczestniku",
     "overview": "Tu masz plan na najbliższe dni",
-    "allSet": "Wszystko gotowe",
-    "allConfirmed": "Twoje najbliższe zajęcia są zaplanowane",
+    "allSet": "Następne zajęcia",
     "next": "Następne: {{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
@@ -126,9 +125,9 @@
     "claimed": "Miejsce zajęte",
     "tooSlow": "To miejsce właśnie zostało zajęte",
     "claimFailed": "Nie udało się zająć miejsca",
-    "claimSpot": "Weź to miejsce"
+    "claimSpot": "Zajmij miejsce"
   },
   "favouriteSchools": {
-    "title": "Zapisane szkoły"
+    "title": "Obserwowane szkoły"
   }
 }
