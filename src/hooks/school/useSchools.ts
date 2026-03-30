@@ -29,6 +29,8 @@ type DiscoverableSchool = DiscoverableSchoolRow & { coach_count: number };
 
 type DiscoverableCoach = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city' | 'bio'> & {
   schools: Pick<Tables<'schools'>, 'id' | 'name'> | null;
+  avg_rating: number | null;
+  review_count: number;
 };
 
 /** School owner — fetch my school with approved coaches only */
@@ -284,7 +286,7 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
     queryFn: async () => {
       let q = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, sport, city, bio, school_id, schools:school_id(id, name)')
+        .select('id, full_name, avatar_url, sport, city, bio, school_id, schools:school_id(id, name), reviews!reviews_coach_id_fkey(rating)')
         .in('role', ['coach', 'school_owner'])
         .not('full_name', 'is', null);
       if (search) q = q.ilike('full_name', `%${search}%`);
@@ -293,7 +295,15 @@ export function useDiscoverableCoaches(search?: string, sport?: string, city?: s
       if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
       if (error) throw error;
-      return (data ?? []) as DiscoverableCoach[];
+      return ((data ?? []) as any[]).map(c => {
+        const ratings = (c.reviews ?? []).map((r: any) => r.rating as number);
+        const review_count = ratings.length;
+        const avg_rating = review_count >= 3
+          ? ratings.reduce((sum: number, r: number) => sum + r, 0) / review_count
+          : null;
+        const { reviews, ...rest } = c;
+        return { ...rest, avg_rating, review_count } as DiscoverableCoach;
+      });
     },
   });
 }
