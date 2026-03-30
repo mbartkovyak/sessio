@@ -60,7 +60,7 @@ const defaults: TrainingFormValues = {
   end_date: '',
   one_off_date: '',
   confirmation_window_hours: 24,
-  booking_mode: 'instant', visibility: 'private',
+  booking_mode: 'instant', visibility: 'discoverable',
   day_schedules: null,
 };
 
@@ -452,9 +452,9 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       <div>
         <label className="text-sm font-medium text-foreground mb-2 block">{t('form.cancelDeadline')}</label>
         <p className="text-xs text-muted-foreground mb-2">{t('form.cancelDeadlineDesc')}</p>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <button type="button" onClick={() => set('confirmation_window_hours', null)}
-            className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+            className={`col-span-4 rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
             {t('form.off')}
           </button>
           {[12, 24, 48, 72].map(h => (
