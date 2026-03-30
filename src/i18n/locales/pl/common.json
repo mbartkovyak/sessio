@@ -173,8 +173,8 @@
     "anonymousParticipant": "Ktoś",
     "checkEmail": "Sprawdź skrzynkę",
     "sentMagicLink": "Wysłaliśmy link do logowania na",
-    "continueGoogle": "Kontynuuj z Google",
-    "continueEmail": "Kontynuuj e-mailem",
+    "continueGoogle": "Zaloguj się przez Google",
+    "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania",
     "at": "o"
   },
@@ -197,8 +197,8 @@
     "signInToJoin": "Zaloguj się, aby poprosić o dostęp jako trener",
     "checkEmail": "Sprawdź skrzynkę",
     "sentMagicLink": "Wysłaliśmy link do logowania na",
-    "continueGoogle": "Kontynuuj z Google",
-    "continueEmail": "Kontynuuj e-mailem",
+    "continueGoogle": "Zaloguj się przez Google",
+    "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania"
   },
   "notFound": {
