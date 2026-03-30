@@ -56,7 +56,7 @@ const defaults: TrainingFormValues = {
   start_time: '09:00', end_time: '10:00', max_players: 6,
   is_recurring: true, days_of_week: [],
   start_date: new Date().toISOString().split('T')[0],
-  end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
+  end_date: '',
   one_off_date: '',
   confirmation_window_hours: 24,
   booking_mode: 'instant', visibility: 'private',
