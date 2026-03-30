@@ -5,17 +5,27 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, sportLabel, sportLabels } from '@/lib/constants';import Avatar from '@/components/shared/Avatar';
+import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, SPORT_ICONS, type Country } from '@/lib/constants';
+import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PlayerSearch() {
   const { t } = useTranslation('player');
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState('');
-  const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined);
-  const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined);
+  const [selectedCountry, setSelectedCountry] = useState(profile?.country ?? '');
+  const [selectedCity, setSelectedCity] = useState(profile?.city ?? '');
+
+  const cities = selectedCountry ? CITIES_BY_COUNTRY[selectedCountry as Country] ?? [] : [];
+  function handleCountryChange(c: string) { setSelectedCountry(c); setSelectedCity(''); }
+
+  const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined, selectedCity || undefined, selectedCountry || undefined);
+  const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined, selectedCity || undefined, selectedCountry || undefined);
   const sportLabelMap = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
+  const countryLabelMap = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
 
   const isLoading = coachesLoading || schoolsLoading;
 
@@ -49,8 +59,10 @@ export default function PlayerSearch() {
               className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
-          <div>
+          <div className="grid grid-cols-3 gap-2">
             <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabelMap} />
+            <SelectField label="" value={selectedCountry} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('search.allCountries')} labels={countryLabelMap} />
+            <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={cities} placeholder={t('search.allCities')} />
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-2">
@@ -85,20 +97,24 @@ export default function PlayerSearch() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                          <Building2 className="h-2.5 w-2.5" />{t('search.school')}
+                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                          <Building2 className="h-3 w-3" />{t('search.school')}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        {item.sport?.length > 0 && <span className="text-xs text-muted-foreground">{sportLabels(item.sport)}</span>}
+                      {item.sport?.length > 0 && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {item.sport.map((s: string) => `${SPORT_ICONS[s] ?? '🎯'} ${sportLabel(s)}`).join(' · ')}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-3 mt-1">
                         {item.city && (
-                          <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                            <MapPin className="h-2.5 w-2.5" />{item.city}
+                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />{item.city}
                           </span>
                         )}
                         {item.coach_count > 0 && (
-                          <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                            <Users className="h-2.5 w-2.5" />{t('search.coachCount', { count: item.coach_count })}
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Users className="h-3 w-3" />{t('search.coachCount', { count: item.coach_count })}
                           </span>
                         )}
                       </div>
@@ -115,21 +131,25 @@ export default function PlayerSearch() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.full_name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">
-                          <UserCheck className="h-2.5 w-2.5" />{t('search.coach')}
+                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-bold text-success">
+                          <UserCheck className="h-3 w-3" />{t('search.coach')}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        {item.sport && <span className="text-xs text-muted-foreground">{sportLabel(item.sport)}</span>}
+                      <div className="flex items-center gap-3 mt-1">
+                        {item.sport && (
+                          <span className="text-sm text-muted-foreground">
+                            {SPORT_ICONS[item.sport] ?? '🎯'} {sportLabel(item.sport)}
+                          </span>
+                        )}
                         {item.city && (
-                          <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                            <MapPin className="h-2.5 w-2.5" />{item.city}
+                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />{item.city}
                           </span>
                         )}
                       </div>
                       {item.schools?.name ? (
                         <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                          <Building2 className="h-2.5 w-2.5" />{item.schools.name}
+                          <Building2 className="h-3 w-3" />{item.schools.name}
                         </p>
                       ) : (
                         <p className="text-xs text-muted-foreground mt-1">{t('search.independentCoach')}</p>
