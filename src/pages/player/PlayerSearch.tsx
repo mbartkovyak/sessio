@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Users, Building2, Star } from 'lucide-react';
+import { Search, MapPin, Building2, Star } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
@@ -103,11 +103,9 @@ export default function PlayerSearch() {
                           <MapPin className="h-3.5 w-3.5 shrink-0" />{item.city}
                         </p>
                       )}
-                      {item.coach_count > 0 && (
-                        <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Users className="h-3.5 w-3.5 shrink-0" />{t('search.coachCount', { count: item.coach_count })}
-                        </p>
-                      )}
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Building2 className="h-3.5 w-3.5 shrink-0" />{t('search.school')}
+                      </p>
                       {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
                     </div>
                   </button>
@@ -143,13 +141,7 @@ export default function PlayerSearch() {
                           <MapPin className="h-3.5 w-3.5 shrink-0" />{item.city}
                         </p>
                       )}
-                      {item.schools?.name ? (
-                        <p className="flex items-center gap-1 text-sm text-primary">
-                          <Building2 className="h-3.5 w-3.5 shrink-0" />{item.schools.name}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">{t('search.independentCoach')}</p>
-                      )}
+                      <p className="text-sm text-muted-foreground">{t('search.coach')}</p>
                       {item.bio && <p className="text-sm text-muted-foreground line-clamp-2">{item.bio}</p>}
                     </div>
                   </button>
