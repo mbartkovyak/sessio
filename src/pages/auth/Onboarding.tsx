@@ -8,7 +8,7 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import PageHeader from '@/components/shared/PageHeader';
 import { toast } from 'sonner';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
-import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import VenueManager, { type Venue } from '@/components/shared/VenueManager';
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
@@ -29,8 +29,7 @@ export default function Onboarding() {
   const [city, setCity] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [venueName, setVenueName] = useState('');
-  const [venueAddress, setVenueAddress] = useState('');
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -126,9 +125,6 @@ export default function Onboarding() {
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
-      const venues = venueName.trim() && venueAddress.trim()
-        ? [{ name: venueName.trim(), address: venueAddress.trim() }]
-        : [];
       const { data: newSchool, error: schoolError } = await supabase
         .from('schools')
         .insert({ name: schoolName.trim(), sport: schoolSports, country, city, owner_id: user.id, venues })
@@ -529,26 +525,12 @@ export default function Onboarding() {
                     </div>
                   </div>
                 )}
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">{t('auth:onboarding.mainVenue')}</label>
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder={t('auth:onboarding.venueName')}
-                      value={venueName}
-                      onChange={e => setVenueName(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                    />
-                    {venueName && (
-                        <PlaceAutocompleteInput
-                          value={venueAddress}
-                          onChange={setVenueAddress}
-                          placeholder={t('auth:onboarding.venueAddress')}
-                          className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
-                        />
-                    )}
-                  </div>
-                </div>
+                <VenueManager
+                  venues={venues}
+                  onAdd={v => setVenues(prev => [...prev, v])}
+                  onRemove={i => setVenues(prev => prev.filter((_, j) => j !== i))}
+                  title={t('auth:onboarding.mainVenue')}
+                />
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={submitSchoolOwner}

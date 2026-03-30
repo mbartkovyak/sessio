@@ -59,7 +59,7 @@ const defaults: TrainingFormValues = {
   start_date: new Date().toISOString().split('T')[0],
   end_date: '',
   one_off_date: '',
-  confirmation_window_hours: null,
+  confirmation_window_hours: 24,
   booking_mode: 'instant', visibility: 'private',
   day_schedules: null,
 };

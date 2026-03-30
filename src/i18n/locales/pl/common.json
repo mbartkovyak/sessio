@@ -226,6 +226,13 @@
     "email": "E-mail",
     "noContact": "Brak danych kontaktowych"
   },
+  "venue": {
+    "name": "Nazwa miejsca (np. Kort 3)",
+    "address": "Pełny adres (np. ul. Marszałkowska 12, Warszawa)",
+    "add": "Dodaj miejsce",
+    "save": "Zapisz miejsce",
+    "backToList": "Wróć do listy miejsc"
+  },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",
     "memberRemoved": "Usunięto uczestnika",

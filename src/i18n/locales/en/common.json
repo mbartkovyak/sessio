@@ -226,6 +226,13 @@
     "email": "Email",
     "noContact": "No contact details"
   },
+  "venue": {
+    "name": "Venue name (e.g. Court 3)",
+    "address": "Full address (e.g. ul. Marszałkowska 12, Warszawa)",
+    "add": "Add venue",
+    "save": "Save venue",
+    "backToList": "Back to venue list"
+  },
   "toast": {
     "trainingCreated": "Training created",
     "memberRemoved": "Member removed",
