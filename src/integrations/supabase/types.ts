@@ -773,7 +773,7 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string
-          sport: string | null
+          sport: string[] | null
           updated_at: string
           venues: Json | null
         }
@@ -787,7 +787,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id: string
-          sport?: string | null
+          sport?: string[] | null
           updated_at?: string
           venues?: Json | null
         }
@@ -801,7 +801,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string
-          sport?: string | null
+          sport?: string[] | null
           updated_at?: string
           venues?: Json | null
         }

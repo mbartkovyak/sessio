@@ -33,7 +33,7 @@ export default function SchoolProfileEditor() {
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
-  const [sport, setSport] = useState('');
+  const [sports, setSports] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [venues, setVenues] = useState<Venue[]>([]);
   const [newVenueName, setNewVenueName] = useState(() => localStorage.getItem('_newVenueName') ?? '');
@@ -46,7 +46,7 @@ export default function SchoolProfileEditor() {
       setName(school.name ?? '');
       setCountry(school.country ?? '');
       setCity(school.city ?? '');
-      setSport(school.sport ?? '');
+      setSports(school.sport ?? []);
       setDescription(school.description ?? '');
       setVenues(((school as any).venues as Venue[]) ?? []);
     }
@@ -55,7 +55,7 @@ export default function SchoolProfileEditor() {
   const isDirty = name !== (school?.name ?? '')
     || country !== (school?.country ?? '')
     || city !== (school?.city ?? '')
-    || sport !== (school?.sport ?? '')
+    || JSON.stringify(sports) !== JSON.stringify(school?.sport ?? [])
     || description !== (school?.description ?? '');
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
@@ -121,12 +121,32 @@ export default function SchoolProfileEditor() {
           </div>
           <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
-          <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">{t('common:form.sport')}</label>
+            {sports.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {sports.map(s => (
+                  <span key={s} className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    {sportLabel(s)}
+                    <button type="button" onClick={() => setSports(prev => prev.filter(x => x !== s))} className="ml-0.5 text-primary/60 hover:text-primary">✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <select
+              value=""
+              onChange={e => { const val = e.target.value; if (val && !sports.includes(val)) setSports(prev => [...prev, val]); }}
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">{sports.length === 0 ? t('common:form.selectSport') : t('common:form.addSport')}</option>
+              {SPORTS.filter(s => !sports.includes(s)).map(s => <option key={s} value={s}>{sportLabel(s)}</option>)}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <button onClick={() => update.mutate({ name, country, city, sport, description, venues })} disabled={update.isPending || !country}
+          <button onClick={() => update.mutate({ name, country, city, sport: sports, description, venues })} disabled={update.isPending || !country}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">
             {update.isPending ? t('profile.saving') : t('common:actions.save')}
           </button>

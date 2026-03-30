@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Clock, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { sportLabel } from '@/lib/constants';
+import { sportLabels } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 
 export default function PendingApprovalScreen({ pendingRequest }: { pendingRequest: any }) {
@@ -32,7 +32,7 @@ export default function PendingApprovalScreen({ pendingRequest }: { pendingReque
               <Avatar url={pendingSchool?.logo_url} name={pendingSchool?.name} size="md" />
               <div className="text-left">
                 <p className="font-medium text-foreground text-sm">{pendingSchool?.name}</p>
-                <p className="text-xs text-muted-foreground">{[pendingSchool?.sport ? sportLabel(pendingSchool.sport) : null, pendingSchool?.city].filter(Boolean).join(' · ')}</p>
+                <p className="text-xs text-muted-foreground">{[sportLabels(pendingSchool?.sport), pendingSchool?.city].filter(Boolean).join(' · ')}</p>
               </div>
             </div>
           </div>

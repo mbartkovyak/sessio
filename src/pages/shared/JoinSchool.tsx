@@ -8,7 +8,7 @@ import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 import { Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
-import { sportLabel } from '@/lib/constants';
+import { sportLabels } from '@/lib/constants';
 import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
@@ -159,7 +159,7 @@ export default function JoinSchool() {
       </div>
       <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
       <p className="text-sm text-muted-foreground mt-1">
-        {[school.sport ? sportLabel(school.sport) : null, school.city].filter(Boolean).join(' · ')}
+        {[sportLabels(school.sport), school.city].filter(Boolean).join(' · ')}
       </p>
     </div>
   );

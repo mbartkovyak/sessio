@@ -5,7 +5,7 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, sportLabel } from '@/lib/constants';
+import { SPORTS, sportLabel, sportLabels } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 
@@ -91,7 +91,7 @@ export default function PlayerSearch() {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        {item.sport && <span className="text-xs text-muted-foreground">{sportLabel(item.sport)}</span>}
+                        {item.sport?.length > 0 && <span className="text-xs text-muted-foreground">{sportLabels(item.sport)}</span>}
                         {item.city && (
                           <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                             <MapPin className="h-2.5 w-2.5" />{item.city}

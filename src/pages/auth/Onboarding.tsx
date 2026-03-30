@@ -119,11 +119,10 @@ export default function Onboarding() {
     if (!country || !city || !schoolName.trim() || schoolSports.length === 0) return;
     setLoading(true);
     setError('');
-    const primarySport = schoolSports[0];
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: primarySport, country, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: schoolSports[0], country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -132,7 +131,7 @@ export default function Onboarding() {
         : [];
       const { data: newSchool, error: schoolError } = await supabase
         .from('schools')
-        .insert({ name: schoolName.trim(), sport: primarySport, country, city, owner_id: user.id, venues })
+        .insert({ name: schoolName.trim(), sport: schoolSports, country, city, owner_id: user.id, venues })
         .select('id')
         .single();
       if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }

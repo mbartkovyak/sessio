@@ -265,7 +265,7 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
         .select('id, name, sport, city, logo_url, description, school_members(id, status)')
         .not('name', 'is', null);
       if (search) q = q.ilike('name', `%${search}%`);
-      if (sport) q = q.eq('sport', sport);
+      if (sport) q = q.contains('sport', [sport]);
       if (city) q = q.ilike('city', `%${city}%`);
       if (country) q = q.eq('country', country);
       const { data, error } = await q.limit(50);
