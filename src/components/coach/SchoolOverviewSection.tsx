@@ -6,7 +6,8 @@ import NewLessonButton from '@/components/coach/NewLessonButton';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
-import { useSchoolUpcomingSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
+import { useSchoolUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
+import AttendanceBanner from '@/components/coach/AttendanceBanner';
 import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { toast } from 'sonner';
@@ -30,6 +31,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
   const respond = useRespondJoinRequest();
   const respondSchool = useRespondSchoolMember();
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useSchoolUpcomingSessions(fullSchool?.id, 5);
+  const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(undefined, fullSchool?.id);
   const sessionIds = (upcomingSessions ?? []).filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
   const { data: attendanceSummary = {} } = useAttendanceSummary(sessionIds);
   const [showInvite, setShowInvite] = useState(false);
@@ -140,6 +142,9 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
           <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
         </button>
       </div>
+
+      {/* Attendance marking banner */}
+      <AttendanceBanner sessions={unmarkedSessions} />
 
       {/* Quick stats — same as coach */}
       <div className="grid grid-cols-2 gap-3">

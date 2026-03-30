@@ -20,7 +20,13 @@
     "rescheduleEnd": "Новий час завершення (ГГ:ХХ):",
     "cancelledMessage": "⚠️ {{name}} на {{date}} скасовано.",
     "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
-    "viewStats": "Статистика відвідуваності"
+    "viewStats": "Статистика відвідуваності",
+    "markAttendance": "Позначити відвідуваність",
+    "sessionsNeedAttendance": "{{count}} сесій потребують відвідуваності",
+    "attendanceSaved": "Відвідуваність збережена",
+    "allPresent": "Усі присутні",
+    "allAbsent": "Усі відсутні",
+    "saveAttendance": "Зберегти"
   },
   "profile": {
     "title": "Профіль",
@@ -199,6 +205,27 @@
     "description": "Ваш запит на приєднання до {{name}} чекає на рішення власника школи.",
     "info": "Доступ з'явиться після схвалення.",
     "checkStatus": "Оновити"
+  },
+  "abonaments": {
+    "title": "Абонементи",
+    "addType": "Додати тип абонементу",
+    "typeName": "Назва",
+    "typeNamePlaceholder": "наприклад, 10 занять",
+    "sessionsCount": "Кількість занять",
+    "price": "Ціна",
+    "optional": "(необов'язково)",
+    "createType": "Додати",
+    "noTypes": "Ще немає типів абонементів. Додайте, щоб учасники могли купувати.",
+    "pendingRequests": "Запити на абонемент",
+    "activate": "Активувати",
+    "activePasses": "Активні абонементи",
+    "remaining": "{{remaining}}/{{total}}",
+    "usedUp": "Використано",
+    "pending": "Очікує",
+    "markAttended": "Присутній",
+    "undoAttended": "Скасувати",
+    "deleteType": "Видалити",
+    "deleteTypeConfirm": "Видалити цей тип абонементу?"
   },
   "stats": {
     "title": "Статистика",

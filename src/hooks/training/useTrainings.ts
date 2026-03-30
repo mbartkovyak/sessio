@@ -447,6 +447,58 @@ export function useUpsertAttendance() {
   });
 }
 
+export type AttendanceEntry = { userId: string; present: boolean; originalStatus: string };
+
+export function useMarkAttendance() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId, entries }: { sessionId: string; entries: AttendanceEntry[] }) => {
+      // Group by target status for batch updates
+      const toConfirm: string[] = [];
+      const toNoShow: string[] = [];
+
+      for (const e of entries) {
+        if (e.present) {
+          if (e.originalStatus !== 'confirmed') toConfirm.push(e.userId);
+        } else {
+          if (e.originalStatus === 'confirmed') toNoShow.push(e.userId);
+          // 'declined' stays 'declined', 'no_show' stays 'no_show'
+        }
+      }
+
+      if (toConfirm.length) {
+        const { error } = await supabase
+          .from('session_attendance')
+          .update({ status: 'confirmed' })
+          .eq('session_id', sessionId)
+          .in('user_id', toConfirm);
+        if (error) throw error;
+      }
+      if (toNoShow.length) {
+        const { error } = await supabase
+          .from('session_attendance')
+          .update({ status: 'no_show' })
+          .eq('session_id', sessionId)
+          .in('user_id', toNoShow);
+        if (error) throw error;
+      }
+
+      const { error } = await supabase
+        .from('training_sessions')
+        .update({ attendance_marked_at: new Date().toISOString() })
+        .eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['past-unmarked-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['stats-data'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 export function useJoinRequests(trainingId: string | undefined) {
   return useQuery({
     queryKey: ['join-requests', trainingId],

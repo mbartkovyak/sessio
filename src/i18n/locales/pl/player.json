@@ -127,6 +127,21 @@
     "claimFailed": "Nie udało się zająć miejsca",
     "claimSpot": "Zarezerwuj miejsce"
   },
+  "abonaments": {
+    "title": "Moje karnety",
+    "availablePasses": "Karnety",
+    "sessions_one": "{{count}} zajęcia",
+    "sessions_few": "{{count}} zajęcia",
+    "sessions_many": "{{count}} zajęć",
+    "sessions_other": "{{count}} zajęć",
+    "buy": "Kup",
+    "requestPending": "Czeka na aktywację",
+    "active": "Aktywny",
+    "remaining": "Pozostało {{remaining}} z {{total}}",
+    "usedUp": "Wykorzystany",
+    "noPasses": "Brak karnetów dla tych zajęć",
+    "alreadyHasPass": "Masz już aktywny lub oczekujący karnet"
+  },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"
   }

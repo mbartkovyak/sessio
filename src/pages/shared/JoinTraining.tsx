@@ -320,8 +320,8 @@ export default function JoinTraining() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-        <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
+      <header className="flex items-center justify-center header-gradient px-4 py-4">
+        <span className="text-lg font-bold tracking-tight text-white">sessio</span>
       </header>
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
         {coach?.full_name ? (

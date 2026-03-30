@@ -20,7 +20,13 @@
     "rescheduleEnd": "New end time (HH:MM):",
     "cancelledMessage": "⚠️ {{name}} on {{date}} has been cancelled.",
     "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
-    "viewStats": "Attendance stats"
+    "viewStats": "Attendance stats",
+    "markAttendance": "Mark attendance",
+    "sessionsNeedAttendance": "{{count}} sessions need attendance",
+    "attendanceSaved": "Attendance saved",
+    "allPresent": "All present",
+    "allAbsent": "All absent",
+    "saveAttendance": "Save"
   },
   "profile": {
     "title": "Profile",
@@ -199,6 +205,27 @@
     "description": "Your request to join {{name}} is being reviewed by the school owner.",
     "info": "You'll get access once the owner approves you.",
     "checkStatus": "Refresh"
+  },
+  "abonaments": {
+    "title": "Passes",
+    "addType": "Add pass type",
+    "typeName": "Name",
+    "typeNamePlaceholder": "e.g. 10 Classes",
+    "sessionsCount": "Sessions",
+    "price": "Price",
+    "optional": "(optional)",
+    "createType": "Add",
+    "noTypes": "No pass types yet. Add one so players can buy.",
+    "pendingRequests": "Pass requests",
+    "activate": "Activate",
+    "activePasses": "Active passes",
+    "remaining": "{{remaining}}/{{total}}",
+    "usedUp": "Used up",
+    "pending": "Pending",
+    "markAttended": "Attended",
+    "undoAttended": "Undo",
+    "deleteType": "Remove",
+    "deleteTypeConfirm": "Remove this pass type?"
   },
   "stats": {
     "title": "Stats",

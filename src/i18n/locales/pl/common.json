@@ -233,6 +233,11 @@
     "save": "Zapisz miejsce",
     "backToList": "Wróć do listy miejsc"
   },
+  "abonaments": {
+    "typeCreated": "Typ karnetu utworzony",
+    "requestSent": "Prośba o karnet wysłana. Trener go aktywuje.",
+    "activated": "Karnet aktywowany"
+  },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",
     "memberRemoved": "Usunięto uczestnika",

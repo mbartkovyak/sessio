@@ -20,7 +20,13 @@
     "rescheduleEnd": "Nowa godzina zakończenia (GG:MM):",
     "cancelledMessage": "⚠️ {{name}} w dniu {{date}} zostały odwołane.",
     "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}.",
-    "viewStats": "Statystyki obecności"
+    "viewStats": "Statystyki obecności",
+    "markAttendance": "Oznacz obecność",
+    "sessionsNeedAttendance": "{{count}} sesji wymaga obecności",
+    "attendanceSaved": "Obecność zapisana",
+    "allPresent": "Wszyscy obecni",
+    "allAbsent": "Wszyscy nieobecni",
+    "saveAttendance": "Zapisz"
   },
   "profile": {
     "title": "Profil",
@@ -199,6 +205,27 @@
     "description": "Twoja prośba o dołączenie do {{name}} czeka na decyzję właściciela szkoły.",
     "info": "Dostęp pojawi się po zatwierdzeniu.",
     "checkStatus": "Odśwież"
+  },
+  "abonaments": {
+    "title": "Karnety",
+    "addType": "Dodaj typ karnetu",
+    "typeName": "Nazwa",
+    "typeNamePlaceholder": "np. 10 zajęć",
+    "sessionsCount": "Liczba zajęć",
+    "price": "Cena",
+    "optional": "(opcjonalnie)",
+    "createType": "Dodaj",
+    "noTypes": "Brak typów karnetów. Dodaj, aby uczestnicy mogli kupować.",
+    "pendingRequests": "Prośby o karnet",
+    "activate": "Aktywuj",
+    "activePasses": "Aktywne karnety",
+    "remaining": "{{remaining}}/{{total}}",
+    "usedUp": "Wykorzystany",
+    "pending": "Oczekujący",
+    "markAttended": "Obecny",
+    "undoAttended": "Cofnij",
+    "deleteType": "Usuń",
+    "deleteTypeConfirm": "Usunąć ten typ karnetu?"
   },
   "stats": {
     "title": "Statystyki",

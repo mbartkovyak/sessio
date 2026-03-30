@@ -28,6 +28,43 @@ export function useUpcomingSessions(coachId: string | undefined, limit?: number)
   });
 }
 
+export function usePastUnmarkedSessions(coachId?: string, schoolId?: string) {
+  return useQuery({
+    queryKey: ['past-unmarked-sessions', coachId, schoolId],
+    enabled: !!coachId || !!schoolId,
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+      let query = supabase
+        .from('training_sessions')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
+        .eq('trainings.is_active', true)
+        .eq('status', 'scheduled')
+        .is('attendance_marked_at', null)
+        .gte('session_date', sevenDaysAgo)
+        .lte('session_date', today)
+        .order('session_date', { ascending: false })
+        .order('start_time', { ascending: false })
+        .limit(10);
+
+      if (coachId) query = query.eq('trainings.coach_id', coachId);
+      if (schoolId) query = query.eq('trainings.school_id', schoolId);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Only include sessions whose end time has passed
+      const now = new Date();
+      return ((data ?? []) as UpcomingSession[]).filter((s) => {
+        const sessionEnd = new Date(`${s.session_date}T${s.end_time}`);
+        return sessionEnd < now;
+      });
+    },
+    refetchInterval: 5 * 60 * 1000,
+  });
+}
+
 export function useSchoolUpcomingSessions(schoolId: string | undefined, limit?: number) {
   return useQuery({
     queryKey: ['school-upcoming-sessions', schoolId, limit],

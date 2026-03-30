@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
+import { useTrainingAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -21,6 +22,7 @@ import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
+import AbonamentSection from '@/components/coach/AbonamentSection';
 import PageHeader from '@/components/shared/PageHeader';
 import { SessioLoader } from '@/components/SessioLogo';
 export default function TrainingDetail() {
@@ -277,6 +279,9 @@ export default function TrainingDetail() {
                   )}
                 </div>
 
+                {/* Passes (Abonaments) */}
+                <AbonamentSection trainingId={training.id} />
+
                 {/* Upcoming lessons */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.upcomingLessons')}</h2>
@@ -344,7 +349,7 @@ export default function TrainingDetail() {
                                 </div>
                               )}
                             </div>
-                            {isExpanded && <SessionAttendancePanel sessionId={s.id} />}
+                            {isExpanded && <SessionAttendancePanel sessionId={s.id} trainingId={training.id} />}
                           </div>
                         );
                       })}
@@ -388,9 +393,13 @@ export default function TrainingDetail() {
 
 // ── Session Attendance Panel ──
 
-function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
+function SessionAttendancePanel({ sessionId, trainingId }: { sessionId: string; trainingId: string }) {
   const { t } = useTranslation('coach');
   const { data: attendance = [], isLoading } = useSessionAttendance(sessionId);
+  const { data: playerAbonaments = [] } = useTrainingAbonaments(trainingId);
+  const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
+  const deduct = useDeductSession();
+  const undo = useUndoDeduction();
 
   if (isLoading) return <div className="px-4 py-3 border-t border-border"><div className="h-4 w-24 bg-muted animate-pulse rounded" /></div>;
   if (attendance.length === 0) return (
@@ -399,6 +408,17 @@ function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
     </div>
   );
 
+  // Build lookup: playerId → active abonament
+  const abonamentByPlayer = new Map<string, any>();
+  for (const pa of playerAbonaments) {
+    if (pa.status === 'active') {
+      abonamentByPlayer.set(pa.player_id, pa);
+    }
+  }
+
+  // Build lookup: playerAbonamentId → usage exists for this session
+  const usedAbonamentIds = new Set(usageRecords.map((u: any) => u.player_abonament_id));
+
   const sorted = [...attendance].sort((a, b) => {
     const order = { confirmed: 0, pending: 1, declined: 2 };
     return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
@@ -406,21 +426,57 @@ function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="border-t border-border divide-y divide-border">
-      {sorted.map((a) => (
-        <div key={a.id} className="flex items-center gap-3 px-4 py-2.5">
-          <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="xs" />
-          <span className="flex-1 text-sm text-foreground truncate">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            a.status === 'confirmed' ? 'bg-success/10 text-success' :
-            a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
-            'bg-warning/10 text-warning'
-          }`}>
-            {a.status === 'confirmed' ? t('detail.statusConfirmed') :
-             a.status === 'declined' ? t('detail.statusDeclined') :
-             t('detail.statusPending')}
-          </span>
-        </div>
-      ))}
+      {sorted.map((a) => {
+        const playerId = a.user_id;
+        const playerAbonament = abonamentByPlayer.get(playerId);
+        const isDeducted = playerAbonament ? usedAbonamentIds.has(playerAbonament.id) : false;
+
+        return (
+          <div key={a.id} className="flex items-center gap-3 px-4 py-2.5">
+            <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="xs" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm text-foreground truncate block">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
+              {playerAbonament && (
+                <span className="text-[10px] text-muted-foreground">
+                  {t('abonaments.remaining', { remaining: playerAbonament.sessions_remaining, total: playerAbonament.sessions_total })}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                a.status === 'confirmed' ? 'bg-success/10 text-success' :
+                a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
+                'bg-warning/10 text-warning'
+              }`}>
+                {a.status === 'confirmed' ? t('detail.statusConfirmed') :
+                 a.status === 'declined' ? t('detail.statusDeclined') :
+                 t('detail.statusPending')}
+              </span>
+              {playerAbonament && (
+                isDeducted ? (
+                  <button
+                    onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId, trainingId })}
+                    disabled={undo.isPending}
+                    className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
+                    title={t('abonaments.undoAttended')}
+                  >
+                    <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId, trainingId })}
+                    disabled={deduct.isPending || playerAbonament.sessions_remaining <= 0}
+                    className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
+                    title={t('abonaments.markAttended')}
+                  >
+                    {t('abonaments.markAttended')}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

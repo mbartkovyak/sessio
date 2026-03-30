@@ -124,6 +124,19 @@
     "claimFailed": "Couldn't claim the spot",
     "claimSpot": "Claim this spot"
   },
+  "abonaments": {
+    "title": "My passes",
+    "availablePasses": "Passes",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "buy": "Buy",
+    "requestPending": "Waiting for activation",
+    "active": "Active",
+    "remaining": "{{remaining}} of {{total}} left",
+    "usedUp": "All used",
+    "noPasses": "No passes available for this training",
+    "alreadyHasPass": "You already have an active or pending pass"
+  },
   "favouriteSchools": {
     "title": "Schools you follow"
   }

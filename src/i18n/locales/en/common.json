@@ -233,6 +233,11 @@
     "save": "Save venue",
     "backToList": "Back to venue list"
   },
+  "abonaments": {
+    "typeCreated": "Pass type created",
+    "requestSent": "Pass request sent. The coach will activate it.",
+    "activated": "Pass activated"
+  },
   "toast": {
     "trainingCreated": "Training created",
     "memberRemoved": "Member removed",
