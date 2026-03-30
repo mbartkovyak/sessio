@@ -22,8 +22,8 @@ export type Database = {
           is_active: boolean
           name: string
           price: number | null
+          school_id: string
           sessions_count: number
-          training_id: string
         }
         Insert: {
           created_at?: string
@@ -32,8 +32,8 @@ export type Database = {
           is_active?: boolean
           name: string
           price?: number | null
+          school_id: string
           sessions_count: number
-          training_id: string
         }
         Update: {
           created_at?: string
@@ -42,15 +42,15 @@ export type Database = {
           is_active?: boolean
           name?: string
           price?: number | null
+          school_id?: string
           sessions_count?: number
-          training_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "abonament_types_training_id_fkey"
-            columns: ["training_id"]
+            foreignKeyName: "abonament_types_school_id_fkey"
+            columns: ["school_id"]
             isOneToOne: false
-            referencedRelation: "trainings"
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -660,10 +660,10 @@ export type Database = {
           created_at: string
           id: string
           player_id: string
+          school_id: string
           sessions_remaining: number
           sessions_total: number
           status: string
-          training_id: string
         }
         Insert: {
           abonament_type_id: string
@@ -671,10 +671,10 @@ export type Database = {
           created_at?: string
           id?: string
           player_id: string
+          school_id: string
           sessions_remaining: number
           sessions_total: number
           status?: string
-          training_id: string
         }
         Update: {
           abonament_type_id?: string
@@ -682,10 +682,10 @@ export type Database = {
           created_at?: string
           id?: string
           player_id?: string
+          school_id?: string
           sessions_remaining?: number
           sessions_total?: number
           status?: string
-          training_id?: string
         }
         Relationships: [
           {
@@ -696,10 +696,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "player_abonaments_training_id_fkey"
-            columns: ["training_id"]
+            foreignKeyName: "player_abonaments_school_id_fkey"
+            columns: ["school_id"]
             isOneToOne: false
-            referencedRelation: "trainings"
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
           {

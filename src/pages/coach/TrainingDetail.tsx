@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
-import { useTrainingAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction } from '@/hooks/training/useAbonaments';
+import { useSchoolAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -22,7 +22,6 @@ import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
-import AbonamentSection from '@/components/coach/AbonamentSection';
 import PageHeader from '@/components/shared/PageHeader';
 import { SessioLoader } from '@/components/SessioLogo';
 export default function TrainingDetail() {
@@ -279,9 +278,6 @@ export default function TrainingDetail() {
                   )}
                 </div>
 
-                {/* Passes (Abonaments) */}
-                <AbonamentSection trainingId={training.id} />
-
                 {/* Upcoming lessons */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.upcomingLessons')}</h2>
@@ -349,7 +345,7 @@ export default function TrainingDetail() {
                                 </div>
                               )}
                             </div>
-                            {isExpanded && <SessionAttendancePanel sessionId={s.id} trainingId={training.id} />}
+                            {isExpanded && <SessionAttendancePanel sessionId={s.id} schoolId={training.school_id} />}
                           </div>
                         );
                       })}
@@ -393,10 +389,10 @@ export default function TrainingDetail() {
 
 // ── Session Attendance Panel ──
 
-function SessionAttendancePanel({ sessionId, trainingId }: { sessionId: string; trainingId: string }) {
+function SessionAttendancePanel({ sessionId, schoolId }: { sessionId: string; schoolId: string | null }) {
   const { t } = useTranslation('coach');
   const { data: attendance = [], isLoading } = useSessionAttendance(sessionId);
-  const { data: playerAbonaments = [] } = useTrainingAbonaments(trainingId);
+  const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
   const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
   const deduct = useDeductSession();
   const undo = useUndoDeduction();
@@ -455,7 +451,7 @@ function SessionAttendancePanel({ sessionId, trainingId }: { sessionId: string; 
               {playerAbonament && (
                 isDeducted ? (
                   <button
-                    onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId, trainingId })}
+                    onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId, schoolId: schoolId! })}
                     disabled={undo.isPending}
                     className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
                     title={t('abonaments.undoAttended')}
@@ -464,7 +460,7 @@ function SessionAttendancePanel({ sessionId, trainingId }: { sessionId: string; 
                   </button>
                 ) : (
                   <button
-                    onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId, trainingId })}
+                    onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId, schoolId: schoolId! })}
                     disabled={deduct.isPending || playerAbonament.sessions_remaining <= 0}
                     className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
                     title={t('abonaments.markAttended')}

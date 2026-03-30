@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MessageCircle, LogOut, Users, Ticket } from 'lucide-react';
 import CoachCard from '@/components/shared/CoachCard';
 import { useTraining, useTrainingMembers, useLeaveTraining } from '@/hooks/training/useTrainings';
-import { useAbonamentTypes, useMyTrainingAbonament, useRequestAbonament } from '@/hooks/training/useAbonaments';
+import { useAbonamentTypes, useMySchoolAbonament, useRequestAbonament } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { SPORT_ICONS, DAYS_SHORT, dayShortLabel, sportLabel } from '@/lib/constants';
 import AppHeader from '@/components/shared/AppHeader';
@@ -20,8 +20,9 @@ export default function PlayerTrainingDetail() {
   const { data: members = [] } = useTrainingMembers(id);
   const leave = useLeaveTraining();
 
-  const { data: abonamentTypes = [] } = useAbonamentTypes(id);
-  const { data: myAbonament } = useMyTrainingAbonament(id);
+  const schoolId = training?.school_id;
+  const { data: abonamentTypes = [] } = useAbonamentTypes(schoolId);
+  const { data: myAbonament } = useMySchoolAbonament(schoolId);
   const requestAbonament = useRequestAbonament();
 
   const isMember = members.some((m: any) => (m.user_id ?? m.profiles?.id) === user?.id);
@@ -131,7 +132,7 @@ export default function PlayerTrainingDetail() {
                         <button
                           onClick={() => requestAbonament.mutate({
                             abonamentTypeId: type.id,
-                            trainingId: id!,
+                            schoolId: schoolId!,
                             sessionsTotal: type.sessions_count,
                           })}
                           disabled={requestAbonament.isPending}

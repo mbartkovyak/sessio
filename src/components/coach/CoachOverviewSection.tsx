@@ -222,7 +222,7 @@ export default function CoachOverviewSection() {
           <div className="space-y-2">
             {pendingAbonaments.map((pa: any) => {
               const player = pa.profiles;
-              const training = pa.trainings;
+              const school = pa.schools;
               return (
                 <div key={pa.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
                   <div className="flex items-center gap-3 mb-3">
@@ -230,14 +230,14 @@ export default function CoachOverviewSection() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {training?.name} · {pa.abonament_types?.name}
+                        {school?.name} · {pa.abonament_types?.name}
                         {pa.abonament_types?.price != null && ` · ${pa.abonament_types.price} ${pa.abonament_types.currency}`}
                       </p>
                     </div>
                     <Ticket className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                   <button
-                    onClick={() => activateAbonament.mutate({ id: pa.id, trainingId: pa.training_id })}
+                    onClick={() => activateAbonament.mutate({ id: pa.id, schoolId: pa.school_id })}
                     disabled={activateAbonament.isPending}
                     className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97] disabled:opacity-50"
                   >

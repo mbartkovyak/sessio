@@ -8,6 +8,7 @@ import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useSchoolUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
+import AbonamentSection from '@/components/coach/AbonamentSection';
 import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { toast } from 'sonner';
@@ -170,6 +171,9 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         <BarChart3 className="h-4 w-4 text-muted-foreground" />
         {tc('home.viewStats')}
       </button>
+
+      {/* School passes */}
+      <AbonamentSection schoolId={school.id} />
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (

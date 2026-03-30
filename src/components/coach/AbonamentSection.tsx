@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import {
   useAbonamentTypes,
   useCreateAbonamentType,
   useDeleteAbonamentType,
-  useTrainingAbonaments,
+  useSchoolAbonaments,
   useActivateAbonament,
 } from '@/hooks/training/useAbonaments';
 
-export default function AbonamentSection({ trainingId }: { trainingId: string }) {
+export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const { t } = useTranslation('coach');
-  const { data: types = [] } = useAbonamentTypes(trainingId);
-  const { data: playerAbonaments = [] } = useTrainingAbonaments(trainingId);
+  const { data: types = [] } = useAbonamentTypes(schoolId);
+  const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
   const createType = useCreateAbonamentType();
   const deleteType = useDeleteAbonamentType();
   const activate = useActivateAbonament();
@@ -30,7 +30,7 @@ export default function AbonamentSection({ trainingId }: { trainingId: string })
     if (!name.trim() || !sessionsCount) return;
     createType.mutate(
       {
-        training_id: trainingId,
+        school_id: schoolId,
         name: name.trim(),
         sessions_count: parseInt(sessionsCount),
         price: price ? parseFloat(price) : null,
@@ -129,7 +129,7 @@ export default function AbonamentSection({ trainingId }: { trainingId: string })
               <button
                 onClick={() => {
                   if (confirm(t('abonaments.deleteTypeConfirm'))) {
-                    deleteType.mutate({ id: type.id, trainingId });
+                    deleteType.mutate({ id: type.id, schoolId });
                   }
                 }}
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
@@ -161,7 +161,7 @@ export default function AbonamentSection({ trainingId }: { trainingId: string })
                   </div>
                 </div>
                 <button
-                  onClick={() => activate.mutate({ id: pa.id, trainingId })}
+                  onClick={() => activate.mutate({ id: pa.id, schoolId })}
                   disabled={activate.isPending}
                   className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px] disabled:opacity-50"
                 >

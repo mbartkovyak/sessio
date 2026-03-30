@@ -19,24 +19,24 @@ type PlayerAbonamentWithProfile = Tables<'player_abonaments'> & {
   profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null;
 };
 
-type PlayerAbonamentWithTraining = Tables<'player_abonaments'> & {
+type PlayerAbonamentWithSchool = Tables<'player_abonaments'> & {
   abonament_types: AbonamentType;
-  trainings: Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue'> | null;
+  schools: Pick<Tables<'schools'>, 'id' | 'name'> | null;
 };
 
 type AbonamentUsage = Tables<'abonament_usage'>;
 
-// ── Abonament type queries (coach manages per training) ──
+// ── Abonament type queries (school owner manages) ──
 
-export function useAbonamentTypes(trainingId: string | undefined) {
+export function useAbonamentTypes(schoolId: string | undefined | null) {
   return useQuery({
-    queryKey: ['abonament-types', trainingId],
-    enabled: !!trainingId,
+    queryKey: ['abonament-types', schoolId],
+    enabled: !!schoolId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('abonament_types')
         .select('*')
-        .eq('training_id', trainingId!)
+        .eq('school_id', schoolId!)
         .eq('is_active', true)
         .order('sessions_count', { ascending: true });
       if (error) throw error;
@@ -49,7 +49,7 @@ export function useCreateAbonamentType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: {
-      training_id: string;
+      school_id: string;
       name: string;
       sessions_count: number;
       price?: number | null;
@@ -64,7 +64,7 @@ export function useCreateAbonamentType() {
       return data as AbonamentType;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-types', vars.training_id] });
+      qc.invalidateQueries({ queryKey: ['abonament-types', vars.school_id] });
       toast.success(i18n.t('abonaments.typeCreated', { ns: 'common' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
@@ -74,7 +74,7 @@ export function useCreateAbonamentType() {
 export function useDeleteAbonamentType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, trainingId }: { id: string; trainingId: string }) => {
+    mutationFn: async ({ id, schoolId }: { id: string; schoolId: string }) => {
       const { error } = await supabase
         .from('abonament_types')
         .update({ is_active: false })
@@ -82,7 +82,7 @@ export function useDeleteAbonamentType() {
       if (error) throw error;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-types', vars.trainingId] });
+      qc.invalidateQueries({ queryKey: ['abonament-types', vars.schoolId] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -90,16 +90,16 @@ export function useDeleteAbonamentType() {
 
 // ── Player abonament queries ──
 
-/** All abonaments for a training (coach view — includes player profile) */
-export function useTrainingAbonaments(trainingId: string | undefined) {
+/** All abonaments for a school (school owner / coach view — includes player profile) */
+export function useSchoolAbonaments(schoolId: string | undefined | null) {
   return useQuery({
-    queryKey: ['training-abonaments', trainingId],
-    enabled: !!trainingId,
+    queryKey: ['school-abonaments', schoolId],
+    enabled: !!schoolId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
         .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url)')
-        .eq('training_id', trainingId!)
+        .eq('school_id', schoolId!)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as PlayerAbonamentWithProfile[];
@@ -107,17 +107,17 @@ export function useTrainingAbonaments(trainingId: string | undefined) {
   });
 }
 
-/** Player's active/pending abonament for a specific training */
-export function useMyTrainingAbonament(trainingId: string | undefined) {
+/** Player's active/pending abonament for a specific school */
+export function useMySchoolAbonament(schoolId: string | undefined | null) {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ['my-training-abonament', trainingId, user?.id],
-    enabled: !!trainingId && !!user,
+    queryKey: ['my-school-abonament', schoolId, user?.id],
+    enabled: !!schoolId && !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
         .select('*, abonament_types(*)')
-        .eq('training_id', trainingId!)
+        .eq('school_id', schoolId!)
         .eq('player_id', user!.id)
         .in('status', ['pending', 'active'])
         .order('created_at', { ascending: false })
@@ -138,17 +138,17 @@ export function useMyAbonaments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
-        .select('*, abonament_types(*), trainings(id, name, sport, venue)')
+        .select('*, abonament_types(*), schools(id, name)')
         .eq('player_id', user!.id)
         .in('status', ['active', 'pending'])
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as PlayerAbonamentWithTraining[];
+      return (data ?? []) as PlayerAbonamentWithSchool[];
     },
   });
 }
 
-/** Pending abonament requests across all coach's trainings */
+/** Pending abonament requests for school owner */
 export function usePendingAbonaments() {
   const { user } = useAuth();
   return useQuery({
@@ -157,7 +157,7 @@ export function usePendingAbonaments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
-        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url), trainings!inner(id, name, coach_id)')
+        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url), schools!inner(id, name, owner_id)')
         .eq('status', 'pending');
       if (error) throw error;
       return (data ?? []) as any[];
@@ -172,9 +172,9 @@ export function useRequestAbonament() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ abonamentTypeId, trainingId, sessionsTotal }: {
+    mutationFn: async ({ abonamentTypeId, schoolId, sessionsTotal }: {
       abonamentTypeId: string;
-      trainingId: string;
+      schoolId: string;
       sessionsTotal: number;
     }) => {
       if (!user) throw new Error('Not signed in');
@@ -182,7 +182,7 @@ export function useRequestAbonament() {
         .from('player_abonaments')
         .insert({
           abonament_type_id: abonamentTypeId,
-          training_id: trainingId,
+          school_id: schoolId,
           player_id: user.id,
           sessions_total: sessionsTotal,
           sessions_remaining: sessionsTotal,
@@ -191,20 +191,21 @@ export function useRequestAbonament() {
       if (error) throw error;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['my-training-abonament', vars.trainingId] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
-      qc.invalidateQueries({ queryKey: ['training-abonaments', vars.trainingId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['pending-abonaments'] });
       toast.success(i18n.t('abonaments.requestSent', { ns: 'common' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
-/** Coach activates a pending pass */
+/** School owner activates a pending pass */
 export function useActivateAbonament() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, trainingId }: { id: string; trainingId: string }) => {
+    mutationFn: async ({ id, schoolId }: { id: string; schoolId: string }) => {
       const { error } = await supabase
         .from('player_abonaments')
         .update({ status: 'active', activated_at: new Date().toISOString() })
@@ -212,9 +213,9 @@ export function useActivateAbonament() {
       if (error) throw error;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['training-abonaments', vars.trainingId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['pending-abonaments'] });
-      qc.invalidateQueries({ queryKey: ['my-training-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       toast.success(i18n.t('abonaments.activated', { ns: 'common' }));
     },
@@ -224,7 +225,7 @@ export function useActivateAbonament() {
 
 // ── Session deduction ──
 
-/** Usage records for a specific session (which players have been deducted) */
+/** Usage records for a specific session */
 export function useSessionAbonamentUsage(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['abonament-usage-session', sessionId],
@@ -240,14 +241,14 @@ export function useSessionAbonamentUsage(sessionId: string | undefined) {
   });
 }
 
-/** Coach deducts a session from a player's abonament */
+/** Coach/owner deducts a session from a player's abonament */
 export function useDeductSession() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, trainingId }: {
+    mutationFn: async ({ playerAbonamentId, sessionId, schoolId }: {
       playerAbonamentId: string;
       sessionId: string;
-      trainingId: string;
+      schoolId: string;
     }) => {
       const { error } = await supabase.rpc('deduct_abonament_session', {
         p_player_abonament_id: playerAbonamentId,
@@ -257,22 +258,22 @@ export function useDeductSession() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['training-abonaments', vars.trainingId] });
-      qc.invalidateQueries({ queryKey: ['my-training-abonament'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
-/** Coach undoes a deduction */
+/** Coach/owner undoes a deduction */
 export function useUndoDeduction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, trainingId }: {
+    mutationFn: async ({ playerAbonamentId, sessionId, schoolId }: {
       playerAbonamentId: string;
       sessionId: string;
-      trainingId: string;
+      schoolId: string;
     }) => {
       const { error } = await supabase.rpc('undo_abonament_deduction', {
         p_player_abonament_id: playerAbonamentId,
@@ -282,8 +283,8 @@ export function useUndoDeduction() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['training-abonaments', vars.trainingId] });
-      qc.invalidateQueries({ queryKey: ['my-training-abonament'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
