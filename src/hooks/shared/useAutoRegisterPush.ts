@@ -12,11 +12,20 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 }
 
-/** Resolves with the SW registration, or null if it takes longer than `ms`. */
-function swReadyWithTimeout(ms = 8000): Promise<ServiceWorkerRegistration | null> {
+/**
+ * Ensure the SW is registered (registerSW.js fires on window.load which may
+ * not have happened yet), then wait for it to activate.
+ */
+async function ensureSwReady(timeoutMs = 20000): Promise<ServiceWorkerRegistration | null> {
+  // If no controller and no installing SW, kick off registration ourselves
+  if (!navigator.serviceWorker.controller) {
+    try {
+      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    } catch { /* registerSW.js will retry on load */ }
+  }
   return Promise.race([
     navigator.serviceWorker.ready,
-    new Promise<null>(r => setTimeout(() => r(null), ms)),
+    new Promise<null>(r => setTimeout(() => r(null), timeoutMs)),
   ]);
 }
 
@@ -42,7 +51,7 @@ export function useAutoRegisterPush() {
 
     (async () => {
       try {
-        const reg = await swReadyWithTimeout();
+        const reg = await ensureSwReady();
         if (!reg) return; // SW not available — prompt will handle manual retry
         let sub = await reg.pushManager.getSubscription();
 

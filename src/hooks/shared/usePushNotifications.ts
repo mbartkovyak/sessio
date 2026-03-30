@@ -15,11 +15,19 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
 }
 
-/** Resolves with the SW registration, or null after timeout. */
-function swReadyWithTimeout(ms = 8000): Promise<ServiceWorkerRegistration | null> {
+/**
+ * Ensure the SW is registered (registerSW.js fires on window.load which may
+ * not have happened yet), then wait for it to activate.
+ */
+async function ensureSwReady(timeoutMs = 20000): Promise<ServiceWorkerRegistration | null> {
+  if (!navigator.serviceWorker.controller) {
+    try {
+      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    } catch { /* registerSW.js will retry on load */ }
+  }
   return Promise.race([
     navigator.serviceWorker.ready,
-    new Promise<null>(r => setTimeout(() => r(null), ms)),
+    new Promise<null>(r => setTimeout(() => r(null), timeoutMs)),
   ]);
 }
 
@@ -37,7 +45,7 @@ export function usePushNotifications() {
 
     // Check if already subscribed — verify both browser AND database
     if (ok && Notification.permission === 'granted' && user) {
-      swReadyWithTimeout().then(async (reg) => {
+      ensureSwReady().then(async (reg) => {
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (!sub) return;
@@ -71,7 +79,7 @@ export function usePushNotifications() {
         if (perm !== 'granted') return i18n.t('notifications.permissionDenied', { ns: 'common' });
       }
 
-      const registration = await swReadyWithTimeout();
+      const registration = await ensureSwReady();
       if (!registration) {
         return i18n.t('notifications.failed', { ns: 'common' });
       }
