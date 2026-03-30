@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MessageCircle, LogOut, Users, Ticket } from 'lucide-react';
 import CoachCard from '@/components/shared/CoachCard';
 import { useTraining, useTrainingMembers, useLeaveTraining } from '@/hooks/training/useTrainings';
-import { useAbonamentTypes, useMySchoolAbonament, useRequestAbonament } from '@/hooks/training/useAbonaments';
+import { useMySchoolAbonament, isAbonamentActive } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { SPORT_ICONS, DAYS_SHORT, dayShortLabel, sportLabel } from '@/lib/constants';
 import AppHeader from '@/components/shared/AppHeader';
@@ -20,10 +20,7 @@ export default function PlayerTrainingDetail() {
   const { data: members = [] } = useTrainingMembers(id);
   const leave = useLeaveTraining();
 
-  const schoolId = training?.school_id;
-  const { data: abonamentTypes = [] } = useAbonamentTypes(schoolId);
-  const { data: myAbonament } = useMySchoolAbonament(schoolId);
-  const requestAbonament = useRequestAbonament();
+  const { data: myAbonament } = useMySchoolAbonament(training?.school_id);
 
   const isMember = members.some((m: any) => (m.user_id ?? m.profiles?.id) === user?.id);
 
@@ -91,59 +88,23 @@ export default function PlayerTrainingDetail() {
               <CoachCard coach={coach} subtitle={t('trainingDetail.coach')} />
             )}
 
-            {/* Passes */}
-            {isMember && abonamentTypes.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-foreground text-sm mb-2.5">{t('abonaments.availablePasses')}</h3>
-                {myAbonament ? (
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <Ticket className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{myAbonament.abonament_types?.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {myAbonament.status === 'pending'
-                            ? t('abonaments.requestPending')
-                            : t('abonaments.remaining', { remaining: myAbonament.sessions_remaining, total: myAbonament.sessions_total })}
-                        </p>
-                      </div>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        myAbonament.status === 'pending'
-                          ? 'bg-warning/10 text-warning'
-                          : 'bg-success/10 text-success'
-                      }`}>
-                        {myAbonament.status === 'pending' ? t('abonaments.requestPending') : t('abonaments.active')}
-                      </span>
-                    </div>
+            {/* Player's pass */}
+            {isMember && myAbonament && isAbonamentActive(myAbonament) && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Ticket className="h-5 w-5 text-primary" />
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {abonamentTypes.map((type: any) => (
-                      <div key={type.id} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground">{type.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {t('abonaments.sessions', { count: type.sessions_count })}
-                            {type.price != null && ` · ${type.price} ${type.currency}`}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => requestAbonament.mutate({
-                            abonamentTypeId: type.id,
-                            schoolId: schoolId!,
-                            sessionsTotal: type.sessions_count,
-                          })}
-                          disabled={requestAbonament.isPending}
-                          className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground min-h-[36px] disabled:opacity-50 transition-all active:scale-[0.97]"
-                        >
-                          {t('abonaments.buy')}
-                        </button>
-                      </div>
-                    ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{myAbonament.abonament_types?.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {myAbonament.sessions_remaining != null
+                        ? t('abonaments.remaining', { remaining: myAbonament.sessions_remaining, total: myAbonament.sessions_total })
+                        : t('abonaments.unlimited')}
+                      {myAbonament.expires_at && ` · ${t('abonaments.expiresOn', { date: new Date(myAbonament.expires_at).toLocaleDateString() })}`}
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             )}
 

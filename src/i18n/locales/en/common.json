@@ -235,8 +235,7 @@
   },
   "abonaments": {
     "typeCreated": "Pass type created",
-    "requestSent": "Pass request sent. The coach will activate it.",
-    "activated": "Pass activated"
+    "assigned": "Pass assigned"
   },
   "toast": {
     "trainingCreated": "Training created",

@@ -1,63 +1,120 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, UserPlus } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import {
   useAbonamentTypes,
   useCreateAbonamentType,
   useDeleteAbonamentType,
   useSchoolAbonaments,
-  useActivateAbonament,
+  useAssignAbonament,
+  useSchoolAthletes,
+  isAbonamentActive,
 } from '@/hooks/training/useAbonaments';
 
 export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const { t } = useTranslation('coach');
   const { data: types = [] } = useAbonamentTypes(schoolId);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
+  const { data: athletes = [] } = useSchoolAthletes(schoolId);
   const createType = useCreateAbonamentType();
   const deleteType = useDeleteAbonamentType();
-  const activate = useActivateAbonament();
+  const assign = useAssignAbonament();
 
   const [showForm, setShowForm] = useState(false);
+  const [showAssign, setShowAssign] = useState(false);
   const [name, setName] = useState('');
-  const [sessionsCount, setSessionsCount] = useState('');
+  const [sessionsCount, setSessions] = useState('');
+  const [durationDays, setDuration] = useState('');
   const [price, setPrice] = useState('');
+  const [assignTypeId, setAssignTypeId] = useState('');
+  const [assignPlayerId, setAssignPlayerId] = useState('');
 
-  const pending = playerAbonaments.filter((pa: any) => pa.status === 'pending');
-  const active = playerAbonaments.filter((pa: any) => pa.status === 'active' || pa.status === 'used_up');
+  const active = playerAbonaments.filter((pa: any) => isAbonamentActive(pa));
+  const inactive = playerAbonaments.filter((pa: any) => !isAbonamentActive(pa) && (pa.status === 'used_up' || pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())));
+
+  const hasLimit = !!sessionsCount || !!durationDays;
 
   function handleCreate() {
-    if (!name.trim() || !sessionsCount) return;
+    if (!name.trim() || !hasLimit) return;
     createType.mutate(
       {
         school_id: schoolId,
         name: name.trim(),
-        sessions_count: parseInt(sessionsCount),
+        sessions_count: sessionsCount ? parseInt(sessionsCount) : null,
+        duration_days: durationDays ? parseInt(durationDays) : null,
         price: price ? parseFloat(price) : null,
       },
       {
         onSuccess: () => {
-          setName('');
-          setSessionsCount('');
-          setPrice('');
+          setName(''); setSessions(''); setDuration(''); setPrice('');
           setShowForm(false);
         },
       },
     );
   }
 
+  function handleAssign() {
+    if (!assignTypeId || !assignPlayerId) return;
+    const type = types.find((t: any) => t.id === assignTypeId);
+    if (!type) return;
+    assign.mutate(
+      {
+        abonamentTypeId: assignTypeId,
+        schoolId,
+        playerId: assignPlayerId,
+        sessionsCount: type.sessions_count,
+        durationDays: type.duration_days,
+      },
+      {
+        onSuccess: () => {
+          setAssignTypeId(''); setAssignPlayerId('');
+          setShowAssign(false);
+        },
+      },
+    );
+  }
+
+  function typeLabel(type: any) {
+    const parts: string[] = [];
+    if (type.sessions_count) parts.push(t('abonaments.sessionsLabel', { count: type.sessions_count }));
+    if (type.duration_days) parts.push(t('abonaments.daysLabel', { count: type.duration_days }));
+    if (type.price != null) parts.push(`${type.price} ${type.currency}`);
+    return parts.join(' · ');
+  }
+
+  function passStatusLabel(pa: any) {
+    if (pa.status === 'used_up') return { text: t('abonaments.usedUp'), cls: 'bg-muted text-muted-foreground' };
+    if (pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())) {
+      return { text: t('abonaments.expired'), cls: 'bg-destructive/10 text-destructive' };
+    }
+    // Active — show remaining info
+    const parts: string[] = [];
+    if (pa.sessions_remaining != null) parts.push(t('abonaments.remaining', { remaining: pa.sessions_remaining, total: pa.sessions_total }));
+    else parts.push(t('abonaments.unlimited'));
+    if (pa.expires_at) {
+      const days = Math.ceil((new Date(pa.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (days > 0) parts.push(t('abonaments.expiresIn', { days }));
+    }
+    return { text: parts.join(' · '), cls: 'bg-success/10 text-success' };
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
-        {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1 text-xs font-medium text-primary"
-          >
-            <Plus className="h-3.5 w-3.5" /> {t('abonaments.addType')}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {types.length > 0 && !showAssign && (
+            <button onClick={() => setShowAssign(true)} className="flex items-center gap-1 text-xs font-medium text-primary">
+              <UserPlus className="h-3.5 w-3.5" /> {t('abonaments.assign')}
+            </button>
+          )}
+          {!showForm && (
+            <button onClick={() => setShowForm(true)} className="flex items-center gap-1 text-xs font-medium text-primary">
+              <Plus className="h-3.5 w-3.5" /> {t('abonaments.addType')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add type form */}
@@ -72,40 +129,31 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
           />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-xs text-muted-foreground">{t('abonaments.sessionsCount')}</label>
-              <input
-                type="number"
-                min="1"
-                value={sessionsCount}
-                onChange={(e) => setSessionsCount(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              />
+              <label className="text-xs text-muted-foreground">{t('abonaments.sessionsCount')} {t('abonaments.optional')}</label>
+              <input type="number" min="1" value={sessionsCount} onChange={(e) => setSessions(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="—" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">{t('abonaments.price')} {t('abonaments.optional')}</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="—"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              />
+              <label className="text-xs text-muted-foreground">{t('abonaments.durationDays')} {t('abonaments.optional')}</label>
+              <input type="number" min="1" value={durationDays} onChange={(e) => setDuration(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder={t('abonaments.durationPlaceholder')} />
             </div>
           </div>
+          <div>
+            <label className="text-xs text-muted-foreground">{t('abonaments.price')} {t('abonaments.optional')}</label>
+            <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="—" />
+          </div>
+          {!hasLimit && name.trim() && (
+            <p className="text-xs text-warning">{t('abonaments.sessionsOrDuration')}</p>
+          )}
           <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setShowForm(false)}
-              className="rounded-lg border border-border py-2 text-sm font-medium text-foreground min-h-[36px]"
-            >
+            <button onClick={() => { setShowForm(false); setName(''); setSessions(''); setDuration(''); setPrice(''); }}
+              className="rounded-lg border border-border py-2 text-sm font-medium text-foreground min-h-[36px]">
               {t('common:actions.cancel')}
             </button>
-            <button
-              onClick={handleCreate}
-              disabled={!name.trim() || !sessionsCount || createType.isPending}
-              className="rounded-lg bg-primary py-2 text-sm font-bold text-primary-foreground min-h-[36px] disabled:opacity-50"
-            >
+            <button onClick={handleCreate} disabled={!name.trim() || !hasLimit || createType.isPending}
+              className="rounded-lg bg-primary py-2 text-sm font-bold text-primary-foreground min-h-[36px] disabled:opacity-50">
               {t('abonaments.createType')}
             </button>
           </div>
@@ -121,19 +169,11 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
             <div key={type.id} className="flex items-center justify-between px-4 py-2.5">
               <div>
                 <p className="text-sm font-medium text-foreground">{type.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {type.sessions_count} {t('abonaments.sessionsCount').toLowerCase()}
-                  {type.price != null && ` · ${type.price} ${type.currency}`}
-                </p>
+                <p className="text-xs text-muted-foreground">{typeLabel(type)}</p>
               </div>
               <button
-                onClick={() => {
-                  if (confirm(t('abonaments.deleteTypeConfirm'))) {
-                    deleteType.mutate({ id: type.id, schoolId });
-                  }
-                }}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-              >
+                onClick={() => { if (confirm(t('abonaments.deleteTypeConfirm'))) deleteType.mutate({ id: type.id, schoolId }); }}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors">
                 <Trash2 className="h-3 w-3 text-destructive" />
               </button>
             </div>
@@ -141,63 +181,58 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
         </div>
       ) : null}
 
-      {/* Pending pass requests */}
-      {pending.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            {t('abonaments.pendingRequests')} <span className="font-normal">({pending.length})</span>
-          </h3>
-          <div className="space-y-2">
-            {pending.map((pa: any) => (
-              <div key={pa.id} className="rounded-xl border border-border bg-card p-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <Avatar url={pa.profiles?.avatar_url} name={pa.profiles?.full_name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{pa.profiles?.full_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {pa.abonament_types?.name} · {pa.sessions_total} {t('abonaments.sessionsCount').toLowerCase()}
-                      {pa.abonament_types?.price != null && ` · ${pa.abonament_types.price} ${pa.abonament_types.currency}`}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => activate.mutate({ id: pa.id, schoolId })}
-                  disabled={activate.isPending}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px] disabled:opacity-50"
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5" /> {t('abonaments.activate')}
-                </button>
-              </div>
+      {/* Assign pass form */}
+      {showAssign && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2.5">
+          <p className="text-xs font-semibold text-foreground">{t('abonaments.assign')}</p>
+          <select value={assignPlayerId} onChange={(e) => setAssignPlayerId(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+            <option value="">{t('abonaments.selectPlayer')}</option>
+            {athletes.map((a: any) => (
+              <option key={a.id} value={a.id}>{a.full_name}</option>
             ))}
+          </select>
+          {athletes.length === 0 && <p className="text-xs text-muted-foreground">{t('abonaments.noAthletes')}</p>}
+          <select value={assignTypeId} onChange={(e) => setAssignTypeId(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+            <option value="">{t('abonaments.selectType')}</option>
+            {types.map((type: any) => (
+              <option key={type.id} value={type.id}>{type.name} ({typeLabel(type)})</option>
+            ))}
+          </select>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => { setShowAssign(false); setAssignTypeId(''); setAssignPlayerId(''); }}
+              className="rounded-lg border border-border py-2 text-sm font-medium text-foreground min-h-[36px]">
+              {t('common:actions.cancel')}
+            </button>
+            <button onClick={handleAssign} disabled={!assignTypeId || !assignPlayerId || assign.isPending}
+              className="rounded-lg bg-primary py-2 text-sm font-bold text-primary-foreground min-h-[36px] disabled:opacity-50">
+              {t('abonaments.assign')}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Active passes overview */}
+      {/* Active passes */}
       {active.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             {t('abonaments.activePasses')} <span className="font-normal">({active.length})</span>
           </h3>
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
-            {active.map((pa: any) => (
-              <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
-                <Avatar url={pa.profiles?.avatar_url} name={pa.profiles?.full_name} size="xs" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{pa.profiles?.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{pa.abonament_types?.name}</p>
+            {active.map((pa: any) => {
+              const s = passStatusLabel(pa);
+              return (
+                <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
+                  <Avatar url={pa.profiles?.avatar_url} name={pa.profiles?.full_name} size="xs" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{pa.profiles?.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{pa.abonament_types?.name}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.text}</span>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  pa.status === 'used_up'
-                    ? 'bg-muted text-muted-foreground'
-                    : 'bg-success/10 text-success'
-                }`}>
-                  {pa.status === 'used_up'
-                    ? t('abonaments.usedUp')
-                    : t('abonaments.remaining', { remaining: pa.sessions_remaining, total: pa.sessions_total })}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

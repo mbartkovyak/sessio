@@ -1,12 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { Ticket } from 'lucide-react';
-import { useMyAbonaments } from '@/hooks/training/useAbonaments';
+import { useMyAbonaments, isAbonamentActive } from '@/hooks/training/useAbonaments';
 
 export default function MyAbonamentsSection() {
   const { t } = useTranslation('player');
   const { data: abonaments = [] } = useMyAbonaments();
 
-  if (abonaments.length === 0) return null;
+  // Only show effectively active ones
+  const activePasses = abonaments.filter((pa: any) => isAbonamentActive(pa));
+  if (activePasses.length === 0) return null;
 
   return (
     <section>
@@ -14,9 +16,12 @@ export default function MyAbonamentsSection() {
         {t('abonaments.title')}
       </h2>
       <div className="space-y-2">
-        {abonaments.map((pa: any) => {
+        {activePasses.map((pa: any) => {
           const school = pa.schools;
-          const isPending = pa.status === 'pending';
+          const hasSessionLimit = pa.sessions_remaining != null;
+          const daysLeft = pa.expires_at
+            ? Math.ceil((new Date(pa.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            : null;
 
           return (
             <div
@@ -34,14 +39,11 @@ export default function MyAbonamentsSection() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {pa.abonament_types?.name}
+                    {daysLeft != null && ` · ${daysLeft}d`}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  {isPending ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
-                      {t('abonaments.requestPending')}
-                    </span>
-                  ) : (
+                  {hasSessionLimit ? (
                     <div>
                       <p className="text-lg font-bold text-foreground leading-tight">
                         {pa.sessions_remaining}
@@ -50,6 +52,10 @@ export default function MyAbonamentsSection() {
                         / {pa.sessions_total}
                       </p>
                     </div>
+                  ) : (
+                    <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                      {t('abonaments.unlimited')}
+                    </span>
                   )}
                 </div>
               </div>

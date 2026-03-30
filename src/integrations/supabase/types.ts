@@ -18,32 +18,35 @@ export type Database = {
         Row: {
           created_at: string
           currency: string
+          duration_days: number | null
           id: string
           is_active: boolean
           name: string
           price: number | null
           school_id: string
-          sessions_count: number
+          sessions_count: number | null
         }
         Insert: {
           created_at?: string
           currency?: string
+          duration_days?: number | null
           id?: string
           is_active?: boolean
           name: string
           price?: number | null
           school_id: string
-          sessions_count: number
+          sessions_count?: number | null
         }
         Update: {
           created_at?: string
           currency?: string
+          duration_days?: number | null
           id?: string
           is_active?: boolean
           name?: string
           price?: number | null
           school_id?: string
-          sessions_count?: number
+          sessions_count?: number | null
         }
         Relationships: [
           {
@@ -658,33 +661,36 @@ export type Database = {
           abonament_type_id: string
           activated_at: string | null
           created_at: string
+          expires_at: string | null
           id: string
           player_id: string
           school_id: string
-          sessions_remaining: number
-          sessions_total: number
+          sessions_remaining: number | null
+          sessions_total: number | null
           status: string
         }
         Insert: {
           abonament_type_id: string
           activated_at?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           player_id: string
           school_id: string
-          sessions_remaining: number
-          sessions_total: number
+          sessions_remaining?: number | null
+          sessions_total?: number | null
           status?: string
         }
         Update: {
           abonament_type_id?: string
           activated_at?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           player_id?: string
           school_id?: string
-          sessions_remaining?: number
-          sessions_total?: number
+          sessions_remaining?: number | null
+          sessions_total?: number | null
           status?: string
         }
         Relationships: [

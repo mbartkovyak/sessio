@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
-import { useSchoolAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction } from '@/hooks/training/useAbonaments';
+import { useSchoolAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction, isAbonamentActive } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -404,10 +404,10 @@ function SessionAttendancePanel({ sessionId, schoolId }: { sessionId: string; sc
     </div>
   );
 
-  // Build lookup: playerId → active abonament
+  // Build lookup: playerId → effectively active abonament
   const abonamentByPlayer = new Map<string, any>();
   for (const pa of playerAbonaments) {
-    if (pa.status === 'active') {
+    if (isAbonamentActive(pa)) {
       abonamentByPlayer.set(pa.player_id, pa);
     }
   }
@@ -434,7 +434,9 @@ function SessionAttendancePanel({ sessionId, schoolId }: { sessionId: string; sc
               <span className="text-sm text-foreground truncate block">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
               {playerAbonament && (
                 <span className="text-[10px] text-muted-foreground">
-                  {t('abonaments.remaining', { remaining: playerAbonament.sessions_remaining, total: playerAbonament.sessions_total })}
+                  {playerAbonament.sessions_remaining != null
+                    ? t('abonaments.remaining', { remaining: playerAbonament.sessions_remaining, total: playerAbonament.sessions_total })
+                    : t('abonaments.unlimited')}
                 </span>
               )}
             </div>
@@ -461,7 +463,7 @@ function SessionAttendancePanel({ sessionId, schoolId }: { sessionId: string; sc
                 ) : (
                   <button
                     onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId, schoolId: schoolId! })}
-                    disabled={deduct.isPending || playerAbonament.sessions_remaining <= 0}
+                    disabled={deduct.isPending || (playerAbonament.sessions_remaining != null && playerAbonament.sessions_remaining <= 0)}
                     className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
                     title={t('abonaments.markAttended')}
                   >

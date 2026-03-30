@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { CheckCircle2, BarChart3, Ticket } from 'lucide-react';
+import { CheckCircle2, BarChart3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
-import { usePendingAbonaments, useActivateAbonament } from '@/hooks/training/useAbonaments';
 import { useUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
 import Avatar from '@/components/shared/Avatar';
@@ -26,8 +25,6 @@ export default function CoachOverviewSection() {
   const { data: trainings = [], isLoading: trainingsLoading } = useTrainings();
   const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: pendingAbonaments = [], isLoading: abonamentsLoading } = usePendingAbonaments();
-  const activateAbonament = useActivateAbonament();
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(profile?.id);
   const { data: schoolMembership } = useMySchoolMembership();
@@ -111,7 +108,7 @@ export default function CoachOverviewSection() {
   // athletesPending (not isLoading) because the query starts disabled — isLoading would be
   // false in the gap between trainings loading and athletes query starting, flashing 0s.
   // Guard with trainingIds.length so coaches with 0 trainings don't spin forever.
-  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading || abonamentsLoading
+  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading
     || (trainingIds.length > 0 && athletesPending);
 
   if (isLoading) {
@@ -208,41 +205,6 @@ export default function CoachOverviewSection() {
                       {t('home.decline')}
                     </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Pending pass requests */}
-      {pendingAbonaments.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('abonaments.pendingRequests')}</h2>
-          <div className="space-y-2">
-            {pendingAbonaments.map((pa: any) => {
-              const player = pa.profiles;
-              const school = pa.schools;
-              return (
-                <div key={pa.id} className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <Avatar url={player?.avatar_url} name={player?.full_name} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm">{player?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {school?.name} · {pa.abonament_types?.name}
-                        {pa.abonament_types?.price != null && ` · ${pa.abonament_types.price} ${pa.abonament_types.currency}`}
-                      </p>
-                    </div>
-                    <Ticket className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </div>
-                  <button
-                    onClick={() => activateAbonament.mutate({ id: pa.id, schoolId: pa.school_id })}
-                    disabled={activateAbonament.isPending}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground min-h-[40px] shadow-sm transition-all active:scale-[0.97] disabled:opacity-50"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" /> {t('abonaments.activate')}
-                  </button>
                 </div>
               );
             })}
