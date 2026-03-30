@@ -271,6 +271,8 @@ export function useDeductSession() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -295,6 +297,8 @@ export function useUndoDeduction() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });

@@ -253,6 +253,7 @@
     "shareSessionLink": "Поділитися запрошенням на сесію",
     "participantCount": "{{confirmed}}/{{total}} підтверджено",
     "cancelled": "Цю сесію скасовано",
-    "pastSession": "Ця сесія вже відбулася"
+    "pastSession": "Ця сесія вже відбулася",
+    "changeAttendance": "Змінити відвідуваність"
   }
 }

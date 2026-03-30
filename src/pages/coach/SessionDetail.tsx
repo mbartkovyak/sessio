@@ -170,14 +170,19 @@ export default function SessionDetail() {
             </div>
           )}
 
-          {/* Mark attendance (past, unmarked) */}
-          {isPast && !isCancelled && !session.attendance_marked_at && (
+          {/* Mark / Change attendance (past sessions) */}
+          {isPast && !isCancelled && (
             <button
               onClick={() => setShowAttendance(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-50 border border-amber-200 py-3.5 text-sm font-semibold text-amber-800 active:scale-[0.97] transition-transform"
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold active:scale-[0.97] transition-transform ${
+                session.attendance_marked_at
+                  ? 'bg-white border border-border text-foreground shadow-sm'
+                  : 'bg-amber-50 border border-amber-200 text-amber-800'
+              }`}
+              style={session.attendance_marked_at ? { border: '1px solid hsl(203 20% 90%)' } : undefined}
             >
               <ClipboardCheck className="h-4 w-4" />
-              {t('home.markAttendance')}
+              {session.attendance_marked_at ? t('session.changeAttendance') : t('home.markAttendance')}
             </button>
           )}
 
@@ -230,35 +235,37 @@ export default function SessionDetail() {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          a.status === 'confirmed' ? 'bg-success/10 text-success' :
-                          a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
-                          a.status === 'no_show' ? 'bg-destructive/10 text-destructive' :
-                          'bg-warning/10 text-warning'
-                        }`}>
-                          {a.status === 'confirmed' ? t('detail.statusConfirmed') :
-                           a.status === 'declined' ? t('detail.statusDeclined') :
-                           a.status === 'no_show' ? 'No-show' :
-                           t('detail.statusPending')}
-                        </span>
-                        {playerAbonament && (
-                          isDeducted ? (
-                            <button
-                              onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
-                              disabled={undo.isPending}
-                              className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
-                            >
-                              <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
-                              disabled={deduct.isPending || (playerAbonament.sessions_remaining != null && playerAbonament.sessions_remaining <= 0)}
-                              className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
-                            >
-                              {t('abonaments.markAttended')}
-                            </button>
-                          )
+                        {/* Status badge — for pass holders who are deducted, show "Attended" instead of "Confirmed" */}
+                        {playerAbonament && isDeducted ? (
+                          <button
+                            onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
+                            disabled={undo.isPending}
+                            className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-xs font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
+                          >
+                            <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
+                          </button>
+                        ) : (
+                          <>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                              a.status === 'confirmed' ? 'bg-success/10 text-success' :
+                              a.status === 'declined' || a.status === 'no_show' ? 'bg-destructive/10 text-destructive' :
+                              'bg-warning/10 text-warning'
+                            }`}>
+                              {a.status === 'confirmed' ? t('detail.statusConfirmed') :
+                               a.status === 'declined' ? t('detail.statusDeclined') :
+                               a.status === 'no_show' ? 'No-show' :
+                               t('detail.statusPending')}
+                            </span>
+                            {playerAbonament && isPast && (
+                              <button
+                                onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
+                                disabled={deduct.isPending || (playerAbonament.sessions_remaining != null && playerAbonament.sessions_remaining <= 0)}
+                                className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
+                              >
+                                {t('abonaments.markAttended')}
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

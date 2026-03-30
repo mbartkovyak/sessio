@@ -253,6 +253,7 @@
     "shareSessionLink": "Share session invite",
     "participantCount": "{{confirmed}}/{{total}} confirmed",
     "cancelled": "This session has been cancelled",
-    "pastSession": "This session has ended"
+    "pastSession": "This session has ended",
+    "changeAttendance": "Change attendance"
   }
 }

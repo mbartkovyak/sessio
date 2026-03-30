@@ -253,6 +253,7 @@
     "shareSessionLink": "Udostępnij zaproszenie na sesję",
     "participantCount": "{{confirmed}}/{{total}} potwierdzonych",
     "cancelled": "Ta sesja została odwołana",
-    "pastSession": "Ta sesja się już odbyła"
+    "pastSession": "Ta sesja się już odbyła",
+    "changeAttendance": "Zmień obecność"
   }
 }
