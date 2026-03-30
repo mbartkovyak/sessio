@@ -304,8 +304,8 @@ export default function Onboarding() {
           {/* ── Step: Athlete Details ── */}
           {step === 'athlete-details' && (
             <div>
-              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.coachingSetup')}</h1>
-              <p className="mb-6 text-muted-foreground"></p>
+              <h1 className="mb-1 text-2xl font-bold text-foreground">{t('auth:onboarding.athleteSetup')}</h1>
+              <p className="mb-6 text-muted-foreground">{t('auth:onboarding.athleteSetupSubtitle')}</p>
               <div className="space-y-5">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">{t('common:form.country')}</label>
