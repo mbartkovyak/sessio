@@ -5,8 +5,7 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, sportLabel, sportLabels } from '@/lib/constants';
-import Avatar from '@/components/shared/Avatar';
+import { SPORTS, sportLabel, sportLabels } from '@/lib/constants';import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 
 export default function PlayerSearch() {
@@ -16,7 +15,7 @@ export default function PlayerSearch() {
   const [selectedSport, setSelectedSport] = useState('');
   const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined);
   const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined);
-  const sportLabels = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
+  const sportLabelMap = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
 
   const isLoading = coachesLoading || schoolsLoading;
 
@@ -51,7 +50,7 @@ export default function PlayerSearch() {
             />
           </div>
           <div>
-            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabels} />
+            <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabelMap} />
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 py-2">
