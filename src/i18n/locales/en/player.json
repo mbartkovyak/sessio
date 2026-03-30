@@ -4,7 +4,7 @@
     "defaultName": "there",
     "overview": "Your upcoming schedule",
     "allSet": "Next session",
-    "next": "Next: {{time}}",
+    "next": "{{time}}",
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Find a coach and join a training",
     "findCoach": "Find a coach"

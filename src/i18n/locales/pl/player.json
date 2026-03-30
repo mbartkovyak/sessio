@@ -4,7 +4,7 @@
     "defaultName": "uczestniku",
     "overview": "Twój plan na najbliższe dni",
     "allSet": "Następne zajęcia",
-    "next": "Następne: {{time}}",
+    "next": "{{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
     "findCoach": "Znajdź trenera"
