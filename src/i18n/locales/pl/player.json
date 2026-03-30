@@ -129,18 +129,12 @@
   },
   "abonaments": {
     "title": "Moje karnety",
-    "availablePasses": "Karnety",
-    "sessions_one": "{{count}} zajęcia",
-    "sessions_few": "{{count}} zajęcia",
-    "sessions_many": "{{count}} zajęć",
-    "sessions_other": "{{count}} zajęć",
-    "buy": "Kup",
-    "requestPending": "Czeka na aktywację",
-    "active": "Aktywny",
+    "myPass": "Twój karnet",
     "remaining": "Pozostało {{remaining}} z {{total}}",
-    "usedUp": "Wykorzystany",
-    "noPasses": "Brak karnetów dla tych zajęć",
-    "alreadyHasPass": "Masz już aktywny lub oczekujący karnet"
+    "unlimited": "Bez limitu zajęć",
+    "expiresOn": "Wygasa {{date}}",
+    "expired": "Wygasł",
+    "usedUp": "Wykorzystany"
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"

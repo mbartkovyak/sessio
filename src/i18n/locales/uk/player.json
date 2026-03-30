@@ -126,18 +126,12 @@
   },
   "abonaments": {
     "title": "Мої абонементи",
-    "availablePasses": "Абонементи",
-    "sessions_one": "{{count}} заняття",
-    "sessions_few": "{{count}} заняття",
-    "sessions_many": "{{count}} занять",
-    "sessions_other": "{{count}} занять",
-    "buy": "Купити",
-    "requestPending": "Чекає на активацію",
-    "active": "Активний",
+    "myPass": "Ваш абонемент",
     "remaining": "Залишилось {{remaining}} з {{total}}",
-    "usedUp": "Використано",
-    "noPasses": "Для цього заняття немає абонементів",
-    "alreadyHasPass": "У вас вже є активний або очікуючий абонемент"
+    "unlimited": "Без ліміту занять",
+    "expiresOn": "Діє до {{date}}",
+    "expired": "Завершився",
+    "usedUp": "Використано"
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"

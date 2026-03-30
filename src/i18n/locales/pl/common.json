@@ -235,8 +235,7 @@
   },
   "abonaments": {
     "typeCreated": "Typ karnetu utworzony",
-    "requestSent": "Prośba o karnet wysłana. Trener go aktywuje.",
-    "activated": "Karnet aktywowany"
+    "assigned": "Karnet przypisany"
   },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",
