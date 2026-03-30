@@ -46,7 +46,7 @@
     "declined": "Rezygnacja",
     "noShow": "Nieobecność",
     "cancelled": "Odwołane",
-    "navigateTo": "{{venue}}",
+    "navigateTo": "Nawiguj do {{venue}}",
     "lateCancel": "Mniej niż <strong>{{hours}} godzin</strong> do terminu. Rezygnacja teraz może być liczona jako nieobecność.",
     "cancelConfirm": "Zrezygnować z tego terminu?",
     "keepSpot": "Zostaw moje miejsce",

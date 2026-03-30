@@ -11,7 +11,7 @@
     "upcoming": "Найближчі заняття",
     "noUpcoming": "Немає найближчих занять",
     "showAll": "Показати все в календарі",
-    "navigateTo": "{{venue}}",
+    "navigateTo": "Навігація до {{venue}}",
     "cancelConfirm": "Скасувати {{name}} на {{date}}?",
     "sessionCancelled": "Заняття скасовано",
     "sessionRescheduled": "Заняття перенесено",
@@ -78,7 +78,7 @@
     "sessionCancelled": "Заняття скасовано",
     "sessionRescheduled": "Заняття перенесено",
     "cancelled": "Скасовано",
-    "navigateTo": "{{venue}}"
+    "navigateTo": "Навігація до {{venue}}"
   },
   "detail": {
     "notFound": "Заняття не знайдено",

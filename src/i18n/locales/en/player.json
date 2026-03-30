@@ -46,7 +46,7 @@
     "declined": "Not coming",
     "noShow": "No-show",
     "cancelled": "Cancelled",
-    "navigateTo": "{{venue}}",
+    "navigateTo": "Navigate to {{venue}}",
     "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
