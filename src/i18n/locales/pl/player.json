@@ -2,10 +2,9 @@
   "home": {
     "greeting": "Cześć, {{name}}",
     "defaultName": "uczestniku",
-    "overview": "Tu masz plan na najbliższe dni",
-    "allSet": "Wszystko gotowe",
-    "allConfirmed": "Twoje najbliższe zajęcia są zaplanowane",
-    "next": "Następne: {{time}}",
+    "overview": "Twój plan na najbliższe dni",
+    "allSet": "Następne zajęcia",
+    "next": "{{time}}",
     "noUpcoming": "Brak nadchodzących zajęć",
     "noUpcomingDesc": "Znajdź trenera i dołącz do zajęć",
     "findCoach": "Znajdź trenera"
@@ -47,9 +46,9 @@
     "declined": "Rezygnacja",
     "noShow": "Nieobecność",
     "cancelled": "Odwołane",
-    "navigateTo": "Pokaż trasę do {{venue}}",
-    "lateCancel": "Mniej niż <strong>{{hours}} godzin</strong> do terminu. Rezygnacja teraz może być liczona jako nieobecność.",
-    "cancelConfirm": "Zrezygnować z tego terminu?",
+    "navigateTo": "Nawiguj do {{venue}}",
+    "lateCancel": "Mniej niż <strong>{{hours}} godzin</strong> do zajęć. Rezygnacja teraz może być liczona jako nieobecność.",
+    "cancelConfirm": "Zrezygnować z tych zajęć?",
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj",
     "rejoinConfirm": "Wrócić na te zajęcia?",
@@ -57,7 +56,7 @@
     "stayOut": "Nie, zostaw",
     "cantMakeItAnymore": "Nie dam rady",
     "changedMind": "Jednak będę",
-    "rejoinConfirm": "Wrócić na ten termin?",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
     "rejoin": "Wróć",
     "stayOut": "Nie, zostaw"
   },
@@ -105,11 +104,11 @@
     "notGoing": "Nie będę",
     "backIn": "Znowu masz miejsce",
     "spotReleased": "Miejsce zwolnione",
-    "lateCancel": "Mniej niż <strong>{{hours}} godzin</strong> do terminu. Rezygnacja teraz może być liczona jako nieobecność.",
-    "cancelConfirm": "Zrezygnować z tego terminu?",
+    "lateCancel": "Mniej niż <strong>{{hours}} godzin</strong> do zajęć. Rezygnacja teraz może być liczona jako nieobecność.",
+    "cancelConfirm": "Zrezygnować z tych zajęć?",
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj",
-    "rejoinConfirm": "Wrócić na ten termin?",
+    "rejoinConfirm": "Wrócić na te zajęcia?",
     "rejoin": "Wróć",
     "stayOut": "Nie, zostaw"
   },
@@ -126,9 +125,9 @@
     "claimed": "Miejsce zajęte",
     "tooSlow": "To miejsce właśnie zostało zajęte",
     "claimFailed": "Nie udało się zająć miejsca",
-    "claimSpot": "Weź to miejsce"
+    "claimSpot": "Zarezerwuj miejsce"
   },
   "favouriteSchools": {
-    "title": "Zapisane szkoły"
+    "title": "Obserwowane szkoły"
   }
 }

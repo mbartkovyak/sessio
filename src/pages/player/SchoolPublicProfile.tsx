@@ -5,7 +5,7 @@ import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useSchool, useSchoolPublicTrainings, useIsFavouriteSchool, useToggleFavouriteSchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
-import { sportLabel } from '@/lib/constants';
+import { sportLabels } from '@/lib/constants';
 import TrainingCard from '@/components/shared/TrainingCard';
 import CoachCard from '@/components/shared/CoachCard';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -55,7 +55,7 @@ export default function SchoolPublicProfile() {
               </div>
               <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
               <div className="flex items-center justify-center gap-2 mt-1 text-sm text-muted-foreground">
-                {school.sport && <span>{sportLabel(school.sport)}</span>}
+                {school.sport?.length > 0 && <span>{sportLabels(school.sport)}</span>}
                 {school.city && (
                   <span className="flex items-center gap-0.5">
                     <MapPin className="h-3 w-3" />{school.city}

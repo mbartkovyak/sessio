@@ -8,11 +8,7 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
-import SelectField from '@/components/shared/SelectField';
 import { useTranslation } from 'react-i18next';
-
-type TypeFilter = '' | 'group' | 'individual';
-type ScheduleFilter = '' | 'recurring' | 'one-time';
 
 export default function CoachTrainings() {
   const navigate = useNavigate();
@@ -23,8 +19,6 @@ export default function CoachTrainings() {
   const { data: myTrainings = [], isLoading } = useTrainings();
   const { data: schoolTrainings = [] } = useSchoolTrainings(isSchoolOwner ? school?.id : undefined);
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('');
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>('');
 
   const canCreate = true;
 
@@ -38,18 +32,14 @@ export default function CoachTrainings() {
   const filtered = useMemo(() => {
     let list = allTrainings;
     if (search) list = list.filter((tr: any) => tr.name?.toLowerCase().includes(search.toLowerCase()));
-    if (typeFilter) list = list.filter((tr: any) => tr.type === typeFilter);
-    if (scheduleFilter === 'recurring') list = list.filter((tr: any) => tr.is_recurring);
-    if (scheduleFilter === 'one-time') list = list.filter((tr: any) => !tr.is_recurring);
     // Sort by earliest start_date first
     return [...list].sort((a: any, b: any) => {
       const da = a.start_date ?? '9999';
       const db = b.start_date ?? '9999';
       return da.localeCompare(db);
     });
-  }, [allTrainings, search, typeFilter, scheduleFilter]);
+  }, [allTrainings, search]);
 
-  const hasFilters = !!typeFilter || !!scheduleFilter;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -62,23 +52,6 @@ export default function CoachTrainings() {
               className="w-full rounded-xl border border-border bg-white pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
-          {/* Filters */}
-          <div className="grid grid-cols-2 gap-2">
-            <SelectField
-              value={typeFilter}
-              onChange={v => setTypeFilter(v as TypeFilter)}
-              options={['group', 'individual'] as const}
-              placeholder={t('trainings.filterType')}
-              labels={{ group: t('trainings.group'), individual: t('trainings.individual') }}
-            />
-            <SelectField
-              value={scheduleFilter}
-              onChange={v => setScheduleFilter(v as ScheduleFilter)}
-              options={['recurring', 'one-time'] as const}
-              placeholder={t('trainings.filterSchedule')}
-              labels={{ recurring: t('trainings.recurring'), 'one-time': t('trainings.oneTime') }}
-            />
-          </div>
         </div>
 
         <div className="max-w-md mx-auto px-4 pb-4 space-y-2">
@@ -86,9 +59,8 @@ export default function CoachTrainings() {
           filtered.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-4xl mb-3">🏋️</div>
-              <p className="font-medium text-foreground">{hasFilters ? t('trainings.noMatching') : t('trainings.noLessons')}</p>
-              {!hasFilters && canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 text-sm font-medium text-primary">{t('trainings.createFirst')}</button>}
-              {hasFilters && <button onClick={() => { setTypeFilter(''); setScheduleFilter(''); }} className="mt-4 text-sm font-medium text-primary">{t('trainings.clearFilters')}</button>}
+              <p className="font-medium text-foreground">{t('trainings.noLessons')}</p>
+              {canCreate && <button onClick={() => navigate('/coach/trainings/new')} className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground active:scale-[0.97] transition-transform">{t('trainings.createFirst')}</button>}
             </div>
           ) : filtered.map((tr: any) => (
             <TrainingCard

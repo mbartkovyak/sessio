@@ -6,20 +6,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, Trash2, MapPin, UserPlus, CheckCircle2, X, Users } from 'lucide-react';
+import { UserPlus, CheckCircle2, X, Users } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 import SelectField from '@/components/shared/SelectField';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
-import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import VenueManager, { type Venue } from '@/components/shared/VenueManager';
 import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { SessioLoader } from '@/components/SessioLogo';
-
-type Venue = { name: string; address: string };
 
 export default function SchoolProfileEditor() {
   const { t } = useTranslation('school');
@@ -33,20 +31,16 @@ export default function SchoolProfileEditor() {
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
-  const [sport, setSport] = useState('');
+  const [sports, setSports] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [newVenueName, setNewVenueName] = useState(() => localStorage.getItem('_newVenueName') ?? '');
-  const [newVenueAddress, setNewVenueAddress] = useState(() => localStorage.getItem('_newVenueAddress') ?? '');
-  function updateNewVenueName(v: string) { setNewVenueName(v); localStorage.setItem('_newVenueName', v); }
-  function updateNewVenueAddress(v: string) { setNewVenueAddress(v); localStorage.setItem('_newVenueAddress', v); }
 
   useEffect(() => {
     if (school) {
       setName(school.name ?? '');
       setCountry(school.country ?? '');
       setCity(school.city ?? '');
-      setSport(school.sport ?? '');
+      setSports(school.sport ?? []);
       setDescription(school.description ?? '');
       setVenues(((school as any).venues as Venue[]) ?? []);
     }
@@ -55,19 +49,16 @@ export default function SchoolProfileEditor() {
   const isDirty = name !== (school?.name ?? '')
     || country !== (school?.country ?? '')
     || city !== (school?.city ?? '')
-    || sport !== (school?.sport ?? '')
+    || JSON.stringify(sports) !== JSON.stringify(school?.sport ?? [])
     || description !== (school?.description ?? '');
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
   const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
   const blocker = useUnsavedChanges(isDirty);
 
-  function addVenue() {
-    if (!newVenueName.trim() || !newVenueAddress.trim()) return;
-    const updated = [...venues, { name: newVenueName.trim(), address: newVenueAddress.trim() }];
+  function addVenue(venue: Venue) {
+    const updated = [...venues, venue];
     setVenues(updated);
-    updateNewVenueName('');
-    updateNewVenueAddress('');
     if (school) update.mutate({ venues: updated });
   }
 
@@ -121,12 +112,32 @@ export default function SchoolProfileEditor() {
           </div>
           <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
-          <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">{t('common:form.sport')}</label>
+            {sports.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {sports.map(s => (
+                  <span key={s} className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    {sportLabel(s)}
+                    <button type="button" onClick={() => setSports(prev => prev.filter(x => x !== s))} className="ml-0.5 text-primary/60 hover:text-primary">✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <select
+              value=""
+              onChange={e => { const val = e.target.value; if (val && !sports.includes(val)) setSports(prev => [...prev, val]); }}
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">{sports.length === 0 ? t('common:form.selectSport') : t('common:form.addSport')}</option>
+              {SPORTS.filter(s => !sports.includes(s)).map(s => <option key={s} value={s}>{sportLabel(s)}</option>)}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <button onClick={() => update.mutate({ name, country, city, sport, description, venues })} disabled={update.isPending || !country}
+          <button onClick={() => update.mutate({ name, country, city, sport: sports, description, venues })} disabled={update.isPending || !country}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">
             {update.isPending ? t('profile.saving') : t('common:actions.save')}
           </button>
@@ -199,40 +210,7 @@ export default function SchoolProfileEditor() {
           )}
         </div>
 
-        {/* Venues */}
-        <div>
-          <h2 className="font-semibold text-foreground text-sm mb-3">{t('profile.venues')}</h2>
-          {venues.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {venues.map((v, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-border bg-card p-3">
-                  <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{v.name}</p>
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.address)}`}
-                      target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block">
-                      {v.address} ↗
-                    </a>
-                  </div>
-                  <button onClick={() => removeVenue(i)} className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg hover:bg-destructive/10">
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="space-y-2 rounded-xl border border-dashed p-3" style={{ borderColor: 'rgba(0,0,0,0.2)' }}>
-            <input placeholder={t('profile.venueName')} value={newVenueName} onChange={e => updateNewVenueName(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <PlaceAutocompleteInput value={newVenueAddress} onChange={updateNewVenueAddress}
-              placeholder={t('profile.venueAddress')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <button type="button" onClick={addVenue} disabled={!newVenueName.trim() || !newVenueAddress.trim()}
-              className="flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-40">
-              <Plus className="h-4 w-4" /> {t('profile.addVenue')}
-            </button>
-          </div>
-        </div>
+        <VenueManager venues={venues} onAdd={addVenue} onRemove={removeVenue} title={t('profile.venues')} />
 
       </main>
       <CoachBottomNav />

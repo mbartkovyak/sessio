@@ -36,9 +36,9 @@ function SessionCard({ attendance }: { attendance: any }) {
 
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
-  const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
+  const cancelDeadlineHours = training?.confirmation_window_hours;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
-  const isLateCancel = hoursUntil < cancelDeadlineHours;
+  const isLateCancel = cancelDeadlineHours != null && hoursUntil < cancelDeadlineHours;
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }

@@ -86,11 +86,11 @@ export default function CreateTraining() {
       // Per-day schedules (null when same time for all)
       payload.day_schedules = form.day_schedules || null;
       if (form.type === 'individual') delete payload.max_players;
-      // Sport inherited from school (owner or member) or coach profile
+      // Sport inherited from school (first sport) or coach profile
       payload.sport = (isSchoolOwner && school)
-        ? school.sport
+        ? school.sport?.[0] ?? 'Tennis'
         : (isSchoolMember && schoolMembership?.schools)
-          ? (schoolMembership.schools as any).sport
+          ? (schoolMembership.schools as any).sport?.[0] ?? 'Tennis'
           : (profile?.sport ?? 'Tennis');
       // School owner: school lesson with assigned coach
       if (isSchoolOwner && school) {

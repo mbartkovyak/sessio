@@ -11,7 +11,7 @@ import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { sportLabel } from '@/lib/constants';
+import { sportLabel, sportLabels } from '@/lib/constants';
 import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -136,7 +136,7 @@ export default function CoachOverviewSection() {
             <p className="font-medium text-foreground text-sm truncate">{(schoolMembership.schools as any).name}</p>
             <p className="text-xs text-muted-foreground">
               {[
-                (schoolMembership.schools as any).sport ? sportLabel((schoolMembership.schools as any).sport) : null,
+                sportLabels((schoolMembership.schools as any).sport) || null,
                 (schoolMembership.schools as any).city,
               ].filter(Boolean).join(' · ')}
             </p>

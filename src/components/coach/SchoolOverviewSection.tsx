@@ -134,7 +134,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
-          <p className="text-sm text-muted-foreground">{t('overview.title')}</p>
         </div>
         <button onClick={() => navigate('/school/profile')}
           className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">

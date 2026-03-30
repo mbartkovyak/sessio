@@ -30,6 +30,12 @@ export function sportLabel(sport: string): string {
   return i18n.t(`sports.${sport}`, { ns: 'common', defaultValue: sport });
 }
 
+/** Translate an array of sport keys, joined with " · ". */
+export function sportLabels(sports: string[] | null | undefined): string {
+  if (!sports || sports.length === 0) return '';
+  return sports.map(sportLabel).join(' · ');
+}
+
 /** Translate a full day name for display. */
 export function dayLabel(day: string): string {
   return i18n.t(`days.${day}`, { ns: 'common', defaultValue: day });

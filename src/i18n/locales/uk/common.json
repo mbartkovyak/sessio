@@ -75,7 +75,7 @@
     "archiveConfirm": "Архівувати цю розмову?",
     "messagePlaceholder": "Повідомлення...",
     "noMessagesYet": "Повідомлень поки немає",
-    "beFirst": "Напишіть перше повідомлення",
+    "beFirst": "Почніть розмову",
     "failedCreate": "Не вдалося створити розмову",
     "failedSend": "Не вдалося надіслати повідомлення",
     "member": "Учасник",
@@ -101,9 +101,9 @@
     "completeSetup": "Завершити налаштування",
     "turnOn": "Увімкнути",
     "playerConfirmedTitle": "Учасник повернувся",
-    "playerDeclinedTitle": "Учасник скасував",
+    "playerDeclinedTitle": "Учасник відмовився",
     "attendanceConfirmedBody": "{{name}} повернувся до {{training}}.",
-    "attendanceDeclinedBody": "{{name}} скасував {{training}}.",
+    "attendanceDeclinedBody": "{{name}} відмовився від {{training}}.",
     "requestApprovedTitle": "Запит схвалено",
     "requestDeclinedTitle": "Запит відхилено",
     "requestApprovedBody": "Ваш запит на приєднання до {{training}} схвалено.",
@@ -165,7 +165,7 @@
     "joinName": "Приєднатися до {{name}}",
     "invitedToJoin": "{{name}} запрошує вас приєднатися",
     "beenInvitedToJoin": "Вас запросили на це заняття",
-    "joinIn30Seconds": "Приєднайтесь за 30 секунд. Без встановлення додатку.",
+    "joinIn30Seconds": "Щоб приєднатися:",
     "requestNotificationTitle": "Новий запит на приєднання",
     "requestNotificationBody": "{{name}} хоче приєднатися до {{training}}.",
     "memberJoinedTitle": "Новий учасник",
@@ -214,9 +214,9 @@
   },
   "dialog": {
     "unsavedTitle": "Незбережені зміни",
-    "unsavedDesc": "У вас є незбережені зміни. Якщо ви вийдете зараз, вони загубляться.",
+    "unsavedDesc": "У вас є незбережені зміни. Якщо ви вийдете зараз, їх буде втрачено.",
     "stay": "Залишитися",
-    "discard": "Відхилити"
+    "discard": "Не зберігати"
   },
   "profile": {
     "unknown": "Невідомо",
@@ -225,6 +225,13 @@
     "open": "Відкрити",
     "email": "Email",
     "noContact": "Контактних даних поки немає"
+  },
+  "venue": {
+    "name": "Назва локації (наприклад, Корт 3)",
+    "address": "Повна адреса (наприклад, вул. Маршалковська 12, Варшава)",
+    "add": "Додати локацію",
+    "save": "Зберегти локацію",
+    "backToList": "Назад до списку локацій"
   },
   "toast": {
     "trainingCreated": "Заняття створено",

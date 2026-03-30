@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+const LANG_TO_CODE: Record<string, string> = { pl: '+48', uk: '+380' };
+
 const COUNTRY_CODES = [
   { code: '+48', country: 'PL', flag: '🇵🇱', digits: 9 },
   { code: '+380', country: 'UA', flag: '🇺🇦', digits: 9 },
@@ -21,8 +23,8 @@ const COUNTRY_CODES = [
 ] as const;
 
 /** Parse an E.164 phone string into country code + local number */
-function parsePhone(value: string | null | undefined): { countryCode: string; number: string } {
-  if (!value) return { countryCode: '+48', number: '' };
+function parsePhone(value: string | null | undefined, fallback = '+48'): { countryCode: string; number: string } {
+  if (!value) return { countryCode: fallback, number: '' };
   const cleaned = value.replace(/\s/g, '');
   // Try matching longest codes first (e.g. +380 before +3)
   const sorted = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
@@ -33,10 +35,10 @@ function parsePhone(value: string | null | undefined): { countryCode: string; nu
   }
   // If no match but starts with +, extract the code
   if (cleaned.startsWith('+')) {
-    return { countryCode: '+48', number: cleaned.replace(/^\+\d{1,3}/, '') };
+    return { countryCode: fallback, number: cleaned.replace(/^\+\d{1,3}/, '') };
   }
-  // Plain number, assume Polish
-  return { countryCode: '+48', number: cleaned };
+  // Plain number, use language-based fallback
+  return { countryCode: fallback, number: cleaned };
 }
 
 /** Check if an E.164 phone string has the correct number of digits for its country */
@@ -55,17 +57,18 @@ interface PhoneInputProps {
 }
 
 export default function PhoneInput({ value, onChange, required }: PhoneInputProps) {
-  const { t } = useTranslation();
-  const parsed = parsePhone(value);
+  const { t, i18n } = useTranslation();
+  const fallback = LANG_TO_CODE[i18n.language] ?? '+48';
+  const parsed = parsePhone(value, fallback);
   const [countryCode, setCountryCode] = useState(parsed.countryCode);
   const [number, setNumber] = useState(parsed.number);
 
   // Sync from parent when value changes externally
   useEffect(() => {
-    const p = parsePhone(value);
+    const p = parsePhone(value, fallback);
     setCountryCode(p.countryCode);
     setNumber(p.number);
-  }, [value]);
+  }, [value, fallback]);
 
   const selected = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0];
   const maxDigits = selected.digits;

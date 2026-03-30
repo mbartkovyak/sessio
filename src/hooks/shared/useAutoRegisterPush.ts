@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,6 +11,26 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
   return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 }
+
+/**
+ * Ensure the SW is registered (registerSW.js fires on window.load which may
+ * not have happened yet), then wait for it to activate.
+ */
+async function ensureSwReady(timeoutMs = 20000): Promise<ServiceWorkerRegistration | null> {
+  // If no controller and no installing SW, kick off registration ourselves
+  if (!navigator.serviceWorker.controller) {
+    try {
+      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    } catch { /* registerSW.js will retry on load */ }
+  }
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<null>(r => setTimeout(() => r(null), timeoutMs)),
+  ]);
+}
+
+/** Event target so usePushNotifications can listen for auto-register completion. */
+export const pushRegistrationBus = new EventTarget();
 
 /**
  * Call at app root. Ensures the browser's push subscription
@@ -30,7 +51,8 @@ export function useAutoRegisterPush() {
 
     (async () => {
       try {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await ensureSwReady();
+        if (!reg) return; // SW not available — prompt will handle manual retry
         let sub = await reg.pushManager.getSubscription();
 
         // If VAPID key changed, unsubscribe old and force re-subscribe
@@ -55,14 +77,21 @@ export function useAutoRegisterPush() {
           { onConflict: 'user_id,endpoint' }
         );
         if (error) {
-          console.error('Push DB save failed:', error.message);
           const { error: insertErr } = await supabase.from('push_subscriptions').insert({
             user_id: user.id, endpoint: json.endpoint!, keys: json.keys,
           });
-          if (insertErr) console.error('Push DB insert also failed:', insertErr.message);
+          if (insertErr) {
+            Sentry.captureMessage('Push subscription DB save failed', {
+              level: 'warning',
+              extra: { upsertError: error.message, insertError: insertErr.message, userId: user.id },
+            });
+            return;
+          }
         }
+        // Notify subscribers that registration completed successfully
+        pushRegistrationBus.dispatchEvent(new Event('registered'));
       } catch (e) {
-        console.error('Auto push registration failed:', e);
+        Sentry.captureException(e, { extra: { context: 'auto push registration', userId: user?.id } });
       }
     })();
   }, [user]);

@@ -1,6 +1,6 @@
 {
   "nav": {
-    "home": "Start",
+    "home": "Główna",
     "chats": "Czaty",
     "search": "Szukaj",
     "calendar": "Kalendarz",
@@ -71,11 +71,11 @@
     "noMessages": "Brak wiadomości",
     "someone": "Ktoś",
     "markAsUnread": "Oznacz jako nieprzeczytane",
-    "archive": "Archiwizuj",
+    "archive": "Zarchiwizuj",
     "archiveConfirm": "Czy zarchiwizować tę rozmowę?",
     "messagePlaceholder": "Wiadomość...",
     "noMessagesYet": "Brak wiadomości",
-    "beFirst": "Napisz coś jako pierwszy",
+    "beFirst": "Rozpocznij rozmowę",
     "failedCreate": "Nie udało się utworzyć rozmowy",
     "failedSend": "Nie udało się wysłać wiadomości",
     "member": "Członek",
@@ -164,8 +164,8 @@
     "joining": "Dołączanie...",
     "joinName": "Dołącz do {{name}}",
     "invitedToJoin": "{{name}} zaprasza cię do dołączenia",
-    "beenInvitedToJoin": "Masz zaproszenie do tych zajęć",
-    "joinIn30Seconds": "Dołączysz w 30 sekund. Bez pobierania aplikacji.",
+    "beenInvitedToJoin": "Zostałeś/aś zaproszony/a na zajęcia",
+    "joinIn30Seconds": "Żeby dołączyć:",
     "requestNotificationTitle": "Nowa prośba o dołączenie",
     "requestNotificationBody": "{{name}} chce dołączyć do {{training}}.",
     "memberJoinedTitle": "Nowy uczestnik",
@@ -173,8 +173,8 @@
     "anonymousParticipant": "Ktoś",
     "checkEmail": "Sprawdź skrzynkę",
     "sentMagicLink": "Wysłaliśmy link do logowania na",
-    "continueGoogle": "Kontynuuj z Google",
-    "continueEmail": "Kontynuuj e-mailem",
+    "continueGoogle": "Zaloguj się przez Google",
+    "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania",
     "at": "o"
   },
@@ -197,8 +197,8 @@
     "signInToJoin": "Zaloguj się, aby poprosić o dostęp jako trener",
     "checkEmail": "Sprawdź skrzynkę",
     "sentMagicLink": "Wysłaliśmy link do logowania na",
-    "continueGoogle": "Kontynuuj z Google",
-    "continueEmail": "Kontynuuj e-mailem",
+    "continueGoogle": "Zaloguj się przez Google",
+    "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania"
   },
   "notFound": {
@@ -226,11 +226,18 @@
     "email": "E-mail",
     "noContact": "Brak danych kontaktowych"
   },
+  "venue": {
+    "name": "Nazwa miejsca (np. Kort 3)",
+    "address": "Pełny adres (np. ul. Marszałkowska 12, Warszawa)",
+    "add": "Dodaj miejsce",
+    "save": "Zapisz miejsce",
+    "backToList": "Wróć do listy miejsc"
+  },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",
     "memberRemoved": "Usunięto uczestnika",
-    "sessionCancelled": "Termin odwołany",
-    "sessionRescheduled": "Termin przełożony",
+    "sessionCancelled": "Zajęcia odwołane",
+    "sessionRescheduled": "Zajęcia przełożone",
     "leftTraining": "Opuściłeś zajęcia",
     "memberAdded": "Dodano uczestnika",
     "coachApproved": "Trener zatwierdzony",

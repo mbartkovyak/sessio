@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT, dayShortLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import { VenueAddForm, type Venue } from '@/components/shared/VenueManager';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { useTranslation } from 'react-i18next';
@@ -47,7 +48,7 @@ export interface TrainingFormValues {
   one_off_date: string;
   booking_mode: string;
   visibility: string;
-  confirmation_window_hours: number;
+  confirmation_window_hours: number | null;
   day_schedules: DaySchedules | null;
 }
 
@@ -56,14 +57,14 @@ const defaults: TrainingFormValues = {
   start_time: '09:00', end_time: '10:00', max_players: 6,
   is_recurring: true, days_of_week: [],
   start_date: new Date().toISOString().split('T')[0],
-  end_date: new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0],
+  end_date: '',
   one_off_date: '',
   confirmation_window_hours: 24,
-  booking_mode: 'instant', visibility: 'private',
+  booking_mode: 'instant', visibility: 'discoverable',
   day_schedules: null,
 };
 
-export type VenueOption = { name: string; address: string };
+export type VenueOption = Venue;
 
 interface Props {
   mode: 'create' | 'edit';
@@ -123,8 +124,6 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
-  const [newVenueName, setNewVenueName] = useState('');
-  const [newVenueAddress, setNewVenueAddress] = useState('');
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)
@@ -312,46 +311,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             </div>
           </div>
         ) : addingNewVenue ? (
-          <div className="space-y-2 rounded-xl border border-dashed border-border p-3">
-            <input
-              value={newVenueName}
-              onChange={e => setNewVenueName(e.target.value)}
-              placeholder={t('form.venueName')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <PlaceAutocompleteInput
-              value={newVenueAddress}
-              onChange={setNewVenueAddress}
-              onPlaceSelect={setNewVenueAddress}
-              placeholder={t('form.venueAddress')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => { setAddingNewVenue(false); setNewVenueName(''); setNewVenueAddress(''); }}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                {t('form.backToVenueList')}
-              </button>
-              <button
-                type="button"
-                disabled={!newVenueName.trim() || !newVenueAddress.trim()}
-                onClick={() => {
-                  const venue = { name: newVenueName.trim(), address: newVenueAddress.trim() };
-                  set('venue', `${venue.name}, ${venue.address}`);
-                  touch('venue');
-                  onNewVenue?.(venue);
-                  setAddingNewVenue(false);
-                  setNewVenueName('');
-                  setNewVenueAddress('');
-                }}
-                className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
-              >
-                {t('form.saveVenue')}
-              </button>
-            </div>
-          </div>
+          <VenueAddForm
+            onSave={(venue) => {
+              set('venue', `${venue.name}, ${venue.address}`);
+              touch('venue');
+              onNewVenue?.(venue);
+              setAddingNewVenue(false);
+            }}
+            onCancel={() => setAddingNewVenue(false)}
+          />
         ) : (
           <PlaceAutocompleteInput
             value={form.venue}
@@ -485,6 +453,10 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
         <label className="text-sm font-medium text-foreground mb-2 block">{t('form.cancelDeadline')}</label>
         <p className="text-xs text-muted-foreground mb-2">{t('form.cancelDeadlineDesc')}</p>
         <div className="grid grid-cols-4 gap-2">
+          <button type="button" onClick={() => set('confirmation_window_hours', null)}
+            className={`col-span-4 rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+            {t('form.off')}
+          </button>
           {[12, 24, 48, 72].map(h => (
             <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
               className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>

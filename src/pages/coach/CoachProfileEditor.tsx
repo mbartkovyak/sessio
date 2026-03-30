@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, FileText, Plus, Trash2, MapPin } from 'lucide-react';
+import { User, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -9,15 +9,13 @@ import { COUNTRIES, CITIES_BY_COUNTRY, SPORTS, sportLabel, countryLabel, type Co
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import AccountActions from '@/components/shared/AccountActions';
-import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
+import VenueManager, { type Venue } from '@/components/shared/VenueManager';
 import PhoneInput from '@/components/shared/PhoneInput';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
-
-type Venue = { name: string; address: string };
 
 export default function CoachProfileEditor() {
   const { profile, user, refreshProfile } = useAuth();
@@ -31,8 +29,6 @@ export default function CoachProfileEditor() {
   const [sport, setSport] = useState(profile?.sport ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [venues, setVenues] = useState<Venue[]>(((profile as any)?.venues as Venue[]) ?? []);
-  const [newVenueName, setNewVenueName] = useState('');
-  const [newVenueAddress, setNewVenueAddress] = useState('');
 
   // Sync form state when profile updates (e.g. after save + refreshProfile)
   useEffect(() => {
@@ -73,13 +69,9 @@ export default function CoachProfileEditor() {
     await refreshProfile();
   }
 
-  function addVenue() {
-    if (!newVenueName.trim() || !newVenueAddress.trim()) return;
-    const updated = [...venues, { name: newVenueName.trim(), address: newVenueAddress.trim() }];
+  function addVenue(venue: Venue) {
+    const updated = [...venues, venue];
     setVenues(updated);
-    setNewVenueName('');
-    setNewVenueAddress('');
-    // Auto-save venues
     if (user) supabase.from('profiles').update({ venues: updated }).eq('id', user.id).then(({ error }) => {
       if (error) toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong')));
       else refreshProfile();
@@ -150,40 +142,7 @@ export default function CoachProfileEditor() {
           </button>
         </div>
 
-        {/* Venues — same pattern as SchoolProfileEditor */}
-        <div>
-          <h2 className="font-semibold text-foreground text-sm mb-3">{t('profile.venues')}</h2>
-          {venues.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {venues.map((v, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-xl border border-border bg-card p-3">
-                  <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{v.name}</p>
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.address)}`}
-                      target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block">
-                      {v.address} ↗
-                    </a>
-                  </div>
-                  <button onClick={() => removeVenue(i)} className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg hover:bg-destructive/10">
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="space-y-2 rounded-xl border border-dashed p-3" style={{ borderColor: 'rgba(0,0,0,0.2)' }}>
-            <input placeholder={t('profile.venueName')} value={newVenueName} onChange={e => setNewVenueName(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <PlaceAutocompleteInput value={newVenueAddress} onChange={setNewVenueAddress}
-              placeholder={t('profile.venueAddress')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <button type="button" onClick={addVenue} disabled={!newVenueName.trim() || !newVenueAddress.trim()}
-              className="flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-40">
-              <Plus className="h-4 w-4" /> {t('profile.addVenue')}
-            </button>
-          </div>
-        </div>
+        <VenueManager venues={venues} onAdd={addVenue} onRemove={removeVenue} title={t('profile.venues')} />
 
         <AccountActions />
       </main>

@@ -3,9 +3,8 @@
     "greeting": "Hi, {{name}}",
     "defaultName": "there",
     "overview": "Your upcoming schedule",
-    "allSet": "All set",
-    "allConfirmed": "Your upcoming trainings are set",
-    "next": "Next: {{time}}",
+    "allSet": "Next session",
+    "next": "{{time}}",
     "noUpcoming": "No upcoming trainings",
     "noUpcomingDesc": "Find a coach and join a training",
     "findCoach": "Find a coach"
@@ -47,7 +46,7 @@
     "declined": "Not coming",
     "noShow": "No-show",
     "cancelled": "Cancelled",
-    "navigateTo": "Get directions to {{venue}}",
+    "navigateTo": "Navigate to {{venue}}",
     "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
@@ -123,9 +122,9 @@
     "claimed": "Spot claimed",
     "tooSlow": "This spot was just taken",
     "claimFailed": "Couldn't claim the spot",
-    "claimSpot": "Take this spot"
+    "claimSpot": "Claim this spot"
   },
   "favouriteSchools": {
-    "title": "Saved schools"
+    "title": "Schools you follow"
   }
 }
