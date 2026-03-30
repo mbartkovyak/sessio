@@ -11,7 +11,7 @@
     "upcoming": "Najbliższe zajęcia",
     "noUpcoming": "Brak nadchodzących zajęć",
     "showAll": "Pokaż wszystko w kalendarzu",
-    "navigateTo": "Pokaż trasę do {{venue}}",
+    "navigateTo": "{{venue}}",
     "cancelConfirm": "Odwołać {{name}} w dniu {{date}}?",
     "sessionCancelled": "Termin odwołany",
     "sessionRescheduled": "Termin przełożony",
@@ -78,7 +78,7 @@
     "sessionCancelled": "Termin odwołany",
     "sessionRescheduled": "Termin przełożony",
     "cancelled": "Odwołane",
-    "navigateTo": "Pokaż trasę do {{venue}}"
+    "navigateTo": "{{venue}}"
   },
   "detail": {
     "notFound": "Nie znaleziono zajęć",

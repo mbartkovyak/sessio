@@ -11,7 +11,7 @@
     "upcoming": "Upcoming sessions",
     "noUpcoming": "No upcoming sessions",
     "showAll": "See everything in calendar",
-    "navigateTo": "Navigate to {{venue}}",
+    "navigateTo": "{{venue}}",
     "cancelConfirm": "Cancel {{name}} on {{date}}?",
     "sessionCancelled": "Session cancelled",
     "sessionRescheduled": "Session rescheduled",
@@ -78,7 +78,7 @@
     "sessionCancelled": "Session cancelled",
     "sessionRescheduled": "Session rescheduled",
     "cancelled": "Cancelled",
-    "navigateTo": "Navigate to {{venue}}"
+    "navigateTo": "{{venue}}"
   },
   "detail": {
     "notFound": "Training not found",

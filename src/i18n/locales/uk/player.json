@@ -46,7 +46,7 @@
     "declined": "Відмова",
     "noShow": "Неявка",
     "cancelled": "Скасовано",
-    "navigateTo": "Прокласти маршрут до {{venue}}",
+    "navigateTo": "{{venue}}",
     "lateCancel": "Менше ніж <strong>{{hours}} годин</strong> до сесії. Скасування зараз може рахуватися як неявка.",
     "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
