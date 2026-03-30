@@ -5,7 +5,7 @@ import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
-import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, SPORT_ICONS, type Country } from '@/lib/constants';
+import { SPORTS, CITIES_BY_COUNTRY, sportLabel, SPORT_ICONS, type Country } from '@/lib/constants';
 import Avatar from '@/components/shared/Avatar';
 import SelectField from '@/components/shared/SelectField';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,12 +20,10 @@ export default function PlayerSearch() {
   const [selectedCity, setSelectedCity] = useState(profile?.city ?? '');
 
   const cities = selectedCountry ? CITIES_BY_COUNTRY[selectedCountry as Country] ?? [] : [];
-  function handleCountryChange(c: string) { setSelectedCountry(c); setSelectedCity(''); }
 
   const { data: coaches = [], isLoading: coachesLoading } = useDiscoverableCoaches(search, selectedSport || undefined, selectedCity || undefined, selectedCountry || undefined);
   const { data: schools = [], isLoading: schoolsLoading } = useDiscoverableSchools(search, selectedSport || undefined, selectedCity || undefined, selectedCountry || undefined);
   const sportLabelMap = Object.fromEntries(SPORTS.map(sport => [sport, sportLabel(sport)]));
-  const countryLabelMap = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
 
   const isLoading = coachesLoading || schoolsLoading;
 
@@ -59,9 +57,8 @@ export default function PlayerSearch() {
               className="w-full rounded-xl border border-input bg-background pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
             />
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <SelectField label="" value={selectedSport} onChange={setSelectedSport} options={SPORTS} placeholder={t('search.allSports')} labels={sportLabelMap} />
-            <SelectField label="" value={selectedCountry} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('search.allCountries')} labels={countryLabelMap} />
             <SelectField label="" value={selectedCity} onChange={setSelectedCity} options={cities} placeholder={t('search.allCities')} />
           </div>
         </div>
