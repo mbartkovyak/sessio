@@ -446,7 +446,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     end_date: training.end_date ?? '',
     booking_mode: training.booking_mode ?? 'instant',
     visibility: training.visibility ?? 'private',
-    confirmation_window_hours: training.confirmation_window_hours ?? null,
+    confirmation_window_hours: training.confirmation_window_hours ?? 24,
     day_schedules: training.day_schedules ?? null,
   } : undefined;
 
