@@ -241,8 +241,12 @@
     "week": "Tydzień",
     "month": "Miesiąc",
     "confirmed": "Obecni",
-    "declined": "Nieobecni",
+    "declined": "Odwołane",
+    "noShow": "Nieobecni",
     "totalSessions": "Zajęcia",
+    "attendanceRate": "Frekwencja",
+    "perTraining": "Wg zajęć",
+    "perCoach": "Wg trenera",
     "noData": "Brak danych o obecności"
   },
   "session": {

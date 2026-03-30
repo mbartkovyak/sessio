@@ -241,8 +241,12 @@
     "week": "Тиждень",
     "month": "Місяць",
     "confirmed": "Присутні",
-    "declined": "Відсутні",
+    "declined": "Скасовані",
+    "noShow": "Не з'явились",
     "totalSessions": "Заняття",
+    "attendanceRate": "Відвідуваність",
+    "perTraining": "За заняттями",
+    "perCoach": "За тренером",
     "noData": "Ще немає даних про відвідуваність"
   },
   "session": {

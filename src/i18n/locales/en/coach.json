@@ -240,9 +240,13 @@
     "title": "Stats",
     "week": "Week",
     "month": "Month",
-    "confirmed": "Confirmed",
-    "declined": "Declined",
+    "confirmed": "Present",
+    "declined": "Cancelled",
+    "noShow": "No-show",
     "totalSessions": "Sessions",
+    "attendanceRate": "Attendance rate",
+    "perTraining": "Per training",
+    "perCoach": "Per coach",
     "noData": "No attendance data yet"
   },
   "session": {
