@@ -53,9 +53,9 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
 
-  const cancelDeadlineHours = training?.confirmation_window_hours ?? 24;
+  const cancelDeadlineHours = training?.confirmation_window_hours;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
-  const isLateCancel = hoursUntil < cancelDeadlineHours;
+  const isLateCancel = cancelDeadlineHours != null && hoursUntil < cancelDeadlineHours;
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
 

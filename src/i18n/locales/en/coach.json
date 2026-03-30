@@ -168,6 +168,7 @@
     "cancelDeadline": "Cancellation deadline",
     "cancelDeadlineDesc": "Cancellation deadline before each session (hours)",
     "hours": "{{h}}h",
+    "off": "Off",
     "saving": "Saving...",
     "save": "Save",
     "deleteTraining": "Delete training",

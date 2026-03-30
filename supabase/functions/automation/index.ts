@@ -170,7 +170,8 @@ Deno.serve(async (req) => {
         if (!session || !training) continue;
 
         const sessionStart = warsawToUtcMs(session.session_date, session.start_time);
-        const deadlineHours = training.confirmation_window_hours ?? 24;
+        const deadlineHours = training.confirmation_window_hours;
+        if (deadlineHours == null) continue; // deadline disabled — no reminders
         const reminderHours = deadlineHours + 24;
 
         // Must be within the reminder window
