@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -55,14 +56,18 @@ export function useAutoRegisterPush() {
           { onConflict: 'user_id,endpoint' }
         );
         if (error) {
-          console.error('Push DB save failed:', error.message);
           const { error: insertErr } = await supabase.from('push_subscriptions').insert({
             user_id: user.id, endpoint: json.endpoint!, keys: json.keys,
           });
-          if (insertErr) console.error('Push DB insert also failed:', insertErr.message);
+          if (insertErr) {
+            Sentry.captureMessage('Push subscription DB save failed', {
+              level: 'warning',
+              extra: { upsertError: error.message, insertError: insertErr.message, userId: user.id },
+            });
+          }
         }
       } catch (e) {
-        console.error('Auto push registration failed:', e);
+        Sentry.captureException(e, { extra: { context: 'auto push registration', userId: user?.id } });
       }
     })();
   }, [user]);

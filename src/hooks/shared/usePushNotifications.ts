@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
@@ -25,15 +26,23 @@ export function usePushNotifications() {
     const ok = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY;
     setSupported(ok);
 
-    // Check if already subscribed
-    if (ok && Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then(reg =>
-        reg.pushManager.getSubscription().then(sub => {
-          if (sub) setSubscribed(true);
-        })
-      ).catch(() => {});
+    // Check if already subscribed — verify both browser AND database
+    if (ok && Notification.permission === 'granted' && user) {
+      navigator.serviceWorker.ready.then(async (reg) => {
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) return;
+        setSubscribed(true); // Assume good initially (prevents prompt flash)
+        // Then verify it's actually in the DB
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('endpoint', sub.endpoint)
+          .maybeSingle();
+        if (!data) setSubscribed(false); // DB missing — re-show prompt
+      }).catch(() => {});
     }
-  }, []);
+  }, [user]);
 
   const subscribe = useCallback(async (retry = true): Promise<true | string> => {
     if (!user) return i18n.t('errors.notSignedIn', { ns: 'common' });
@@ -66,7 +75,13 @@ export function usePushNotifications() {
           keys: sub.keys,
         }, { onConflict: 'user_id,endpoint' });
 
-      if (error) return localizeErrorMessage(error, i18n.t('notifications.failed', { ns: 'common' }));
+      if (error) {
+        Sentry.captureMessage('Push subscription save failed on enable', {
+          level: 'warning',
+          extra: { error: error.message, userId: user.id },
+        });
+        return localizeErrorMessage(error, i18n.t('notifications.failed', { ns: 'common' }));
+      }
 
       setSubscribed(true);
       return true;
@@ -76,6 +91,7 @@ export function usePushNotifications() {
         await new Promise(r => setTimeout(r, 2500));
         return subscribe(false);
       }
+      Sentry.captureException(err, { extra: { context: 'push subscribe', userId: user?.id } });
       return localizeErrorMessage(err, i18n.t('notifications.failed', { ns: 'common' }));
     }
   }, [user, supported]);
