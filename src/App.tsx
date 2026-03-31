@@ -92,11 +92,7 @@ const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEdito
 
 function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <SessioLoader />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <Component />
     </Suspense>
   );
