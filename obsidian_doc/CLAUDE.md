@@ -159,3 +159,5 @@ These rules exist because we've been burned repeatedly by RLS policies that sile
 5. **When changing import paths:** grep the entire `src/` directory for the old import path. Don't rely on memory — files you didn't edit may still reference old paths.
 
 6. **Never create cross-referencing RLS policies.** If table A's policy queries table B, table B's policy must NOT query table A — this creates infinite recursion and returns 500 on every query. Test with the anon key (`curl`) after every RLS change to catch this immediately.
+
+7. **When changing `profiles` schema: update `delete_my_account()`.** Adding a column, making one generated, or adding a new table with a user FK? Update the `delete_my_account` RPC in the same migration. This function resets the profile and deletes all user data — if it references a dropped/generated column or misses a new table, account deletion breaks silently.
