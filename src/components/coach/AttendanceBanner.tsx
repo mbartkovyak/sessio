@@ -40,12 +40,10 @@ export default function AttendanceBanner({ sessions }: AttendanceBannerProps) {
                 <span className="text-base">{sportIcon}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{training?.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {coachName && <>{t('trainings.coachName', { name: coachName })} · </>}
-                    {dateLabel} · {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
-                  </p>
+                  {coachName && <p className="text-xs text-muted-foreground truncate">{t('trainings.coachName', { name: coachName })}</p>}
+                  <p className="text-xs text-muted-foreground">{dateLabel} · {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}</p>
                 </div>
-                <span className="text-xs font-semibold text-amber-600 shrink-0">{t('home.markAttendance')}</span>
+                <span className="text-xs font-semibold text-amber-600 shrink-0 text-right max-w-16 leading-tight">{t('home.markAttendance')}</span>
               </button>
             );
           })}
