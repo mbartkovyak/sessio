@@ -22,7 +22,7 @@ export default function AttendanceBanner({ sessions }: AttendanceBannerProps) {
       <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <ClipboardCheck className="h-4 w-4 text-amber-600 shrink-0" />
-          <h2 className="text-sm font-semibold text-amber-800">{t('home.markAttendance')}</h2>
+          <h2 className="text-sm font-semibold text-amber-800">{t('home.attendanceBannerTitle')}</h2>
         </div>
         <div className="space-y-2">
           {sessions.map(session => {
