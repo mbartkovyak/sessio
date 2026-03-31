@@ -235,7 +235,7 @@ export default function SessionDetail() {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Status badge — for pass holders who are deducted, show "Attended" instead of "Confirmed" */}
+                        {/* Abonament deducted → green "Attended" toggle */}
                         {playerAbonament && isDeducted ? (
                           <button
                             onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
@@ -246,16 +246,24 @@ export default function SessionDetail() {
                           </button>
                         ) : (
                           <>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                              a.status === 'confirmed' ? 'bg-success/10 text-success' :
-                              a.status === 'declined' || a.status === 'no_show' ? 'bg-destructive/10 text-destructive' :
-                              'bg-warning/10 text-warning'
-                            }`}>
-                              {a.status === 'confirmed' ? t('detail.statusConfirmed') :
-                               a.status === 'declined' ? t('detail.statusDeclined') :
-                               a.status === 'no_show' ? 'No-show' :
-                               t('detail.statusPending')}
-                            </span>
+                            {/* Signed up = default, no badge. Only show badge for cancelled/no-show */}
+                            {(a.status === 'declined' || a.status === 'no_show') && (() => {
+                              if (a.status === 'no_show') return (
+                                <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.statusNoShow')}</span>
+                              );
+                              // Determine if late cancel
+                              const sessionStart = new Date(`${session.session_date}T${session.start_time}`);
+                              const deadlineMs = (training.cancel_deadline_hours ?? 0) * 60 * 60 * 1000;
+                              const cancelDeadline = new Date(sessionStart.getTime() - deadlineMs);
+                              const declinedAt = a.declined_at ? new Date(a.declined_at) : null;
+                              const isLate = declinedAt && training.cancel_deadline_hours && declinedAt > cancelDeadline;
+                              return (
+                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isLate ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                                  {isLate ? t('detail.statusLateCancelled') : t('detail.statusCancelled')}
+                                </span>
+                              );
+                            })()}
+                            {/* Abonament deduct button for past sessions */}
                             {playerAbonament && isPast && (
                               <button
                                 onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
