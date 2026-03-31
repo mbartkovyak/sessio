@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
-import { useMemo, useRef } from 'react';
+import { format, addWeeks, subWeeks } from 'date-fns';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,18 +17,19 @@ import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/Calen
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { useAttendanceSummary } from '@/hooks/training/useTrainings';
 
-function useCoachSessions(coachId: string | undefined) {
-  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
+function useCoachSessions(coachId: string | undefined, from: string, to: string) {
   return useQuery({
-    queryKey: ['coach-calendar-sessions', coachId, lookback],
+    queryKey: ['coach-calendar-sessions', coachId, from, to],
     enabled: !!coachId,
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions')
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name))')
         .eq('trainings.coach_id', coachId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', lookback)
+        .gte('session_date', from)
+        .lte('session_date', to)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -37,18 +38,19 @@ function useCoachSessions(coachId: string | undefined) {
   });
 }
 
-function useSchoolSessions(schoolId: string | undefined) {
-  const lookback = format(new Date(Date.now() - 90 * 86400000), 'yyyy-MM-dd');
+function useSchoolSessions(schoolId: string | undefined, from: string, to: string) {
   return useQuery({
-    queryKey: ['school-calendar-sessions', schoolId, lookback],
+    queryKey: ['school-calendar-sessions', schoolId, from, to],
     enabled: !!schoolId,
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions')
         .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, school_id, is_active, schools(name), coach:profiles(full_name))')
         .eq('trainings.school_id', schoolId!)
         .eq('trainings.is_active', true)
-        .gte('session_date', lookback)
+        .gte('session_date', from)
+        .lte('session_date', to)
         .order('session_date', { ascending: true })
         .order('start_time', { ascending: true });
       if (error) throw error;
@@ -56,6 +58,8 @@ function useSchoolSessions(schoolId: string | undefined) {
     },
   });
 }
+
+const WINDOW_STEP = 4; // weeks per load
 
 export default function CoachCalendar() {
   const navigate = useNavigate();
@@ -63,8 +67,19 @@ export default function CoachCalendar() {
   const { user, profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
-  const { data: coachSessions = [], isLoading: coachLoading } = useCoachSessions(user?.id);
-  const { data: schoolSessions = [], isLoading: schoolLoading } = useSchoolSessions(isSchoolOwner ? school?.id : undefined);
+
+  const [pastWeeks, setPastWeeks] = useState(WINDOW_STEP);
+  const [futureWeeks, setFutureWeeks] = useState(WINDOW_STEP);
+  const now = new Date();
+  const from = format(subWeeks(now, pastWeeks), 'yyyy-MM-dd');
+  const to = format(addWeeks(now, futureWeeks), 'yyyy-MM-dd');
+
+  const { data: coachSessions = [], isLoading: coachLoading, isFetching: coachFetching } = useCoachSessions(user?.id, from, to);
+  const { data: schoolSessions = [], isLoading: schoolLoading, isFetching: schoolFetching } = useSchoolSessions(isSchoolOwner ? school?.id : undefined, from, to);
+
+  const handleLoadPast = useCallback(() => setPastWeeks(w => w + WINDOW_STEP), []);
+  const handleLoadFuture = useCallback(() => setFutureWeeks(w => w + WINDOW_STEP), []);
+  const isExpandingWindow = (coachFetching && !coachLoading) || (schoolFetching && !schoolLoading);
 
   const canCreate = true;
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -163,6 +178,10 @@ export default function CoachCalendar() {
             items={sessions}
             getDate={(s: any) => s.session_date}
             isLoading={isLoading}
+            onLoadPast={handleLoadPast}
+            onLoadFuture={handleLoadFuture}
+            isLoadingPast={isExpandingWindow}
+            isLoadingFuture={isExpandingWindow}
             emptyState={
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
