@@ -45,14 +45,15 @@ export default function SessionDetail() {
   const isPastEarly = session ? (session.session_date < today || (session.session_date === today && new Date(`${session.session_date}T${session.end_time}`) < new Date())) : false;
   const isCancelledEarly = session?.status === 'cancelled';
 
-  // Auto-deduct abonaments for past sessions (runs once on mount)
+  // Auto-deduct abonaments only AFTER coach has marked attendance
+  const attendanceMarked = session?.attendance_marked_at;
   const autoDeductedRef = useRef(false);
   useEffect(() => {
-    if (isPastEarly && !isCancelledEarly && sessionId && training?.school_id && !autoDeductedRef.current) {
+    if (isPastEarly && !isCancelledEarly && attendanceMarked && sessionId && training?.school_id && !autoDeductedRef.current) {
       autoDeductedRef.current = true;
       autoDeduct.mutate(sessionId);
     }
-  }, [isPastEarly, isCancelledEarly, sessionId, training?.school_id]);
+  }, [isPastEarly, isCancelledEarly, attendanceMarked, sessionId, training?.school_id]);
 
   if (isLoading) {
     return (
