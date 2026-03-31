@@ -56,7 +56,7 @@ export default function TrainingDetail() {
   const regularMembers = members.filter((m: any) => m.role === 'regular');
   const scheduledIds = upcoming.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
   const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
-  const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
+  const [pendingAthlete, setPendingAthlete] = useState<any>(null);
 
   const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
   const daysLabel = training ? (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ') : '';
@@ -264,9 +264,6 @@ export default function TrainingDetail() {
                                 {isPlaceholder && (
                                   <span className="text-xs text-muted-foreground">{t('detail.offlineAthlete')}</span>
                                 )}
-                                {m.role === 'waitlist' && (
-                                  <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
-                                )}
                               </div>
                             </button>
                             <div className="flex items-center gap-1 shrink-0">
@@ -424,11 +421,33 @@ export default function TrainingDetail() {
         athletes={athletePool}
         existingMemberIds={new Set(members.map((m: any) => m.user_id))}
         onAdd={(athlete) => {
-          addMember.mutate({ userId: athlete.id, trainingName: training.name });
           setShowAddMember(false);
+          setPendingAthlete(athlete);
         }}
         adding={addMember.isPending}
       />
+
+      {/* Confirm add to all sessions */}
+      {pendingAthlete && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setPendingAthlete(null)}>
+          <div className="w-full max-w-md rounded-t-2xl bg-card p-5 pb-8 space-y-4 animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-foreground">{t('detail.confirmAddTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('detail.confirmAddBody', { name: pendingAthlete.full_name ?? pendingAthlete.email ?? '' })}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setPendingAthlete(null)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
+              <button
+                onClick={() => {
+                  addMember.mutate({ userId: pendingAthlete.id, trainingName: training.name });
+                  setPendingAthlete(null);
+                }}
+                className="rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground min-h-[44px]"
+              >
+                {t('detail.confirmAddYes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
