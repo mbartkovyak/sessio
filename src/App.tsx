@@ -86,6 +86,7 @@ const CoachMessages = lazy(() => import("./pages/coach/CoachMessages"));
 const DirectChat = lazy(() => import("./pages/coach/DirectChat"));
 const CoachStats = lazy(() => import("./pages/coach/CoachStats"));
 const CoachPasses = lazy(() => import("./pages/coach/CoachPasses"));
+const SchoolCoaches = lazy(() => import("./pages/coach/SchoolCoaches"));
 const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEditor"));
 
 function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
@@ -168,6 +169,7 @@ const router = createBrowserRouter(
       <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachProfileEditor} /></ProtectedRoute>} />
       <Route path="/coach/stats" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachStats} /></ProtectedRoute>} />
       <Route path="/coach/passes" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachPasses} /></ProtectedRoute>} />
+      <Route path="/coach/coaches" element={<ProtectedRoute requiredRole="coach"><LazyPage component={SchoolCoaches} /></ProtectedRoute>} />
 
       {/* School routes */}
       <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><LazyPage component={SchoolProfileEditor} /></ProtectedRoute>} />
