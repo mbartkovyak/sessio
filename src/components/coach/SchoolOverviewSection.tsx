@@ -144,6 +144,24 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         </button>
       </div>
 
+      {/* Coaches button */}
+      <button
+        onClick={() => navigate('/coach/coaches')}
+        className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
+      >
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span>{t('dashboard.coachesSection')}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {pendingCoaches.length > 0 && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
+          )}
+          <span className="text-xs text-muted-foreground">{coaches.length}</span>
+        </div>
+      </button>
+
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (
         <section>
@@ -224,23 +242,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         )}
       </section>
 
-      {/* Coaches button */}
-      <button
-        onClick={() => navigate('/coach/coaches')}
-        className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span>{t('dashboard.coachesSection')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {pendingCoaches.length > 0 && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
-          )}
-          <span className="text-xs text-muted-foreground">{coaches.length}</span>
-        </div>
-      </button>
     </div>
   );
 }
