@@ -1,10 +1,5 @@
-/// <reference lib="webworker" />
-import { precacheAndRoute } from 'workbox-precaching';
-
-declare const self: ServiceWorkerGlobalScope;
-
-// Workbox precaching (injected by VitePWA)
-precacheAndRoute(self.__WB_MANIFEST);
+// Service worker — push notifications + offline shell
+// Precaching is disabled (vite-plugin-pwa injectManifest build is incompatible with bun)
 
 // Activate immediately
 self.addEventListener('install', () => self.skipWaiting());
@@ -14,7 +9,7 @@ self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim(
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   const title = data.title ?? 'Sessio';
-  const options: NotificationOptions = {
+  const options = {
     body: data.body ?? '',
     icon: '/icons/icon-192.svg',
     badge: '/icons/icon-192.svg',
@@ -30,7 +25,6 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url ?? '/';
 
-  // Handle action buttons
   if (event.action === 'confirm') {
     event.waitUntil(self.clients.openWindow(url + '?action=confirm'));
     return;
@@ -40,7 +34,6 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  // Default: open the app
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
