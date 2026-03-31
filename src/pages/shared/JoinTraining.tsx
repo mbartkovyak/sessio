@@ -32,6 +32,7 @@ export default function JoinTraining() {
   const [trainingLoading, setTrainingLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
+  const [memberCount, setMemberCount] = useState<number | null>(null);
   const [joining, setJoining] = useState(false);
   const [joiningSessionId, setJoiningSessionId] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -85,6 +86,13 @@ export default function JoinTraining() {
     supabase
       .rpc('get_upcoming_sessions', { p_training_id: training.id, p_limit: 8 })
       .then(({ data }) => setUpcomingSessions(data ?? []));
+    // Fetch member count — same source as coach detail (training_members, role=regular)
+    supabase
+      .from('training_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('training_id', training.id)
+      .eq('role', 'regular')
+      .then(({ count }) => setMemberCount(count ?? 0));
   }, [training]);
 
   // Redirect non-players and non-onboarded users
@@ -382,7 +390,7 @@ export default function JoinTraining() {
         {training.max_players && (
           <div className="flex items-center gap-2 text-sm text-foreground">
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span>{t('join.spotsPerTraining', { count: training.max_players })}</span>
+            <span>{memberCount != null ? `${memberCount}/${training.max_players}` : training.max_players}</span>
           </div>
         )}
       </div>
