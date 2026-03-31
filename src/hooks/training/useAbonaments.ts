@@ -193,6 +193,49 @@ export function useSchoolAthletes(schoolId: string | undefined | null) {
   });
 }
 
+// ── Player abonament history (for profile sheet) ──
+
+/** All abonaments for a player in a school, with usage history. Sorted newest first. */
+export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['player-abonament-history', playerId, schoolId],
+    enabled: !!playerId && !!schoolId,
+    queryFn: async () => {
+      // Fetch all abonaments for this player in this school
+      const { data: abonaments, error: aErr } = await supabase
+        .from('player_abonaments')
+        .select('*, abonament_types(name, sessions_count, duration_days, price, currency)')
+        .eq('player_id', playerId!)
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (aErr) throw aErr;
+      if (!abonaments?.length) return [];
+
+      // Fetch usage records for all these abonaments, with session info
+      const abonamentIds = abonaments.map(a => a.id);
+      const { data: usage, error: uErr } = await supabase
+        .from('abonament_usage')
+        .select('*, training_sessions(session_date, start_time, trainings(name))')
+        .in('player_abonament_id', abonamentIds)
+        .order('created_at', { ascending: false });
+      if (uErr) throw uErr;
+
+      // Group usage by abonament
+      const usageByAbonament = new Map<string, any[]>();
+      for (const u of usage ?? []) {
+        const list = usageByAbonament.get(u.player_abonament_id) ?? [];
+        list.push(u);
+        usageByAbonament.set(u.player_abonament_id, list);
+      }
+
+      return abonaments.map(a => ({
+        ...a,
+        usage: usageByAbonament.get(a.id) ?? [],
+      }));
+    },
+  });
+}
+
 // ── Mutations ──
 
 /** Coach/owner assigns a pass directly to a player */

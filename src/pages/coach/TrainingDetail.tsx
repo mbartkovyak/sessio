@@ -345,7 +345,7 @@ export default function TrainingDetail() {
       )}
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
-      {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
+      {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training?.school_id} onClose={() => setViewProfile(null)} />}
     </div>
   );
 }

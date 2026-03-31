@@ -1,6 +1,9 @@
-import { X, Phone, MessageCircle, MapPin } from 'lucide-react';
+import { X, Phone, MessageCircle, Ticket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { sportLabel } from '@/lib/constants';
+import { usePlayerAbonamentHistory, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { format } from 'date-fns';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 import Avatar from './Avatar';
 
 interface Props {
@@ -15,11 +18,13 @@ interface Props {
     city?: string | null;
     role?: string | null;
   } | null;
+  schoolId?: string | null;
   onClose: () => void;
 }
 
-export default function ProfileSheet({ profile, onClose }: Props) {
+export default function ProfileSheet({ profile, schoolId, onClose }: Props) {
   const { t } = useTranslation('common');
+  const { data: abonamentHistory = [] } = usePlayerAbonamentHistory(profile?.id, schoolId);
 
   if (!profile) return null;
 
@@ -33,7 +38,7 @@ export default function ProfileSheet({ profile, onClose }: Props) {
 
       {/* Sheet */}
       <div
-        className="relative w-full max-w-md rounded-t-2xl bg-card p-6 pb-8 safe-area-bottom animate-in slide-in-from-bottom duration-200"
+        className="relative w-full max-w-md rounded-t-2xl bg-card p-6 pb-8 safe-area-bottom animate-in slide-in-from-bottom duration-200 max-h-[85vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary">
@@ -54,6 +59,66 @@ export default function ProfileSheet({ profile, onClose }: Props) {
         {/* Bio */}
         {profile.bio && (
           <p className="text-sm text-muted-foreground text-center mb-5">{profile.bio}</p>
+        )}
+
+        {/* Abonament info */}
+        {abonamentHistory.length > 0 && (
+          <div className="mb-5 space-y-3">
+            {abonamentHistory.map((pa: any) => {
+              const active = isAbonamentActive(pa);
+              const isExpired = pa.expires_at && new Date(pa.expires_at) < new Date();
+              const statusLabel = pa.status === 'used_up' ? t('profile.passUsedUp')
+                : isExpired ? t('profile.passExpired')
+                : t('profile.passActive');
+              const statusCls = pa.status === 'used_up' ? 'bg-muted text-muted-foreground'
+                : isExpired ? 'bg-destructive/10 text-destructive'
+                : 'bg-success/10 text-success';
+
+              return (
+                <div key={pa.id} className={`rounded-xl border p-3.5 ${active ? 'border-primary/20 bg-primary/5' : 'border-border bg-card'}`}>
+                  {/* Pass header */}
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <Ticket className={`h-4 w-4 shrink-0 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{pa.abonament_types?.name}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusCls}`}>
+                      {statusLabel}
+                    </span>
+                  </div>
+
+                  {/* Pass details */}
+                  <div className="text-xs text-muted-foreground space-y-0.5 mb-2">
+                    {pa.sessions_remaining != null && (
+                      <p>{t('profile.passRemaining', { remaining: pa.sessions_remaining, total: pa.sessions_total })}</p>
+                    )}
+                    {pa.expires_at && (
+                      <p>{t('profile.passExpires', { date: format(new Date(pa.expires_at), 'd MMM yyyy', { locale: getDateLocale() }) })}</p>
+                    )}
+                    <p>{t('profile.passAssigned', { date: format(new Date(pa.activated_at ?? pa.created_at), 'd MMM yyyy', { locale: getDateLocale() }) })}</p>
+                  </div>
+
+                  {/* Usage history */}
+                  {pa.usage.length > 0 && (
+                    <div className="border-t border-border pt-2 mt-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t('profile.usageHistory')}</p>
+                      <div className="space-y-0.5">
+                        {pa.usage.slice(0, 10).map((u: any) => (
+                          <div key={u.id} className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{u.training_sessions?.trainings?.name ?? '—'}</span>
+                            <span>{u.training_sessions?.session_date ? format(new Date(u.training_sessions.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) : '—'}</span>
+                          </div>
+                        ))}
+                        {pa.usage.length > 10 && (
+                          <p className="text-[10px] text-muted-foreground">+{pa.usage.length - 10} more</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {/* Contact actions */}
@@ -92,7 +157,7 @@ export default function ProfileSheet({ profile, onClose }: Props) {
           )}
         </div>
 
-        {!hasPhone && !profile.email && (
+        {!hasPhone && !profile.email && abonamentHistory.length === 0 && (
           <p className="text-sm text-muted-foreground text-center">{t('profile.noContact')}</p>
         )}
       </div>

@@ -231,7 +231,14 @@
     "whatsapp": "WhatsApp",
     "open": "Відкрити",
     "email": "Email",
-    "noContact": "Контактних даних поки немає"
+    "noContact": "Контактних даних поки немає",
+    "passActive": "Активний",
+    "passExpired": "Завершився",
+    "passUsedUp": "Використано",
+    "passRemaining": "{{remaining}}/{{total}} занять",
+    "passExpires": "Діє до {{date}}",
+    "passAssigned": "Призначено {{date}}",
+    "usageHistory": "Використання"
   },
   "venue": {
     "name": "Назва локації (наприклад, Корт 3)",

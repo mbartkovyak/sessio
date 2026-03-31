@@ -231,7 +231,14 @@
     "whatsapp": "WhatsApp",
     "open": "Otwórz",
     "email": "E-mail",
-    "noContact": "Brak danych kontaktowych"
+    "noContact": "Brak danych kontaktowych",
+    "passActive": "Aktywny",
+    "passExpired": "Wygasł",
+    "passUsedUp": "Wykorzystany",
+    "passRemaining": "{{remaining}}/{{total}} zajęć",
+    "passExpires": "Wygasa {{date}}",
+    "passAssigned": "Przypisano {{date}}",
+    "usageHistory": "Wykorzystanie"
   },
   "venue": {
     "name": "Nazwa miejsca (np. Kort 3)",

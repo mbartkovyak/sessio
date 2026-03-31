@@ -11,6 +11,7 @@ import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import AttendanceSheet from '@/components/coach/AttendanceSheet';
+import ProfileSheet from '@/components/shared/ProfileSheet';
 import { SessioLoader } from '@/components/SessioLogo';
 
 import { useSessionDetail } from '@/hooks/training/useTodaySessions';
@@ -36,6 +37,7 @@ export default function SessionDetail() {
   const cancelSession = useCancelSession(training?.id ?? '');
   const rescheduleSession = useRescheduleSession(training?.id ?? '');
   const [showAttendance, setShowAttendance] = useState(false);
+  const [viewProfile, setViewProfile] = useState<any>(null);
 
   // Compute isPast early (before early returns) so useEffect can reference it
   const today = new Date().toISOString().split('T')[0];
@@ -228,8 +230,10 @@ export default function SessionDetail() {
 
                   return (
                     <div key={a.id} className="flex items-center gap-3 px-4 py-3">
-                      <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="sm" />
-                      <div className="flex-1 min-w-0">
+                      <button onClick={() => setViewProfile(a.profiles)} className="shrink-0">
+                        <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="sm" />
+                      </button>
+                      <button onClick={() => setViewProfile(a.profiles)} className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-medium text-foreground truncate">
                             {a.profiles?.full_name ?? t('common:profile.unknown')}
@@ -247,7 +251,7 @@ export default function SessionDetail() {
                               : t('abonaments.unlimited')}
                           </span>
                         )}
-                      </div>
+                      </button>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {/* Cancelled / late cancel / no-show badges */}
                         {a.status === 'declined' && (() => {
@@ -307,6 +311,7 @@ export default function SessionDetail() {
           onClose={() => setShowAttendance(false)}
         />
       )}
+      {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training.school_id} onClose={() => setViewProfile(null)} />}
     </div>
   );
 }

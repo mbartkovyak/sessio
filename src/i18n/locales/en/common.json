@@ -231,7 +231,14 @@
     "whatsapp": "WhatsApp",
     "open": "Open",
     "email": "Email",
-    "noContact": "No contact details"
+    "noContact": "No contact details",
+    "passActive": "Active",
+    "passExpired": "Expired",
+    "passUsedUp": "Used up",
+    "passRemaining": "{{remaining}}/{{total}} sessions left",
+    "passExpires": "Expires {{date}}",
+    "passAssigned": "Assigned {{date}}",
+    "usageHistory": "Usage"
   },
   "venue": {
     "name": "Venue name (e.g. Court 3)",
