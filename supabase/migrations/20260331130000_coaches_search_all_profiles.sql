@@ -9,6 +9,9 @@ USING (
   AND role = 'player'
 );
 
+-- Ensure is_placeholder exists (created fully in a later migration, but referenced here)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_placeholder BOOLEAN NOT NULL DEFAULT false;
+
 -- Also allow school owners to see their school's placeholder athletes
 CREATE POLICY "School owners view placeholder profiles"
 ON public.profiles FOR SELECT

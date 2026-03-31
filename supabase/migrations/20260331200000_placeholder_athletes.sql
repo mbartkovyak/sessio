@@ -20,7 +20,6 @@ AS $$
 DECLARE
   v_id UUID := gen_random_uuid();
   v_placeholder_email TEXT := 'placeholder-' || v_id || '@sessio.internal';
-  v_full_name TEXT := TRIM(CONCAT(p_first_name, ' ', p_last_name));
 BEGIN
   -- Only coaches and school owners can create placeholders
   IF NOT EXISTS (
@@ -63,7 +62,6 @@ BEGIN
   UPDATE profiles SET
     first_name = p_first_name,
     last_name = p_last_name,
-    full_name = v_full_name,
     phone = COALESCE(p_phone, phone),
     email = COALESCE(p_email, v_placeholder_email),
     is_placeholder = true,
