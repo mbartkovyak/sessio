@@ -10,7 +10,10 @@ import {
   useAssignAbonament,
   useSearchPlayers,
   isAbonamentActive,
+  daysRemaining,
 } from '@/hooks/training/useAbonaments';
+import { format } from 'date-fns';
+import { useCreateStandalonePlaceholder } from '@/hooks/training/useTrainings';
 
 export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const { t } = useTranslation('coach');
@@ -20,6 +23,11 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const [playerSearch, setPlayerSearch] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string; full_name: string | null; avatar_url: string | null } | null>(null);
   const [assignTypeId, setAssignTypeId] = useState('');
+  const [showAddPerson, setShowAddPerson] = useState(false);
+  const [newFirstName, setNewFirstName] = useState('');
+  const [newLastName, setNewLastName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [name, setName] = useState('');
   const [sessionsCount, setSessions] = useState('');
   const [durationDays, setDuration] = useState('');
@@ -31,6 +39,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const createType = useCreateAbonamentType();
   const deleteType = useDeleteAbonamentType();
   const assign = useAssignAbonament();
+  const createPlaceholder = useCreateStandalonePlaceholder();
 
   const active = playerAbonaments.filter((pa: any) => isAbonamentActive(pa));
   const inactive = playerAbonaments.filter((pa: any) => !isAbonamentActive(pa) && (pa.status === 'used_up' || pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())));
@@ -79,6 +88,21 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
 
   function resetAssign() {
     setShowAssign(false); setAssignTypeId(''); setSelectedPlayer(null); setPlayerSearch('');
+    setShowAddPerson(false); setNewFirstName(''); setNewLastName(''); setNewPhone(''); setNewEmail('');
+  }
+
+  function handleCreatePerson() {
+    if (!newFirstName.trim()) return;
+    createPlaceholder.mutate(
+      { firstName: newFirstName.trim(), lastName: newLastName.trim(), schoolId, phone: newPhone.trim() || undefined, email: newEmail.trim() || undefined },
+      {
+        onSuccess: (id) => {
+          const fullName = `${newFirstName.trim()} ${newLastName.trim()}`.trim();
+          setSelectedPlayer({ id, full_name: fullName, avatar_url: null });
+          setShowAddPerson(false); setNewFirstName(''); setNewLastName(''); setNewPhone(''); setNewEmail('');
+        },
+      },
+    );
   }
 
   function typeLabel(type: any) {
@@ -99,7 +123,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
     if (pa.sessions_remaining != null) parts.push(t('abonaments.remaining', { remaining: pa.sessions_remaining, total: pa.sessions_total }));
     else parts.push(t('abonaments.unlimited'));
     if (pa.expires_at) {
-      const days = Math.ceil((new Date(pa.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const days = daysRemaining(pa.expires_at);
       if (days > 0) parts.push(t('abonaments.expiresIn', { days }));
     }
     return { text: parts.join(' · '), cls: 'bg-success/10 text-success' };
@@ -207,6 +231,27 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
+          ) : showAddPerson ? (
+            <div className="space-y-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-2.5">
+              <p className="text-xs text-muted-foreground">{t('detail.addManuallyHint')}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" value={newFirstName} onChange={e => setNewFirstName(e.target.value)} placeholder={t('detail.firstName')}
+                  className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm" autoFocus required />
+                <input type="text" value={newLastName} onChange={e => setNewLastName(e.target.value)} placeholder={t('detail.lastName')}
+                  className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm" />
+              </div>
+              <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder={t('detail.phonePlaceholder')}
+                className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => setShowAddPerson(false)} className="rounded-lg border border-border py-1.5 text-xs font-medium text-foreground">
+                  {t('common:actions.back')}
+                </button>
+                <button onClick={handleCreatePerson} disabled={!newFirstName.trim() || createPlaceholder.isPending}
+                  className="rounded-lg bg-primary py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
+                  {createPlaceholder.isPending ? '...' : t('abonaments.createPerson')}
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="relative">
               <input
@@ -217,7 +262,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 autoFocus
               />
-              {playerSearch.length >= 2 && searchResults.length > 0 && (
+              {playerSearch.length >= 2 && (
                 <div className="absolute left-0 right-0 top-full mt-1 z-10 rounded-lg border border-border bg-card shadow-lg max-h-48 overflow-y-auto">
                   {searchResults.map((p: any) => (
                     <button
@@ -230,10 +275,17 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
                       {p.is_placeholder && <span className="text-[10px] text-muted-foreground shrink-0">{t('detail.offlineAthlete')}</span>}
                     </button>
                   ))}
+                  {/* Add new person option — always shown at bottom of search results */}
+                  <button
+                    onClick={() => { setShowAddPerson(true); setPlayerSearch(''); }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left border-t border-border hover:bg-primary/5 transition-colors"
+                  >
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                      <UserPlus className="h-3 w-3 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium text-primary">{t('abonaments.addNewPerson')}</span>
+                  </button>
                 </div>
-              )}
-              {playerSearch.length >= 2 && searchResults.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-1">{t('detail.noAthletesFound')}</p>
               )}
             </div>
           )}
@@ -269,12 +321,16 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
             {playerAbonaments.map((pa: any) => {
               const s = passStatusLabel(pa);
+              const startDate = pa.activated_at ?? pa.created_at;
               return (
                 <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
                   <Avatar url={pa.profiles?.avatar_url} name={pa.profiles?.full_name} size="xs" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{pa.profiles?.full_name}</p>
-                    <p className="text-xs text-muted-foreground">{pa.abonament_types?.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {pa.abonament_types?.name}
+                      {startDate && ` · ${format(new Date(startDate), 'd MMM yyyy')}`}
+                    </p>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.text}</span>
                 </div>

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Ticket } from 'lucide-react';
-import { useMyAbonaments, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { useMyAbonaments, isAbonamentActive, daysRemaining } from '@/hooks/training/useAbonaments';
+import { format } from 'date-fns';
 
 export default function MyAbonamentsSection() {
   const { t } = useTranslation('player');
@@ -19,9 +20,8 @@ export default function MyAbonamentsSection() {
         {activePasses.map((pa: any) => {
           const school = pa.schools;
           const hasSessionLimit = pa.sessions_remaining != null;
-          const daysLeft = pa.expires_at
-            ? Math.ceil((new Date(pa.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-            : null;
+          const daysLeft = pa.expires_at ? daysRemaining(pa.expires_at) : null;
+          const startDate = pa.activated_at ?? pa.created_at;
 
           return (
             <div
@@ -40,6 +40,7 @@ export default function MyAbonamentsSection() {
                   <p className="text-xs text-muted-foreground">
                     {pa.abonament_types?.name}
                     {daysLeft != null && ` · ${daysLeft}d`}
+                    {startDate && ` · ${format(new Date(startDate), 'd MMM')}`}
                   </p>
                 </div>
                 <div className="text-right shrink-0">

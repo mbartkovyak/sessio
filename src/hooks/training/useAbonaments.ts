@@ -36,6 +36,15 @@ export function isAbonamentActive(pa: { status: string; expires_at: string | nul
   return true;
 }
 
+/** Calendar days remaining until expiry (today = 0 means expires today) */
+export function daysRemaining(expiresAt: string): number {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiry = new Date(expiresAt);
+  const expiryDay = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+  return Math.max(0, Math.round((expiryDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
 // ── Abonament type queries ──
 
 export function useAbonamentTypes(schoolId: string | undefined | null) {
@@ -218,6 +227,57 @@ export function useSchoolAthletes(schoolId: string | undefined | null, enabled =
   });
 }
 
+// ── Unified athlete pool (training members + pass holders) ──
+
+/** All athletes the coach knows about: training members OR pass holders in the school. Deduplicated. */
+export function useSchoolAthletesWithPassHolders(schoolId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['school-athletes-pool', schoolId],
+    enabled: !!schoolId,
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      // 1. Training members (existing logic)
+      const { data: trainings, error: tErr } = await supabase
+        .from('trainings')
+        .select('id')
+        .eq('school_id', schoolId!)
+        .eq('is_active', true);
+      if (tErr) throw tErr;
+      const trainingIds = (trainings ?? []).map(t => t.id);
+
+      const seen = new Map<string, { id: string; full_name: string | null; avatar_url: string | null; is_placeholder: boolean }>();
+
+      if (trainingIds.length) {
+        const { data: members, error: mErr } = await supabase
+          .from('training_members')
+          .select('user_id, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
+          .in('training_id', trainingIds)
+          .eq('role', 'regular');
+        if (mErr) throw mErr;
+        for (const m of members ?? []) {
+          if (m.profiles && !seen.has(m.user_id)) {
+            seen.set(m.user_id, m.profiles as any);
+          }
+        }
+      }
+
+      // 2. Pass holders in the school (may not be in any training)
+      const { data: passHolders, error: pErr } = await supabase
+        .from('player_abonaments')
+        .select('player_id, profiles:player_id(id, full_name, avatar_url, is_placeholder)')
+        .eq('school_id', schoolId!);
+      if (pErr) throw pErr;
+      for (const ph of passHolders ?? []) {
+        if (ph.profiles && !seen.has(ph.player_id)) {
+          seen.set(ph.player_id, ph.profiles as any);
+        }
+      }
+
+      return Array.from(seen.values());
+    },
+  });
+}
+
 // ── Player abonament history (for profile sheet) ──
 
 /** All abonaments for a player in a school, with usage history. Sorted newest first. */
@@ -276,9 +336,14 @@ export function useAssignAbonament() {
       durationDays: number | null;
     }) => {
       const now = new Date();
-      const expiresAt = durationDays
-        ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString()
-        : null;
+      // Expire at end of the last calendar day (23:59:59 local time)
+      let expiresAt: string | null = null;
+      if (durationDays) {
+        const end = new Date(now);
+        end.setDate(end.getDate() + durationDays);
+        end.setHours(23, 59, 59, 999);
+        expiresAt = end.toISOString();
+      }
 
       const { error } = await supabase
         .from('player_abonaments')
