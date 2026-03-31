@@ -486,15 +486,42 @@ export function useMyUpcomingSessions() {
     enabled: !!user,
     retry: 1,
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('session_attendance')
-        .select('*, training_sessions(*, trainings(id, name, sport, venue, max_players, confirmation_window_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
-        .eq('user_id', user!.id);
+      // Use SECURITY DEFINER RPC to bypass training_sessions RLS for drop-in players
+      const { data, error } = await supabase.rpc('get_my_upcoming_sessions');
       if (error) throw error;
-      return (data ?? [])
-        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true && d.training_sessions.status !== 'cancelled')
-        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date)) as SessionAttendanceWithSession[];
+      // Reshape RPC flat rows into the nested structure components expect
+      return (data ?? []).map((row: any) => ({
+        id: row.attendance_id,
+        session_id: row.session_id,
+        user_id: user!.id,
+        status: row.attendance_status,
+        confirmed_at: row.confirmed_at,
+        declined_at: row.declined_at,
+        reminder_sent_at: null,
+        reminder_count: 0,
+        training_sessions: {
+          id: row.session_id,
+          training_id: row.training_id,
+          session_date: row.session_date,
+          start_time: row.start_time,
+          end_time: row.end_time,
+          status: row.session_status,
+          trainings: {
+            id: row.training_id,
+            name: row.training_name,
+            sport: row.sport,
+            venue: row.venue,
+            max_players: row.max_players,
+            confirmation_window_hours: row.confirmation_window_hours,
+            is_active: row.is_active,
+            coach: {
+              id: row.coach_id,
+              full_name: row.coach_full_name,
+              avatar_url: row.coach_avatar_url,
+            },
+          },
+        },
+      })) as SessionAttendanceWithSession[];
     },
   });
 }
