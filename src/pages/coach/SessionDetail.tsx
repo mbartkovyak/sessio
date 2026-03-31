@@ -38,6 +38,7 @@ export default function SessionDetail() {
   const rescheduleSession = useRescheduleSession(training?.id ?? '');
   const [showAttendance, setShowAttendance] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
+  const [showNotComing, setShowNotComing] = useState(false);
 
   // Compute isPast early (before early returns) so useEffect can reference it
   const today = new Date().toISOString().split('T')[0];
@@ -89,8 +90,6 @@ export default function SessionDetail() {
     if (isAbonamentActive(pa)) abonamentByPlayer.set(pa.player_id, pa);
   }
   const usedAbonamentIds = new Set(usageRecords.map((u: any) => u.player_abonament_id));
-
-  const [showNotComing, setShowNotComing] = useState(false);
 
   // Session invite link
   const sessionInviteLink = `${window.location.origin}/join/${training.invite_code}?session=${sessionId}`;
