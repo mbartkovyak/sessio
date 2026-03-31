@@ -62,7 +62,7 @@ export default function PlayerTrainingDetail() {
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto">
           {/* Hero */}
-          <div className="bg-card border-b border-border p-6 text-center">
+          <div className="mx-4 mt-4 rounded-2xl border border-border bg-card p-6 text-center">
             <div className="text-5xl mb-3">{sportIcon}</div>
             <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
             <p className="text-sm text-muted-foreground mt-1">{sportLabel(training.sport)}</p>
