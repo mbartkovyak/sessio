@@ -108,6 +108,10 @@
     "directMessage": "Direct message",
     "remove": "Remove",
     "removeConfirm": "Remove {{name}}?",
+    "removeTitle": "Remove from training",
+    "removeReason": "Send a message (optional)",
+    "removeReasonPlaceholder": "e.g. Schedule conflict, skill level...",
+    "removeButton": "Remove",
     "participantsCount": "{{count}}/{{max}} participants",
     "upcomingLessons": "Upcoming sessions",
     "noUpcomingLessons": "No upcoming sessions",
@@ -190,7 +194,12 @@
     "deleteTraining": "Delete training",
     "deleteConfirm": "Delete this training and all its sessions? This can't be undone.",
     "creating": "Creating...",
-    "createLesson": "Create training"
+    "createLesson": "Create training",
+    "dropInPolicy": "Drop-in sessions",
+    "dropInPolicyDesc": "Can players attend individual sessions without joining the series?",
+    "dropInAllowed": "Allowed",
+    "dropInTrial": "One trial",
+    "dropInNone": "Series only"
   },
   "walkthrough": {
     "welcomeTitle": "Welcome to Sessio",

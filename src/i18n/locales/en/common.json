@@ -111,7 +111,9 @@
     "playerLeftTitle": "Participant left",
     "playerLeftBody": "{{name}} left {{training}}.",
     "addedToTrainingTitle": "You've been added",
-    "addedToTrainingBody": "You've been added to {{training}}."
+    "addedToTrainingBody": "You've been added to {{training}}.",
+    "removedFromTrainingTitle": "Removed from training",
+    "removedFromTrainingBody": "You were removed from {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -183,7 +185,10 @@
     "joinedSession": "You're in for {{name}}",
     "joinSessionOn": "Join {{name}} on {{date}}",
     "guestJoinedTitle": "Guest signed up",
-    "guestJoinedBody": "{{name}} joined {{training}} as a guest."
+    "guestJoinedBody": "{{name}} joined {{training}} as a guest.",
+    "dropInNotAllowed": "This training doesn't allow drop-ins. Join the series instead.",
+    "trialUsed": "You've already used your trial session. Join the series to keep attending.",
+    "trialNote": "This is a trial session. Join the series to continue attending."
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

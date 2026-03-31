@@ -47,6 +47,7 @@ export interface TrainingFormValues {
   end_date: string;
   one_off_date: string;
   booking_mode: string;
+  drop_in_policy: string;
   visibility: string;
   confirmation_window_hours: number | null;
   day_schedules: DaySchedules | null;
@@ -60,7 +61,7 @@ const defaults: TrainingFormValues = {
   end_date: '',
   one_off_date: '',
   confirmation_window_hours: 24,
-  booking_mode: 'instant', visibility: 'discoverable',
+  booking_mode: 'instant', drop_in_policy: 'allowed', visibility: 'discoverable',
   day_schedules: null,
 };
 
@@ -161,6 +162,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     || form.max_players !== baseline.max_players
     || form.is_recurring !== baseline.is_recurring
     || form.booking_mode !== baseline.booking_mode
+    || form.drop_in_policy !== baseline.drop_in_policy
     || form.visibility !== baseline.visibility
     || form.one_off_date !== baseline.one_off_date
     || JSON.stringify(form.days_of_week) !== JSON.stringify(baseline.days_of_week);
@@ -432,6 +434,19 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           ))}
         </div>
       </div>
+      {/* Drop-in policy — only for recurring group trainings */}
+      {form.is_recurring && form.type === 'group' && (
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">{t('form.dropInPolicy')}</label>
+          <p className="text-xs text-muted-foreground mb-2">{t('form.dropInPolicyDesc')}</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[{ v: 'allowed', l: t('form.dropInAllowed') }, { v: 'trial', l: t('form.dropInTrial') }, { v: 'none', l: t('form.dropInNone') }].map(({ v, l }) => (
+              <button type="button" key={v} onClick={() => set('drop_in_policy', v)}
+                className={`rounded-xl border-2 py-3 text-xs font-semibold transition-colors ${form.drop_in_policy === v ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Visibility — only for group trainings (individual is always private) */}
       {form.type === 'group' && (
         <div>

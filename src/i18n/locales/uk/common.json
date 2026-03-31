@@ -111,7 +111,9 @@
     "playerLeftTitle": "Учасник покинув заняття",
     "playerLeftBody": "{{name}} покинув {{training}}.",
     "addedToTrainingTitle": "Вас додано до заняття",
-    "addedToTrainingBody": "Вас додано до {{training}}."
+    "addedToTrainingBody": "Вас додано до {{training}}.",
+    "removedFromTrainingTitle": "Видалено з заняття",
+    "removedFromTrainingBody": "Вас видалено з {{training}}."
   },
   "form": {
     "sport": "Спорт",
@@ -183,7 +185,10 @@
     "joinedSession": "Ви записані на {{name}}",
     "joinSessionOn": "Приєднатися до {{name}} {{date}}",
     "guestJoinedTitle": "Новий гість",
-    "guestJoinedBody": "{{name}} приєднався до {{training}} як гість."
+    "guestJoinedBody": "{{name}} приєднався до {{training}} як гість.",
+    "dropInNotAllowed": "Це заняття не дозволяє разових відвідувань. Запишіться на постійні.",
+    "trialUsed": "Ви вже використали пробне заняття. Запишіться на постійні, щоб продовжити.",
+    "trialNote": "Це пробне заняття. Запишіться на постійні, щоб продовжити."
   },
   "joinSchool": {
     "onlyCoaches": "Тільки тренер може приєднатися до школи",

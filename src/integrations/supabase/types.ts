@@ -1201,6 +1201,7 @@ export type Database = {
           day_of_week: number
           day_schedules: Json | null
           days_of_week: number[] | null
+          drop_in_policy: string
           end_date: string | null
           end_time: string
           id: string
@@ -1232,6 +1233,7 @@ export type Database = {
           day_of_week: number
           day_schedules?: Json | null
           days_of_week?: number[] | null
+          drop_in_policy?: string
           end_date?: string | null
           end_time: string
           id?: string
@@ -1263,6 +1265,7 @@ export type Database = {
           day_of_week?: number
           day_schedules?: Json | null
           days_of_week?: number[] | null
+          drop_in_policy?: string
           end_date?: string | null
           end_time?: string
           id?: string

@@ -114,7 +114,11 @@ export default function JoinTraining() {
         }
         const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionParam });
         if (error) {
-          if (error.message?.includes('full')) {
+          if (error.message?.includes('Drop-ins not allowed')) {
+            toast.error(t('join.dropInNotAllowed'));
+          } else if (error.message?.includes('Trial session already used')) {
+            toast.error(t('join.trialUsed'));
+          } else if (error.message?.includes('full')) {
             toast.error(t('join.sessionFull'));
           } else if (error.message?.includes('duplicate') || error.code === '23505') {
             toast.info(t('join.alreadyInSession'));
@@ -376,6 +380,10 @@ export default function JoinTraining() {
                 {training.sport && <p className="text-xs text-muted-foreground">{sportLabel(training.sport)}</p>}
               </div>
             </div>
+          )}
+
+          {sessionInfo && training.drop_in_policy === 'trial' && (
+            <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
           )}
 
           <button

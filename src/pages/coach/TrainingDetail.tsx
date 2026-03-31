@@ -43,6 +43,8 @@ export default function TrainingDetail() {
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [removingMember, setRemovingMember] = useState<{ id: string; userId: string; name: string } | null>(null);
+  const [removeMessage, setRemoveMessage] = useState('');
   const { data: allAthletes = [] } = useMyAthletes(user?.id);
   const addMember = useAddTrainingMember(id!);
   const createPlaceholder = useCreatePlaceholderAthlete(id!);
@@ -277,7 +279,7 @@ export default function TrainingDetail() {
                                 </button>
                               )}
                               <button
-                                onClick={() => { if (confirm(t('detail.removeConfirm', { name: p?.full_name ?? '' }))) removeMember.mutate(m.id); }}
+                                onClick={() => { setRemovingMember({ id: m.id, userId: m.user_id, name: p?.full_name ?? '' }); setRemoveMessage(''); }}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
                                 title={t('detail.remove')}
                               >
@@ -363,6 +365,58 @@ export default function TrainingDetail() {
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
       {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training?.school_id} onClose={() => setViewProfile(null)} />}
+
+      {/* Remove member dialog */}
+      {removingMember && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setRemovingMember(null)}>
+          <div className="w-full max-w-md rounded-t-2xl bg-card p-5 pb-8 space-y-4 animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-foreground">{t('detail.removeTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('detail.removeConfirm', { name: removingMember.name })}</p>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">{t('detail.removeReason')}</label>
+              <textarea
+                value={removeMessage}
+                onChange={e => setRemoveMessage(e.target.value)}
+                placeholder={t('detail.removeReasonPlaceholder')}
+                rows={2}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setRemovingMember(null)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
+              <button
+                onClick={async () => {
+                  const { id, userId, name } = removingMember;
+                  const msg = removeMessage.trim();
+                  setRemovingMember(null);
+                  // Send DM with message if provided
+                  if (msg && user) {
+                    try {
+                      const { getOrCreateDMConversation } = await import('@/hooks/shared/useConversations');
+                      const convId = await getOrCreateDMConversation(user.id, userId);
+                      await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
+                    } catch {}
+                  }
+                  // Send push notification
+                  const { getFixedTForUser } = await import('@/lib/notificationI18n');
+                  const tNotify = await getFixedTForUser(userId);
+                  notifyUsers([userId], {
+                    title: tNotify('notifications.removedFromTrainingTitle'),
+                    body: tNotify('notifications.removedFromTrainingBody', { training: training.name }),
+                    tag: `removed-${training.id}`,
+                    url: '/player',
+                  });
+                  removeMember.mutate(id);
+                }}
+                className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]"
+              >
+                {t('detail.removeButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AddMemberSheet
         open={showAddMember}
         onClose={() => setShowAddMember(false)}
@@ -413,6 +467,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     start_date: training.start_date ?? '',
     end_date: training.end_date ?? '',
     booking_mode: training.booking_mode ?? 'instant',
+    drop_in_policy: training.drop_in_policy ?? 'allowed',
     visibility: training.visibility ?? 'private',
     confirmation_window_hours: training.confirmation_window_hours ?? 24,
     day_schedules: training.day_schedules ?? null,
@@ -429,7 +484,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       day_of_week: form.days_of_week[0], days_of_week: form.days_of_week,
       start_time: form.start_time + ':00', end_time: form.end_time + ':00',
       max_players: form.type === 'group' ? form.max_players : undefined,
-      booking_mode: form.booking_mode, visibility: form.visibility,
+      booking_mode: form.booking_mode, drop_in_policy: form.drop_in_policy, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
       day_schedules: form.day_schedules || null,
     });

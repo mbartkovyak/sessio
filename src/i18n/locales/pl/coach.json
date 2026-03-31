@@ -108,6 +108,10 @@
     "directMessage": "Wiadomość prywatna",
     "remove": "Usuń",
     "removeConfirm": "Usunąć {{name}}?",
+    "removeTitle": "Usuń z zajęć",
+    "removeReason": "Wyślij wiadomość (opcjonalnie)",
+    "removeReasonPlaceholder": "np. Konflikt terminów, poziom zaawansowania...",
+    "removeButton": "Usuń",
     "participantsCount": "{{count}}/{{max}} uczestników",
     "upcomingLessons": "Najbliższe zajęcia",
     "noUpcomingLessons": "Brak nadchodzących zajęć",
@@ -190,7 +194,12 @@
     "deleteTraining": "Usuń zajęcia",
     "deleteConfirm": "Usunąć te zajęcia? Tego nie da się cofnąć.",
     "creating": "Zapisywanie...",
-    "createLesson": "Zapisz zajęcia"
+    "createLesson": "Zapisz zajęcia",
+    "dropInPolicy": "Jednorazowe wejścia",
+    "dropInPolicyDesc": "Czy uczestnicy mogą dołączyć na pojedyncze zajęcia bez zapisywania się na stałe?",
+    "dropInAllowed": "Dozwolone",
+    "dropInTrial": "Jedno próbne",
+    "dropInNone": "Tylko stałe"
   },
   "walkthrough": {
     "welcomeTitle": "Witaj w Sessio",

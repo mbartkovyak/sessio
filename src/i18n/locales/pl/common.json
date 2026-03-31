@@ -111,7 +111,9 @@
     "playerLeftTitle": "Uczestnik opuścił zajęcia",
     "playerLeftBody": "{{name}} opuścił {{training}}.",
     "addedToTrainingTitle": "Dodano do zajęć",
-    "addedToTrainingBody": "Dodano Cię do {{training}}."
+    "addedToTrainingBody": "Dodano Cię do {{training}}.",
+    "removedFromTrainingTitle": "Usunięto z zajęć",
+    "removedFromTrainingBody": "Usunięto Cię z {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -183,7 +185,10 @@
     "joinedSession": "Dołączyłeś do {{name}}",
     "joinSessionOn": "Dołącz do {{name}} w dniu {{date}}",
     "guestJoinedTitle": "Nowy gość",
-    "guestJoinedBody": "{{name}} dołączył(a) do {{training}} jako gość."
+    "guestJoinedBody": "{{name}} dołączył(a) do {{training}} jako gość.",
+    "dropInNotAllowed": "Te zajęcia nie pozwalają na jednorazowe wejścia. Zapisz się na stałe.",
+    "trialUsed": "Wykorzystałeś próbne zajęcia. Zapisz się na stałe, aby kontynuować.",
+    "trialNote": "To są zajęcia próbne. Zapisz się na stałe, aby kontynuować."
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",

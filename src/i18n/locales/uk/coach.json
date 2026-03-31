@@ -108,6 +108,10 @@
     "directMessage": "Особисте повідомлення",
     "remove": "Видалити",
     "removeConfirm": "Видалити {{name}}?",
+    "removeTitle": "Видалити з заняття",
+    "removeReason": "Надіслати повідомлення (необов'язково)",
+    "removeReasonPlaceholder": "наприклад, Конфлікт розкладу, рівень підготовки...",
+    "removeButton": "Видалити",
     "participantsCount": "{{count}}/{{max}} учасників",
     "upcomingLessons": "Найближчі дати",
     "noUpcomingLessons": "Немає найближчих занять",
@@ -190,7 +194,12 @@
     "deleteTraining": "Видалити заняття",
     "deleteConfirm": "Видалити це заняття? Цю дію неможливо скасувати.",
     "creating": "Збереження...",
-    "createLesson": "Зберегти заняття"
+    "createLesson": "Зберегти заняття",
+    "dropInPolicy": "Разові відвідування",
+    "dropInPolicyDesc": "Чи можуть учасники приєднатися на одне заняття без запису на постійні?",
+    "dropInAllowed": "Дозволені",
+    "dropInTrial": "Одне пробне",
+    "dropInNone": "Лише постійні"
   },
   "walkthrough": {
     "welcomeTitle": "Ласкаво просимо до Sessio",
