@@ -186,9 +186,12 @@
     "joinSessionOn": "Dołącz do {{name}} w dniu {{date}}",
     "guestJoinedTitle": "Nowy gość",
     "guestJoinedBody": "{{name}} dołączył(a) do {{training}} jako gość.",
-    "dropInNotAllowed": "Te zajęcia nie pozwalają na jednorazowe wejścia. Zapisz się na stałe.",
-    "trialUsed": "Wykorzystałeś próbne zajęcia. Zapisz się na stałe, aby kontynuować.",
-    "trialNote": "To są zajęcia próbne. Zapisz się na stałe, aby kontynuować."
+    "dropInNotAllowed": "Te zajęcia nie pozwalają na jednorazowe wejścia. Zapisz się na wszystkie.",
+    "trialUsed": "Wykorzystałeś próbne zajęcia. Zapisz się na wszystkie, aby kontynuować.",
+    "trialNote": "To są zajęcia próbne. Zapisz się na wszystkie, aby kontynuować.",
+    "signUpAll": "Zapisz się na wszystkie zajęcia",
+    "orPickSession": "Lub wybierz pojedyncze zajęcia",
+    "signUp": "Zapisz się"
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",

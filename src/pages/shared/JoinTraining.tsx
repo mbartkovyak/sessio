@@ -31,7 +31,9 @@ export default function JoinTraining() {
   const [training, setTraining] = useState<any>(null);
   const [trainingLoading, setTrainingLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<any>(null);
+  const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
   const [joining, setJoining] = useState(false);
+  const [joiningSessionId, setJoiningSessionId] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -64,7 +66,7 @@ export default function JoinTraining() {
       });
   }, [inviteCode, session, i18n]);
 
-  // Fetch session info for one-off join
+  // Fetch session info for one-off join (direct session link)
   useEffect(() => {
     if (!sessionParam || !training) return;
     supabase
@@ -76,6 +78,21 @@ export default function JoinTraining() {
       .maybeSingle()
       .then(({ data }) => setSessionInfo(data));
   }, [sessionParam, training]);
+
+  // Fetch upcoming sessions for session picker
+  useEffect(() => {
+    if (!training) return;
+    const today = new Date().toISOString().split('T')[0];
+    supabase
+      .from('training_sessions')
+      .select('id, session_date, start_time, end_time, status')
+      .eq('training_id', training.id)
+      .eq('status', 'scheduled')
+      .gte('session_date', today)
+      .order('session_date', { ascending: true })
+      .limit(8)
+      .then(({ data }) => setUpcomingSessions(data ?? []));
+  }, [training]);
 
   // Redirect non-players and non-onboarded users
   useEffect(() => {
@@ -93,61 +110,77 @@ export default function JoinTraining() {
     }
   }, [loading, session, profile, training]);
 
-  async function handleJoin() {
+  async function handleJoinSession(sessionId: string) {
+    if (!training || !profile) return;
+    if (joiningRef.current) return;
+    joiningRef.current = true;
+    setJoiningSessionId(sessionId);
+    try {
+      const { data: existingAtt } = await supabase
+        .from('session_attendance')
+        .select('id')
+        .eq('session_id', sessionId)
+        .eq('user_id', profile.id)
+        .maybeSingle();
+      if (existingAtt) {
+        toast.info(t('join.alreadyInSession'));
+        navigate('/player');
+        return;
+      }
+      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      if (error) {
+        if (error.message?.includes('Drop-ins not allowed')) {
+          toast.error(t('join.dropInNotAllowed'));
+        } else if (error.message?.includes('Trial session already used')) {
+          toast.error(t('join.trialUsed'));
+        } else if (error.message?.includes('full')) {
+          toast.error(t('join.sessionFull'));
+        } else if (error.message?.includes('duplicate') || error.code === '23505') {
+          toast.info(t('join.alreadyInSession'));
+        } else {
+          throw error;
+        }
+        navigate('/player');
+        return;
+      }
+      if (training.coach_id) {
+        const tCoach = getFixedTForLanguage(training.coach?.language);
+        notifyUsers([training.coach_id], {
+          title: tCoach('join.guestJoinedTitle'),
+          body: tCoach('join.guestJoinedBody', {
+            name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+            training: training.name,
+          }),
+          tag: `guest-${sessionId}`,
+          url: `/coach/sessions/${sessionId}`,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
+      toast.success(t('join.joinedSession', { name: training.name }));
+      navigate('/player');
+    } catch (err: any) {
+      toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
+      navigate('/player');
+    } finally {
+      joiningRef.current = false;
+      setJoiningSessionId(null);
+    }
+  }
+
+  async function handleJoinAllSessions() {
     if (!training || !profile) return;
     if (joiningRef.current) return;
     joiningRef.current = true;
     setJoining(true);
     try {
-      // ── One-off session join ──
-      if (training._type === 'training' && sessionParam && sessionInfo) {
-        const { data: existingAtt } = await supabase
-          .from('session_attendance')
-          .select('id')
-          .eq('session_id', sessionParam)
-          .eq('user_id', profile.id)
-          .maybeSingle();
-        if (existingAtt) {
-          toast.info(t('join.alreadyInSession'));
-          navigate('/player');
-          return;
-        }
-        const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionParam });
-        if (error) {
-          if (error.message?.includes('Drop-ins not allowed')) {
-            toast.error(t('join.dropInNotAllowed'));
-          } else if (error.message?.includes('Trial session already used')) {
-            toast.error(t('join.trialUsed'));
-          } else if (error.message?.includes('full')) {
-            toast.error(t('join.sessionFull'));
-          } else if (error.message?.includes('duplicate') || error.code === '23505') {
-            toast.info(t('join.alreadyInSession'));
-          } else {
-            throw error;
-          }
-          navigate('/player');
-          return;
-        }
-        if (training.coach_id) {
-          const tCoach = getFixedTForLanguage(training.coach?.language);
-          notifyUsers([training.coach_id], {
-            title: tCoach('join.guestJoinedTitle'),
-            body: tCoach('join.guestJoinedBody', {
-              name: profile.full_name ?? tCoach('join.anonymousParticipant'),
-              training: training.name,
-            }),
-            tag: `guest-${sessionParam}`,
-            url: `/coach/sessions/${sessionParam}`,
-          });
-        }
-        queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
-        queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
-        toast.success(t('join.joinedSession', { name: training.name }));
-        navigate('/player');
+      // ── Direct session link (legacy ?session= param) ──
+      if (sessionParam && sessionInfo) {
+        await handleJoinSession(sessionParam);
         return;
       }
 
-      // ── Regular training join ──
+      // ── Sign up for all sessions ──
       if (training._type === 'training') {
         const { data: existing } = await supabase
           .from('training_members')
@@ -363,9 +396,43 @@ export default function JoinTraining() {
     </div>
   );
 
-  // Logged-in view — training detail page with explicit join button
+  // Logged-in view — show sessions, let player choose
   if (session && profile?.onboarding_complete && profile?.role === 'player') {
     const isApproval = training.booking_mode === 'approval';
+    const allowDropIn = training.drop_in_policy !== 'none';
+
+    // Direct session link — single session view
+    if (sessionParam && sessionInfo) {
+      return (
+        <div className="flex min-h-screen flex-col bg-background">
+          <AppHeader title={training.name} back />
+          <main className="flex-1 px-4 py-6 max-w-sm mx-auto w-full space-y-4">
+            <TrainingDetails />
+            {coach?.full_name && (
+              <div className="flex items-center gap-3 px-1">
+                <Avatar url={coach.avatar_url} name={coach.full_name} size="md" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{coach.full_name}</p>
+                  {training.sport && <p className="text-xs text-muted-foreground">{sportLabel(training.sport)}</p>}
+                </div>
+              </div>
+            )}
+            {training.drop_in_policy === 'trial' && (
+              <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
+            )}
+            <button
+              onClick={() => handleJoinSession(sessionParam)}
+              disabled={!!joiningSessionId}
+              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            >
+              {joiningSessionId ? t('join.joining') : t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) })}
+            </button>
+          </main>
+        </div>
+      );
+    }
+
+    // Default view — show all sessions + sign up options
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <AppHeader title={training.name} back />
@@ -382,19 +449,44 @@ export default function JoinTraining() {
             </div>
           )}
 
-          {sessionInfo && training.drop_in_policy === 'trial' && (
-            <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
-          )}
-
+          {/* Primary: sign up for all sessions */}
           <button
-            onClick={handleJoin}
+            onClick={handleJoinAllSessions}
             disabled={joining}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
           >
-            {joining ? t('join.joining') :
-              sessionInfo ? t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) }) :
-              isApproval ? t('join.requestToJoin') : t('join.joinName', { name: training.name })}
+            {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.signUpAll')}
           </button>
+
+          {/* Individual sessions — if drop-ins allowed */}
+          {allowDropIn && upcomingSessions.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-foreground mb-2">{t('join.orPickSession')}</p>
+              {training.drop_in_policy === 'trial' && (
+                <p className="text-xs text-muted-foreground mb-2">{t('join.trialNote')}</p>
+              )}
+              <div className="space-y-1.5">
+                {upcomingSessions.map((s: any) => (
+                  <button
+                    key={s.id}
+                    onClick={() => handleJoinSession(s.id)}
+                    disabled={!!joiningSessionId}
+                    className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-left active:bg-muted/50 transition-colors disabled:opacity-60"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}</p>
+                    </div>
+                    <span className="text-xs font-medium text-primary shrink-0">
+                      {joiningSessionId === s.id ? t('join.joining') : t('join.signUp')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     );

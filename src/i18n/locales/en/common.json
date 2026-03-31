@@ -186,9 +186,12 @@
     "joinSessionOn": "Join {{name}} on {{date}}",
     "guestJoinedTitle": "Guest signed up",
     "guestJoinedBody": "{{name}} joined {{training}} as a guest.",
-    "dropInNotAllowed": "This training doesn't allow drop-ins. Join the series instead.",
-    "trialUsed": "You've already used your trial session. Join the series to keep attending.",
-    "trialNote": "This is a trial session. Join the series to continue attending."
+    "dropInNotAllowed": "This training doesn't allow drop-ins. Sign up for all sessions instead.",
+    "trialUsed": "You've already used your trial session. Sign up for all sessions to keep attending.",
+    "trialNote": "This is a trial session. Sign up for all sessions to continue attending.",
+    "signUpAll": "Sign up for all sessions",
+    "orPickSession": "Or pick a single session",
+    "signUp": "Sign up"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
