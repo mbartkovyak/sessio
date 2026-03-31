@@ -41,7 +41,7 @@ function RootLayout() {
   return (
     <>
       {/* Persistent dark strip behind the fixed header — prevents light bg flash between route transitions */}
-      <div className="fixed inset-x-0 top-0 z-[9] h-24 header-gradient rounded-b-2xl" aria-hidden="true" />
+      <div className="fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
