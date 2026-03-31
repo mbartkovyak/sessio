@@ -728,6 +728,7 @@ export type Database = {
           first_name: string | null
           full_name: string | null
           id: string
+          is_placeholder: boolean
           language: string | null
           last_name: string | null
           onboarding_complete: boolean | null
@@ -747,6 +748,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id: string
+          is_placeholder?: boolean
           language?: string | null
           last_name?: string | null
           onboarding_complete?: boolean | null
@@ -766,6 +768,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_placeholder?: boolean
           language?: string | null
           last_name?: string | null
           onboarding_complete?: boolean | null

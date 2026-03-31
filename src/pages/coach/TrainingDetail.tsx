@@ -1,10 +1,10 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary, useMyAthletes, useAddTrainingMember, useCreatePlaceholderAthlete } from '@/hooks/training/useTrainings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -22,6 +22,7 @@ import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
 import PageHeader from '@/components/shared/PageHeader';
+import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { SessioLoader } from '@/components/SessioLogo';
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +42,10 @@ export default function TrainingDetail() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const { data: allAthletes = [] } = useMyAthletes(user?.id);
+  const addMember = useAddTrainingMember(id!);
+  const createPlaceholder = useCreatePlaceholderAthlete(id!);
 
   // All hooks must be called before any early return to avoid "Rendered more hooks" error
   const today = new Date().toISOString().split('T')[0];
@@ -231,6 +236,12 @@ export default function TrainingDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                    <button
+                      onClick={() => setShowAddMember(true)}
+                      className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" /> {t('detail.addMember')}
+                    </button>
                   </div>
                   {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
@@ -240,25 +251,31 @@ export default function TrainingDetail() {
                     <div className="rounded-xl border border-border bg-card divide-y divide-border">
                       {members.map((m: any) => {
                         const p = m.profiles;
+                        const isPlaceholder = p?.is_placeholder === true;
                         return (
                           <div key={m.id} className="flex items-center gap-3 px-4 py-3">
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
+                                {isPlaceholder && (
+                                  <span className="text-xs text-muted-foreground">{t('detail.offlineAthlete')}</span>
+                                )}
                                 {m.role === 'waitlist' && (
                                   <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
                                 )}
                               </div>
                             </button>
                             <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => navigate(`/coach/dm/${p?.id}`)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                title={t('detail.directMessage')}
-                              >
-                                <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                              </button>
+                              {!isPlaceholder && (
+                                <button
+                                  onClick={() => navigate(`/coach/dm/${p?.id}`)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                                  title={t('detail.directMessage')}
+                                >
+                                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                                </button>
+                              )}
                               <button
                                 onClick={() => { if (confirm(t('detail.removeConfirm', { name: p?.full_name ?? '' }))) removeMember.mutate(m.id); }}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
@@ -346,6 +363,32 @@ export default function TrainingDetail() {
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
       {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training?.school_id} onClose={() => setViewProfile(null)} />}
+      <AddMemberSheet
+        open={showAddMember}
+        onClose={() => setShowAddMember(false)}
+        athletes={allAthletes}
+        existingMemberIds={new Set(members.map((m: any) => m.user_id))}
+        onAddExisting={(athlete) => {
+          addMember.mutate({ userId: athlete.id, trainingName: training.name });
+          setShowAddMember(false);
+        }}
+        onAddManual={(data) => {
+          if (!training.school_id) {
+            toast.error(t('detail.noSchoolForPlaceholder'));
+            return;
+          }
+          createPlaceholder.mutate({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            schoolId: training.school_id,
+            phone: data.phone,
+            email: data.email,
+            trainingName: training.name,
+          });
+          setShowAddMember(false);
+        }}
+        adding={addMember.isPending || createPlaceholder.isPending}
+      />
     </div>
   );
 }

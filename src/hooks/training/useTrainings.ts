@@ -169,7 +169,7 @@ export function useTrainingMembers(trainingId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_members')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city, is_placeholder)')
         .eq('training_id', trainingId!);
       if (error) throw error;
       return (data ?? []) as TrainingMemberWithProfile[];
@@ -274,6 +274,48 @@ export function useAddTrainingMember(trainingId: string) {
   });
 }
 
+export function useCreatePlaceholderAthlete(trainingId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ firstName, lastName, schoolId, phone, email, trainingName }: {
+      firstName: string;
+      lastName: string;
+      schoolId: string;
+      phone?: string;
+      email?: string;
+      trainingName: string;
+    }) => {
+      // Create placeholder profile via RPC
+      const { data: placeholderId, error: rpcErr } = await supabase.rpc('create_placeholder_athlete', {
+        p_first_name: firstName,
+        p_last_name: lastName,
+        p_school_id: schoolId,
+        p_phone: phone || null,
+        p_email: email || null,
+      });
+      if (rpcErr) throw rpcErr;
+      if (!placeholderId) throw new Error('Failed to create placeholder');
+
+      // Add to training (triggers auto-enroll in future sessions)
+      const { error: memberErr } = await supabase
+        .from('training_members')
+        .insert({ training_id: trainingId, user_id: placeholderId, role: 'regular' });
+      if (memberErr) {
+        if (memberErr.code !== '23505') throw memberErr; // ignore duplicate
+      }
+
+      return placeholderId as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      toast.success(i18n.t('toast.memberAdded', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 export function useMyAthletes(coachId: string | undefined) {
   return useQuery({
     queryKey: ['my-athletes', coachId],
@@ -292,7 +334,7 @@ export function useMyAthletes(coachId: string | undefined) {
       // Get all unique members across trainings
       const { data: members, error: mErr } = await supabase
         .from('training_members')
-        .select('user_id, training_id, profiles:user_id(id, full_name, avatar_url, email)')
+        .select('user_id, training_id, profiles:user_id(id, full_name, avatar_url, email, is_placeholder)')
         .in('training_id', trainingIds)
         .eq('role', 'regular');
       if (mErr) throw mErr;
@@ -334,7 +376,7 @@ export function useSessionAttendance(sessionId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('session_attendance')
-        .select('*, profiles:user_id(id, full_name, avatar_url)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
         .eq('session_id', sessionId!);
       if (error) throw error;
       return (data ?? []) as SessionAttendanceWithProfile[];
