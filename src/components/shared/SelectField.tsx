@@ -8,6 +8,7 @@ export default function SelectField({
   options,
   placeholder,
   labels,
+  required,
 }: {
   label?: string;
   value: string;
@@ -15,6 +16,7 @@ export default function SelectField({
   options: readonly string[];
   placeholder?: string;
   labels?: Record<string, string>;
+  required?: boolean;
 }) {
   const { t } = useTranslation('common');
   const displayPlaceholder = placeholder ?? t('form.select');
@@ -28,7 +30,7 @@ export default function SelectField({
           onChange={e => onChange(e.target.value)}
           className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">{displayPlaceholder}</option>
+          {(!required || !value) && <option value="">{displayPlaceholder}</option>}
           {options.map(o => <option key={o} value={o}>{labels?.[o] ?? o}</option>)}
         </select>
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

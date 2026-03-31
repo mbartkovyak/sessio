@@ -119,7 +119,7 @@ export default function CoachProfileEditor() {
             <PhoneInput value={phone} onChange={setPhone} />
             <LanguageSelector />
             <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
-            <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
+            <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
             <SelectField label={t('common:form.sport')} value={sport} onChange={setSport} options={SPORTS} placeholder={t('common:form.selectSport')} labels={Object.fromEntries(SPORTS.map(s => [s, sportLabel(s)]))} />
             <div>
               <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
@@ -135,7 +135,7 @@ export default function CoachProfileEditor() {
 
           <button
             onClick={handleSave}
-            disabled={saving || !country}
+            disabled={saving || !country || !city}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {saving ? t('profile.saving') : t('common:actions.save')}
