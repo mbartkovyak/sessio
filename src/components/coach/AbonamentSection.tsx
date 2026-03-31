@@ -254,14 +254,14 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
         </div>
       )}
 
-      {/* Active passes */}
-      {active.length > 0 && (
+      {/* All passes */}
+      {playerAbonaments.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            {t('abonaments.activePasses')} <span className="font-normal">({active.length})</span>
+            {t('abonaments.activePasses')} <span className="font-normal">({playerAbonaments.length})</span>
           </h3>
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
-            {active.map((pa: any) => {
+            {playerAbonaments.map((pa: any) => {
               const s = passStatusLabel(pa);
               return (
                 <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
