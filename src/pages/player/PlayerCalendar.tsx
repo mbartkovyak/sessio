@@ -1,26 +1,39 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, MapPin, MessageCircle } from 'lucide-react';
+import { AlertTriangle, MapPin, MessageCircle, ArrowDown } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
 import { toast } from 'sonner';
-import CalendarGrid from '@/components/shared/CalendarGrid';
+import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/CalendarGrid';
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
 export default function PlayerCalendar() {
   const { t } = useTranslation('player');
   const { data: sessions = [], isLoading } = useMyUpcomingSessions();
+  const calendarRef = useRef<CalendarGridHandle>(null);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <AppHeader title={t('calendar.title')} />
+      <AppHeader
+        title={t('calendar.title')}
+        left={
+          <button
+            onClick={() => calendarRef.current?.scrollToToday()}
+            className="flex items-center gap-1 rounded-lg bg-white/20 px-2.5 py-1 text-xs font-semibold text-white transition-all active:scale-[0.95]"
+          >
+            <ArrowDown className="h-3 w-3" />
+            {t('common:calendar.today')}
+          </button>
+        }
+      />
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 py-4 space-y-1">
           <CalendarGrid
+            ref={calendarRef}
             items={sessions}
             getDate={(a: any) => a.training_sessions?.session_date}
             isLoading={isLoading}
