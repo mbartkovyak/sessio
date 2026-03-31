@@ -1,14 +1,41 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
-import { useStatsData, groupStats, computeSummary, computePerTrainingStats } from '@/hooks/training/useStatsData';
+import { useStatsData, groupStats, computeSummary, computePerTrainingStats, type StatsSession } from '@/hooks/training/useStatsData';
 import CoachHeader from '@/components/coach/CoachHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { SessioLoader } from '@/components/SessioLogo';
 import { SPORT_ICONS } from '@/lib/constants';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+
+function filterByPeriod(sessions: StatsSession[], groupBy: 'week' | 'month'): StatsSession[] {
+  const now = new Date();
+  const start = groupBy === 'week'
+    ? startOfWeek(now, { weekStartsOn: 1 })
+    : startOfMonth(now);
+  const end = groupBy === 'week'
+    ? endOfWeek(now, { weekStartsOn: 1 })
+    : endOfMonth(now);
+  return sessions.filter(s => {
+    const d = parseISO(s.session_date);
+    return d >= start && d <= end;
+  });
+}
+
+function periodLabel(groupBy: 'week' | 'month'): string {
+  const locale = getDateLocale();
+  const now = new Date();
+  if (groupBy === 'week') {
+    const start = startOfWeek(now, { weekStartsOn: 1 });
+    const end = endOfWeek(now, { weekStartsOn: 1 });
+    return `${format(start, 'd MMM', { locale })} – ${format(end, 'd MMM', { locale })}`;
+  }
+  return format(now, 'MMMM yyyy', { locale });
+}
 
 export default function CoachStats() {
   const { t } = useTranslation('coach');
@@ -27,9 +54,14 @@ export default function CoachStats() {
   const { data: rawSessions = [], isLoading } = useStatsData(trainingIds);
   const [groupBy, setGroupBy] = useState<'week' | 'month'>('week');
 
+  // Chart shows full trend (all data grouped by week/month)
   const chartData = useMemo(() => groupStats(rawSessions, groupBy), [rawSessions, groupBy]);
-  const summary = useMemo(() => computeSummary(rawSessions), [rawSessions]);
-  const perTraining = useMemo(() => computePerTrainingStats(rawSessions), [rawSessions]);
+
+  // Summary + breakdowns filtered to current period
+  const periodSessions = useMemo(() => filterByPeriod(rawSessions, groupBy), [rawSessions, groupBy]);
+  const summary = useMemo(() => computeSummary(periodSessions), [periodSessions]);
+  const perTraining = useMemo(() => computePerTrainingStats(periodSessions), [periodSessions]);
+  const currentPeriodLabel = useMemo(() => periodLabel(groupBy), [groupBy]);
 
   // For school owners: group per-training stats by coach
   const coachNames = useMemo(() => {
@@ -97,7 +129,7 @@ export default function CoachStats() {
             </div>
           ) : (
             <>
-              {/* Bar chart */}
+              {/* Bar chart — full trend */}
               <div className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} barGap={2}>
@@ -123,7 +155,10 @@ export default function CoachStats() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Summary numbers */}
+              {/* Period label */}
+              <p className="text-xs font-medium text-muted-foreground text-center">{currentPeriodLabel}</p>
+
+              {/* Summary numbers — filtered to current period */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
                   <div className="text-lg font-bold text-foreground">{summary.attendanceRate}%</div>
@@ -143,7 +178,7 @@ export default function CoachStats() {
                 </div>
               </div>
 
-              {/* Per-coach breakdown (school owners only) */}
+              {/* Per-coach breakdown (school owners only) — filtered */}
               {isSchoolOwner && perCoach.length > 1 && (
                 <section>
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('stats.perCoach')}</h2>
@@ -166,7 +201,7 @@ export default function CoachStats() {
                 </section>
               )}
 
-              {/* Per-training breakdown */}
+              {/* Per-training breakdown — filtered */}
               {perTraining.length > 0 && (
                 <section>
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('stats.perTraining')}</h2>
