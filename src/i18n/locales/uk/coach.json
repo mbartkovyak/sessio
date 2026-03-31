@@ -131,7 +131,15 @@
     "searchAthletes": "Пошук за ім'ям...",
     "noAthletesFound": "Учасників не знайдено",
     "noAthletesToAdd": "Немає учасників для додавання",
-    "alreadyInTraining": "Вже в занятті"
+    "alreadyInTraining": "Вже в занятті",
+    "addManually": "Додати особу вручну",
+    "addManuallyHint": "Для людей, які ще не користуються додатком. Ви можете відстежувати їхню відвідуваність та абонементи.",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
+    "phonePlaceholder": "Телефон (необов'язково)",
+    "emailPlaceholder": "Email (необов'язково)",
+    "offlineAthlete": "Не в додатку",
+    "noSchoolForPlaceholder": "Заняття має належати школі, щоб додати офлайн-учасників"
   },
   "form": {
     "lessonNameRequired": "Назва заняття обов'язкова",
@@ -237,7 +245,8 @@
     "selectType": "Оберіть тип абонементу",
     "noAthletes": "Ще немає учасників у заняттях школи",
     "daysLabel": "{{count}}д",
-    "sessionsLabel": "{{count}}x"
+    "sessionsLabel": "{{count}}x",
+    "noSchool": "Абонементи керуються на рівні школи. Створіть або приєднайтесь до школи, щоб використовувати абонементи."
   },
   "stats": {
     "title": "Статистика",

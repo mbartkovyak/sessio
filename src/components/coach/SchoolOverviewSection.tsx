@@ -8,7 +8,7 @@ import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useSchoolUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
-import AbonamentSection from '@/components/coach/AbonamentSection';
+import { Ticket } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import { toast } from 'sonner';
@@ -172,8 +172,15 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         {tc('home.viewStats')}
       </button>
 
-      {/* School passes */}
-      <AbonamentSection schoolId={school.id} />
+      {/* Passes button */}
+      <button
+        onClick={() => navigate('/coach/passes')}
+        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
+      >
+        <Ticket className="h-4 w-4 text-muted-foreground" />
+        {tc('abonaments.title')}
+      </button>
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (

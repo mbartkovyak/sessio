@@ -131,7 +131,15 @@
     "searchAthletes": "Szukaj po imieniu...",
     "noAthletesFound": "Nie znaleziono uczestników",
     "noAthletesToAdd": "Brak uczestników do dodania",
-    "alreadyInTraining": "Już w zajęciach"
+    "alreadyInTraining": "Już w zajęciach",
+    "addManually": "Dodaj osobę ręcznie",
+    "addManuallyHint": "Dla osób, które jeszcze nie korzystają z aplikacji. Możesz śledzić ich obecność i karnety.",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "phonePlaceholder": "Telefon (opcjonalnie)",
+    "emailPlaceholder": "Email (opcjonalnie)",
+    "offlineAthlete": "Nie w aplikacji",
+    "noSchoolForPlaceholder": "Zajęcia muszą należeć do szkoły, aby dodać osoby offline"
   },
   "form": {
     "lessonNameRequired": "Nazwa zajęć jest wymagana",
@@ -237,7 +245,8 @@
     "selectType": "Wybierz typ karnetu",
     "noAthletes": "Brak uczestników w zajęciach szkoły",
     "daysLabel": "{{count}}d",
-    "sessionsLabel": "{{count}}x"
+    "sessionsLabel": "{{count}}x",
+    "noSchool": "Karnety są zarządzane na poziomie szkoły. Utwórz lub dołącz do szkoły, aby używać karnetów."
   },
   "stats": {
     "title": "Statystyki",
