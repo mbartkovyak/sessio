@@ -60,7 +60,8 @@
     "tomorrowAt": "Tomorrow at {{time}}",
     "at": "at",
     "noTrainings": "No trainings",
-    "loadEarlier": "Load earlier"
+    "loadEarlier": "Load earlier",
+    "loadMore": "Load more"
   },
   "phone": {
     "label": "Phone number",

@@ -60,7 +60,8 @@
     "tomorrowAt": "Jutro o {{time}}",
     "at": "o",
     "noTrainings": "Brak zajęć",
-    "loadEarlier": "Załaduj wcześniejsze"
+    "loadEarlier": "Załaduj wcześniejsze",
+    "loadMore": "Załaduj więcej"
   },
   "phone": {
     "label": "Numer telefonu",

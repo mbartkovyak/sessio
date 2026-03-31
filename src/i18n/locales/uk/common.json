@@ -60,7 +60,8 @@
     "tomorrowAt": "Завтра о {{time}}",
     "at": "о",
     "noTrainings": "Немає занять",
-    "loadEarlier": "Завантажити раніше"
+    "loadEarlier": "Завантажити раніше",
+    "loadMore": "Завантажити більше"
   },
   "phone": {
     "label": "Номер телефону",

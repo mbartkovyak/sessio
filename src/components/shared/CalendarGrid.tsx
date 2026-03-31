@@ -1,7 +1,7 @@
 import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
 import { useCallback, useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, ChevronUp } from 'lucide-react';
+import { Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
 export interface CalendarGridHandle {
@@ -24,7 +24,6 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
   const { t } = useTranslation();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const todayRef = useRef<HTMLDivElement>(null);
-  const bottomSentinelRef = useRef<HTMLDivElement>(null);
 
   const scrollToToday = useCallback(() => {
     todayRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
@@ -37,19 +36,6 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
       todayRef.current.scrollIntoView({ block: 'start' });
     }
   }, [isLoading]);
-
-  // Auto-load more future sessions when scrolling near the bottom
-  useEffect(() => {
-    if (!onLoadFuture || isLoadingFuture) return;
-    const el = bottomSentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) onLoadFuture(); },
-      { rootMargin: '400px' },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [onLoadFuture, isLoadingFuture]);
 
   function dayLabel(date: Date) {
     if (isToday(date)) return t('calendar.today');
@@ -139,12 +125,20 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
 
       {items.length === 0 && emptyState}
 
-      {/* Bottom sentinel for auto-loading future sessions */}
-      {onLoadFuture && <div ref={bottomSentinelRef} className="h-1" />}
-      {isLoadingFuture && (
-        <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        </div>
+      {/* Load more future sessions */}
+      {onLoadFuture && (
+        <button
+          onClick={onLoadFuture}
+          disabled={isLoadingFuture}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 mt-2"
+        >
+          {isLoadingFuture ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
+          {t('calendar.loadMore', 'Load more')}
+        </button>
       )}
     </>
   );
