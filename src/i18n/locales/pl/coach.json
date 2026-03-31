@@ -22,7 +22,7 @@
     "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}.",
     "viewStats": "Statystyki obecności",
     "markAttendance": "Zaznacz obecność",
-    "attendanceBannerTitle": "Uzupełnij obecność",
+    "attendanceBannerTitle": "Nieodnotowana obecność",
     "sessionsNeedAttendance": "{{count}} sesji wymaga obecności",
     "attendanceSaved": "Obecność zapisana",
     "allPresent": "Wszyscy obecni",

@@ -22,7 +22,7 @@
     "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
     "viewStats": "Статистика відвідуваності",
     "markAttendance": "Позначити відвідуваність",
-    "attendanceBannerTitle": "Відмітьте присутність",
+    "attendanceBannerTitle": "Невідмічена присутність",
     "sessionsNeedAttendance": "{{count}} сесій потребують відвідуваності",
     "attendanceSaved": "Відвідуваність збережена",
     "allPresent": "Усі присутні",

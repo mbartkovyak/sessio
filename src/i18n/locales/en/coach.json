@@ -22,7 +22,7 @@
     "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
     "viewStats": "Attendance stats",
     "markAttendance": "Mark attendance",
-    "attendanceBannerTitle": "Attendance needed",
+    "attendanceBannerTitle": "Unrecorded attendance",
     "sessionsNeedAttendance": "{{count}} sessions need attendance",
     "attendanceSaved": "Attendance saved",
     "allPresent": "All present",
