@@ -328,18 +328,19 @@ export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId
 export function useAssignAbonament() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ abonamentTypeId, schoolId, playerId, sessionsCount, durationDays }: {
+    mutationFn: async ({ abonamentTypeId, schoolId, playerId, sessionsCount, durationDays, startDate }: {
       abonamentTypeId: string;
       schoolId: string;
       playerId: string;
       sessionsCount: number | null;
       durationDays: number | null;
+      startDate?: string; // YYYY-MM-DD, defaults to today
     }) => {
-      const now = new Date();
+      const start = startDate ? new Date(startDate + 'T00:00:00') : new Date();
       // Expire at end of the last calendar day (23:59:59 local time)
       let expiresAt: string | null = null;
       if (durationDays) {
-        const end = new Date(now);
+        const end = new Date(start);
         end.setDate(end.getDate() + durationDays);
         end.setHours(23, 59, 59, 999);
         expiresAt = end.toISOString();
@@ -354,7 +355,7 @@ export function useAssignAbonament() {
           sessions_total: sessionsCount,
           sessions_remaining: sessionsCount,
           status: 'active',
-          activated_at: now.toISOString(),
+          activated_at: start.toISOString(),
           expires_at: expiresAt,
         });
       if (error) throw error;

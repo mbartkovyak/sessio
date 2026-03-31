@@ -77,10 +77,12 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
         playerId: selectedPlayer.id,
         sessionsCount: type.sessions_count,
         durationDays: type.duration_days,
+        startDate: assignStartDate,
       },
       {
         onSuccess: () => {
           setAssignTypeId(''); setSelectedPlayer(null); setPlayerSearch('');
+          setAssignStartDate(new Date().toISOString().slice(0, 10));
           setShowAssign(false);
         },
       },
@@ -89,6 +91,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
 
   function resetAssign() {
     setShowAssign(false); setAssignTypeId(''); setSelectedPlayer(null); setPlayerSearch('');
+    setAssignStartDate(new Date().toISOString().slice(0, 10));
     setShowAddPerson(false); setNewFirstName(''); setNewLastName(''); setNewPhone(''); setNewEmail('');
   }
 
@@ -299,6 +302,13 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
               <option key={type.id} value={type.id}>{type.name} ({typeLabel(type)})</option>
             ))}
           </select>
+
+          {/* Start date */}
+          <div>
+            <label className="text-xs text-muted-foreground">{t('abonaments.startDate')}</label>
+            <input type="date" value={assignStartDate} onChange={e => setAssignStartDate(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+          </div>
 
           <div className="grid grid-cols-2 gap-2">
             <button onClick={resetAssign}

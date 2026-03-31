@@ -256,6 +256,7 @@
     "noAthletes": "Brak uczestników w zajęciach szkoły",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
+    "startDate": "Data rozpoczęcia",
     "noSchool": "Karnety są zarządzane na poziomie szkoły. Utwórz lub dołącz do szkoły, aby używać karnetów."
   },
   "stats": {

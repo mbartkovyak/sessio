@@ -256,6 +256,7 @@
     "noAthletes": "No participants in school trainings yet",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
+    "startDate": "Start date",
     "noSchool": "Passes are managed at the school level. Create or join a school to use passes."
   },
   "stats": {
