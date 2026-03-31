@@ -173,24 +173,24 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
         </div>
       ) : null}
 
-      {/* Action buttons */}
-      {!showForm && !showAssign && (
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
-          >
-            <Plus className="h-4 w-4" /> {t('abonaments.addType')}
-          </button>
-          {types.length > 0 && (
-            <button
-              onClick={() => setShowAssign(true)}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
-            >
-              <UserPlus className="h-4 w-4" /> {t('abonaments.assign')}
-            </button>
-          )}
-        </div>
+      {/* Add pass type button */}
+      {!showForm && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+        >
+          <Plus className="h-4 w-4" /> {t('abonaments.addType')}
+        </button>
+      )}
+
+      {/* Assign pass button */}
+      {types.length > 0 && !showAssign && (
+        <button
+          onClick={() => setShowAssign(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+        >
+          <UserPlus className="h-4 w-4" /> {t('abonaments.assign')}
+        </button>
       )}
 
       {/* Assign pass form */}
