@@ -131,7 +131,8 @@
     "unlimited": "Unlimited sessions",
     "expiresOn": "Expires {{date}}",
     "expired": "Expired",
-    "usedUp": "All used"
+    "usedUp": "All used",
+    "startsOn": "Starts {{date}}"
   },
   "favouriteSchools": {
     "title": "Schools you follow"

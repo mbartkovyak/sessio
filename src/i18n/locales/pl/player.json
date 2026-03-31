@@ -134,7 +134,8 @@
     "unlimited": "Bez limitu zajęć",
     "expiresOn": "Wygasa {{date}}",
     "expired": "Wygasł",
-    "usedUp": "Wykorzystany"
+    "usedUp": "Wykorzystany",
+    "startsOn": "Od {{date}}"
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"

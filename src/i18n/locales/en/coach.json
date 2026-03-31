@@ -243,6 +243,7 @@
     "usedUp": "Used up",
     "expired": "Expired",
     "expiresIn": "{{days}}d left",
+    "startsOn": "Starts {{date}}",
     "markAttended": "Attended",
     "undoAttended": "Undo",
     "deleteType": "Remove",

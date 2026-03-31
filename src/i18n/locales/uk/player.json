@@ -131,7 +131,8 @@
     "unlimited": "Без ліміту занять",
     "expiresOn": "Діє до {{date}}",
     "expired": "Завершився",
-    "usedUp": "Використано"
+    "usedUp": "Використано",
+    "startsOn": "З {{date}}"
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"

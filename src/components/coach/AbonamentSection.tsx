@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, UserPlus, X } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
+import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 import {
   useAbonamentTypes,
   useCreateAbonamentType,
@@ -12,10 +13,11 @@ import {
   isAbonamentActive,
   daysRemaining,
 } from '@/hooks/training/useAbonaments';
+import { currencyForCountry } from '@/lib/constants';
 import { format } from 'date-fns';
 import { useCreateStandalonePlaceholder } from '@/hooks/training/useTrainings';
 
-export default function AbonamentSection({ schoolId }: { schoolId: string }) {
+export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId: string; schoolCountry?: string | null }) {
   const { t } = useTranslation('coach');
   const [showForm, setShowForm] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -56,6 +58,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
         sessions_count: sessionsCount ? parseInt(sessionsCount) : null,
         duration_days: durationDays ? parseInt(durationDays) : null,
         price: price ? parseFloat(price) : null,
+        currency: currencyForCountry(schoolCountry),
       },
       {
         onSuccess: () => {
@@ -121,6 +124,13 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
     if (pa.status === 'used_up') return { text: t('abonaments.usedUp'), cls: 'bg-muted text-muted-foreground' };
     if (pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())) {
       return { text: t('abonaments.expired'), cls: 'bg-destructive/10 text-destructive' };
+    }
+    // Not yet started — show start date
+    const startDate = pa.activated_at ?? pa.created_at;
+    const notStarted = startDate && new Date(startDate) > new Date();
+    if (notStarted) {
+      const label = format(new Date(startDate), 'd MMM');
+      return { text: t('abonaments.startsOn', { date: label }), cls: 'bg-accent text-accent-foreground' };
     }
     // Active — show remaining info
     const parts: string[] = [];
@@ -244,13 +254,12 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
                 <input type="text" value={newLastName} onChange={e => setNewLastName(e.target.value)} placeholder={t('detail.lastName')}
                   className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm" />
               </div>
-              <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder={t('detail.phonePlaceholder')}
-                className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm" />
+              <PhoneInput value={newPhone} onChange={setNewPhone} required />
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setShowAddPerson(false)} className="rounded-lg border border-border py-1.5 text-xs font-medium text-foreground">
                   {t('common:actions.back')}
                 </button>
-                <button onClick={handleCreatePerson} disabled={!newFirstName.trim() || createPlaceholder.isPending}
+                <button onClick={handleCreatePerson} disabled={!newFirstName.trim() || !isValidPhone(newPhone) || createPlaceholder.isPending}
                   className="rounded-lg bg-primary py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
                   {createPlaceholder.isPending ? '...' : t('abonaments.createPerson')}
                 </button>

@@ -20,8 +20,9 @@ export default function MyAbonamentsSection() {
         {activePasses.map((pa: any) => {
           const school = pa.schools;
           const hasSessionLimit = pa.sessions_remaining != null;
-          const daysLeft = pa.expires_at ? daysRemaining(pa.expires_at) : null;
           const startDate = pa.activated_at ?? pa.created_at;
+          const notStarted = startDate && new Date(startDate) > new Date();
+          const daysLeft = !notStarted && pa.expires_at ? daysRemaining(pa.expires_at) : null;
 
           return (
             <div
@@ -39,8 +40,9 @@ export default function MyAbonamentsSection() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {pa.abonament_types?.name}
-                    {daysLeft != null && ` · ${daysLeft}d`}
-                    {startDate && ` · ${format(new Date(startDate), 'd MMM')}`}
+                    {notStarted
+                      ? ` · ${t('abonaments.startsOn', { date: format(new Date(startDate), 'd MMM') })}`
+                      : daysLeft != null ? ` · ${daysLeft}d` : null}
                   </p>
                 </div>
                 <div className="text-right shrink-0">

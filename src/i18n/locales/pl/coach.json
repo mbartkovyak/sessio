@@ -243,6 +243,7 @@
     "usedUp": "Wykorzystany",
     "expired": "Wygasł",
     "expiresIn": "{{days}}d",
+    "startsOn": "Od {{date}}",
     "markAttended": "Obecny",
     "undoAttended": "Cofnij",
     "deleteType": "Usuń",
