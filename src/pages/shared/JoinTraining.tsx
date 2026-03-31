@@ -79,18 +79,11 @@ export default function JoinTraining() {
       .then(({ data }) => setSessionInfo(data));
   }, [sessionParam, training]);
 
-  // Fetch upcoming sessions for session picker
+  // Fetch upcoming sessions for session picker (via RPC — bypasses RLS for non-members)
   useEffect(() => {
     if (!training) return;
-    const today = new Date().toISOString().split('T')[0];
     supabase
-      .from('training_sessions')
-      .select('id, session_date, start_time, end_time, status')
-      .eq('training_id', training.id)
-      .eq('status', 'scheduled')
-      .gte('session_date', today)
-      .order('session_date', { ascending: true })
-      .limit(8)
+      .rpc('get_upcoming_sessions', { p_training_id: training.id, p_limit: 8 })
       .then(({ data }) => setUpcomingSessions(data ?? []));
   }, [training]);
 
