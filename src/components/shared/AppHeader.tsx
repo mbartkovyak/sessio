@@ -16,7 +16,7 @@ interface AppHeaderProps {
 export default function AppHeader({ title, subtitle, back, left, right, inline }: AppHeaderProps) {
   const navigate = useNavigate();
   return (
-    <PageHeader inline={inline} className="rounded-b-2xl px-4 py-4">
+    <PageHeader inline={inline} className="px-4 py-4">
       <div className="max-w-md mx-auto flex items-center">
         {back && (
           <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate(location.pathname.startsWith('/coach') ? '/coach' : '/player')} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0 absolute left-4">

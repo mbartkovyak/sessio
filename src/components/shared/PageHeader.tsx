@@ -28,14 +28,12 @@ export default function PageHeader({ children, inline, className }: PageHeaderPr
     );
   }
 
-  const hasRounded = className?.includes('rounded-b');
-
   return (
     <>
       <header
         ref={ref}
         className={`fixed left-0 right-0 z-10 header-gradient ${className ?? ''}`}
-        style={{ top: 'var(--vv-offset, 0px)', ...(hasRounded ? { borderBottom: 'none' } : {}) }}
+        style={{ top: 'var(--vv-offset, 0px)' }}
       >
         {children}
       </header>
