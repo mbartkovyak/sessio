@@ -236,18 +236,18 @@ export function useSchoolAthletesWithPassHolders(schoolId: string | undefined | 
     enabled: !!schoolId,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      // 1. Training members (existing logic)
+      // Get ALL trainings for this school (active + inactive) so we capture past athletes
       const { data: trainings, error: tErr } = await supabase
         .from('trainings')
         .select('id')
-        .eq('school_id', schoolId!)
-        .eq('is_active', true);
+        .eq('school_id', schoolId!);
       if (tErr) throw tErr;
       const trainingIds = (trainings ?? []).map(t => t.id);
 
       const seen = new Map<string, { id: string; full_name: string | null; avatar_url: string | null; is_placeholder: boolean }>();
 
       if (trainingIds.length) {
+        // 1. Training members (regular role — current + past trainings)
         const { data: members, error: mErr } = await supabase
           .from('training_members')
           .select('user_id, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
@@ -259,9 +259,30 @@ export function useSchoolAthletesWithPassHolders(schoolId: string | undefined | 
             seen.set(m.user_id, m.profiles as any);
           }
         }
+
+        // 2. Session attendees (drop-ins, one-time participants who aren't regular members)
+        const { data: sessions, error: sErr } = await supabase
+          .from('training_sessions')
+          .select('id')
+          .in('training_id', trainingIds);
+        if (sErr) throw sErr;
+        const sessionIds = (sessions ?? []).map(s => s.id);
+
+        if (sessionIds.length) {
+          const { data: attendees, error: aErr } = await supabase
+            .from('session_attendance')
+            .select('user_id, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
+            .in('session_id', sessionIds);
+          if (aErr) throw aErr;
+          for (const a of attendees ?? []) {
+            if (a.profiles && !seen.has(a.user_id)) {
+              seen.set(a.user_id, a.profiles as any);
+            }
+          }
+        }
       }
 
-      // 2. Pass holders in the school (may not be in any training)
+      // 3. Pass holders in the school (may not be in any training)
       const { data: passHolders, error: pErr } = await supabase
         .from('player_abonaments')
         .select('player_id, profiles:player_id(id, full_name, avatar_url, is_placeholder)')
