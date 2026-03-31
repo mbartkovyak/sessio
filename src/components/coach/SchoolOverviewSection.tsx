@@ -140,18 +140,18 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => navigate('/coach/stats')}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
           style={{ border: '1px solid hsl(203 20% 90%)' }}
         >
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <BarChart3 className="h-4 w-4 text-muted-foreground shrink-0" />
           {tc('home.viewStats')}
         </button>
         <button
           onClick={() => navigate('/coach/passes')}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
           style={{ border: '1px solid hsl(203 20% 90%)' }}
         >
-          <Ticket className="h-4 w-4 text-muted-foreground" />
+          <Ticket className="h-4 w-4 text-muted-foreground shrink-0" />
           {tc('abonaments.title')}
         </button>
       </div>
