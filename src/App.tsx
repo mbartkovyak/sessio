@@ -40,6 +40,8 @@ function RootLayout() {
   useVisualViewport();
   return (
     <>
+      {/* Persistent dark strip behind the fixed header — prevents light bg flash between route transitions */}
+      <div className="fixed inset-x-0 top-0 z-[9] h-24 header-gradient rounded-b-2xl" aria-hidden="true" />
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
