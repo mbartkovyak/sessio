@@ -65,12 +65,12 @@ export default function CoachStats() {
   }
 
   // Chart shows full trend (all data grouped by week/month)
-  const chartData = useMemo(() => groupStats(rawSessions, groupBy), [rawSessions, groupBy]);
+  // Chart also filtered to selected period
+  const periodSess = useMemo(() => filterByPeriod(rawSessions, groupBy, offset), [rawSessions, groupBy, offset]);
+  const chartData = useMemo(() => groupStats(periodSess, groupBy), [periodSess, groupBy]);
 
-  // Summary + breakdowns filtered to selected period
-  const periodSessions = useMemo(() => filterByPeriod(rawSessions, groupBy, offset), [rawSessions, groupBy, offset]);
-  const summary = useMemo(() => computeSummary(periodSessions), [periodSessions]);
-  const perTraining = useMemo(() => computePerTrainingStats(periodSessions), [periodSessions]);
+  const summary = useMemo(() => computeSummary(periodSess), [periodSess]);
+  const perTraining = useMemo(() => computePerTrainingStats(periodSess), [periodSess]);
   const currentPeriodLabel = useMemo(() => periodLabel(groupBy, offset), [groupBy, offset]);
 
   // For school owners: group per-training stats by coach
@@ -241,7 +241,12 @@ export default function CoachStats() {
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('stats.perTraining')}</h2>
                   <div className="space-y-2">
                     {perTraining.map(ts => (
-                      <div key={ts.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                      <button
+                        key={ts.id}
+                        onClick={() => navigate(`/coach/trainings/${ts.id}`)}
+                        className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm text-left active:scale-[0.98] transition-transform"
+                        style={{ border: '1px solid hsl(203 20% 90%)' }}
+                      >
                         <span className="text-lg shrink-0">{SPORT_ICONS[ts.sport] ?? '🎯'}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{ts.name}</p>
@@ -255,7 +260,8 @@ export default function CoachStats() {
                             <p className="text-[10px] text-amber-600">{ts.noShow} {t('stats.noShow').toLowerCase()}</p>
                           )}
                         </div>
-                      </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </button>
                     ))}
                   </div>
                 </section>
