@@ -86,13 +86,10 @@ export default function JoinTraining() {
     supabase
       .rpc('get_upcoming_sessions', { p_training_id: training.id, p_limit: 8 })
       .then(({ data }) => setUpcomingSessions(data ?? []));
-    // Fetch member count — same source as coach detail (training_members, role=regular)
+    // Fetch member count via RPC (RLS blocks cross-user reads on training_members)
     supabase
-      .from('training_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('training_id', training.id)
-      .eq('role', 'regular')
-      .then(({ count }) => setMemberCount(count ?? 0));
+      .rpc('get_training_member_count', { p_training_id: training.id })
+      .then(({ data }) => setMemberCount(data ?? 0));
   }, [training]);
 
   // Redirect non-players and non-onboarded users
