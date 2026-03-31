@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, UserPlus } from 'lucide-react';
+import { Plus, Trash2, UserPlus, X } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import {
   useAbonamentTypes,
@@ -8,7 +8,7 @@ import {
   useDeleteAbonamentType,
   useSchoolAbonaments,
   useAssignAbonament,
-  useSchoolAthletes,
+  useSearchPlayers,
   isAbonamentActive,
 } from '@/hooks/training/useAbonaments';
 
@@ -17,18 +17,20 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const [showForm, setShowForm] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
 
-  const { data: types = [] } = useAbonamentTypes(schoolId);
-  const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
-  const { data: athletes = [] } = useSchoolAthletes(schoolId, showAssign);
-  const createType = useCreateAbonamentType();
-  const deleteType = useDeleteAbonamentType();
-  const assign = useAssignAbonament();
+  const [playerSearch, setPlayerSearch] = useState('');
+  const [selectedPlayer, setSelectedPlayer] = useState<{ id: string; full_name: string | null; avatar_url: string | null } | null>(null);
+  const [assignTypeId, setAssignTypeId] = useState('');
   const [name, setName] = useState('');
   const [sessionsCount, setSessions] = useState('');
   const [durationDays, setDuration] = useState('');
   const [price, setPrice] = useState('');
-  const [assignTypeId, setAssignTypeId] = useState('');
-  const [assignPlayerId, setAssignPlayerId] = useState('');
+
+  const { data: types = [] } = useAbonamentTypes(schoolId);
+  const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
+  const { data: searchResults = [] } = useSearchPlayers(playerSearch, schoolId);
+  const createType = useCreateAbonamentType();
+  const deleteType = useDeleteAbonamentType();
+  const assign = useAssignAbonament();
 
   const active = playerAbonaments.filter((pa: any) => isAbonamentActive(pa));
   const inactive = playerAbonaments.filter((pa: any) => !isAbonamentActive(pa) && (pa.status === 'used_up' || pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())));
@@ -55,24 +57,28 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   }
 
   function handleAssign() {
-    if (!assignTypeId || !assignPlayerId) return;
+    if (!assignTypeId || !selectedPlayer) return;
     const type = types.find((t: any) => t.id === assignTypeId);
     if (!type) return;
     assign.mutate(
       {
         abonamentTypeId: assignTypeId,
         schoolId,
-        playerId: assignPlayerId,
+        playerId: selectedPlayer.id,
         sessionsCount: type.sessions_count,
         durationDays: type.duration_days,
       },
       {
         onSuccess: () => {
-          setAssignTypeId(''); setAssignPlayerId('');
+          setAssignTypeId(''); setSelectedPlayer(null); setPlayerSearch('');
           setShowAssign(false);
         },
       },
     );
+  }
+
+  function resetAssign() {
+    setShowAssign(false); setAssignTypeId(''); setSelectedPlayer(null); setPlayerSearch('');
   }
 
   function typeLabel(type: any) {
@@ -185,14 +191,48 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
       {showAssign && (
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2.5">
           <p className="text-xs font-semibold text-foreground">{t('abonaments.assign')}</p>
-          <select value={assignPlayerId} onChange={(e) => setAssignPlayerId(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
-            <option value="">{t('abonaments.selectPlayer')}</option>
-            {athletes.map((a: any) => (
-              <option key={a.id} value={a.id}>{a.full_name}</option>
-            ))}
-          </select>
-          {athletes.length === 0 && <p className="text-xs text-muted-foreground">{t('abonaments.noAthletes')}</p>}
+
+          {/* Player search */}
+          {selectedPlayer ? (
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+              <Avatar url={selectedPlayer.avatar_url} name={selectedPlayer.full_name} size="xs" />
+              <span className="flex-1 text-sm font-medium text-foreground truncate">{selectedPlayer.full_name}</span>
+              <button onClick={() => { setSelectedPlayer(null); setPlayerSearch(''); }} className="text-xs text-muted-foreground hover:text-destructive">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="text"
+                value={playerSearch}
+                onChange={(e) => setPlayerSearch(e.target.value)}
+                placeholder={t('detail.searchAthletes')}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                autoFocus
+              />
+              {playerSearch.length >= 2 && searchResults.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-10 rounded-lg border border-border bg-card shadow-lg max-h-48 overflow-y-auto">
+                  {searchResults.map((p: any) => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setSelectedPlayer(p); setPlayerSearch(''); }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-secondary/50 transition-colors"
+                    >
+                      <Avatar url={p.avatar_url} name={p.full_name} size="xs" />
+                      <span className="text-sm text-foreground truncate">{p.full_name}</span>
+                      {p.is_placeholder && <span className="text-[10px] text-muted-foreground shrink-0">{t('detail.offlineAthlete')}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {playerSearch.length >= 2 && searchResults.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">{t('detail.noAthletesFound')}</p>
+              )}
+            </div>
+          )}
+
+          {/* Pass type */}
           <select value={assignTypeId} onChange={(e) => setAssignTypeId(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
             <option value="">{t('abonaments.selectType')}</option>
@@ -200,12 +240,13 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
               <option key={type.id} value={type.id}>{type.name} ({typeLabel(type)})</option>
             ))}
           </select>
+
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => { setShowAssign(false); setAssignTypeId(''); setAssignPlayerId(''); }}
+            <button onClick={resetAssign}
               className="rounded-lg border border-border py-2 text-sm font-medium text-foreground min-h-[36px]">
               {t('common:actions.cancel')}
             </button>
-            <button onClick={handleAssign} disabled={!assignTypeId || !assignPlayerId || assign.isPending}
+            <button onClick={handleAssign} disabled={!assignTypeId || !selectedPlayer || assign.isPending}
               className="rounded-lg bg-primary py-2 text-sm font-bold text-primary-foreground min-h-[36px] disabled:opacity-50">
               {t('abonaments.assign')}
             </button>

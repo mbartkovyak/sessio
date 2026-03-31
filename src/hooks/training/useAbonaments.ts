@@ -163,7 +163,29 @@ export function useMyAbonaments() {
   });
 }
 
-// ── School athletes (for assign picker) ──
+// ── Player search (for assign picker) ──
+
+/** Search players by name. Returns school athletes first, then other users. */
+export function useSearchPlayers(query: string, schoolId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['search-players', query, schoolId],
+    enabled: !!schoolId && query.length >= 2,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      // Search profiles by name (players only, or placeholders belonging to this school)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, is_placeholder, school_id')
+        .or(`role.eq.player,and(is_placeholder.eq.true,school_id.eq.${schoolId})`)
+        .ilike('full_name', `%${query}%`)
+        .limit(15);
+      if (error) throw error;
+      return (data ?? []) as { id: string; full_name: string | null; avatar_url: string | null; is_placeholder?: boolean }[];
+    },
+  });
+}
+
+// ── School athletes (for assign picker — fallback) ──
 
 export function useSchoolAthletes(schoolId: string | undefined | null, enabled = true) {
   return useQuery({
@@ -183,7 +205,7 @@ export function useSchoolAthletes(schoolId: string | undefined | null, enabled =
 
       const { data: members, error: mErr } = await supabase
         .from('training_members')
-        .select('user_id, profiles:user_id(id, full_name, avatar_url)')
+        .select('user_id, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
         .in('training_id', trainingIds)
         .eq('role', 'regular');
       if (mErr) throw mErr;
