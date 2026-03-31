@@ -14,15 +14,15 @@ import {
 
 export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const { t } = useTranslation('coach');
+  const [showForm, setShowForm] = useState(false);
+  const [showAssign, setShowAssign] = useState(false);
+
   const { data: types = [] } = useAbonamentTypes(schoolId);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
-  const { data: athletes = [] } = useSchoolAthletes(schoolId);
+  const { data: athletes = [] } = useSchoolAthletes(schoolId, showAssign);
   const createType = useCreateAbonamentType();
   const deleteType = useDeleteAbonamentType();
   const assign = useAssignAbonament();
-
-  const [showForm, setShowForm] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
   const [name, setName] = useState('');
   const [sessionsCount, setSessions] = useState('');
   const [durationDays, setDuration] = useState('');

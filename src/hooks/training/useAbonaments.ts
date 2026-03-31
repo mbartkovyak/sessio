@@ -42,6 +42,7 @@ export function useAbonamentTypes(schoolId: string | undefined | null) {
   return useQuery({
     queryKey: ['abonament-types', schoolId],
     enabled: !!schoolId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('abonament_types')
@@ -106,6 +107,7 @@ export function useSchoolAbonaments(schoolId: string | undefined | null) {
   return useQuery({
     queryKey: ['school-abonaments', schoolId],
     enabled: !!schoolId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
@@ -124,6 +126,7 @@ export function useMySchoolAbonament(schoolId: string | undefined | null) {
   return useQuery({
     queryKey: ['my-school-abonament', schoolId, user?.id],
     enabled: !!schoolId && !!user,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
@@ -146,6 +149,7 @@ export function useMyAbonaments() {
   return useQuery({
     queryKey: ['my-abonaments', user?.id],
     enabled: !!user,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
@@ -161,10 +165,11 @@ export function useMyAbonaments() {
 
 // ── School athletes (for assign picker) ──
 
-export function useSchoolAthletes(schoolId: string | undefined | null) {
+export function useSchoolAthletes(schoolId: string | undefined | null, enabled = true) {
   return useQuery({
     queryKey: ['school-athletes', schoolId],
-    enabled: !!schoolId,
+    enabled: !!schoolId && enabled,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       // Get all training IDs for this school
       const { data: trainings, error: tErr } = await supabase
@@ -200,6 +205,7 @@ export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId
   return useQuery({
     queryKey: ['player-abonament-history', playerId, schoolId],
     enabled: !!playerId && !!schoolId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       // Fetch all abonaments for this player in this school
       const { data: abonaments, error: aErr } = await supabase
@@ -380,6 +386,7 @@ export function useSessionAbonamentUsage(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['abonament-usage-session', sessionId],
     enabled: !!sessionId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('abonament_usage')
