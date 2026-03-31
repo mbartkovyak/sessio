@@ -107,7 +107,17 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97]"
+          >
+            <Plus className="h-3.5 w-3.5" /> {t('abonaments.addType')}
+          </button>
+        )}
+      </div>
 
       {/* Add type form */}
       {showForm && (
@@ -172,16 +182,6 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
           ))}
         </div>
       ) : null}
-
-      {/* Add pass type button */}
-      {!showForm && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground min-h-[44px] transition-all active:scale-[0.97]"
-        >
-          <Plus className="h-4 w-4" /> {t('abonaments.addType')}
-        </button>
-      )}
 
       {/* Assign pass button */}
       {types.length > 0 && !showAssign && (
