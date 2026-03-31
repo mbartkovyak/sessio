@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -36,22 +36,6 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
 
   const coaches = fullSchool?.school_members ?? [];
   const pendingCoaches = fullSchool?.pending_members ?? [];
-
-  // Total unique athletes across all school trainings
-  const trainingIds = trainings.map((tr: any) => tr.id);
-  const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
-    queryKey: ['school-total-athletes', trainingIds],
-    enabled: trainingIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('training_members')
-        .select('user_id')
-        .in('training_id', trainingIds)
-        .eq('role', 'regular');
-      if (error) throw error;
-      return new Set(data?.map(m => m.user_id)).size;
-    },
-  });
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -114,8 +98,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
     toast.success(tc('home.sessionRescheduled'));
   }
 
-  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading
-    || (trainingIds.length > 0 && athletesPending);
+  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading;
 
   if (isLoading) {
     return (
@@ -141,40 +124,25 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />
 
-      {/* Quick stats — same as coach */}
+      {/* Stats + Passes buttons */}
       <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: tc('home.athletes'), value: totalAthletes, style: 'accent' as const },
-          { label: tc('home.lessons'), value: trainings.length, style: 'primary' as const },
-        ].map(({ label, value, style }) => (
-          <div key={label} className={`rounded-2xl p-4 text-center shadow-md ${
-            style === 'accent' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'
-          }`}>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className="text-xs mt-1 font-medium opacity-80">{label}</div>
-          </div>
-        ))}
+        <button
+          onClick={() => navigate('/coach/stats')}
+          className="flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+          style={{ border: '1px solid hsl(203 20% 90%)' }}
+        >
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          {tc('home.viewStats')}
+        </button>
+        <button
+          onClick={() => navigate('/coach/passes')}
+          className="flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+          style={{ border: '1px solid hsl(203 20% 90%)' }}
+        >
+          <Ticket className="h-4 w-4 text-muted-foreground" />
+          {tc('abonaments.title')}
+        </button>
       </div>
-
-      {/* Stats button */}
-      <button
-        onClick={() => navigate('/coach/stats')}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <BarChart3 className="h-4 w-4 text-muted-foreground" />
-        {tc('home.viewStats')}
-      </button>
-
-      {/* Passes button */}
-      <button
-        onClick={() => navigate('/coach/passes')}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <Ticket className="h-4 w-4 text-muted-foreground" />
-        {tc('abonaments.title')}
-      </button>
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (

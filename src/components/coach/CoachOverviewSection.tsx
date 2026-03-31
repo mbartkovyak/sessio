@@ -10,7 +10,7 @@ import AttendanceBanner from '@/components/coach/AttendanceBanner';
 import Avatar from '@/components/shared/Avatar';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { sportLabel, sportLabels } from '@/lib/constants';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -31,20 +31,6 @@ export default function CoachOverviewSection() {
   const sessionIds = (upcomingSessions ?? []).filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
   const { data: attendanceSummary = {} } = useAttendanceSummary(sessionIds);
   const qc = useQueryClient();
-  const trainingIds = trainings.map((tr: any) => tr.id);
-  const { data: totalAthletes = 0, isPending: athletesPending } = useQuery({
-    queryKey: ['coach-total-athletes', trainingIds],
-    enabled: trainingIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('training_members')
-        .select('user_id')
-        .in('training_id', trainingIds)
-        .eq('role', 'regular');
-      if (error) throw error;
-      return new Set(data?.map(m => m.user_id)).size;
-    },
-  });
 
   async function handleCancelSession(session: UpcomingSession) {
     const training = session.trainings;
@@ -105,11 +91,7 @@ export default function CoachOverviewSection() {
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  // athletesPending (not isLoading) because the query starts disabled — isLoading would be
-  // false in the gap between trainings loading and athletes query starting, flashing 0s.
-  // Guard with trainingIds.length so coaches with 0 trainings don't spin forever.
-  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading
-    || (trainingIds.length > 0 && athletesPending);
+  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading;
 
   if (isLoading) {
     return (
@@ -148,21 +130,6 @@ export default function CoachOverviewSection() {
           </div>
         </div>
       )}
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: t('home.athletes'), value: totalAthletes, style: 'accent' as const },
-          { label: t('home.lessons'), value: trainings.length, style: 'primary' as const },
-        ].map(({ label, value, style }) => (
-          <div key={label} className={`rounded-2xl p-4 text-center shadow-md ${
-            style === 'accent' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'
-          }`}>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className="text-xs mt-1 font-medium opacity-80">{label}</div>
-          </div>
-        ))}
-      </div>
 
       {/* Stats + Passes buttons */}
       <div className="grid grid-cols-2 gap-3">
