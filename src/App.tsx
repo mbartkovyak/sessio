@@ -50,7 +50,7 @@ function RootLayout() {
         <AuthProvider>
           <PushRegistrar />
           <PrefetchRoutes />
-          <Outlet />
+          <div className="relative z-[9]"><Outlet /></div>
         </AuthProvider>
       </ErrorBoundary>
     </>

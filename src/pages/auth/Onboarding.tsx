@@ -204,7 +204,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <PageHeader className="px-6 py-4">
+      <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3 text-white">
           {showBack && (
             <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">

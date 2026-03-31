@@ -25,7 +25,7 @@ export default function CoachHome() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <PageHeader className="px-4 py-4">
+      <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
         </div>
