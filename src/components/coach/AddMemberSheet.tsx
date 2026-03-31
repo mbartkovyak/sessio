@@ -36,7 +36,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl max-h-[75dvh] flex flex-col animate-in slide-in-from-bottom duration-200">
+      <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl max-h-[75dvh] min-h-[40dvh] flex flex-col animate-in slide-in-from-bottom duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <h3 className="font-semibold text-foreground text-sm">{t('detail.addMemberTitle')}</h3>
