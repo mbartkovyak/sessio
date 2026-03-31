@@ -1,10 +1,11 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight, UserPlus } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight, ChevronDown, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary, useMyAthletes, useAddTrainingMember, useCreatePlaceholderAthlete } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary, useAddTrainingMember } from '@/hooks/training/useTrainings';
+import { useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -20,7 +21,8 @@ import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
-import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
+import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
+import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import PageHeader from '@/components/shared/PageHeader';
 import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -45,9 +47,8 @@ export default function TrainingDetail() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [removingMember, setRemovingMember] = useState<{ id: string; userId: string; name: string } | null>(null);
   const [removeMessage, setRemoveMessage] = useState('');
-  const { data: allAthletes = [] } = useMyAthletes(user?.id);
+  const { data: athletePool = [] } = useSchoolAthletesWithPassHolders(training?.school_id);
   const addMember = useAddTrainingMember(id!);
-  const createPlaceholder = useCreatePlaceholderAthlete(id!);
 
   // All hooks must be called before any early return to avoid "Rendered more hooks" error
   const today = new Date().toISOString().split('T')[0];
@@ -420,28 +421,13 @@ export default function TrainingDetail() {
       <AddMemberSheet
         open={showAddMember}
         onClose={() => setShowAddMember(false)}
-        athletes={allAthletes}
+        athletes={athletePool}
         existingMemberIds={new Set(members.map((m: any) => m.user_id))}
-        onAddExisting={(athlete) => {
+        onAdd={(athlete) => {
           addMember.mutate({ userId: athlete.id, trainingName: training.name });
           setShowAddMember(false);
         }}
-        onAddManual={(data) => {
-          if (!training.school_id) {
-            toast.error(t('detail.noSchoolForPlaceholder'));
-            return;
-          }
-          createPlaceholder.mutate({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            schoolId: training.school_id,
-            phone: data.phone,
-            email: data.email,
-            trainingName: training.name,
-          });
-          setShowAddMember(false);
-        }}
-        adding={addMember.isPending || createPlaceholder.isPending}
+        adding={addMember.isPending}
       />
     </div>
   );
@@ -451,8 +437,46 @@ export default function TrainingDetail() {
 
 function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
   const { t } = useTranslation('coach');
+  const navigate = useNavigate();
   const qc = useQueryClient();
+  const { profile, refreshProfile } = useAuth();
   const update = useUpdateTraining(training.id);
+
+  // School context — mirrors CreateTraining
+  const { data: school } = useMySchool();
+  const { data: schoolMembership } = useMySchoolMembership();
+  const isSchoolOwner = profile?.role === 'school_owner';
+  const isSchoolMember = !isSchoolOwner && !!schoolMembership;
+  const schoolCoaches = (school as any)?.school_members ?? [];
+  const [selectedCoachId, setSelectedCoachId] = useState<string>(training.coach_id ?? '');
+
+  // Venues — same logic as CreateTraining
+  const sourceVenues: VenueOption[] = isSchoolOwner
+    ? ((school as any)?.venues ?? [])
+    : isSchoolMember
+      ? ((schoolMembership?.schools as any)?.venues ?? [])
+      : ((profile as any)?.venues ?? []);
+  const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
+
+  useEffect(() => {
+    if (sourceVenues.length > 0) setLocalVenues(sourceVenues);
+  }, [sourceVenues.length]);
+
+  async function handleNewCoachVenue(venue: VenueOption) {
+    if (!profile) return;
+    setLocalVenues(prev => [...prev, venue]);
+    const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
+    await supabase.from('profiles').update({ venues: [...currentVenues, venue] }).eq('id', profile.id);
+    refreshProfile();
+  }
+
+  async function handleNewSchoolVenue(venue: VenueOption) {
+    if (!school) return;
+    setLocalVenues(prev => [...prev, venue]);
+    const currentVenues = ((school as any).venues ?? []) as VenueOption[];
+    await supabase.from('schools').update({ venues: [...currentVenues, venue] }).eq('id', school.id);
+    qc.invalidateQueries({ queryKey: ['my-school'] });
+  }
 
   const initialValues: Partial<TrainingFormValues> = training ? {
     name: training.name ?? '',
@@ -478,7 +502,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     const oldEnd = training.end_time?.slice(0, 5);
     const oldDays = JSON.stringify(training.days_of_week ?? [training.day_of_week ?? 0]);
 
-    await update.mutateAsync({
+    const payload: Record<string, any> = {
       name: form.name, sport: form.sport, venue: form.venue,
       type: form.type,
       day_of_week: form.days_of_week[0], days_of_week: form.days_of_week,
@@ -487,7 +511,12 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       booking_mode: form.booking_mode, drop_in_policy: form.drop_in_policy, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
       day_schedules: form.day_schedules || null,
-    });
+    };
+    // Update coach if changed (school owner only)
+    if (isSchoolOwner && selectedCoachId && selectedCoachId !== training.coach_id) {
+      payload.coach_id = selectedCoachId;
+    }
+    await update.mutateAsync(payload);
 
     // Notify members if schedule changed
     const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
@@ -529,6 +558,38 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     onClose();
   }
 
+  // Coach selector — school owner can reassign coach
+  const schoolSlot = isSchoolOwner && school ? (
+    <div>
+      <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')}</label>
+      {schoolCoaches.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+          <p className="text-sm text-muted-foreground">{t('create.noCoaches')}</p>
+          <button type="button" onClick={() => navigate('/school/profile')}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+            <UserPlus className="h-4 w-4" /> {t('create.addCoaches')}
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <select
+            value={selectedCoachId}
+            onChange={e => setSelectedCoachId(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+          >
+            <option value="">{t('create.selectCoach')}</option>
+            {schoolCoaches.map((m: any) => (
+              <option key={m.coach_id} value={m.coach_id}>
+                {m.coach?.full_name ?? t('create.coachLabel')}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
+    </div>
+  ) : undefined;
+
   return (
     <div className="max-w-md mx-auto px-4 py-5">
       <TrainingForm
@@ -537,6 +598,9 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         onSubmit={handleSave}
         submitting={update.isPending}
         onCancel={onClose}
+        schoolSlot={schoolSlot}
+        venueOptions={localVenues}
+        onNewVenue={isSchoolOwner ? handleNewSchoolVenue : handleNewCoachVenue}
       />
     </div>
   );
