@@ -1,10 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MessageCircle, LogOut, Users, Ticket } from 'lucide-react';
 import CoachCard from '@/components/shared/CoachCard';
 import { useTraining, useTrainingMembers, useLeaveTraining } from '@/hooks/training/useTrainings';
 import { useMySchoolAbonament, isAbonamentActive } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { SPORT_ICONS, DAYS_SHORT, dayShortLabel, sportLabel } from '@/lib/constants';
 import AppHeader from '@/components/shared/AppHeader';
 import VenueLink from '@/components/shared/VenueLink';
@@ -23,6 +25,13 @@ export default function PlayerTrainingDetail() {
   const { data: myAbonament } = useMySchoolAbonament(training?.school_id);
 
   const isMember = members.some((m: any) => (m.user_id ?? m.profiles?.id) === user?.id);
+
+  // Fetch real member count via RPC (RLS blocks cross-user reads)
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    supabase.rpc('get_training_member_count', { p_training_id: id }).then(({ data }) => setMemberCount(data ?? 0));
+  }, [id]);
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><SessioLoader /></div>;
   if (!training) return (
@@ -78,7 +87,7 @@ export default function PlayerTrainingDetail() {
               {training.type === 'group' && (
                 <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                   <Users className="h-4 w-4 shrink-0" />
-                  <span>{regularCount}{training.max_players ? `/${training.max_players}` : ''} {t('trainingDetail.participants')}</span>
+                  <span>{memberCount ?? 0}{training.max_players ? `/${training.max_players}` : ''} {t('trainingDetail.participants')}</span>
                 </div>
               )}
             </div>
