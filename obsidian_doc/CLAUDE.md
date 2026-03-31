@@ -132,6 +132,20 @@ Every change must be verified before `git push`. We've broken production multipl
 4. **For DB migrations** — verify the SQL is correct, check that triggers/backfills will actually work with existing data.
 5. **Don't push and hope** — if you're not confident it works, say so and ask to test first.
 
+### Performance — MANDATORY
+
+These rules exist because we've been burned by auth state changes tearing down the entire component tree and killing realtime subscriptions. **Never skip these.**
+
+1. **Never set auth `loading = true` for background operations.** Only for initial load and `SIGNED_IN`. Token refresh, profile updates, user updates → silent background fetch. Setting `loading = true` unmounts the entire page tree via `ProtectedRoute`, destroying all realtime subscriptions and component state.
+
+2. **Realtime subscriptions must stay alive.** Never write code that unmounts components with active subscriptions as a side effect. If a parent re-renders or a context value changes, subscriptions in child hooks get destroyed and take seconds to reconnect — missed events during that window.
+
+3. **Keep debounce/throttle under 500ms for user-facing updates.** Message delivery, unread counts, conversation list updates — these must feel instant. Use 300ms max for debouncing realtime event handlers.
+
+4. **Prefer background refetches over loading states.** When data is already cached, never replace it with a spinner during refetch. Use `placeholderData`, `keepPreviousData`, or check `isFetching` instead of `isPending` when showing loading UI. Content should stay visible while refreshing.
+
+5. **Don't invalidate all queries blindly.** `queryClient.invalidateQueries()` with no filter fires every query. Use targeted invalidation with specific query keys. The global invalidation in `RefreshOnResume` is the ONE exception (for app resume after long background).
+
 ### General
 
 - **No silent failures.** Every Supabase call handles errors — toast or message, never swallow.
