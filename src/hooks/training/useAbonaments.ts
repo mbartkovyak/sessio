@@ -165,20 +165,18 @@ export function useMyAbonaments() {
 
 // ── Player search (for assign picker) ──
 
-/** Search players by name. Returns school athletes first, then other users. */
+/** Search players by name across all profiles. */
 export function useSearchPlayers(query: string, schoolId: string | undefined | null) {
   return useQuery({
     queryKey: ['search-players', query, schoolId],
     enabled: !!schoolId && query.length >= 2,
     staleTime: 30 * 1000,
     queryFn: async () => {
-      // Search profiles by name (players only, or placeholders belonging to this school)
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, is_placeholder, school_id')
-        .or(`role.eq.player,and(is_placeholder.eq.true,school_id.eq.${schoolId})`)
+        .select('id, full_name, avatar_url, is_placeholder')
         .ilike('full_name', `%${query}%`)
-        .limit(15);
+        .limit(20);
       if (error) throw error;
       return (data ?? []) as { id: string; full_name: string | null; avatar_url: string | null; is_placeholder?: boolean }[];
     },
