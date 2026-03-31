@@ -34,7 +34,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden touch-none">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl max-h-[75dvh] min-h-[40dvh] flex flex-col animate-in slide-in-from-bottom duration-200">
         {/* Header */}
@@ -61,7 +61,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto px-4 py-2">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-2">
           {filtered.length === 0 && available.length === 0 && !search.trim() ? (
             <p className="py-6 text-center text-sm text-muted-foreground">{t('detail.noAthletesToAdd')}</p>
           ) : filtered.length === 0 ? (
