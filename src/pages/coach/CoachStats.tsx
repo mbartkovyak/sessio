@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, addMonths, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
@@ -12,29 +13,29 @@ import { SessioLoader } from '@/components/SessioLogo';
 import { SPORT_ICONS } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
-function filterByPeriod(sessions: StatsSession[], groupBy: 'week' | 'month'): StatsSession[] {
-  const now = new Date();
-  const start = groupBy === 'week'
-    ? startOfWeek(now, { weekStartsOn: 1 })
-    : startOfMonth(now);
-  const end = groupBy === 'week'
-    ? endOfWeek(now, { weekStartsOn: 1 })
-    : endOfMonth(now);
+/** Get the start/end of the period at a given offset from today. offset=0 is current, -1 is previous, etc. */
+function getPeriodBounds(groupBy: 'week' | 'month', offset: number) {
+  const base = groupBy === 'week' ? addWeeks(new Date(), offset) : addMonths(new Date(), offset);
+  const start = groupBy === 'week' ? startOfWeek(base, { weekStartsOn: 1 }) : startOfMonth(base);
+  const end = groupBy === 'week' ? endOfWeek(base, { weekStartsOn: 1 }) : endOfMonth(base);
+  return { start, end };
+}
+
+function filterByPeriod(sessions: StatsSession[], groupBy: 'week' | 'month', offset: number): StatsSession[] {
+  const { start, end } = getPeriodBounds(groupBy, offset);
   return sessions.filter(s => {
     const d = parseISO(s.session_date);
     return d >= start && d <= end;
   });
 }
 
-function periodLabel(groupBy: 'week' | 'month'): string {
+function periodLabel(groupBy: 'week' | 'month', offset: number): string {
   const locale = getDateLocale();
-  const now = new Date();
+  const { start, end } = getPeriodBounds(groupBy, offset);
   if (groupBy === 'week') {
-    const start = startOfWeek(now, { weekStartsOn: 1 });
-    const end = endOfWeek(now, { weekStartsOn: 1 });
     return `${format(start, 'd MMM', { locale })} – ${format(end, 'd MMM', { locale })}`;
   }
-  return format(now, 'MMMM yyyy', { locale });
+  return format(start, 'MMMM yyyy', { locale });
 }
 
 export default function CoachStats() {
@@ -53,15 +54,22 @@ export default function CoachStats() {
 
   const { data: rawSessions = [], isLoading } = useStatsData(trainingIds);
   const [groupBy, setGroupBy] = useState<'week' | 'month'>('week');
+  const [offset, setOffset] = useState(0);
+
+  // Reset offset when switching view
+  function switchGroupBy(g: 'week' | 'month') {
+    setGroupBy(g);
+    setOffset(0);
+  }
 
   // Chart shows full trend (all data grouped by week/month)
   const chartData = useMemo(() => groupStats(rawSessions, groupBy), [rawSessions, groupBy]);
 
-  // Summary + breakdowns filtered to current period
-  const periodSessions = useMemo(() => filterByPeriod(rawSessions, groupBy), [rawSessions, groupBy]);
+  // Summary + breakdowns filtered to selected period
+  const periodSessions = useMemo(() => filterByPeriod(rawSessions, groupBy, offset), [rawSessions, groupBy, offset]);
   const summary = useMemo(() => computeSummary(periodSessions), [periodSessions]);
   const perTraining = useMemo(() => computePerTrainingStats(periodSessions), [periodSessions]);
-  const currentPeriodLabel = useMemo(() => periodLabel(groupBy), [groupBy]);
+  const currentPeriodLabel = useMemo(() => periodLabel(groupBy, offset), [groupBy, offset]);
 
   // For school owners: group per-training stats by coach
   const coachNames = useMemo(() => {
@@ -99,24 +107,42 @@ export default function CoachStats() {
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
-          {/* Week / Month toggle */}
-          <div className="flex rounded-xl bg-white p-1 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-            <button
-              onClick={() => setGroupBy('week')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                groupBy === 'week' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
-              {t('stats.week')}
-            </button>
-            <button
-              onClick={() => setGroupBy('month')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                groupBy === 'month' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
-              {t('stats.month')}
-            </button>
+          {/* Week / Month toggle + period navigation */}
+          <div className="space-y-2">
+            <div className="flex rounded-xl bg-white p-1 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+              <button
+                onClick={() => switchGroupBy('week')}
+                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
+                  groupBy === 'week' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
+              >
+                {t('stats.week')}
+              </button>
+              <button
+                onClick={() => switchGroupBy('month')}
+                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
+                  groupBy === 'month' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
+              >
+                {t('stats.month')}
+              </button>
+            </div>
+            <div className="flex items-center justify-between px-2">
+              <button
+                onClick={() => setOffset(o => o - 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary active:scale-[0.9] transition-transform"
+              >
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+              </button>
+              <span className="text-sm font-medium text-foreground">{currentPeriodLabel}</span>
+              <button
+                onClick={() => setOffset(o => o + 1)}
+                disabled={offset >= 0}
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary active:scale-[0.9] transition-transform disabled:opacity-20"
+              >
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -129,9 +155,29 @@ export default function CoachStats() {
             </div>
           ) : (
             <>
+              {/* Summary numbers — filtered to selected period */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-foreground">{summary.attendanceRate}%</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.attendanceRate')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-foreground">{summary.totalSessions}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.totalSessions')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-success">{summary.totalConfirmed}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.confirmed')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-amber-600">{summary.totalNoShow}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.noShow')}</div>
+                </div>
+              </div>
+
               {/* Bar chart — full trend */}
               <div className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chartData} barGap={2}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 90%)" />
                     <XAxis
@@ -153,29 +199,6 @@ export default function CoachStats() {
                     <Bar dataKey="declined" name={t('stats.declined')} fill="hsl(0, 72%, 50%)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-
-              {/* Period label */}
-              <p className="text-xs font-medium text-muted-foreground text-center">{currentPeriodLabel}</p>
-
-              {/* Summary numbers — filtered to current period */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-foreground">{summary.attendanceRate}%</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.attendanceRate')}</div>
-                </div>
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-foreground">{summary.totalSessions}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.totalSessions')}</div>
-                </div>
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-success">{summary.totalConfirmed}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.confirmed')}</div>
-                </div>
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-amber-600">{summary.totalNoShow}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.noShow')}</div>
-                </div>
               </div>
 
               {/* Per-coach breakdown (school owners only) — filtered */}
