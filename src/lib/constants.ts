@@ -3,6 +3,18 @@ export const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Foot
 export const COUNTRIES = ['US', 'Poland', 'Ukraine'] as const;
 export type Country = typeof COUNTRIES[number];
 
+export const COUNTRY_CURRENCY: Record<Country, string> = {
+  US: 'USD',
+  Poland: 'PLN',
+  Ukraine: 'UAH',
+};
+
+/** Get currency code for a country. Returns empty string if unknown. */
+export function currencyForCountry(country: string | null | undefined): string {
+  if (!country) return '';
+  return COUNTRY_CURRENCY[country as Country] ?? '';
+}
+
 export const CITIES_BY_COUNTRY: Record<Country, readonly string[]> = {
   US: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'Austin', 'Jacksonville', 'San Jose', 'Fort Worth', 'Columbus', 'Charlotte', 'Indianapolis', 'San Francisco', 'Seattle', 'Denver', 'Nashville', 'Washington DC', 'Oklahoma City', 'Boston', 'Portland', 'Miami'],
   Poland: ['Warszawa', 'Kraków', 'Wrocław', 'Poznań', 'Gdańsk', 'Łódź', 'Katowice', 'Lublin', 'Białystok', 'Szczecin', 'Rzeszów', 'Toruń', 'Bydgoszcz', 'Częstochowa', 'Radom', 'Sosnowiec', 'Kielce', 'Gliwice', 'Olsztyn', 'Bielsko-Biała', 'Gdynia', 'Opole', 'Zielona Góra', 'Tychy', 'Gorzów Wielkopolski'],

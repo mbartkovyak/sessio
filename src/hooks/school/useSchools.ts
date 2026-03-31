@@ -13,7 +13,7 @@ type SchoolWithMembers = Tables<'schools'> & {
   pending_members?: SchoolMemberWithCoach[];
 };
 
-type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'city' | 'logo_url' | 'venues'>;
+type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
 
 type TrainingWithCoach = Tables<'trainings'> & { coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
@@ -64,7 +64,7 @@ export function useMySchoolMembership() {
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members')
-        .select('id, school_id, status, schools:school_id(id, name, sport, city, logo_url, venues)')
+        .select('id, school_id, status, schools:school_id(id, name, sport, country, city, logo_url, venues)')
         .eq('coach_id', user!.id)
         .eq('status', 'approved')
         .maybeSingle();

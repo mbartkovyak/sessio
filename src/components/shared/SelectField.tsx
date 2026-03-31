@@ -9,6 +9,7 @@ export default function SelectField({
   placeholder,
   labels,
   required,
+  disabled,
 }: {
   label?: string;
   value: string;
@@ -17,6 +18,7 @@ export default function SelectField({
   placeholder?: string;
   labels?: Record<string, string>;
   required?: boolean;
+  disabled?: boolean;
 }) {
   const { t } = useTranslation('common');
   const displayPlaceholder = placeholder ?? t('form.select');
@@ -28,7 +30,8 @@ export default function SelectField({
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          disabled={disabled}
+          className={`w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring${disabled ? ' opacity-60 cursor-not-allowed' : ''}`}
         >
           {(!required || !value) && <option value="">{displayPlaceholder}</option>}
           {options.map(o => <option key={o} value={o}>{labels?.[o] ?? o}</option>)}

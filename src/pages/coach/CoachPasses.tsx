@@ -27,7 +27,7 @@ export default function CoachPasses() {
               <SessioLoader />
             </div>
           ) : schoolId ? (
-            <AbonamentSection schoolId={schoolId} />
+            <AbonamentSection schoolId={schoolId} schoolCountry={school?.country ?? membership?.schools?.country} />
           ) : (
             <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
               <p className="text-sm text-muted-foreground">{t('abonaments.noSchool')}</p>

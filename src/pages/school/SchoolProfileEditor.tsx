@@ -110,7 +110,7 @@ export default function SchoolProfileEditor() {
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.schoolName')}</label>
             <input className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={e => setName(e.target.value)} />
           </div>
-          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
+          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!school?.country} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('common:form.sport')}</label>

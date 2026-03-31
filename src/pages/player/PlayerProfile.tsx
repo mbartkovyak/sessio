@@ -93,7 +93,7 @@ export default function PlayerProfile() {
           </div>
 
           <PhoneInput value={phone} onChange={setPhone} />
-          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
+          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!profile?.country} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
           <LanguageSelector />
 
