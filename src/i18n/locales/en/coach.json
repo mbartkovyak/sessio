@@ -124,7 +124,6 @@
     "statusLateCancelled": "Late cancel",
     "statusNoShow": "No-show",
     "statusDeclined": "Declined",
-    "statusPending": "Pending",
     "noAttendance": "No athletes in this session",
     "addMember": "Add",
     "addMemberTitle": "Add participant",

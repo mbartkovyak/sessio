@@ -384,7 +384,7 @@ export function useSessionAttendance(sessionId: string | undefined) {
   });
 }
 
-export type AttendanceSummary = { confirmed: number; declined: number; pending: number; total: number };
+export type AttendanceSummary = { confirmed: number; declined: number; total: number };
 
 export function useAttendanceSummary(sessionIds: string[]) {
   return useQuery({
@@ -398,11 +398,10 @@ export function useAttendanceSummary(sessionIds: string[]) {
       if (error) throw error;
       const summary: Record<string, AttendanceSummary> = {};
       for (const row of data ?? []) {
-        if (!summary[row.session_id]) summary[row.session_id] = { confirmed: 0, declined: 0, pending: 0, total: 0 };
+        if (!summary[row.session_id]) summary[row.session_id] = { confirmed: 0, declined: 0, total: 0 };
         summary[row.session_id].total++;
         if (row.status === 'confirmed') summary[row.session_id].confirmed++;
         else if (row.status === 'declined') summary[row.session_id].declined++;
-        else summary[row.session_id].pending++;
       }
       return summary;
     },

@@ -81,7 +81,7 @@ export default function SessionDetail() {
   const memberUserIds = new Set(members.map((m: any) => m.user_id));
 
   // Attendance: split into signed-up vs not-coming
-  const signedUp = attendance.filter(a => a.status === 'confirmed' || a.status === 'pending');
+  const signedUp = attendance.filter(a => a.status === 'confirmed');
   const notComing = attendance.filter(a => a.status === 'declined' || a.status === 'no_show');
 
   // Abonament lookups
