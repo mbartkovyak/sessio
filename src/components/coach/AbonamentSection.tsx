@@ -107,21 +107,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
-        <div className="flex items-center gap-2">
-          {types.length > 0 && !showAssign && (
-            <button onClick={() => setShowAssign(true)} className="flex items-center gap-1 text-xs font-medium text-primary">
-              <UserPlus className="h-3.5 w-3.5" /> {t('abonaments.assign')}
-            </button>
-          )}
-          {!showForm && (
-            <button onClick={() => setShowForm(true)} className="flex items-center gap-1 text-xs font-medium text-primary">
-              <Plus className="h-3.5 w-3.5" /> {t('abonaments.addType')}
-            </button>
-          )}
-        </div>
-      </div>
+      <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
 
       {/* Add type form */}
       {showForm && (
@@ -186,6 +172,26 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
           ))}
         </div>
       ) : null}
+
+      {/* Action buttons */}
+      {!showForm && !showAssign && (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+          >
+            <Plus className="h-4 w-4" /> {t('abonaments.addType')}
+          </button>
+          {types.length > 0 && (
+            <button
+              onClick={() => setShowAssign(true)}
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+            >
+              <UserPlus className="h-4 w-4" /> {t('abonaments.assign')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Assign pass form */}
       {showAssign && (
