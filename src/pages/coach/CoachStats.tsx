@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, addMonths, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
 import { useStatsData, groupStats, computeSummary, computePerTrainingStats, type StatsSession } from '@/hooks/training/useStatsData';
-import CoachHeader from '@/components/coach/CoachHeader';
+import PageHeader from '@/components/shared/PageHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { SessioLoader } from '@/components/SessioLogo';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -40,6 +41,7 @@ function periodLabel(groupBy: 'week' | 'month', offset: number): string {
 
 export default function CoachStats() {
   const { t } = useTranslation('coach');
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
@@ -103,47 +105,56 @@ export default function CoachStats() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title={t('stats.title')} back />
+      <PageHeader className="px-4 py-3">
+        <div className="max-w-md mx-auto space-y-2">
+          {/* Title row with back button */}
+          <div className="flex items-center">
+            <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/coach')} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0 absolute left-4">
+              <ArrowLeft className="h-4.5 w-4.5" />
+            </button>
+            <h1 className="flex-1 text-center text-base font-bold text-white">{t('stats.title')}</h1>
+          </div>
+          {/* Week / Month toggle */}
+          <div className="flex rounded-lg bg-white/15 p-0.5">
+            <button
+              onClick={() => switchGroupBy('week')}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                groupBy === 'week' ? 'bg-white text-primary shadow-sm' : 'text-white/70'
+              }`}
+            >
+              {t('stats.week')}
+            </button>
+            <button
+              onClick={() => switchGroupBy('month')}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                groupBy === 'month' ? 'bg-white text-primary shadow-sm' : 'text-white/70'
+              }`}
+            >
+              {t('stats.month')}
+            </button>
+          </div>
+          {/* Period navigation */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setOffset(o => o - 1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 active:scale-[0.9] transition-transform"
+            >
+              <ChevronLeft className="h-4 w-4 text-white/70" />
+            </button>
+            <span className="text-sm font-medium text-white">{currentPeriodLabel}</span>
+            <button
+              onClick={() => setOffset(o => o + 1)}
+              disabled={offset >= 0}
+              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 active:scale-[0.9] transition-transform disabled:opacity-20"
+            >
+              <ChevronRight className="h-4 w-4 text-white/70" />
+            </button>
+          </div>
+        </div>
+      </PageHeader>
 
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
-          {/* Week / Month toggle + period navigation */}
-          <div className="space-y-2">
-            <div className="flex rounded-xl bg-white p-1 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-              <button
-                onClick={() => switchGroupBy('week')}
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                  groupBy === 'week' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
-                }`}
-              >
-                {t('stats.week')}
-              </button>
-              <button
-                onClick={() => switchGroupBy('month')}
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                  groupBy === 'month' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
-                }`}
-              >
-                {t('stats.month')}
-              </button>
-            </div>
-            <div className="flex items-center justify-between px-2">
-              <button
-                onClick={() => setOffset(o => o - 1)}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary active:scale-[0.9] transition-transform"
-              >
-                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              </button>
-              <span className="text-sm font-medium text-foreground">{currentPeriodLabel}</span>
-              <button
-                onClick={() => setOffset(o => o + 1)}
-                disabled={offset >= 0}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary active:scale-[0.9] transition-transform disabled:opacity-20"
-              >
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
