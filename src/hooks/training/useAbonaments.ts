@@ -237,6 +237,102 @@ export function useAssignAbonament() {
 
 // ── Session deduction ──
 
+/** Auto-deduct all signed-up abonament holders for a past session. Idempotent. */
+export function useAutoDeductSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const { data, error } = await supabase.rpc('auto_deduct_session', {
+        p_session_id: sessionId,
+      });
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count, sessionId) => {
+      if (count > 0) {
+        qc.invalidateQueries({ queryKey: ['abonament-usage-session', sessionId] });
+        qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+        qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+        qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      }
+    },
+  });
+}
+
+/** Mark player as no-show: undo deduction + set attendance to no_show */
+export function useMarkNoShow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
+      playerAbonamentId: string;
+      sessionId: string;
+      schoolId: string;
+      userId: string;
+    }) => {
+      // Undo the deduction
+      const { error: undoErr } = await supabase.rpc('undo_abonament_deduction', {
+        p_player_abonament_id: playerAbonamentId,
+        p_session_id: sessionId,
+      });
+      if (undoErr) throw undoErr;
+
+      // Mark attendance as no_show so auto-deduct won't re-create it
+      const { error: attErr } = await supabase
+        .from('session_attendance')
+        .update({ status: 'no_show' })
+        .eq('session_id', sessionId)
+        .eq('user_id', userId);
+      if (attErr) throw attErr;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Re-mark as attended: deduct again + set attendance back to confirmed */
+export function useRemarkAttended() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
+      playerAbonamentId: string;
+      sessionId: string;
+      schoolId: string;
+      userId: string;
+    }) => {
+      // Re-deduct
+      const { error: deductErr } = await supabase.rpc('deduct_abonament_session', {
+        p_player_abonament_id: playerAbonamentId,
+        p_session_id: sessionId,
+      });
+      if (deductErr) throw deductErr;
+
+      // Set attendance back to confirmed
+      const { error: attErr } = await supabase
+        .from('session_attendance')
+        .update({ status: 'confirmed' })
+        .eq('session_id', sessionId)
+        .eq('user_id', userId);
+      if (attErr) throw attErr;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 export function useSessionAbonamentUsage(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['abonament-usage-session', sessionId],

@@ -1306,6 +1306,10 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: undefined
       }
+      auto_deduct_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
       deduct_abonament_session: {
         Args: { p_player_abonament_id: string; p_session_id: string }
         Returns: undefined

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ChevronRight, CalendarDays, X, CheckCircle2, ClipboardCheck } from 'lucide-react';
@@ -15,7 +15,7 @@ import { SessioLoader } from '@/components/SessioLogo';
 
 import { useSessionDetail } from '@/hooks/training/useTodaySessions';
 import { useSessionAttendance, useTrainingMembers, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
-import { useSchoolAbonaments, useSessionAbonamentUsage, useDeductSession, useUndoDeduction, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive } from '@/hooks/training/useAbonaments';
 import { SPORT_ICONS } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
@@ -29,12 +29,27 @@ export default function SessionDetail() {
   const { data: members = [] } = useTrainingMembers(training?.id);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(training?.school_id);
   const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
-  const deduct = useDeductSession();
-  const undo = useUndoDeduction();
+  const autoDeduct = useAutoDeductSession();
+  const markNoShow = useMarkNoShow();
+  const remarkAttended = useRemarkAttended();
 
   const cancelSession = useCancelSession(training?.id ?? '');
   const rescheduleSession = useRescheduleSession(training?.id ?? '');
   const [showAttendance, setShowAttendance] = useState(false);
+
+  // Compute isPast early (before early returns) so useEffect can reference it
+  const today = new Date().toISOString().split('T')[0];
+  const isPastEarly = session ? (session.session_date < today || (session.session_date === today && new Date(`${session.session_date}T${session.end_time}`) < new Date())) : false;
+  const isCancelledEarly = session?.status === 'cancelled';
+
+  // Auto-deduct abonaments for past sessions (runs once on mount)
+  const autoDeductedRef = useRef(false);
+  useEffect(() => {
+    if (isPastEarly && !isCancelledEarly && sessionId && training?.school_id && !autoDeductedRef.current) {
+      autoDeductedRef.current = true;
+      autoDeduct.mutate(sessionId);
+    }
+  }, [isPastEarly, isCancelledEarly, sessionId, training?.school_id]);
 
   if (isLoading) {
     return (
@@ -58,9 +73,8 @@ export default function SessionDetail() {
 
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
   const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() });
-  const isCancelled = session.status === 'cancelled';
-  const today = new Date().toISOString().split('T')[0];
-  const isPast = session.session_date < today || (session.session_date === today && new Date(`${session.session_date}T${session.end_time}`) < new Date());
+  const isCancelled = isCancelledEarly;
+  const isPast = isPastEarly;
   const memberUserIds = new Set(members.map((m: any) => m.user_id));
 
   // Attendance stats
@@ -235,45 +249,45 @@ export default function SessionDetail() {
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Abonament deducted → green "Attended" toggle */}
-                        {playerAbonament && isDeducted ? (
-                          <button
-                            onClick={() => undo.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
-                            disabled={undo.isPending}
-                            className="flex items-center gap-0.5 rounded-full bg-success px-2 py-0.5 text-xs font-bold text-success-foreground min-h-[22px] disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
-                          </button>
-                        ) : (
-                          <>
-                            {/* Signed up = default, no badge. Only show badge for cancelled/no-show */}
-                            {(a.status === 'declined' || a.status === 'no_show') && (() => {
-                              if (a.status === 'no_show') return (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.statusNoShow')}</span>
-                              );
-                              // Determine if late cancel
-                              const sessionStart = new Date(`${session.session_date}T${session.start_time}`);
-                              const deadlineMs = (training.cancel_deadline_hours ?? 0) * 60 * 60 * 1000;
-                              const cancelDeadline = new Date(sessionStart.getTime() - deadlineMs);
-                              const declinedAt = a.declined_at ? new Date(a.declined_at) : null;
-                              const isLate = declinedAt && training.cancel_deadline_hours && declinedAt > cancelDeadline;
-                              return (
-                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isLate ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
-                                  {isLate ? t('detail.statusLateCancelled') : t('detail.statusCancelled')}
-                                </span>
-                              );
-                            })()}
-                            {/* Abonament deduct button for past sessions */}
-                            {playerAbonament && isPast && (
-                              <button
-                                onClick={() => deduct.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id! })}
-                                disabled={deduct.isPending || (playerAbonament.sessions_remaining != null && playerAbonament.sessions_remaining <= 0)}
-                                className="flex items-center gap-0.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground min-h-[22px] disabled:opacity-30"
-                              >
-                                {t('abonaments.markAttended')}
-                              </button>
-                            )}
-                          </>
+                        {/* Cancelled / late cancel / no-show badges */}
+                        {a.status === 'declined' && (() => {
+                          const sessionStart = new Date(`${session.session_date}T${session.start_time}`);
+                          const deadlineMs = (training.cancel_deadline_hours ?? 0) * 60 * 60 * 1000;
+                          const cancelDeadline = new Date(sessionStart.getTime() - deadlineMs);
+                          const declinedAt = a.declined_at ? new Date(a.declined_at) : null;
+                          const isLate = declinedAt && training.cancel_deadline_hours && declinedAt > cancelDeadline;
+                          return (
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isLate ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                              {isLate ? t('detail.statusLateCancelled') : t('detail.statusCancelled')}
+                            </span>
+                          );
+                        })()}
+
+                        {a.status === 'no_show' && !playerAbonament && (
+                          <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.statusNoShow')}</span>
+                        )}
+
+                        {/* Abonament: auto-deducted for past sessions. Coach can mark no-show to refund. */}
+                        {playerAbonament && isPast && (
+                          a.status === 'no_show' ? (
+                            // Was marked no-show → deduction was refunded. Coach can re-mark attended.
+                            <button
+                              onClick={() => remarkAttended.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id!, userId: a.user_id })}
+                              disabled={remarkAttended.isPending}
+                              className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive min-h-[22px] disabled:opacity-50"
+                            >
+                              {t('detail.statusNoShow')}
+                            </button>
+                          ) : isDeducted ? (
+                            // Attended (auto-deducted). Coach can mark no-show to refund.
+                            <button
+                              onClick={() => markNoShow.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id!, userId: a.user_id })}
+                              disabled={markNoShow.isPending}
+                              className="flex items-center gap-0.5 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success min-h-[22px] disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="h-3 w-3" /> {t('abonaments.markAttended')}
+                            </button>
+                          ) : null
                         )}
                       </div>
                     </div>
