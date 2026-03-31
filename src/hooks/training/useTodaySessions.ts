@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
-type SessionTraining = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'type' | 'coach_id'>;
+type SessionTraining = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'type' | 'coach_id'> & {
+  coach?: { full_name: string } | null;
+};
 export type UpcomingSession = Tables<'training_sessions'> & { trainings: SessionTraining };
 
 type SessionDetailTraining = Pick<Tables<'trainings'>, 'id' | 'name' | 'sport' | 'venue' | 'type' | 'coach_id'> & { invite_code: string | null; max_players: number | null; school_id: string | null };
@@ -41,7 +43,7 @@ export function usePastUnmarkedSessions(coachId?: string, schoolId?: string) {
 
       let query = supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, coach:profiles!trainings_coach_id_fkey(full_name))')
         .eq('trainings.is_active', true)
         .eq('status', 'scheduled')
         .is('attendance_marked_at', null)

@@ -28,6 +28,7 @@ export default function AttendanceBanner({ sessions }: AttendanceBannerProps) {
           {sessions.map(session => {
             const training = session.trainings;
             const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
+            const coachName = training?.coach?.full_name;
             const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
 
             return (
@@ -40,6 +41,7 @@ export default function AttendanceBanner({ sessions }: AttendanceBannerProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{training?.name}</p>
                   <p className="text-xs text-muted-foreground">
+                    {coachName && <>{t('trainings.coachName', { name: coachName })} · </>}
                     {dateLabel} · {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
                   </p>
                 </div>
