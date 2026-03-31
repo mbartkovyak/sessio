@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Search, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Avatar from '@/components/shared/Avatar';
@@ -18,6 +18,13 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
   const { t } = useTranslation('coach');
   const [search, setSearch] = useState('');
 
+  // Lock body scroll when open
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
   if (!open) return null;
 
   const available = athletes.filter(a => !existingMemberIds.has(a.id));
@@ -34,9 +41,9 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden touch-none">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl max-h-[75dvh] min-h-[40dvh] flex flex-col animate-in slide-in-from-bottom duration-200">
+      <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl flex flex-col animate-in slide-in-from-bottom duration-200" style={{ maxHeight: '60dvh' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <h3 className="font-semibold text-foreground text-sm">{t('detail.addMemberTitle')}</h3>
@@ -45,7 +52,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
           </button>
         </div>
 
-        {/* Search */}
+        {/* Search — always visible */}
         <div className="px-4 py-2 border-b border-border shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -61,7 +68,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-2">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2">
           {filtered.length === 0 && available.length === 0 && !search.trim() ? (
             <p className="py-6 text-center text-sm text-muted-foreground">{t('detail.noAthletesToAdd')}</p>
           ) : filtered.length === 0 ? (
