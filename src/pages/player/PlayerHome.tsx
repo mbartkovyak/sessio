@@ -11,6 +11,7 @@ import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
 import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 import MyJoinRequests from '@/components/player/home/MyJoinRequests';
+import MyAbonamentsSection from '@/components/player/home/MyAbonamentsSection';
 import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -91,6 +92,9 @@ export default function PlayerHome() {
 
           {/* Pending / declined join requests */}
           <MyJoinRequests />
+
+          {/* Active passes */}
+          <MyAbonamentsSection />
 
           {/* Push notification prompt */}
           <PushNotificationPrompt />

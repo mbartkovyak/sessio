@@ -7,19 +7,36 @@ export type StatsSession = {
   id: string;
   session_date: string;
   status: string;
+  training_id: string;
   session_attendance: { status: string }[];
+  trainings: { id: string; name: string; sport: string; coach_id: string } | null;
 };
 
 export type ChartDataPoint = {
   label: string;
   confirmed: number;
   declined: number;
+  noShow: number;
 };
 
 export type StatsSummary = {
   totalSessions: number;
   totalConfirmed: number;
   totalDeclined: number;
+  totalNoShow: number;
+  attendanceRate: number; // 0-100
+};
+
+export type TrainingStats = {
+  id: string;
+  name: string;
+  sport: string;
+  coachId: string;
+  sessions: number;
+  confirmed: number;
+  declined: number;
+  noShow: number;
+  attendanceRate: number;
 };
 
 export function useStatsData(trainingIds: string[]) {
@@ -30,9 +47,10 @@ export function useStatsData(trainingIds: string[]) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_sessions')
-        .select('id, session_date, status, session_attendance(status)')
+        .select('id, session_date, status, training_id, session_attendance(status), trainings(id, name, sport, coach_id)')
         .in('training_id', trainingIds)
         .gte('session_date', sixMonthsAgo)
+        .lte('session_date', new Date().toISOString().split('T')[0])
         .neq('status', 'cancelled')
         .order('session_date', { ascending: true });
       if (error) throw error;
@@ -56,13 +74,14 @@ export function groupStats(sessions: StatsSession[], groupBy: 'week' | 'month'):
       const label = groupBy === 'week'
         ? format(bucketStart, 'MMM d', { locale })
         : format(bucketStart, 'MMM yyyy', { locale });
-      buckets.set(key, { label, confirmed: 0, declined: 0 });
+      buckets.set(key, { label, confirmed: 0, declined: 0, noShow: 0 });
     }
 
     const bucket = buckets.get(key)!;
     for (const att of session.session_attendance) {
       if (att.status === 'confirmed') bucket.confirmed++;
       else if (att.status === 'declined') bucket.declined++;
+      else if (att.status === 'no_show') bucket.noShow++;
     }
   }
 
@@ -74,11 +93,50 @@ export function groupStats(sessions: StatsSession[], groupBy: 'week' | 'month'):
 export function computeSummary(sessions: StatsSession[]): StatsSummary {
   let totalConfirmed = 0;
   let totalDeclined = 0;
+  let totalNoShow = 0;
   for (const session of sessions) {
     for (const att of session.session_attendance) {
       if (att.status === 'confirmed') totalConfirmed++;
       else if (att.status === 'declined') totalDeclined++;
+      else if (att.status === 'no_show') totalNoShow++;
     }
   }
-  return { totalSessions: sessions.length, totalConfirmed, totalDeclined };
+  const present = totalConfirmed;
+  const expected = totalConfirmed + totalNoShow;
+  const attendanceRate = expected > 0 ? Math.round((present / expected) * 100) : 100;
+  return { totalSessions: sessions.length, totalConfirmed, totalDeclined, totalNoShow, attendanceRate };
+}
+
+export function computePerTrainingStats(sessions: StatsSession[]): TrainingStats[] {
+  const byTraining = new Map<string, { name: string; sport: string; coachId: string; sessions: Set<string>; confirmed: number; declined: number; noShow: number }>();
+
+  for (const session of sessions) {
+    const t = session.trainings;
+    if (!t) continue;
+    if (!byTraining.has(t.id)) {
+      byTraining.set(t.id, { name: t.name, sport: t.sport, coachId: t.coach_id, sessions: new Set(), confirmed: 0, declined: 0, noShow: 0 });
+    }
+    const bucket = byTraining.get(t.id)!;
+    bucket.sessions.add(session.id);
+    for (const att of session.session_attendance) {
+      if (att.status === 'confirmed') bucket.confirmed++;
+      else if (att.status === 'declined') bucket.declined++;
+      else if (att.status === 'no_show') bucket.noShow++;
+    }
+  }
+
+  return Array.from(byTraining.entries()).map(([id, b]) => {
+    const expected = b.confirmed + b.noShow;
+    return {
+      id,
+      name: b.name,
+      sport: b.sport,
+      coachId: b.coachId,
+      sessions: b.sessions.size,
+      confirmed: b.confirmed,
+      declined: b.declined,
+      noShow: b.noShow,
+      attendanceRate: expected > 0 ? Math.round((b.confirmed / expected) * 100) : 100,
+    };
+  }).sort((a, b) => b.sessions - a.sessions);
 }

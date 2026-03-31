@@ -111,7 +111,9 @@
     "playerLeftTitle": "Participant left",
     "playerLeftBody": "{{name}} left {{training}}.",
     "addedToTrainingTitle": "You've been added",
-    "addedToTrainingBody": "You've been added to {{training}}."
+    "addedToTrainingBody": "You've been added to {{training}}.",
+    "removedFromTrainingTitle": "Removed from training",
+    "removedFromTrainingBody": "You were removed from {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -176,7 +178,20 @@
     "continueGoogle": "Continue with Google",
     "continueEmail": "Continue with email",
     "sendMagicLink": "Email me a sign-in link",
-    "at": "at"
+    "at": "at",
+    "requestToJoin": "Request to join",
+    "alreadyInSession": "You're already in this session",
+    "sessionFull": "This session is full",
+    "joinedSession": "You're in for {{name}}",
+    "joinSessionOn": "Join {{name}} on {{date}}",
+    "guestJoinedTitle": "Guest signed up",
+    "guestJoinedBody": "{{name}} joined {{training}} as a guest.",
+    "dropInNotAllowed": "This training doesn't allow drop-ins. Sign up for all sessions instead.",
+    "trialUsed": "You've already used your trial session. Sign up for all sessions to keep attending.",
+    "trialNote": "This is a trial session. Sign up for all sessions to continue attending.",
+    "signUpAll": "Sign up for all sessions",
+    "orPickSession": "Or pick a single session",
+    "signUp": "Sign up"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
@@ -224,7 +239,15 @@
     "whatsapp": "WhatsApp",
     "open": "Open",
     "email": "Email",
-    "noContact": "No contact details"
+    "noContact": "No contact details",
+    "passActive": "Active",
+    "passExpired": "Expired",
+    "passUsedUp": "Used up",
+    "passRemaining": "{{remaining}}/{{total}} sessions left",
+    "passExpires": "Expires {{date}}",
+    "passAssigned": "Assigned {{date}}",
+    "usageHistory": "Usage",
+    "assignPass": "Assign pass"
   },
   "venue": {
     "name": "Venue name (e.g. Court 3)",
@@ -232,6 +255,10 @@
     "add": "Add venue",
     "save": "Save venue",
     "backToList": "Back to venue list"
+  },
+  "abonaments": {
+    "typeCreated": "Pass type created",
+    "assigned": "Pass assigned"
   },
   "toast": {
     "trainingCreated": "Training created",

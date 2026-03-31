@@ -124,6 +124,16 @@
     "claimFailed": "Couldn't claim the spot",
     "claimSpot": "Claim this spot"
   },
+  "abonaments": {
+    "title": "My passes",
+    "myPass": "Your pass",
+    "remaining": "{{remaining}} of {{total}} left",
+    "unlimited": "Unlimited sessions",
+    "expiresOn": "Expires {{date}}",
+    "expired": "Expired",
+    "usedUp": "All used",
+    "startsOn": "Starts {{date}}"
+  },
   "favouriteSchools": {
     "title": "Schools you follow"
   }

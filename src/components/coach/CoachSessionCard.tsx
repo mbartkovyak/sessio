@@ -32,7 +32,7 @@ export default function CoachSessionCard({
     <div className={`rounded-xl border border-border ${isCancelled ? 'bg-destructive/10 border-destructive/20' : 'bg-card'} shadow-sm overflow-hidden`}>
       <div className="flex items-center gap-2 px-4 py-3">
         <button
-          onClick={() => navigate(`/coach/trainings/${training?.id}`)}
+          onClick={() => navigate(`/coach/sessions/${session.id}`)}
           className="flex flex-1 items-center gap-3 text-left min-w-0"
         >
           <span className="text-xl shrink-0">{sportIcon}</span>

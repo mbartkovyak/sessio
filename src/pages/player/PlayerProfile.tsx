@@ -51,7 +51,7 @@ export default function PlayerProfile() {
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country, city: city || null })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, country, city })
       .eq('id', user.id);
     setSaving(false);
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
@@ -93,13 +93,13 @@ export default function PlayerProfile() {
           </div>
 
           <PhoneInput value={phone} onChange={setPhone} />
-          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} />
-          <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} />
+          <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!profile?.country} />
+          <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
           <LanguageSelector />
 
           <button
             onClick={handleSave}
-            disabled={saving || !country}
+            disabled={saving || !country || !city}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             {saving ? t('profile.saving') : t('common:actions.save')}

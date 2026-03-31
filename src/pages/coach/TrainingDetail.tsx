@@ -1,10 +1,11 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X } from 'lucide-react';
+import { ArrowLeft, Users, Settings, Clock, CalendarDays, Trash2, MessageCircle, CheckCircle2, X, ChevronRight, ChevronDown, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
-import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useCancelSession, useRescheduleSession, useAttendanceSummary, useSessionAttendance } from '@/hooks/training/useTrainings';
+import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary, useAddTrainingMember } from '@/hooks/training/useTrainings';
+import { useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -20,8 +21,10 @@ import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
-import TrainingForm, { type TrainingFormValues } from '@/components/shared/TrainingForm';
+import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
+import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import PageHeader from '@/components/shared/PageHeader';
+import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { SessioLoader } from '@/components/SessioLogo';
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -35,15 +38,17 @@ export default function TrainingDetail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const removeMember = useRemoveTrainingMember(id!);
-  const cancelSession = useCancelSession(id!);
-  const rescheduleSession = useRescheduleSession(id!);
   const { data: joinRequests = [] } = useJoinRequests(id);
   const respond = useRespondJoinRequest();
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
-  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [removingMember, setRemovingMember] = useState<{ id: string; userId: string; name: string } | null>(null);
+  const [removeMessage, setRemoveMessage] = useState('');
+  const { data: athletePool = [] } = useSchoolAthletesWithPassHolders(training?.school_id);
+  const addMember = useAddTrainingMember(id!);
 
   // All hooks must be called before any early return to avoid "Rendered more hooks" error
   const today = new Date().toISOString().split('T')[0];
@@ -234,6 +239,12 @@ export default function TrainingDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                    <button
+                      onClick={() => setShowAddMember(true)}
+                      className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" /> {t('detail.addMember')}
+                    </button>
                   </div>
                   {members.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
@@ -243,27 +254,33 @@ export default function TrainingDetail() {
                     <div className="rounded-xl border border-border bg-card divide-y divide-border">
                       {members.map((m: any) => {
                         const p = m.profiles;
+                        const isPlaceholder = p?.is_placeholder === true;
                         return (
                           <div key={m.id} className="flex items-center gap-3 px-4 py-3">
                             <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                               <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
+                                {isPlaceholder && (
+                                  <span className="text-xs text-muted-foreground">{t('detail.offlineAthlete')}</span>
+                                )}
                                 {m.role === 'waitlist' && (
                                   <span className="text-xs text-warning font-medium">{t('detail.waitlist')}</span>
                                 )}
                               </div>
                             </button>
                             <div className="flex items-center gap-1 shrink-0">
+                              {!isPlaceholder && (
+                                <button
+                                  onClick={() => navigate(`/coach/dm/${p?.id}`)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                                  title={t('detail.directMessage')}
+                                >
+                                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                                </button>
+                              )}
                               <button
-                                onClick={() => navigate(`/coach/dm/${p?.id}`)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                title={t('detail.directMessage')}
-                              >
-                                <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                              </button>
-                              <button
-                                onClick={() => { if (confirm(t('detail.removeConfirm', { name: p?.full_name ?? '' }))) removeMember.mutate(m.id); }}
+                                onClick={() => { setRemovingMember({ id: m.id, userId: m.user_id, name: p?.full_name ?? '' }); setRemoveMessage(''); }}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
                                 title={t('detail.remove')}
                               >
@@ -277,7 +294,7 @@ export default function TrainingDetail() {
                   )}
                 </div>
 
-                {/* Upcoming lessons */}
+                {/* Upcoming lessons — link to Session Detail */}
                 <div>
                   <h2 className="font-semibold text-foreground text-sm mb-3">{t('detail.upcomingLessons')}</h2>
                   {upcoming.length === 0 ? (
@@ -287,65 +304,32 @@ export default function TrainingDetail() {
                       {upcoming.map((s: any) => {
                         const isCancelled = s.status === 'cancelled';
                         const summary = attendanceSummary[s.id];
-                        const isExpanded = expandedSession === s.id;
                         return (
-                          <div key={s.id} className={`rounded-xl border bg-card overflow-hidden ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}>
-                            <div className="flex items-center gap-3 px-4 py-3">
-                              <button
-                                onClick={() => !isCancelled && setExpandedSession(isExpanded ? null : s.id)}
-                                className="flex-1 min-w-0 text-left"
-                              >
-                                <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                  {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
-                                </p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</span>
-                                  {!isCancelled && summary && summary.total > 0 && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">
-                                      <CheckCircle2 className="h-3 w-3" />
-                                      {t('detail.attendanceSummary', { confirmed: summary.confirmed, total: summary.total })}
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                              {isCancelled ? (
-                                <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.cancelled')}</span>
-                              ) : (
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <button
-                                    onClick={() => {
-                                      const newDate = prompt(t('home.rescheduleDate'), s.session_date);
-                                      if (!newDate) return;
-                                      const newStart = prompt(t('home.rescheduleStart'), s.start_time?.slice(0,5));
-                                      if (!newStart) return;
-                                      const newEnd = prompt(t('home.rescheduleEnd'), s.end_time?.slice(0,5));
-                                      if (!newEnd) return;
-                                      if (newDate === s.session_date && newStart === s.start_time?.slice(0,5) && newEnd === s.end_time?.slice(0,5)) return;
-                                      rescheduleSession.mutate({
-                                        sessionId: s.id, trainingName: training.name,
-                                        oldDate: s.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
-                                      });
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                                    title={t('common:actions.reschedule')}
-                                  >
-                                    <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (!confirm(t('calendar.cancelConfirm', { name: training.name, date: format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() }) }))) return;
-                                      cancelSession.mutate({ sessionId: s.id, trainingName: training.name, sessionDate: s.session_date });
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
-                                    title={t('common:actions.cancelSession')}
-                                  >
-                                    <X className="h-3.5 w-3.5 text-destructive" />
-                                  </button>
-                                </div>
-                              )}
+                          <button
+                            key={s.id}
+                            onClick={() => !isCancelled && navigate(`/coach/sessions/${s.id}`)}
+                            className={`flex w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left active:bg-muted/50 transition-colors ${isCancelled ? 'border-destructive/20 opacity-60' : 'border-border'}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                {format(new Date(s.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-muted-foreground">{s.start_time?.slice(0,5)} – {s.end_time?.slice(0,5)}</span>
+                                {!isCancelled && summary && summary.total > 0 && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    {t('detail.attendanceSummary', { confirmed: summary.confirmed, total: summary.total })}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            {isExpanded && <SessionAttendancePanel sessionId={s.id} />}
-                          </div>
+                            {isCancelled ? (
+                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive shrink-0">{t('detail.cancelled')}</span>
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                            )}
+                          </button>
                         );
                       })}
                     </div>
@@ -381,46 +365,70 @@ export default function TrainingDetail() {
       )}
 
       {(activeTab !== 'chat' || showEdit) && <CoachBottomNav />}
-      {viewProfile && <ProfileSheet profile={viewProfile} onClose={() => setViewProfile(null)} />}
-    </div>
-  );
-}
+      {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training?.school_id} onClose={() => setViewProfile(null)} coachMode />}
 
-// ── Session Attendance Panel ──
-
-function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
-  const { t } = useTranslation('coach');
-  const { data: attendance = [], isLoading } = useSessionAttendance(sessionId);
-
-  if (isLoading) return <div className="px-4 py-3 border-t border-border"><div className="h-4 w-24 bg-muted animate-pulse rounded" /></div>;
-  if (attendance.length === 0) return (
-    <div className="px-4 py-3 border-t border-border">
-      <p className="text-xs text-muted-foreground">{t('detail.noAttendance')}</p>
-    </div>
-  );
-
-  const sorted = [...attendance].sort((a, b) => {
-    const order = { confirmed: 0, pending: 1, declined: 2 };
-    return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
-  });
-
-  return (
-    <div className="border-t border-border divide-y divide-border">
-      {sorted.map((a) => (
-        <div key={a.id} className="flex items-center gap-3 px-4 py-2.5">
-          <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="xs" />
-          <span className="flex-1 text-sm text-foreground truncate">{a.profiles?.full_name ?? t('common:profile.unknown')}</span>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            a.status === 'confirmed' ? 'bg-success/10 text-success' :
-            a.status === 'declined' ? 'bg-destructive/10 text-destructive' :
-            'bg-warning/10 text-warning'
-          }`}>
-            {a.status === 'confirmed' ? t('detail.statusConfirmed') :
-             a.status === 'declined' ? t('detail.statusDeclined') :
-             t('detail.statusPending')}
-          </span>
+      {/* Remove member dialog */}
+      {removingMember && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setRemovingMember(null)}>
+          <div className="w-full max-w-md rounded-t-2xl bg-card p-5 pb-8 space-y-4 animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-foreground">{t('detail.removeTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('detail.removeConfirm', { name: removingMember.name })}</p>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">{t('detail.removeReason')}</label>
+              <textarea
+                value={removeMessage}
+                onChange={e => setRemoveMessage(e.target.value)}
+                placeholder={t('detail.removeReasonPlaceholder')}
+                rows={2}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setRemovingMember(null)} className="rounded-xl border border-border py-3 text-sm font-medium text-foreground min-h-[44px]">{t('common:actions.cancel')}</button>
+              <button
+                onClick={async () => {
+                  const { id, userId, name } = removingMember;
+                  const msg = removeMessage.trim();
+                  setRemovingMember(null);
+                  // Send DM with message if provided
+                  if (msg && user) {
+                    try {
+                      const { getOrCreateDMConversation } = await import('@/hooks/shared/useConversations');
+                      const convId = await getOrCreateDMConversation(user.id, userId);
+                      await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
+                    } catch {}
+                  }
+                  // Send push notification
+                  const { getFixedTForUser } = await import('@/lib/notificationI18n');
+                  const tNotify = await getFixedTForUser(userId);
+                  notifyUsers([userId], {
+                    title: tNotify('notifications.removedFromTrainingTitle'),
+                    body: tNotify('notifications.removedFromTrainingBody', { training: training.name }),
+                    tag: `removed-${training.id}`,
+                    url: '/player',
+                  });
+                  removeMember.mutate(id);
+                }}
+                className="rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground min-h-[44px]"
+              >
+                {t('detail.removeButton')}
+              </button>
+            </div>
+          </div>
         </div>
-      ))}
+      )}
+
+      <AddMemberSheet
+        open={showAddMember}
+        onClose={() => setShowAddMember(false)}
+        athletes={athletePool}
+        existingMemberIds={new Set(members.map((m: any) => m.user_id))}
+        onAdd={(athlete) => {
+          addMember.mutate({ userId: athlete.id, trainingName: training.name });
+          setShowAddMember(false);
+        }}
+        adding={addMember.isPending}
+      />
     </div>
   );
 }
@@ -429,8 +437,46 @@ function SessionAttendancePanel({ sessionId }: { sessionId: string }) {
 
 function EditSection({ training, onClose }: { training: any; onClose: () => void }) {
   const { t } = useTranslation('coach');
+  const navigate = useNavigate();
   const qc = useQueryClient();
+  const { profile, refreshProfile } = useAuth();
   const update = useUpdateTraining(training.id);
+
+  // School context — mirrors CreateTraining
+  const { data: school } = useMySchool();
+  const { data: schoolMembership } = useMySchoolMembership();
+  const isSchoolOwner = profile?.role === 'school_owner';
+  const isSchoolMember = !isSchoolOwner && !!schoolMembership;
+  const schoolCoaches = (school as any)?.school_members ?? [];
+  const [selectedCoachId, setSelectedCoachId] = useState<string>(training.coach_id ?? '');
+
+  // Venues — same logic as CreateTraining
+  const sourceVenues: VenueOption[] = isSchoolOwner
+    ? ((school as any)?.venues ?? [])
+    : isSchoolMember
+      ? ((schoolMembership?.schools as any)?.venues ?? [])
+      : ((profile as any)?.venues ?? []);
+  const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
+
+  useEffect(() => {
+    if (sourceVenues.length > 0) setLocalVenues(sourceVenues);
+  }, [sourceVenues.length]);
+
+  async function handleNewCoachVenue(venue: VenueOption) {
+    if (!profile) return;
+    setLocalVenues(prev => [...prev, venue]);
+    const currentVenues = ((profile as any).venues ?? []) as VenueOption[];
+    await supabase.from('profiles').update({ venues: [...currentVenues, venue] }).eq('id', profile.id);
+    refreshProfile();
+  }
+
+  async function handleNewSchoolVenue(venue: VenueOption) {
+    if (!school) return;
+    setLocalVenues(prev => [...prev, venue]);
+    const currentVenues = ((school as any).venues ?? []) as VenueOption[];
+    await supabase.from('schools').update({ venues: [...currentVenues, venue] }).eq('id', school.id);
+    qc.invalidateQueries({ queryKey: ['my-school'] });
+  }
 
   const initialValues: Partial<TrainingFormValues> = training ? {
     name: training.name ?? '',
@@ -445,6 +491,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     start_date: training.start_date ?? '',
     end_date: training.end_date ?? '',
     booking_mode: training.booking_mode ?? 'instant',
+    drop_in_policy: training.drop_in_policy ?? 'allowed',
     visibility: training.visibility ?? 'private',
     confirmation_window_hours: training.confirmation_window_hours ?? 24,
     day_schedules: training.day_schedules ?? null,
@@ -455,16 +502,21 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     const oldEnd = training.end_time?.slice(0, 5);
     const oldDays = JSON.stringify(training.days_of_week ?? [training.day_of_week ?? 0]);
 
-    await update.mutateAsync({
+    const payload: Record<string, any> = {
       name: form.name, sport: form.sport, venue: form.venue,
       type: form.type,
       day_of_week: form.days_of_week[0], days_of_week: form.days_of_week,
       start_time: form.start_time + ':00', end_time: form.end_time + ':00',
       max_players: form.type === 'group' ? form.max_players : undefined,
-      booking_mode: form.booking_mode, visibility: form.visibility,
+      booking_mode: form.booking_mode, drop_in_policy: form.drop_in_policy, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
       day_schedules: form.day_schedules || null,
-    });
+    };
+    // Update coach if changed (school owner only)
+    if (isSchoolOwner && selectedCoachId && selectedCoachId !== training.coach_id) {
+      payload.coach_id = selectedCoachId;
+    }
+    await update.mutateAsync(payload);
 
     // Notify members if schedule changed
     const timeChanged = form.start_time !== oldTime || form.end_time !== oldEnd;
@@ -506,6 +558,38 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     onClose();
   }
 
+  // Coach selector — school owner can reassign coach
+  const schoolSlot = isSchoolOwner && school ? (
+    <div>
+      <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')}</label>
+      {schoolCoaches.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+          <p className="text-sm text-muted-foreground">{t('create.noCoaches')}</p>
+          <button type="button" onClick={() => navigate('/school/profile')}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+            <UserPlus className="h-4 w-4" /> {t('create.addCoaches')}
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <select
+            value={selectedCoachId}
+            onChange={e => setSelectedCoachId(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
+          >
+            <option value="">{t('create.selectCoach')}</option>
+            {schoolCoaches.map((m: any) => (
+              <option key={m.coach_id} value={m.coach_id}>
+                {m.coach?.full_name ?? t('create.coachLabel')}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
+    </div>
+  ) : undefined;
+
   return (
     <div className="max-w-md mx-auto px-4 py-5">
       <TrainingForm
@@ -514,6 +598,9 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         onSubmit={handleSave}
         submitting={update.isPending}
         onCancel={onClose}
+        schoolSlot={schoolSlot}
+        venueOptions={localVenues}
+        onNewVenue={isSchoolOwner ? handleNewSchoolVenue : handleNewCoachVenue}
       />
     </div>
   );

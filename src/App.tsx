@@ -80,10 +80,14 @@ const CoachCalendar = lazy(() => import("./pages/coach/CoachCalendar"));
 const CoachTrainings = lazy(() => import("./pages/coach/CoachTrainings"));
 const CreateTraining = lazy(() => import("./pages/coach/CreateTraining"));
 const TrainingDetail = lazy(() => import("./pages/coach/TrainingDetail"));
+const SessionDetail = lazy(() => import("./pages/coach/SessionDetail"));
 const CoachProfileEditor = lazy(() => import("./pages/coach/CoachProfileEditor"));
 const CoachMessages = lazy(() => import("./pages/coach/CoachMessages"));
 const DirectChat = lazy(() => import("./pages/coach/DirectChat"));
 const CoachStats = lazy(() => import("./pages/coach/CoachStats"));
+const CoachPasses = lazy(() => import("./pages/coach/CoachPasses"));
+const SchoolCoaches = lazy(() => import("./pages/coach/SchoolCoaches"));
+const CoachAthletes = lazy(() => import("./pages/coach/CoachAthletes"));
 const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEditor"));
 
 function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
@@ -162,8 +166,12 @@ const router = createBrowserRouter(
       <Route path="/coach/trainings" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachTrainings} /></ProtectedRoute>} />
       <Route path="/coach/trainings/new" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CreateTraining} /></ProtectedRoute>} />
       <Route path="/coach/trainings/:id" element={<ProtectedRoute requiredRole="coach"><LazyPage component={TrainingDetail} /></ProtectedRoute>} />
+      <Route path="/coach/sessions/:id" element={<ProtectedRoute requiredRole="coach"><LazyPage component={SessionDetail} /></ProtectedRoute>} />
       <Route path="/coach/profile" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachProfileEditor} /></ProtectedRoute>} />
       <Route path="/coach/stats" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachStats} /></ProtectedRoute>} />
+      <Route path="/coach/passes" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachPasses} /></ProtectedRoute>} />
+      <Route path="/coach/coaches" element={<ProtectedRoute requiredRole="coach"><LazyPage component={SchoolCoaches} /></ProtectedRoute>} />
+      <Route path="/coach/athletes" element={<ProtectedRoute requiredRole="coach"><LazyPage component={CoachAthletes} /></ProtectedRoute>} />
 
       {/* School routes */}
       <Route path="/school/profile" element={<ProtectedRoute requiredRole="school_owner"><LazyPage component={SchoolProfileEditor} /></ProtectedRoute>} />

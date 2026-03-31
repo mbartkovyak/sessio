@@ -127,6 +127,16 @@
     "claimFailed": "Nie udało się zająć miejsca",
     "claimSpot": "Zarezerwuj miejsce"
   },
+  "abonaments": {
+    "title": "Moje karnety",
+    "myPass": "Twój karnet",
+    "remaining": "Pozostało {{remaining}} z {{total}}",
+    "unlimited": "Bez limitu zajęć",
+    "expiresOn": "Wygasa {{date}}",
+    "expired": "Wygasł",
+    "usedUp": "Wykorzystany",
+    "startsOn": "Od {{date}}"
+  },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"
   }

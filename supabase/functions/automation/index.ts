@@ -16,7 +16,7 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-const CRON_ACTIONS = ['full', 'generate', 'notifications', 'deadline'];
+const CRON_ACTIONS = ['full', 'generate', 'notifications', 'deadline', 'attendance_reminder'];
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -211,6 +211,56 @@ Deno.serve(async (req) => {
     // ── 4. Deadline handler — no-op (all attendance starts as confirmed) ──
     if (action === 'deadline') {
       results.no_response_handled = 0;
+    }
+
+    // ── 5. Attendance marking reminders (12h after session ends) ──
+    if (action === 'full' || action === 'attendance_reminder') {
+      const warsawHour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Warsaw' }).format(new Date()));
+      if (warsawHour < 9 || warsawHour >= 22) {
+        results.attendance_reminders_sent = 0;
+        results.attendance_reminders_skipped = 'outside_hours';
+      } else {
+        const now = Date.now();
+        const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const todayStr = new Date().toISOString().slice(0, 10);
+
+        const { data: unmarkedSessions } = await supabase
+          .from('training_sessions')
+          .select('id, session_date, start_time, end_time, trainings!inner(id, name, coach_id)')
+          .is('attendance_marked_at', null)
+          .eq('attendance_reminder_sent', false)
+          .eq('status', 'scheduled')
+          .gte('session_date', sevenDaysAgo)
+          .lte('session_date', todayStr);
+
+        let attendanceRemindersSent = 0;
+        for (const s of unmarkedSessions ?? []) {
+          const sessionEndUtc = warsawToUtcMs(s.session_date, s.end_time);
+          const hoursSinceEnd = (now - sessionEndUtc) / (60 * 60 * 1000);
+
+          // Only remind if session ended 12+ hours ago
+          if (hoursSinceEnd < 12) continue;
+
+          const training = s.trainings as any;
+          if (!training?.coach_id) continue;
+
+          const payload = JSON.stringify({
+            title: training.name,
+            body: `Mark attendance for ${s.session_date}`,
+            tag: `attendance-mark-${s.id}`,
+            url: '/coach',
+          });
+
+          const pushCount = await sendPushToUsers(supabase, [training.coach_id], payload);
+          attendanceRemindersSent += pushCount;
+
+          await supabase
+            .from('training_sessions')
+            .update({ attendance_reminder_sent: true })
+            .eq('id', s.id);
+        }
+        results.attendance_reminders_sent = attendanceRemindersSent;
+      }
     }
 
     return new Response(JSON.stringify({ ok: true, ...results }), {

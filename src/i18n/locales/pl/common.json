@@ -111,7 +111,9 @@
     "playerLeftTitle": "Uczestnik opuścił zajęcia",
     "playerLeftBody": "{{name}} opuścił {{training}}.",
     "addedToTrainingTitle": "Dodano do zajęć",
-    "addedToTrainingBody": "Dodano Cię do {{training}}."
+    "addedToTrainingBody": "Dodano Cię do {{training}}.",
+    "removedFromTrainingTitle": "Usunięto z zajęć",
+    "removedFromTrainingBody": "Usunięto Cię z {{training}}."
   },
   "form": {
     "sport": "Sport",
@@ -176,7 +178,20 @@
     "continueGoogle": "Zaloguj się przez Google",
     "continueEmail": "Zaloguj się e-mailem",
     "sendMagicLink": "Wyślij link do logowania",
-    "at": "o"
+    "at": "o",
+    "requestToJoin": "Wyślij prośbę",
+    "alreadyInSession": "Jesteś już w tej sesji",
+    "sessionFull": "Ta sesja jest pełna",
+    "joinedSession": "Dołączyłeś do {{name}}",
+    "joinSessionOn": "Dołącz do {{name}} w dniu {{date}}",
+    "guestJoinedTitle": "Nowy gość",
+    "guestJoinedBody": "{{name}} dołączył(a) do {{training}} jako gość.",
+    "dropInNotAllowed": "Te zajęcia nie pozwalają na jednorazowe wejścia. Zapisz się na wszystkie.",
+    "trialUsed": "Wykorzystałeś próbne zajęcia. Zapisz się na wszystkie, aby kontynuować.",
+    "trialNote": "To są zajęcia próbne. Zapisz się na wszystkie, aby kontynuować.",
+    "signUpAll": "Zapisz się na wszystkie zajęcia",
+    "orPickSession": "Lub wybierz pojedyncze zajęcia",
+    "signUp": "Zapisz się"
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
@@ -224,7 +239,15 @@
     "whatsapp": "WhatsApp",
     "open": "Otwórz",
     "email": "E-mail",
-    "noContact": "Brak danych kontaktowych"
+    "noContact": "Brak danych kontaktowych",
+    "passActive": "Aktywny",
+    "passExpired": "Wygasł",
+    "passUsedUp": "Wykorzystany",
+    "passRemaining": "{{remaining}}/{{total}} zajęć",
+    "passExpires": "Wygasa {{date}}",
+    "passAssigned": "Przypisano {{date}}",
+    "usageHistory": "Wykorzystanie",
+    "assignPass": "Przypisz karnet"
   },
   "venue": {
     "name": "Nazwa miejsca (np. Kort 3)",
@@ -232,6 +255,10 @@
     "add": "Dodaj miejsce",
     "save": "Zapisz miejsce",
     "backToList": "Wróć do listy miejsc"
+  },
+  "abonaments": {
+    "typeCreated": "Typ karnetu utworzony",
+    "assigned": "Karnet przypisany"
   },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",

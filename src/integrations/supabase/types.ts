@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      abonament_types: {
+        Row: {
+          created_at: string
+          currency: string
+          duration_days: number | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number | null
+          school_id: string
+          sessions_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          school_id: string
+          sessions_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          school_id?: string
+          sessions_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abonament_types_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      abonament_usage: {
+        Row: {
+          created_at: string
+          id: string
+          player_abonament_id: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_abonament_id: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_abonament_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abonament_usage_player_abonament_id_fkey"
+            columns: ["player_abonament_id"]
+            isOneToOne: false
+            referencedRelation: "player_abonaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abonament_usage_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       _config: {
         Row: {
           key: string
@@ -576,6 +656,67 @@ export type Database = {
           },
         ]
       }
+      player_abonaments: {
+        Row: {
+          abonament_type_id: string
+          activated_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          player_id: string
+          school_id: string
+          sessions_remaining: number | null
+          sessions_total: number | null
+          status: string
+        }
+        Insert: {
+          abonament_type_id: string
+          activated_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          player_id: string
+          school_id: string
+          sessions_remaining?: number | null
+          sessions_total?: number | null
+          status?: string
+        }
+        Update: {
+          abonament_type_id?: string
+          activated_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          player_id?: string
+          school_id?: string
+          sessions_remaining?: number | null
+          sessions_total?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_abonaments_abonament_type_id_fkey"
+            columns: ["abonament_type_id"]
+            isOneToOne: false
+            referencedRelation: "abonament_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_abonaments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_abonaments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -587,6 +728,7 @@ export type Database = {
           first_name: string | null
           full_name: string | null
           id: string
+          is_placeholder: boolean
           language: string | null
           last_name: string | null
           onboarding_complete: boolean | null
@@ -606,6 +748,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id: string
+          is_placeholder?: boolean
           language?: string | null
           last_name?: string | null
           onboarding_complete?: boolean | null
@@ -625,6 +768,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_placeholder?: boolean
           language?: string | null
           last_name?: string | null
           onboarding_complete?: boolean | null
@@ -1000,6 +1144,8 @@ export type Database = {
       }
       training_sessions: {
         Row: {
+          attendance_marked_at: string | null
+          attendance_reminder_sent: boolean
           created_at: string
           end_time: string
           id: string
@@ -1010,6 +1156,8 @@ export type Database = {
           training_id: string
         }
         Insert: {
+          attendance_marked_at?: string | null
+          attendance_reminder_sent?: boolean
           created_at?: string
           end_time: string
           id?: string
@@ -1020,6 +1168,8 @@ export type Database = {
           training_id: string
         }
         Update: {
+          attendance_marked_at?: string | null
+          attendance_reminder_sent?: boolean
           created_at?: string
           end_time?: string
           id?: string
@@ -1051,6 +1201,7 @@ export type Database = {
           day_of_week: number
           day_schedules: Json | null
           days_of_week: number[] | null
+          drop_in_policy: string
           end_date: string | null
           end_time: string
           id: string
@@ -1082,6 +1233,7 @@ export type Database = {
           day_of_week: number
           day_schedules?: Json | null
           days_of_week?: number[] | null
+          drop_in_policy?: string
           end_date?: string | null
           end_time: string
           id?: string
@@ -1113,6 +1265,7 @@ export type Database = {
           day_of_week?: number
           day_schedules?: Json | null
           days_of_week?: number[] | null
+          drop_in_policy?: string
           end_date?: string | null
           end_time?: string
           id?: string
@@ -1155,6 +1308,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      join_single_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
+      auto_deduct_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
+      deduct_abonament_session: {
+        Args: { p_player_abonament_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      undo_abonament_deduction: {
+        Args: { p_player_abonament_id: string; p_session_id: string }
+        Returns: undefined
+      }
       claim_spot: {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json

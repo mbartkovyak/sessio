@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Users, Building2, UserCheck } from 'lucide-react';
+import { Search, MapPin, Building2, Star, UserCheck } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useDiscoverableCoaches, useDiscoverableSchools } from '@/hooks/school/useSchools';
 import { SPORTS, CITIES_BY_COUNTRY, sportLabel, SPORT_ICONS, type Country } from '@/lib/constants';
-import Avatar from '@/components/shared/Avatar';
+import { getInitials } from '@/lib/utils';
 import SelectField from '@/components/shared/SelectField';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -69,7 +69,7 @@ export default function PlayerSearch() {
 
           {isLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />)}
+              {[1, 2, 3].map(i => <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />)}
             </div>
           ) : results.length === 0 ? (
             <div className="text-center py-16">
@@ -84,74 +84,67 @@ export default function PlayerSearch() {
                   <button
                     key={`school-${item.id}`}
                     onClick={() => navigate(`/s/${item.id}`)}
-                    className="w-full flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
+                    className="w-full flex items-start gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary overflow-hidden">
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl font-bold text-primary overflow-hidden">
                       {item.logo_url
                         ? <img src={item.logo_url} alt="" className="h-full w-full object-cover" />
                         : item.name?.[0] ?? '?'}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground truncate">{item.name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
-                          <Building2 className="h-3 w-3" />{t('search.school')}
-                        </span>
-                      </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="font-semibold text-foreground truncate">{item.name}</p>
                       {item.sport?.length > 0 && (
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground">
                           {item.sport.map((s: string) => `${SPORT_ICONS[s] ?? '🎯'} ${sportLabel(s)}`).join(' · ')}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 mt-1">
-                        {item.city && (
-                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />{item.city}
-                          </span>
-                        )}
-                        {item.coach_count > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Users className="h-3 w-3" />{t('search.coachCount', { count: item.coach_count })}
-                          </span>
-                        )}
-                      </div>
-                      {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.description}</p>}
+                      {item.city && (
+                        <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />{item.city}
+                        </p>
+                      )}
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Building2 className="h-3.5 w-3.5 shrink-0" />{t('search.school')}
+                      </p>
+                      {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
                     </div>
                   </button>
                 ) : (
                   <button
                     key={`coach-${item.id}`}
                     onClick={() => navigate(`/search/coach/${item.id}`)}
-                    className="w-full flex items-center gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
+                    className="w-full flex items-start gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
                   >
-                    <Avatar url={item.avatar_url} name={item.full_name} size="lg" />
-                    <div className="flex-1 min-w-0">
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xl font-bold text-primary overflow-hidden">
+                      {item.avatar_url
+                        ? <img src={item.avatar_url} alt="" className="h-full w-full object-cover" />
+                        : getInitials(item.full_name) || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground truncate">{item.full_name}</p>
-                        <span className="shrink-0 flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-bold text-success">
-                          <UserCheck className="h-3 w-3" />{t('search.coach')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        {item.sport && (
-                          <span className="text-sm text-muted-foreground">
-                            {SPORT_ICONS[item.sport] ?? '🎯'} {sportLabel(item.sport)}
-                          </span>
-                        )}
-                        {item.city && (
-                          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />{item.city}
+                        {item.avg_rating !== null && (
+                          <span className="ml-auto shrink-0 flex items-center gap-1 text-sm">
+                            <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                            <span className="font-semibold text-foreground">{item.avg_rating.toFixed(1)}</span>
+                            <span className="text-muted-foreground">({item.review_count})</span>
                           </span>
                         )}
                       </div>
-                      {item.schools?.name ? (
-                        <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />{item.schools.name}
+                      {item.sport && (
+                        <p className="text-sm text-muted-foreground">
+                          {SPORT_ICONS[item.sport] ?? '🎯'} {sportLabel(item.sport)}
                         </p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground mt-1">{t('search.independentCoach')}</p>
                       )}
-                      {item.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.bio}</p>}
+                      {item.city && (
+                        <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />{item.city}
+                        </p>
+                      )}
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <UserCheck className="h-3.5 w-3.5 shrink-0" />{t('search.coach')}
+                      </p>
+                      {item.bio && <p className="text-sm text-muted-foreground line-clamp-2">{item.bio}</p>}
                     </div>
                   </button>
                 )

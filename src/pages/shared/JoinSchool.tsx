@@ -168,8 +168,8 @@ export default function JoinSchool() {
   if (requestSent) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-          <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
+        <header className="flex items-center justify-center header-gradient px-4 py-4">
+          <span className="text-lg font-bold tracking-tight text-white">sessio</span>
         </header>
         <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
           <SchoolCard />
@@ -193,8 +193,8 @@ export default function JoinSchool() {
   if (session && profile?.onboarding_complete && profile?.role === 'coach') {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-          <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
+        <header className="flex items-center justify-center header-gradient px-4 py-4">
+          <span className="text-lg font-bold tracking-tight text-white">sessio</span>
         </header>
         <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full space-y-5">
           <p className="text-center text-sm text-muted-foreground">{t('joinSchool.invitedToJoin')}</p>
@@ -215,8 +215,8 @@ export default function JoinSchool() {
   // Not logged in — sign-in flow
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-center border-b border-border bg-card px-4 py-4">
-        <span className="text-lg font-bold tracking-tight text-foreground">sessio</span>
+      <header className="flex items-center justify-center header-gradient px-4 py-4">
+        <span className="text-lg font-bold tracking-tight text-white">sessio</span>
       </header>
       <main className="flex-1 px-4 py-8 space-y-5 max-w-sm mx-auto w-full">
         <p className="text-center text-sm text-muted-foreground">{t('joinSchool.invitedToJoin')}</p>

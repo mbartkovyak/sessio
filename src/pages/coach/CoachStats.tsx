@@ -1,16 +1,47 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, addMonths, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings';
-import { useStatsData, groupStats, computeSummary } from '@/hooks/training/useStatsData';
-import CoachHeader from '@/components/coach/CoachHeader';
+import { useStatsData, groupStats, computeSummary, computePerTrainingStats, type StatsSession } from '@/hooks/training/useStatsData';
+import PageHeader from '@/components/shared/PageHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { SessioLoader } from '@/components/SessioLogo';
+import { SPORT_ICONS } from '@/lib/constants';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+
+/** Get the start/end of the period at a given offset from today. offset=0 is current, -1 is previous, etc. */
+function getPeriodBounds(groupBy: 'week' | 'month', offset: number) {
+  const base = groupBy === 'week' ? addWeeks(new Date(), offset) : addMonths(new Date(), offset);
+  const start = groupBy === 'week' ? startOfWeek(base, { weekStartsOn: 1 }) : startOfMonth(base);
+  const end = groupBy === 'week' ? endOfWeek(base, { weekStartsOn: 1 }) : endOfMonth(base);
+  return { start, end };
+}
+
+function filterByPeriod(sessions: StatsSession[], groupBy: 'week' | 'month', offset: number): StatsSession[] {
+  const { start, end } = getPeriodBounds(groupBy, offset);
+  return sessions.filter(s => {
+    const d = parseISO(s.session_date);
+    return d >= start && d <= end;
+  });
+}
+
+function periodLabel(groupBy: 'week' | 'month', offset: number): string {
+  const locale = getDateLocale();
+  const { start, end } = getPeriodBounds(groupBy, offset);
+  if (groupBy === 'week') {
+    return `${format(start, 'd MMM', { locale })} – ${format(end, 'd MMM', { locale })}`;
+  }
+  return format(start, 'MMMM yyyy', { locale });
+}
 
 export default function CoachStats() {
   const { t } = useTranslation('coach');
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
@@ -25,35 +56,105 @@ export default function CoachStats() {
 
   const { data: rawSessions = [], isLoading } = useStatsData(trainingIds);
   const [groupBy, setGroupBy] = useState<'week' | 'month'>('week');
+  const [offset, setOffset] = useState(0);
 
-  const chartData = useMemo(() => groupStats(rawSessions, groupBy), [rawSessions, groupBy]);
-  const summary = useMemo(() => computeSummary(rawSessions), [rawSessions]);
+  // Reset offset when switching view
+  function switchGroupBy(g: 'week' | 'month') {
+    setGroupBy(g);
+    setOffset(0);
+  }
+
+  // Chart shows full trend (all data grouped by week/month)
+  // Chart also filtered to selected period
+  const periodSess = useMemo(() => filterByPeriod(rawSessions, groupBy, offset), [rawSessions, groupBy, offset]);
+  const chartData = useMemo(() => groupStats(periodSess, groupBy), [periodSess, groupBy]);
+
+  const summary = useMemo(() => computeSummary(periodSess), [periodSess]);
+  const perTraining = useMemo(() => computePerTrainingStats(periodSess), [periodSess]);
+  const currentPeriodLabel = useMemo(() => periodLabel(groupBy, offset), [groupBy, offset]);
+
+  // For school owners: group per-training stats by coach
+  const coachNames = useMemo(() => {
+    if (!isSchoolOwner) return new Map<string, string>();
+    const map = new Map<string, string>();
+    for (const tr of [...myTrainings, ...schoolTrainings]) {
+      if (tr.coach_id && tr.coach?.full_name) {
+        map.set(tr.coach_id, tr.coach.full_name);
+      }
+    }
+    return map;
+  }, [myTrainings, schoolTrainings, isSchoolOwner]);
+
+  const perCoach = useMemo(() => {
+    if (!isSchoolOwner) return [];
+    const byCoach = new Map<string, { name: string; sessions: number; confirmed: number; noShow: number }>();
+    for (const ts of perTraining) {
+      if (!byCoach.has(ts.coachId)) {
+        byCoach.set(ts.coachId, { name: coachNames.get(ts.coachId) ?? 'Coach', sessions: 0, confirmed: 0, noShow: 0 });
+      }
+      const c = byCoach.get(ts.coachId)!;
+      c.sessions += ts.sessions;
+      c.confirmed += ts.confirmed;
+      c.noShow += ts.noShow;
+    }
+    return Array.from(byCoach.values()).map(c => ({
+      ...c,
+      attendanceRate: (c.confirmed + c.noShow) > 0 ? Math.round((c.confirmed / (c.confirmed + c.noShow)) * 100) : 100,
+    })).sort((a, b) => b.sessions - a.sessions);
+  }, [perTraining, coachNames, isSchoolOwner]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <CoachHeader title={t('stats.title')} back />
-
-      <main className="flex-1 pb-24">
-        <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
+      <PageHeader className="px-4 py-3">
+        <div className="max-w-md mx-auto space-y-2">
+          {/* Title row with back button */}
+          <div className="flex items-center">
+            <button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/coach')} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 text-white shrink-0 absolute left-4">
+              <ArrowLeft className="h-4.5 w-4.5" />
+            </button>
+            <h1 className="flex-1 text-center text-base font-bold text-white">{t('stats.title')}</h1>
+          </div>
           {/* Week / Month toggle */}
-          <div className="flex rounded-xl bg-white p-1 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+          <div className="flex rounded-lg bg-white/15 p-0.5">
             <button
-              onClick={() => setGroupBy('week')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                groupBy === 'week' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+              onClick={() => switchGroupBy('week')}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                groupBy === 'week' ? 'bg-white text-primary shadow-sm' : 'text-white/70'
               }`}
             >
               {t('stats.week')}
             </button>
             <button
-              onClick={() => setGroupBy('month')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${
-                groupBy === 'month' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'
+              onClick={() => switchGroupBy('month')}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                groupBy === 'month' ? 'bg-white text-primary shadow-sm' : 'text-white/70'
               }`}
             >
               {t('stats.month')}
             </button>
           </div>
+          {/* Period navigation */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setOffset(o => o - 1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 active:scale-[0.9] transition-transform"
+            >
+              <ChevronLeft className="h-4 w-4 text-white/70" />
+            </button>
+            <span className="text-sm font-medium text-white">{currentPeriodLabel}</span>
+            <button
+              onClick={() => setOffset(o => o + 1)}
+              disabled={offset >= 0}
+              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-white/10 active:scale-[0.9] transition-transform disabled:opacity-20"
+            >
+              <ChevronRight className="h-4 w-4 text-white/70" />
+            </button>
+          </div>
+        </div>
+      </PageHeader>
+
+      <main className="flex-1 pb-24">
+        <div className="max-w-md mx-auto px-4 pt-4 space-y-5">
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
@@ -65,9 +166,29 @@ export default function CoachStats() {
             </div>
           ) : (
             <>
-              {/* Bar chart */}
+              {/* Summary numbers — filtered to selected period */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-foreground">{summary.attendanceRate}%</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.attendanceRate')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-foreground">{summary.totalSessions}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.totalSessions')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-success">{summary.totalConfirmed}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.confirmed')}</div>
+                </div>
+                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  <div className="text-lg font-bold text-amber-600">{summary.totalNoShow}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.noShow')}</div>
+                </div>
+              </div>
+
+              {/* Bar chart — full trend */}
               <div className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={chartData} barGap={2}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 90%)" />
                     <XAxis
@@ -85,26 +206,66 @@ export default function CoachStats() {
                     />
                     <Tooltip />
                     <Bar dataKey="confirmed" name={t('stats.confirmed')} fill="hsl(160, 60%, 38%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="noShow" name={t('stats.noShow')} fill="hsl(30, 90%, 55%)" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="declined" name={t('stats.declined')} fill="hsl(0, 72%, 50%)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Summary numbers */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-foreground">{summary.totalSessions}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.totalSessions')}</div>
-                </div>
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-success">{summary.totalConfirmed}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.confirmed')}</div>
-                </div>
-                <div className="rounded-2xl bg-white p-3 text-center shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                  <div className="text-lg font-bold text-destructive">{summary.totalDeclined}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t('stats.declined')}</div>
-                </div>
-              </div>
+              {/* Per-coach breakdown (school owners only) — filtered */}
+              {isSchoolOwner && perCoach.length > 1 && (
+                <section>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('stats.perCoach')}</h2>
+                  <div className="space-y-2">
+                    {perCoach.map(c => (
+                      <div key={c.name} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
+                          <p className="text-xs text-muted-foreground">{c.sessions} {t('stats.totalSessions').toLowerCase()}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-foreground">{c.attendanceRate}%</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {c.confirmed} {t('stats.confirmed').toLowerCase()} · {c.noShow} {t('stats.noShow').toLowerCase()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Per-training breakdown — filtered */}
+              {perTraining.length > 0 && (
+                <section>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('stats.perTraining')}</h2>
+                  <div className="space-y-2">
+                    {perTraining.map(ts => (
+                      <button
+                        key={ts.id}
+                        onClick={() => navigate(`/coach/trainings/${ts.id}`)}
+                        className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm text-left active:scale-[0.98] transition-transform"
+                        style={{ border: '1px solid hsl(203 20% 90%)' }}
+                      >
+                        <span className="text-lg shrink-0">{SPORT_ICONS[ts.sport] ?? '🎯'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{ts.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {ts.sessions} {t('stats.totalSessions').toLowerCase()} · {ts.confirmed} {t('stats.confirmed').toLowerCase()}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-foreground">{ts.attendanceRate}%</p>
+                          {ts.noShow > 0 && (
+                            <p className="text-[10px] text-amber-600">{ts.noShow} {t('stats.noShow').toLowerCase()}</p>
+                          )}
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
             </>
           )}
         </div>

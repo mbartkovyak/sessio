@@ -169,7 +169,7 @@ export function useTrainingMembers(trainingId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('training_members')
-        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, email, phone, bio, sport, city, is_placeholder)')
         .eq('training_id', trainingId!);
       if (error) throw error;
       return (data ?? []) as TrainingMemberWithProfile[];
@@ -274,6 +274,119 @@ export function useAddTrainingMember(trainingId: string) {
   });
 }
 
+export function useCreatePlaceholderAthlete(trainingId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ firstName, lastName, schoolId, phone, email, trainingName }: {
+      firstName: string;
+      lastName: string;
+      schoolId: string;
+      phone?: string;
+      email?: string;
+      trainingName: string;
+    }) => {
+      // Create placeholder profile via RPC
+      const { data: placeholderId, error: rpcErr } = await supabase.rpc('create_placeholder_athlete', {
+        p_first_name: firstName,
+        p_last_name: lastName,
+        p_school_id: schoolId,
+        p_phone: phone || null,
+        p_email: email || null,
+      });
+      if (rpcErr) throw rpcErr;
+      if (!placeholderId) throw new Error('Failed to create placeholder');
+
+      // Add to training (triggers auto-enroll in future sessions)
+      const { error: memberErr } = await supabase
+        .from('training_members')
+        .insert({ training_id: trainingId, user_id: placeholderId, role: 'regular' });
+      if (memberErr) {
+        if (memberErr.code !== '23505') throw memberErr; // ignore duplicate
+      }
+
+      return placeholderId as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      toast.success(i18n.t('toast.memberAdded', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Create a placeholder athlete without adding to any training. For passes page. */
+export function useCreateStandalonePlaceholder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ firstName, lastName, schoolId, phone, email }: {
+      firstName: string;
+      lastName: string;
+      schoolId: string;
+      phone?: string;
+      email?: string;
+    }) => {
+      const { data: placeholderId, error: rpcErr } = await supabase.rpc('create_placeholder_athlete', {
+        p_first_name: firstName,
+        p_last_name: lastName,
+        p_school_id: schoolId,
+        p_phone: phone || null,
+        p_email: email || null,
+      });
+      if (rpcErr) throw rpcErr;
+      if (!placeholderId) throw new Error('Failed to create placeholder');
+      return placeholderId as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes-pool'] });
+      qc.invalidateQueries({ queryKey: ['my-athletes'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Get all trainings a specific athlete is in. For ProfileSheet coach actions. */
+export function useAthleteTrainings(athleteId: string | undefined) {
+  return useQuery({
+    queryKey: ['athlete-trainings', athleteId],
+    enabled: !!athleteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('training_members')
+        .select('id, training_id, trainings:training_id(id, name, sport)')
+        .eq('user_id', athleteId!)
+        .eq('role', 'regular');
+      if (error) throw error;
+      // Only include active trainings
+      return (data ?? []).filter((m: any) => m.trainings) as { id: string; training_id: string; trainings: { id: string; name: string; sport: string } }[];
+    },
+  });
+}
+
+/** Remove a training member, accepting trainingId as a mutation param. */
+export function useRemoveAnyTrainingMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ membershipId, trainingId }: { membershipId: string; trainingId: string }) => {
+      const { error } = await supabase
+        .from('training_members')
+        .delete()
+        .eq('id', membershipId);
+      if (error) throw error;
+      return trainingId;
+    },
+    onSuccess: (trainingId) => {
+      qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
+      qc.invalidateQueries({ queryKey: ['athlete-trainings'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes-pool'] });
+      toast.success(i18n.t('toast.memberRemoved', { ns: 'common' }));
+    },
+  });
+}
+
 export function useMyAthletes(coachId: string | undefined) {
   return useQuery({
     queryKey: ['my-athletes', coachId],
@@ -292,7 +405,7 @@ export function useMyAthletes(coachId: string | undefined) {
       // Get all unique members across trainings
       const { data: members, error: mErr } = await supabase
         .from('training_members')
-        .select('user_id, training_id, profiles:user_id(id, full_name, avatar_url, email)')
+        .select('user_id, training_id, profiles:user_id(id, full_name, avatar_url, email, is_placeholder)')
         .in('training_id', trainingIds)
         .eq('role', 'regular');
       if (mErr) throw mErr;
@@ -334,7 +447,7 @@ export function useSessionAttendance(sessionId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('session_attendance')
-        .select('*, profiles:user_id(id, full_name, avatar_url)')
+        .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
         .eq('session_id', sessionId!);
       if (error) throw error;
       return (data ?? []) as SessionAttendanceWithProfile[];
@@ -342,7 +455,7 @@ export function useSessionAttendance(sessionId: string | undefined) {
   });
 }
 
-export type AttendanceSummary = { confirmed: number; declined: number; pending: number; total: number };
+export type AttendanceSummary = { confirmed: number; declined: number; total: number };
 
 export function useAttendanceSummary(sessionIds: string[]) {
   return useQuery({
@@ -356,11 +469,10 @@ export function useAttendanceSummary(sessionIds: string[]) {
       if (error) throw error;
       const summary: Record<string, AttendanceSummary> = {};
       for (const row of data ?? []) {
-        if (!summary[row.session_id]) summary[row.session_id] = { confirmed: 0, declined: 0, pending: 0, total: 0 };
+        if (!summary[row.session_id]) summary[row.session_id] = { confirmed: 0, declined: 0, total: 0 };
         summary[row.session_id].total++;
         if (row.status === 'confirmed') summary[row.session_id].confirmed++;
         else if (row.status === 'declined') summary[row.session_id].declined++;
-        else summary[row.session_id].pending++;
       }
       return summary;
     },
@@ -374,15 +486,42 @@ export function useMyUpcomingSessions() {
     enabled: !!user,
     retry: 1,
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('session_attendance')
-        .select('*, training_sessions(*, trainings(id, name, sport, venue, max_players, confirmation_window_hours, is_active, coach:profiles(id, full_name, avatar_url)))')
-        .eq('user_id', user!.id);
+      // Use SECURITY DEFINER RPC to bypass training_sessions RLS for drop-in players
+      const { data, error } = await supabase.rpc('get_my_upcoming_sessions');
       if (error) throw error;
-      return (data ?? [])
-        .filter((d: any) => d.training_sessions && d.training_sessions.session_date >= today && d.training_sessions.trainings?.is_active === true && d.training_sessions.status !== 'cancelled')
-        .sort((a: any, b: any) => a.training_sessions.session_date.localeCompare(b.training_sessions.session_date)) as SessionAttendanceWithSession[];
+      // Reshape RPC flat rows into the nested structure components expect
+      return (data ?? []).map((row: any) => ({
+        id: row.attendance_id,
+        session_id: row.session_id,
+        user_id: user!.id,
+        status: row.attendance_status,
+        confirmed_at: row.confirmed_at,
+        declined_at: row.declined_at,
+        reminder_sent_at: null,
+        reminder_count: 0,
+        training_sessions: {
+          id: row.session_id,
+          training_id: row.training_id,
+          session_date: row.session_date,
+          start_time: row.start_time,
+          end_time: row.end_time,
+          status: row.session_status,
+          trainings: {
+            id: row.training_id,
+            name: row.training_name,
+            sport: row.sport,
+            venue: row.venue,
+            max_players: row.max_players,
+            confirmation_window_hours: row.confirmation_window_hours,
+            is_active: row.is_active,
+            coach: {
+              id: row.coach_id,
+              full_name: row.coach_full_name,
+              avatar_url: row.coach_avatar_url,
+            },
+          },
+        },
+      })) as SessionAttendanceWithSession[];
     },
   });
 }
@@ -442,6 +581,74 @@ export function useUpsertAttendance() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+export type AttendanceEntry = { userId: string; present: boolean; originalStatus: string };
+
+export function useMarkAttendance() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId, entries }: { sessionId: string; entries: AttendanceEntry[] }) => {
+      // Group by target status for batch updates
+      const toConfirm: string[] = [];
+      const toNoShow: string[] = [];
+
+      for (const e of entries) {
+        if (e.present) {
+          if (e.originalStatus !== 'confirmed') toConfirm.push(e.userId);
+        } else {
+          if (e.originalStatus === 'confirmed') toNoShow.push(e.userId);
+          // 'declined' stays 'declined', 'no_show' stays 'no_show'
+        }
+      }
+
+      if (toConfirm.length) {
+        const { error } = await supabase
+          .from('session_attendance')
+          .update({ status: 'confirmed' })
+          .eq('session_id', sessionId)
+          .in('user_id', toConfirm);
+        if (error) throw error;
+      }
+      if (toNoShow.length) {
+        const { error } = await supabase
+          .from('session_attendance')
+          .update({ status: 'no_show' })
+          .eq('session_id', sessionId)
+          .in('user_id', toNoShow);
+        if (error) throw error;
+      }
+
+      const { error } = await supabase
+        .from('training_sessions')
+        .update({ attendance_marked_at: new Date().toISOString() })
+        .eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['past-unmarked-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['stats-data'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+export function useJoinSingleSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });

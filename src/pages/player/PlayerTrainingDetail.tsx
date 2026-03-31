@@ -1,9 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, Clock, MessageCircle, LogOut, Users } from 'lucide-react';
+import { CalendarDays, Clock, MessageCircle, LogOut, Users, Ticket } from 'lucide-react';
 import CoachCard from '@/components/shared/CoachCard';
 import { useTraining, useTrainingMembers, useLeaveTraining } from '@/hooks/training/useTrainings';
+import { useMySchoolAbonament, isAbonamentActive } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { SPORT_ICONS, DAYS_SHORT, dayShortLabel, sportLabel } from '@/lib/constants';
 import AppHeader from '@/components/shared/AppHeader';
 import VenueLink from '@/components/shared/VenueLink';
@@ -19,7 +22,16 @@ export default function PlayerTrainingDetail() {
   const { data: members = [] } = useTrainingMembers(id);
   const leave = useLeaveTraining();
 
+  const { data: myAbonament } = useMySchoolAbonament(training?.school_id);
+
   const isMember = members.some((m: any) => (m.user_id ?? m.profiles?.id) === user?.id);
+
+  // Fetch real member count via RPC (RLS blocks cross-user reads)
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    supabase.rpc('get_training_member_count', { p_training_id: id }).then(({ data }) => setMemberCount(data ?? 0));
+  }, [id]);
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><SessioLoader /></div>;
   if (!training) return (
@@ -50,7 +62,7 @@ export default function PlayerTrainingDetail() {
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto">
           {/* Hero */}
-          <div className="bg-card border-b border-border p-6 text-center">
+          <div className="mx-4 mt-4 rounded-2xl border border-border bg-card p-6 text-center">
             <div className="text-5xl mb-3">{sportIcon}</div>
             <h2 className="text-xl font-bold text-foreground">{training.name}</h2>
             <p className="text-sm text-muted-foreground mt-1">{sportLabel(training.sport)}</p>
@@ -75,7 +87,7 @@ export default function PlayerTrainingDetail() {
               {training.type === 'group' && (
                 <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                   <Users className="h-4 w-4 shrink-0" />
-                  <span>{regularCount}{training.max_players ? `/${training.max_players}` : ''} {t('trainingDetail.participants')}</span>
+                  <span>{memberCount ?? 0}{training.max_players ? `/${training.max_players}` : ''} {t('trainingDetail.participants')}</span>
                 </div>
               )}
             </div>
@@ -83,6 +95,26 @@ export default function PlayerTrainingDetail() {
             {/* Coach */}
             {coach && (
               <CoachCard coach={coach} subtitle={t('trainingDetail.coach')} />
+            )}
+
+            {/* Player's pass */}
+            {isMember && myAbonament && isAbonamentActive(myAbonament) && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Ticket className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{myAbonament.abonament_types?.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {myAbonament.sessions_remaining != null
+                        ? t('abonaments.remaining', { remaining: myAbonament.sessions_remaining, total: myAbonament.sessions_total })
+                        : t('abonaments.unlimited')}
+                      {myAbonament.expires_at && ` · ${t('abonaments.expiresOn', { date: new Date(myAbonament.expires_at).toLocaleDateString() })}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Group chat */}

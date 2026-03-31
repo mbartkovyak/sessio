@@ -219,10 +219,15 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.join_requests;
 -- 16. Storage buckets
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
 INSERT INTO storage.buckets (id, name, public) VALUES ('videos', 'videos', false) ON CONFLICT DO NOTHING;
+DROP POLICY IF EXISTS "Avatars public select" ON storage.objects;
 CREATE POLICY "Avatars public select" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+DROP POLICY IF EXISTS "Users upload own avatar" ON storage.objects;
 CREATE POLICY "Users upload own avatar" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+DROP POLICY IF EXISTS "Users update own avatar" ON storage.objects;
 CREATE POLICY "Users update own avatar" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+DROP POLICY IF EXISTS "Users upload own video" ON storage.objects;
 CREATE POLICY "Users upload own video" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'videos' AND auth.uid()::text = (storage.foldername(name))[1]);
+DROP POLICY IF EXISTS "Video owner select" ON storage.objects;
 CREATE POLICY "Video owner select" ON storage.objects FOR SELECT USING (bucket_id = 'videos' AND auth.uid()::text = (storage.foldername(name))[1]);
 
 -- 17. Generate training sessions function

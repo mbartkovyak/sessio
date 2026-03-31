@@ -124,6 +124,16 @@
     "claimFailed": "Не вдалося зайняти місце",
     "claimSpot": "Зайняти місце"
   },
+  "abonaments": {
+    "title": "Мої абонементи",
+    "myPass": "Ваш абонемент",
+    "remaining": "Залишилось {{remaining}} з {{total}}",
+    "unlimited": "Без ліміту занять",
+    "expiresOn": "Діє до {{date}}",
+    "expired": "Завершився",
+    "usedUp": "Використано",
+    "startsOn": "З {{date}}"
+  },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"
   }
