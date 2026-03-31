@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Search, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Avatar from '@/components/shared/Avatar';
@@ -17,12 +17,25 @@ interface AddMemberSheetProps {
 export default function AddMemberSheet({ open, onClose, athletes, existingMemberIds, onAdd, adding }: AddMemberSheetProps) {
   const { t } = useTranslation('coach');
   const [search, setSearch] = useState('');
+  const sheetRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll when open
+  // Lock body scroll + resize sheet to visual viewport (keyboard-aware)
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+
+    function updateHeight() {
+      if (!sheetRef.current) return;
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      sheetRef.current.style.maxHeight = `${vh * 0.55}px`;
+    }
+
+    updateHeight();
+    window.visualViewport?.addEventListener('resize', updateHeight);
+    return () => {
+      document.body.style.overflow = '';
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+    };
   }, [open]);
 
   if (!open) return null;
@@ -43,7 +56,7 @@ export default function AddMemberSheet({ open, onClose, athletes, existingMember
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl flex flex-col animate-in slide-in-from-bottom duration-200" style={{ maxHeight: '60dvh' }}>
+      <div ref={sheetRef} className="relative w-full max-w-md rounded-t-2xl bg-card border-t border-border shadow-xl flex flex-col animate-in slide-in-from-bottom duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <h3 className="font-semibold text-foreground text-sm">{t('detail.addMemberTitle')}</h3>
