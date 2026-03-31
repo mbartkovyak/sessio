@@ -291,8 +291,8 @@
     "noSchool": "Join a school to manage athletes",
     "addViaPassesHint": "Add new people via Passes",
     "count": "{{count}} athletes",
-    "trainings": "Trainings",
-    "noTrainings": "Not in any training",
+    "trainings": "Signed up for",
+    "noTrainings": "Not signed up for any weekly sessions",
     "addToTraining": "Add to training",
     "removeConfirm": "Remove {{name}} from {{training}}?"
   }

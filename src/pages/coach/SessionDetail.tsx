@@ -19,7 +19,7 @@ import { SessioLoader } from '@/components/SessioLogo';
 
 import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { useSessionDetail } from '@/hooks/training/useTodaySessions';
-import { useSessionAttendance, useTrainingMembers, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
+import { useSessionAttendance, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive, useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { SPORT_ICONS } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
@@ -32,7 +32,6 @@ export default function SessionDetail() {
   const { data: session, isLoading } = useSessionDetail(sessionId);
   const training = session?.trainings;
   const { data: attendance = [], isLoading: attendanceLoading } = useSessionAttendance(sessionId);
-  const { data: members = [] } = useTrainingMembers(training?.id);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(training?.school_id);
   const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
   const autoDeduct = useAutoDeductSession();
@@ -86,7 +85,6 @@ export default function SessionDetail() {
   const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() });
   const isCancelled = isCancelledEarly;
   const isPast = isPastEarly;
-  const memberUserIds = new Set(members.map((m: any) => m.user_id));
 
   // Attendance: split into signed-up vs not-coming
   const signedUp = attendance.filter(a => a.status === 'confirmed');
@@ -238,7 +236,6 @@ export default function SessionDetail() {
             ) : (
               <div className="rounded-2xl bg-white shadow-sm divide-y divide-border overflow-hidden" style={{ border: '1px solid hsl(203 20% 90%)' }}>
                 {signedUp.map(a => {
-                  const isGuest = !memberUserIds.has(a.user_id);
                   const playerAbonament = abonamentByPlayer.get(a.user_id);
                   const isDeducted = playerAbonament ? usedAbonamentIds.has(playerAbonament.id) : false;
 
@@ -252,11 +249,6 @@ export default function SessionDetail() {
                           <span className="text-sm font-medium text-foreground truncate">
                             {a.profiles?.full_name ?? t('common:profile.unknown')}
                           </span>
-                          {isGuest && (
-                            <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 shrink-0">
-                              {t('session.guest')}
-                            </span>
-                          )}
                         </div>
                         {playerAbonament && (
                           <span className="text-[10px] text-muted-foreground">

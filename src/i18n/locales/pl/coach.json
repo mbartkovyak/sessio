@@ -291,8 +291,8 @@
     "noSchool": "Dołącz do szkoły, aby zarządzać sportowcami",
     "addViaPassesHint": "Dodaj nowe osoby przez Karnety",
     "count": "{{count}} sportowców",
-    "trainings": "Zajęcia",
-    "noTrainings": "Nie zapisany na żadne zajęcia",
+    "trainings": "Zapisany na",
+    "noTrainings": "Nie zapisany na żadne cotygodniowe zajęcia",
     "addToTraining": "Dodaj do zajęć",
     "removeConfirm": "Usunąć {{name}} z {{training}}?"
   }
