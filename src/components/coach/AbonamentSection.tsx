@@ -177,7 +177,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
       {!showForm && (
         <button
           onClick={() => setShowForm(true)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground min-h-[44px] transition-all active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" /> {t('abonaments.addType')}
         </button>
@@ -187,7 +187,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
       {types.length > 0 && !showAssign && (
         <button
           onClick={() => setShowAssign(true)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-yellow-400 py-3 text-sm font-semibold text-black min-h-[44px] transition-all active:scale-[0.97]"
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground min-h-[44px] transition-all active:scale-[0.97]"
         >
           <UserPlus className="h-4 w-4" /> {t('abonaments.assign')}
         </button>
