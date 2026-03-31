@@ -243,7 +243,8 @@
     "passRemaining": "{{remaining}}/{{total}} занять",
     "passExpires": "Діє до {{date}}",
     "passAssigned": "Призначено {{date}}",
-    "usageHistory": "Використання"
+    "usageHistory": "Використання",
+    "assignPass": "Призначити абонемент"
   },
   "venue": {
     "name": "Назва локації (наприклад, Корт 3)",

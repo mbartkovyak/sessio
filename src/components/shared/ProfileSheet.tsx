@@ -1,9 +1,13 @@
-import { X, Phone, MessageCircle, Ticket } from 'lucide-react';
+import { useState } from 'react';
+import { X, Phone, MessageCircle, Ticket, Trash2, Plus, Dumbbell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { sportLabel } from '@/lib/constants';
+import { sportLabel, SPORT_ICONS } from '@/lib/constants';
 import { usePlayerAbonamentHistory, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { useAthleteTrainings, useRemoveAnyTrainingMember, useAddTrainingMember, useTrainings } from '@/hooks/training/useTrainings';
+import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
+import { useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
 
 interface Props {
@@ -17,14 +21,21 @@ interface Props {
     sport?: string | null;
     city?: string | null;
     role?: string | null;
+    is_placeholder?: boolean;
   } | null;
   schoolId?: string | null;
   onClose: () => void;
+  coachMode?: boolean;
 }
 
-export default function ProfileSheet({ profile, schoolId, onClose }: Props) {
+export default function ProfileSheet({ profile, schoolId, onClose, coachMode }: Props) {
   const { t } = useTranslation('common');
+  const navigate = useNavigate();
   const { data: abonamentHistory = [] } = usePlayerAbonamentHistory(profile?.id, schoolId);
+  const { data: athleteTrainings = [] } = useAthleteTrainings(coachMode ? profile?.id : undefined);
+  const { data: coachTrainings = [] } = useTrainings();
+  const removeFromTraining = useRemoveAnyTrainingMember();
+  const [addingToTraining, setAddingToTraining] = useState(false);
 
   if (!profile) return null;
 
@@ -59,6 +70,29 @@ export default function ProfileSheet({ profile, schoolId, onClose }: Props) {
         {/* Bio */}
         {profile.bio && (
           <p className="text-sm text-muted-foreground text-center mb-5">{profile.bio}</p>
+        )}
+
+        {/* Coach actions: trainings this athlete is in */}
+        {coachMode && (
+          <TrainingsSection
+            athleteId={profile.id!}
+            athleteName={profile.full_name ?? ''}
+            athleteTrainings={athleteTrainings}
+            coachTrainings={coachTrainings}
+            removeFromTraining={removeFromTraining}
+            addingToTraining={addingToTraining}
+            setAddingToTraining={setAddingToTraining}
+          />
+        )}
+
+        {/* Coach actions: assign pass */}
+        {coachMode && schoolId && (
+          <button
+            onClick={() => { onClose(); navigate(`/coach/passes?assignTo=${profile.id}`); }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 py-3 text-sm font-medium text-primary mb-5 hover:bg-primary/10 transition-colors"
+          >
+            <Ticket className="h-4 w-4" /> {t('profile.assignPass')}
+          </button>
         )}
 
         {/* Abonament info */}
@@ -157,10 +191,101 @@ export default function ProfileSheet({ profile, schoolId, onClose }: Props) {
           )}
         </div>
 
-        {!hasPhone && !profile.email && abonamentHistory.length === 0 && (
+        {!hasPhone && !profile.email && abonamentHistory.length === 0 && !coachMode && (
           <p className="text-sm text-muted-foreground text-center">{t('profile.noContact')}</p>
         )}
       </div>
     </div>
+  );
+}
+
+// ── Trainings sub-component for coach mode ──
+
+function TrainingsSection({ athleteId, athleteName, athleteTrainings, coachTrainings, removeFromTraining, addingToTraining, setAddingToTraining }: {
+  athleteId: string;
+  athleteName: string;
+  athleteTrainings: { id: string; training_id: string; trainings: { id: string; name: string; sport: string } }[];
+  coachTrainings: any[];
+  removeFromTraining: ReturnType<typeof useRemoveAnyTrainingMember>;
+  addingToTraining: boolean;
+  setAddingToTraining: (v: boolean) => void;
+}) {
+  const { t } = useTranslation('coach');
+  const athleteTrainingIds = new Set(athleteTrainings.map(at => at.training_id));
+  const available = coachTrainings.filter((tr: any) => tr.is_active && !athleteTrainingIds.has(tr.id));
+
+  return (
+    <div className="mb-5">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t('athletes.trainings')}</h3>
+      {athleteTrainings.length === 0 ? (
+        <p className="text-xs text-muted-foreground mb-2">{t('athletes.noTrainings')}</p>
+      ) : (
+        <div className="rounded-xl border border-border bg-card divide-y divide-border mb-2">
+          {athleteTrainings.map(at => (
+            <div key={at.id} className="flex items-center gap-2.5 px-3 py-2.5">
+              <span className="text-base">{SPORT_ICONS[at.trainings.sport] ?? '🎯'}</span>
+              <span className="flex-1 text-sm font-medium text-foreground truncate">{at.trainings.name}</span>
+              <button
+                onClick={() => { if (confirm(t('athletes.removeConfirm', { name: athleteName, training: at.trainings.name }))) removeFromTraining.mutate({ membershipId: at.id, trainingId: at.training_id }); }}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+              >
+                <Trash2 className="h-3 w-3 text-destructive" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {addingToTraining ? (
+        <AddToTrainingPicker
+          athleteId={athleteId}
+          athleteName={athleteName}
+          available={available}
+          onDone={() => setAddingToTraining(false)}
+        />
+      ) : available.length > 0 && (
+        <button
+          onClick={() => setAddingToTraining(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary/40 bg-primary/5 py-2.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" /> {t('athletes.addToTraining')}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AddToTrainingPicker({ athleteId, athleteName, available, onDone }: {
+  athleteId: string;
+  athleteName: string;
+  available: any[];
+  onDone: () => void;
+}) {
+  const { t } = useTranslation('coach');
+  // We need a dynamic hook per training — use a simple wrapper
+  return (
+    <div className="rounded-xl border border-primary/30 bg-primary/5 p-2 space-y-1">
+      {available.map((tr: any) => (
+        <TrainingAddButton key={tr.id} trainingId={tr.id} trainingName={tr.name} sport={tr.sport} athleteId={athleteId} onDone={onDone} />
+      ))}
+      <button onClick={onDone} className="w-full text-xs text-muted-foreground py-1">{t('common:actions.cancel')}</button>
+    </div>
+  );
+}
+
+function TrainingAddButton({ trainingId, trainingName, sport, athleteId, onDone }: {
+  trainingId: string; trainingName: string; sport: string; athleteId: string; onDone: () => void;
+}) {
+  const addMember = useAddTrainingMember(trainingId);
+  return (
+    <button
+      onClick={() => { addMember.mutate({ userId: athleteId, trainingName }, { onSuccess: onDone }); }}
+      disabled={addMember.isPending}
+      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-primary/10 transition-colors disabled:opacity-50"
+    >
+      <span className="text-base">{SPORT_ICONS[sport] ?? '🎯'}</span>
+      <span className="flex-1 text-sm font-medium text-foreground text-left truncate">{trainingName}</span>
+      <Plus className="h-3.5 w-3.5 text-primary shrink-0" />
+    </button>
   );
 }

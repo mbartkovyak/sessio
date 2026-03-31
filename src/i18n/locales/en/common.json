@@ -243,7 +243,8 @@
     "passRemaining": "{{remaining}}/{{total}} sessions left",
     "passExpires": "Expires {{date}}",
     "passAssigned": "Assigned {{date}}",
-    "usageHistory": "Usage"
+    "usageHistory": "Usage",
+    "assignPass": "Assign pass"
   },
   "venue": {
     "name": "Venue name (e.g. Court 3)",

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { CheckCircle2, BarChart3, Ticket } from 'lucide-react';
+import { CheckCircle2, BarChart3, Ticket, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
@@ -130,6 +130,18 @@ export default function CoachOverviewSection() {
           </div>
         </div>
       )}
+
+      {/* Athletes button */}
+      <button
+        onClick={() => navigate('/coach/athletes')}
+        className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
+      >
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          {t('athletes.title')}
+        </div>
+      </button>
 
       {/* Stats + Passes buttons */}
       <div className="grid grid-cols-2 gap-3">

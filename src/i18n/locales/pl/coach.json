@@ -249,6 +249,8 @@
     "deleteTypeConfirm": "Usunąć ten typ karnetu?",
     "assign": "Przypisz karnet",
     "assignTo": "Przypisz do",
+    "addNewPerson": "Dodaj nową osobę",
+    "createPerson": "Utwórz",
     "selectPlayer": "Wybierz uczestnika",
     "selectType": "Wybierz typ karnetu",
     "noAthletes": "Brak uczestników w zajęciach szkoły",
@@ -280,5 +282,17 @@
     "cancelled": "Ta sesja została odwołana",
     "pastSession": "Ta sesja się już odbyła",
     "changeAttendance": "Zmień obecność"
+  },
+  "athletes": {
+    "title": "Sportowcy",
+    "search": "Szukaj sportowców...",
+    "noAthletes": "Brak sportowców",
+    "noSchool": "Dołącz do szkoły, aby zarządzać sportowcami",
+    "addViaPassesHint": "Dodaj nowe osoby przez Karnety",
+    "count": "{{count}} sportowców",
+    "trainings": "Zajęcia",
+    "noTrainings": "Nie zapisany na żadne zajęcia",
+    "addToTraining": "Dodaj do zajęć",
+    "removeConfirm": "Usunąć {{name}} z {{training}}?"
   }
 }

@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ChevronRight, CalendarDays, X, CheckCircle2, ClipboardCheck } from 'lucide-react';
+import { ChevronRight, CalendarDays, X, CheckCircle2, ClipboardCheck, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import i18n from '@/i18n';
+import { supabase } from '@/integrations/supabase/client';
 
 import CoachHeader from '@/components/coach/CoachHeader';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -14,9 +17,10 @@ import AttendanceSheet from '@/components/coach/AttendanceSheet';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import { SessioLoader } from '@/components/SessioLogo';
 
+import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { useSessionDetail } from '@/hooks/training/useTodaySessions';
 import { useSessionAttendance, useTrainingMembers, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
-import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive } from '@/hooks/training/useAbonaments';
+import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive, useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { SPORT_ICONS } from '@/lib/constants';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
@@ -24,6 +28,7 @@ export default function SessionDetail() {
   const { id: sessionId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
+  const qc = useQueryClient();
   const { data: session, isLoading } = useSessionDetail(sessionId);
   const training = session?.trainings;
   const { data: attendance = [], isLoading: attendanceLoading } = useSessionAttendance(sessionId);
@@ -39,6 +44,8 @@ export default function SessionDetail() {
   const [showAttendance, setShowAttendance] = useState(false);
   const [viewProfile, setViewProfile] = useState<any>(null);
   const [showNotComing, setShowNotComing] = useState(false);
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const { data: athletePool = [] } = useSchoolAthletesWithPassHolders(training?.school_id);
 
   // Compute isPast early (before early returns) so useEffect can reference it
   const today = new Date().toISOString().split('T')[0];
@@ -202,11 +209,21 @@ export default function SessionDetail() {
           {/* Participants section — signed up */}
           <section>
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('session.participants')}</h2>
-              {signedUp.length > 0 && (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {t('session.participantCount', { confirmed: signedUp.length, total: training.max_players ?? signedUp.length })}
-                </span>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('session.participants')}</h2>
+                {signedUp.length > 0 && (
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {t('session.participantCount', { confirmed: signedUp.length, total: training.max_players ?? signedUp.length })}
+                  </span>
+                )}
+              </div>
+              {!isCancelled && (
+                <button
+                  onClick={() => setShowAddParticipant(true)}
+                  className="flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                >
+                  <UserPlus className="h-3 w-3" /> {t('detail.addMember')}
+                </button>
               )}
             </div>
 
@@ -343,7 +360,24 @@ export default function SessionDetail() {
           onClose={() => setShowAttendance(false)}
         />
       )}
-      {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training.school_id} onClose={() => setViewProfile(null)} />}
+      {viewProfile && <ProfileSheet profile={viewProfile} schoolId={training.school_id} onClose={() => setViewProfile(null)} coachMode />}
+      <AddMemberSheet
+        open={showAddParticipant}
+        onClose={() => setShowAddParticipant(false)}
+        athletes={athletePool}
+        existingMemberIds={new Set(attendance.map(a => a.user_id))}
+        onAdd={async (athlete) => {
+          // Add to this session only (session_attendance), not training_members
+          const { error } = await supabase
+            .from('session_attendance')
+            .upsert({ session_id: sessionId!, user_id: athlete.id, status: 'confirmed', confirmed_at: new Date().toISOString() }, { onConflict: 'session_id,user_id' });
+          if (error) { toast.error(error.message); return; }
+          qc.invalidateQueries({ queryKey: ['session-attendance', sessionId] });
+          qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+          setShowAddParticipant(false);
+          toast.success(i18n.t('toast.memberAdded', { ns: 'common' }));
+        }}
+      />
     </div>
   );
 }

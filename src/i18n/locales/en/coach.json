@@ -249,6 +249,8 @@
     "deleteTypeConfirm": "Remove this pass type?",
     "assign": "Assign pass",
     "assignTo": "Assign to",
+    "addNewPerson": "Add new person",
+    "createPerson": "Create",
     "selectPlayer": "Select player",
     "selectType": "Select pass type",
     "noAthletes": "No participants in school trainings yet",
@@ -280,5 +282,17 @@
     "cancelled": "This session has been cancelled",
     "pastSession": "This session has ended",
     "changeAttendance": "Change attendance"
+  },
+  "athletes": {
+    "title": "Athletes",
+    "search": "Search athletes...",
+    "noAthletes": "No athletes yet",
+    "noSchool": "Join a school to manage athletes",
+    "addViaPassesHint": "Add new people via Passes",
+    "count": "{{count}} athletes",
+    "trainings": "Trainings",
+    "noTrainings": "Not in any training",
+    "addToTraining": "Add to training",
+    "removeConfirm": "Remove {{name}} from {{training}}?"
   }
 }

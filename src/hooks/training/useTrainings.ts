@@ -316,6 +316,77 @@ export function useCreatePlaceholderAthlete(trainingId: string) {
   });
 }
 
+/** Create a placeholder athlete without adding to any training. For passes page. */
+export function useCreateStandalonePlaceholder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ firstName, lastName, schoolId, phone, email }: {
+      firstName: string;
+      lastName: string;
+      schoolId: string;
+      phone?: string;
+      email?: string;
+    }) => {
+      const { data: placeholderId, error: rpcErr } = await supabase.rpc('create_placeholder_athlete', {
+        p_first_name: firstName,
+        p_last_name: lastName,
+        p_school_id: schoolId,
+        p_phone: phone || null,
+        p_email: email || null,
+      });
+      if (rpcErr) throw rpcErr;
+      if (!placeholderId) throw new Error('Failed to create placeholder');
+      return placeholderId as string;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes-pool'] });
+      qc.invalidateQueries({ queryKey: ['my-athletes'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Get all trainings a specific athlete is in. For ProfileSheet coach actions. */
+export function useAthleteTrainings(athleteId: string | undefined) {
+  return useQuery({
+    queryKey: ['athlete-trainings', athleteId],
+    enabled: !!athleteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('training_members')
+        .select('id, training_id, trainings:training_id(id, name, sport)')
+        .eq('user_id', athleteId!)
+        .eq('role', 'regular');
+      if (error) throw error;
+      // Only include active trainings
+      return (data ?? []).filter((m: any) => m.trainings) as { id: string; training_id: string; trainings: { id: string; name: string; sport: string } }[];
+    },
+  });
+}
+
+/** Remove a training member, accepting trainingId as a mutation param. */
+export function useRemoveAnyTrainingMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ membershipId, trainingId }: { membershipId: string; trainingId: string }) => {
+      const { error } = await supabase
+        .from('training_members')
+        .delete()
+        .eq('id', membershipId);
+      if (error) throw error;
+      return trainingId;
+    },
+    onSuccess: (trainingId) => {
+      qc.invalidateQueries({ queryKey: ['training-members', trainingId] });
+      qc.invalidateQueries({ queryKey: ['athlete-trainings'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes'] });
+      qc.invalidateQueries({ queryKey: ['school-athletes-pool'] });
+      toast.success(i18n.t('toast.memberRemoved', { ns: 'common' }));
+    },
+  });
+}
+
 export function useMyAthletes(coachId: string | undefined) {
   return useQuery({
     queryKey: ['my-athletes', coachId],

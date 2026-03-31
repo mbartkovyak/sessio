@@ -243,7 +243,8 @@
     "passRemaining": "{{remaining}}/{{total}} zajęć",
     "passExpires": "Wygasa {{date}}",
     "passAssigned": "Przypisano {{date}}",
-    "usageHistory": "Wykorzystanie"
+    "usageHistory": "Wykorzystanie",
+    "assignPass": "Przypisz karnet"
   },
   "venue": {
     "name": "Nazwa miejsca (np. Kort 3)",

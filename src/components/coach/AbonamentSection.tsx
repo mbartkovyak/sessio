@@ -23,6 +23,7 @@ export default function AbonamentSection({ schoolId }: { schoolId: string }) {
   const [playerSearch, setPlayerSearch] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: string; full_name: string | null; avatar_url: string | null } | null>(null);
   const [assignTypeId, setAssignTypeId] = useState('');
+  const [assignStartDate, setAssignStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [newFirstName, setNewFirstName] = useState('');
   const [newLastName, setNewLastName] = useState('');
