@@ -338,7 +338,7 @@ export function useMyConversations() {
         debounceTimer = setTimeout(() => {
           qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
           qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
-        }, 1000);
+        }, 300);
       })
       .subscribe();
     return () => {

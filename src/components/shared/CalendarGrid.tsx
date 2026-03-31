@@ -1,6 +1,7 @@
 import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
 import { useCallback, useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
 export interface CalendarGridHandle {
@@ -13,9 +14,13 @@ interface CalendarGridProps<T> {
   renderItem: (item: T) => React.ReactNode;
   isLoading: boolean;
   emptyState?: React.ReactNode;
+  onLoadPast?: () => void;
+  onLoadFuture?: () => void;
+  isLoadingPast?: boolean;
+  isLoadingFuture?: boolean;
 }
 
-function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyState }: CalendarGridProps<T>, ref: React.Ref<CalendarGridHandle>) {
+function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyState, onLoadPast, onLoadFuture, isLoadingPast, isLoadingFuture }: CalendarGridProps<T>, ref: React.Ref<CalendarGridHandle>) {
   const { t } = useTranslation();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const todayRef = useRef<HTMLDivElement>(null);
@@ -63,6 +68,22 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
 
   return (
     <>
+      {/* Load earlier button */}
+      {onLoadPast && (
+        <button
+          onClick={onLoadPast}
+          disabled={isLoadingPast}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 mb-2"
+        >
+          {isLoadingPast ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ChevronUp className="h-3.5 w-3.5" />
+          )}
+          {t('calendar.loadEarlier', 'Load earlier')}
+        </button>
+      )}
+
       {sortedDates.map(dateKey => {
         const day = parseISO(dateKey);
         const daySessions = byDate[dateKey];
@@ -103,6 +124,22 @@ function CalendarGridInner<T>({ items, getDate, renderItem, isLoading, emptyStat
       })}
 
       {items.length === 0 && emptyState}
+
+      {/* Load more future sessions */}
+      {onLoadFuture && (
+        <button
+          onClick={onLoadFuture}
+          disabled={isLoadingFuture}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 mt-2"
+        >
+          {isLoadingFuture ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
+          {t('calendar.loadMore', 'Load more')}
+        </button>
+      )}
     </>
   );
 }

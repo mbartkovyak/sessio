@@ -59,7 +59,9 @@
     "todayAt": "Dzisiaj o {{time}}",
     "tomorrowAt": "Jutro o {{time}}",
     "at": "o",
-    "noTrainings": "Brak zajęć"
+    "noTrainings": "Brak zajęć",
+    "loadEarlier": "Załaduj wcześniejsze",
+    "loadMore": "Załaduj więcej"
   },
   "phone": {
     "label": "Numer telefonu",

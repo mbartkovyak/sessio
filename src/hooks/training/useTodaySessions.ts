@@ -59,11 +59,11 @@ export function usePastUnmarkedSessions(coachId?: string, schoolId?: string) {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Only include sessions whose end time has passed
+      // Only include sessions whose start time has passed
       const now = new Date();
       return ((data ?? []) as UpcomingSession[]).filter((s) => {
-        const sessionEnd = new Date(`${s.session_date}T${s.end_time}`);
-        return sessionEnd < now;
+        const sessionStart = new Date(`${s.session_date}T${s.start_time}`);
+        return sessionStart < now;
       });
     },
     refetchInterval: 5 * 60 * 1000,

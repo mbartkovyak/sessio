@@ -105,7 +105,7 @@ export default function CoachStats() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <PageHeader className="px-4 py-3">
+      <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto space-y-2">
           {/* Title row with back button */}
           <div className="flex items-center">

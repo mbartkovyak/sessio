@@ -225,6 +225,25 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   }, [text]);
 
+  // Ensure current user is a conversation participant.
+  // Handles drop-in session attendees and edge cases where the DB trigger didn't fire.
+  const ensuredRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!conversationId || !user || ensuredRef.current === conversationId) return;
+    ensuredRef.current = conversationId;
+    supabase
+      .from('conversation_participants')
+      .insert({ conversation_id: conversationId, user_id: user.id })
+      .then(({ error }) => {
+        // 23505 = already a participant — expected for most users
+        if (!error) {
+          // Just became a participant — refresh messages that were blocked by RLS
+          qc.invalidateQueries({ queryKey: ['messages', conversationId] });
+          qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
+        }
+      });
+  }, [conversationId, user?.id, qc]);
+
   useEffect(() => {
     if (conversationId) {
       markConversationSeen(conversationId, qc, user?.id);

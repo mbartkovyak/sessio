@@ -479,15 +479,21 @@ export function useAttendanceSummary(sessionIds: string[]) {
   });
 }
 
-export function useMyUpcomingSessions() {
+export function useMyUpcomingSessions(options?: { from?: string; to?: string }) {
   const { user } = useAuth();
+  const from = options?.from;
+  const to = options?.to;
   return useQuery({
-    queryKey: ['my-upcoming-sessions', user?.id],
+    queryKey: ['my-upcoming-sessions', user?.id, from, to],
     enabled: !!user,
     retry: 1,
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       // Use SECURITY DEFINER RPC to bypass training_sessions RLS for drop-in players
-      const { data, error } = await supabase.rpc('get_my_upcoming_sessions');
+      const params: Record<string, string> = {};
+      if (from) params.p_from_date = from;
+      if (to) params.p_to_date = to;
+      const { data, error } = await supabase.rpc('get_my_upcoming_sessions', Object.keys(params).length > 0 ? params : undefined);
       if (error) throw error;
       // Reshape RPC flat rows into the nested structure components expect
       return (data ?? []).map((row: any) => ({

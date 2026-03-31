@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { format, addWeeks, subWeeks } from 'date-fns';
 import { AlertTriangle, MapPin, MessageCircle, ArrowDown } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
@@ -10,10 +11,21 @@ import { toast } from 'sonner';
 import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/CalendarGrid';
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
+const WINDOW_STEP = 4; // weeks per load
+
 export default function PlayerCalendar() {
   const { t } = useTranslation('player');
-  const { data: sessions = [], isLoading } = useMyUpcomingSessions();
+  const [pastWeeks, setPastWeeks] = useState(WINDOW_STEP);
+  const [futureWeeks, setFutureWeeks] = useState(WINDOW_STEP);
+  const now = new Date();
+  const from = format(subWeeks(now, pastWeeks), 'yyyy-MM-dd');
+  const to = format(addWeeks(now, futureWeeks), 'yyyy-MM-dd');
+
+  const { data: sessions = [], isLoading, isFetching } = useMyUpcomingSessions({ from, to });
   const calendarRef = useRef<CalendarGridHandle>(null);
+  const handleLoadPast = useCallback(() => setPastWeeks(w => w + WINDOW_STEP), []);
+  const handleLoadFuture = useCallback(() => setFutureWeeks(w => w + WINDOW_STEP), []);
+  const isExpandingWindow = isFetching && !isLoading;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -37,6 +49,10 @@ export default function PlayerCalendar() {
             items={sessions}
             getDate={(a: any) => a.training_sessions?.session_date}
             isLoading={isLoading}
+            onLoadPast={handleLoadPast}
+            onLoadFuture={handleLoadFuture}
+            isLoadingPast={isExpandingWindow}
+            isLoadingFuture={isExpandingWindow}
             emptyState={
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>

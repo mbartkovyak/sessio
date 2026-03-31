@@ -59,7 +59,9 @@
     "todayAt": "Сьогодні о {{time}}",
     "tomorrowAt": "Завтра о {{time}}",
     "at": "о",
-    "noTrainings": "Немає занять"
+    "noTrainings": "Немає занять",
+    "loadEarlier": "Завантажити раніше",
+    "loadMore": "Завантажити більше"
   },
   "phone": {
     "label": "Номер телефону",

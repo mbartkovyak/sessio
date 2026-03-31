@@ -40,6 +40,8 @@ function RootLayout() {
   useVisualViewport();
   return (
     <>
+      {/* Persistent dark strip behind the fixed header — prevents light bg flash between route transitions */}
+      <div className="fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
@@ -48,7 +50,7 @@ function RootLayout() {
         <AuthProvider>
           <PushRegistrar />
           <PrefetchRoutes />
-          <Outlet />
+          <div className="relative z-[9]"><Outlet /></div>
         </AuthProvider>
       </ErrorBoundary>
     </>
@@ -92,11 +94,7 @@ const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEdito
 
 function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <SessioLoader />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <Component />
     </Suspense>
   );

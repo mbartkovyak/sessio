@@ -93,12 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userRef.current = session?.user ?? null;
         Sentry.setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
         if (session?.user) {
-          // Set loading=true so any waiting components (e.g. AuthCallback) hold until profile is ready
-          setLoading(true);
-          // Fire and forget — do NOT await here
-          fetchProfile(session.user.id)
-            .then(() => setLoading(false))
-            .catch(() => setLoading(false));
+          if (event === 'SIGNED_IN') {
+            // Full sign-in: show loader until profile is ready (e.g. after AuthCallback)
+            setLoading(true);
+            fetchProfile(session.user.id)
+              .then(() => setLoading(false))
+              .catch(() => setLoading(false));
+          } else {
+            // Token refresh, user update, etc: silent background refresh — do NOT set loading
+            // to avoid unmounting the entire page tree and tearing down realtime subscriptions
+            fetchProfile(session.user.id);
+          }
         } else {
           setProfile(null);
           setLoading(false);
