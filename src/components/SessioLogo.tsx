@@ -20,7 +20,7 @@ export function SessioLogo({ size = 32 }: { size?: number }) {
   return (
     <div className="flex items-center gap-0">
       <SessioMark size={size} />
-      <span className="-ml-1 text-xl font-semibold text-current" style={{ letterSpacing: '-0.04em' }}>
+      <span className="-ml-1.5 text-xl font-semibold text-current" style={{ letterSpacing: '-0.04em' }}>
         essio
       </span>
     </div>
@@ -67,7 +67,7 @@ export function SessioLogoCompact({ size = 26 }: { size?: number }) {
   return (
     <div className="flex items-center gap-0">
       <SessioMark size={size} />
-      <span className="-ml-1 text-lg font-semibold text-current" style={{ letterSpacing: '-0.04em' }}>
+      <span className="-ml-1.5 text-lg font-semibold text-current" style={{ letterSpacing: '-0.04em' }}>
         essio
       </span>
     </div>
