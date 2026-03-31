@@ -267,7 +267,8 @@
     "noParticipants": "No one signed up yet",
     "guest": "Guest",
     "shareSessionLink": "Share session invite",
-    "participantCount": "{{confirmed}}/{{total}} signed up",
+    "participantCount": "{{confirmed}}/{{total}}",
+    "notComing": "Not coming",
     "cancelled": "This session has been cancelled",
     "pastSession": "This session has ended",
     "changeAttendance": "Change attendance"

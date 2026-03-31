@@ -267,7 +267,8 @@
     "noParticipants": "Nikt się jeszcze nie zapisał",
     "guest": "Gość",
     "shareSessionLink": "Udostępnij zaproszenie na sesję",
-    "participantCount": "{{confirmed}}/{{total}} potwierdzonych",
+    "participantCount": "{{confirmed}}/{{total}}",
+    "notComing": "Nie przychodzą",
     "cancelled": "Ta sesja została odwołana",
     "pastSession": "Ta sesja się już odbyła",
     "changeAttendance": "Zmień obecność"

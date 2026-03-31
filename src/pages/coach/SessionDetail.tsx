@@ -79,9 +79,9 @@ export default function SessionDetail() {
   const isPast = isPastEarly;
   const memberUserIds = new Set(members.map((m: any) => m.user_id));
 
-  // Attendance stats
-  const confirmed = attendance.filter(a => a.status === 'confirmed').length;
-  const total = attendance.length;
+  // Attendance: split into signed-up vs not-coming
+  const signedUp = attendance.filter(a => a.status === 'confirmed' || a.status === 'pending');
+  const notComing = attendance.filter(a => a.status === 'declined' || a.status === 'no_show');
 
   // Abonament lookups
   const abonamentByPlayer = new Map<string, any>();
@@ -90,10 +90,7 @@ export default function SessionDetail() {
   }
   const usedAbonamentIds = new Set(usageRecords.map((u: any) => u.player_abonament_id));
 
-  const sorted = [...attendance].sort((a, b) => {
-    const order = { confirmed: 0, pending: 1, declined: 2, no_show: 3 };
-    return (order[a.status as keyof typeof order] ?? 4) - (order[b.status as keyof typeof order] ?? 4);
-  });
+  const [showNotComing, setShowNotComing] = useState(false);
 
   // Session invite link
   const sessionInviteLink = `${window.location.origin}/join/${training.invite_code}?session=${sessionId}`;
@@ -202,13 +199,13 @@ export default function SessionDetail() {
             </button>
           )}
 
-          {/* Participants section */}
+          {/* Participants section — signed up */}
           <section>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('session.participants')}</h2>
-              {total > 0 && (
+              {signedUp.length > 0 && (
                 <span className="text-xs font-medium text-muted-foreground">
-                  {t('session.participantCount', { confirmed, total })}
+                  {t('session.participantCount', { confirmed: signedUp.length, total: training.max_players ?? signedUp.length })}
                 </span>
               )}
             </div>
@@ -217,13 +214,13 @@ export default function SessionDetail() {
               <div className="space-y-2">
                 {[1, 2, 3].map(i => <div key={i} className="h-14 bg-muted animate-pulse rounded-xl" />)}
               </div>
-            ) : sorted.length === 0 ? (
+            ) : signedUp.length === 0 ? (
               <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
                 <p className="text-sm text-muted-foreground">{t('session.noParticipants')}</p>
               </div>
             ) : (
               <div className="rounded-2xl bg-white shadow-sm divide-y divide-border overflow-hidden" style={{ border: '1px solid hsl(203 20% 90%)' }}>
-                {sorted.map(a => {
+                {signedUp.map(a => {
                   const isGuest = !memberUserIds.has(a.user_id);
                   const playerAbonament = abonamentByPlayer.get(a.user_id);
                   const isDeducted = playerAbonament ? usedAbonamentIds.has(playerAbonament.id) : false;
@@ -253,37 +250,9 @@ export default function SessionDetail() {
                         )}
                       </button>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Cancelled / late cancel / no-show badges */}
-                        {a.status === 'declined' && (() => {
-                          const sessionStart = new Date(`${session.session_date}T${session.start_time}`);
-                          const deadlineMs = (training.cancel_deadline_hours ?? 0) * 60 * 60 * 1000;
-                          const cancelDeadline = new Date(sessionStart.getTime() - deadlineMs);
-                          const declinedAt = a.declined_at ? new Date(a.declined_at) : null;
-                          const isLate = declinedAt && training.cancel_deadline_hours && declinedAt > cancelDeadline;
-                          return (
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isLate ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
-                              {isLate ? t('detail.statusLateCancelled') : t('detail.statusCancelled')}
-                            </span>
-                          );
-                        })()}
-
-                        {a.status === 'no_show' && !playerAbonament && (
-                          <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.statusNoShow')}</span>
-                        )}
-
                         {/* Abonament: auto-deducted for past sessions. Coach can mark no-show to refund. */}
                         {playerAbonament && isPast && (
-                          a.status === 'no_show' ? (
-                            // Was marked no-show → deduction was refunded. Coach can re-mark attended.
-                            <button
-                              onClick={() => remarkAttended.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id!, userId: a.user_id })}
-                              disabled={remarkAttended.isPending}
-                              className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive min-h-[22px] disabled:opacity-50"
-                            >
-                              {t('detail.statusNoShow')}
-                            </button>
-                          ) : isDeducted ? (
-                            // Attended (auto-deducted). Coach can mark no-show to refund.
+                          isDeducted ? (
                             <button
                               onClick={() => markNoShow.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id!, userId: a.user_id })}
                               disabled={markNoShow.isPending}
@@ -300,6 +269,69 @@ export default function SessionDetail() {
               </div>
             )}
           </section>
+
+          {/* Not coming — collapsed by default */}
+          {notComing.length > 0 && (
+            <section>
+              <button
+                onClick={() => setShowNotComing(!showNotComing)}
+                className="flex items-center gap-1.5 mb-2"
+              >
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('session.notComing')}</h2>
+                <span className="text-xs font-medium text-muted-foreground">({notComing.length})</span>
+                <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${showNotComing ? 'rotate-90' : ''}`} />
+              </button>
+
+              {showNotComing && (
+                <div className="rounded-2xl bg-white shadow-sm divide-y divide-border overflow-hidden opacity-60" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                  {notComing.map(a => {
+                    const playerAbonament = abonamentByPlayer.get(a.user_id);
+
+                    return (
+                      <div key={a.id} className="flex items-center gap-3 px-4 py-3">
+                        <button onClick={() => setViewProfile(a.profiles)} className="shrink-0">
+                          <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="sm" />
+                        </button>
+                        <button onClick={() => setViewProfile(a.profiles)} className="flex-1 min-w-0 text-left">
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {a.profiles?.full_name ?? t('common:profile.unknown')}
+                          </span>
+                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {a.status === 'declined' && (() => {
+                            const sessionStart = new Date(`${session.session_date}T${session.start_time}`);
+                            const deadlineMs = (training.cancel_deadline_hours ?? 0) * 60 * 60 * 1000;
+                            const cancelDeadline = new Date(sessionStart.getTime() - deadlineMs);
+                            const declinedAt = a.declined_at ? new Date(a.declined_at) : null;
+                            const isLate = declinedAt && training.cancel_deadline_hours && declinedAt > cancelDeadline;
+                            return (
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isLate ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                                {isLate ? t('detail.statusLateCancelled') : t('detail.statusCancelled')}
+                              </span>
+                            );
+                          })()}
+
+                          {a.status === 'no_show' && (
+                            playerAbonament && isPast ? (
+                              <button
+                                onClick={() => remarkAttended.mutate({ playerAbonamentId: playerAbonament.id, sessionId: session.id, schoolId: training.school_id!, userId: a.user_id })}
+                                disabled={remarkAttended.isPending}
+                                className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive min-h-[22px] disabled:opacity-50"
+                              >
+                                {t('detail.statusNoShow')}
+                              </button>
+                            ) : (
+                              <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">{t('detail.statusNoShow')}</span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </main>
 
