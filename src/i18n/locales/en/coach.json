@@ -20,7 +20,7 @@
     "rescheduleEnd": "New end time (HH:MM):",
     "cancelledMessage": "⚠️ {{name}} on {{date}} has been cancelled.",
     "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
-    "viewStats": "Attendance stats",
+    "viewStats": "Reports",
     "markAttendance": "Mark attendance",
     "attendanceBannerTitle": "Unrecorded attendance",
     "sessionsNeedAttendance": "{{count}} sessions need attendance",

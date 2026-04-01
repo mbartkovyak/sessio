@@ -88,6 +88,10 @@ export function useAutoRegisterPush() {
             return;
           }
         }
+        // Tell the SW who we are so it can skip self-notifications
+        const sw = reg.active ?? reg.installing ?? reg.waiting;
+        sw?.postMessage({ type: 'SET_USER_ID', userId: user.id });
+
         // Notify subscribers that registration completed successfully
         pushRegistrationBus.dispatchEvent(new Event('registered'));
       } catch (e) {

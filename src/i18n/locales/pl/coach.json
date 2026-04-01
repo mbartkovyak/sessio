@@ -20,7 +20,7 @@
     "rescheduleEnd": "Nowa godzina zakończenia (GG:MM):",
     "cancelledMessage": "⚠️ {{name}} w dniu {{date}} zostały odwołane.",
     "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}.",
-    "viewStats": "Statystyki obecności",
+    "viewStats": "Raporty",
     "markAttendance": "Zaznacz obecność",
     "attendanceBannerTitle": "Nieodnotowana obecność",
     "sessionsNeedAttendance": "{{count}} sesji wymaga obecności",

@@ -1,13 +1,27 @@
 // Service worker — push notifications + offline shell
 // Precaching is disabled (vite-plugin-pwa injectManifest build is incompatible with bun)
 
+// Current user ID — set by the main app so we can skip self-notifications
+let currentUserId = null;
+
 // Activate immediately
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
+// Receive user ID from the main app
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SET_USER_ID') {
+    currentUserId = event.data.userId ?? null;
+  }
+});
+
 // Push notification handler
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
+
+  // Don't show notifications for your own messages
+  if (currentUserId && data.sender_id && data.sender_id === currentUserId) return;
+
   const title = data.title ?? 'Sessio';
   const options = {
     body: data.body ?? '',

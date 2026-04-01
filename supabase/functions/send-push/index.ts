@@ -140,6 +140,7 @@ Deno.serve(async (req) => {
                 body: preview,
                 tag: `msg-${conversation_id}`,
                 url,
+                sender_id: senderId,
               }),
             );
             sent++;

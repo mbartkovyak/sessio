@@ -20,7 +20,7 @@
     "rescheduleEnd": "Новий час завершення (ГГ:ХХ):",
     "cancelledMessage": "⚠️ {{name}} на {{date}} скасовано.",
     "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
-    "viewStats": "Статистика відвідуваності",
+    "viewStats": "Звіти",
     "markAttendance": "Позначити відвідуваність",
     "attendanceBannerTitle": "Невідмічена присутність",
     "sessionsNeedAttendance": "{{count}} сесій потребують відвідуваності",
