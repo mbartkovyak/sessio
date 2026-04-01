@@ -33,7 +33,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-base font-semibold text-foreground mb-2">3. Account Registration</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li>You must be at least 16 years old to create an account</li>
+              <li>You must be at least 13 years old to create an account (users under 18 need parental consent)</li>
               <li>You must provide accurate and complete information during registration</li>
               <li>You are responsible for maintaining the confidentiality of your account</li>
               <li>You are responsible for all activities that occur under your account</li>

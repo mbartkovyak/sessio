@@ -98,7 +98,7 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="text-base font-semibold text-foreground mb-2">8. Children's Privacy</h2>
-            <p>Sessio is not directed to children under 16. We do not knowingly collect personal information from children under 16. If you believe we have collected data from a child under 16, please contact us and we will delete it promptly.</p>
+            <p>Sessio may be used by minors with parental or guardian consent. Users under 13 may not create an account. If you are between 13 and 18, you must have your parent or guardian's permission to use the Service. If you believe we have collected data from a child under 13 without parental consent, please contact us and we will delete it promptly.</p>
           </section>
 
           <section>
