@@ -5,6 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
 import i18n from '@/i18n';
 
+async function hashId(id: string): Promise<string> {
+  const data = new TextEncoder().encode(id);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
@@ -96,7 +102,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         userRef.current = session?.user ?? null;
-        Sentry.setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+        if (session?.user) {
+          hashId(session.user.id).then(h => Sentry.setUser({ id: h }));
+        } else {
+          Sentry.setUser(null);
+        }
         if (session?.user) {
           if (event === 'SIGNED_IN') {
             // Full sign-in: show loader until profile is ready (e.g. after AuthCallback)
