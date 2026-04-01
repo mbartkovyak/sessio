@@ -1,8 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as Sentry from '@sentry/react';
 
 /**
  * Send push notification to specific users.
- * Fire-and-forget — errors are silently ignored so they never block the UI.
+ * Fire-and-forget — errors are logged to Sentry but never block the UI.
  * The edge function automatically excludes the calling user.
  */
 export function notifyUsers(
@@ -12,7 +13,7 @@ export function notifyUsers(
   if (!userIds.length) return;
   supabase.functions.invoke('send-push', {
     body: { action: 'notify', user_ids: userIds, ...payload },
-  }).catch(() => {});
+  }).catch((err) => Sentry.captureException(err, { extra: { context: 'push notify', userIds, tag: payload.tag } }));
 }
 
 /**
@@ -23,5 +24,5 @@ export function notifyUsers(
 export function notifyMessage(conversationId: string, messagePreview: string) {
   supabase.functions.invoke('send-push', {
     body: { action: 'notify_message', conversation_id: conversationId, message_preview: messagePreview },
-  }).catch(() => {});
+  }).catch((err) => Sentry.captureException(err, { extra: { context: 'push notify_message', conversationId } }));
 }

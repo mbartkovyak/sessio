@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         .select('role')
         .eq('id', userId!)
         .single();
-      if (profile?.role !== 'coach') {
+      if (!['coach', 'school_owner'].includes(profile?.role ?? '')) {
         return new Response(JSON.stringify({ error: 'Forbidden - coach access required' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -58,9 +58,12 @@ export default function Onboarding() {
   function getPostOnboardingPath(role: string) {
     const pendingInvite = sessionStorage.getItem('pending_invite');
     if (pendingInvite) {
+      const pendingSession = sessionStorage.getItem('pending_invite_session');
       sessionStorage.removeItem('pending_invite');
       sessionStorage.removeItem('pending_invite_ts');
-      return `/join/${pendingInvite}`;
+      sessionStorage.removeItem('pending_invite_session');
+      const sessionSuffix = pendingSession ? `?session=${pendingSession}` : '';
+      return `/join/${pendingInvite}${sessionSuffix}`;
     }
     return role === 'player' ? '/player' : '/coach';
   }

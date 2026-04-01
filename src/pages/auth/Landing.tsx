@@ -130,7 +130,11 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-border px-5 py-6 text-center text-sm text-muted-foreground">
-        {t('landing.footer')}
+        <p>{t('landing.footer')}</p>
+        <div className="mt-2 flex justify-center gap-4">
+          <button onClick={() => navigate('/privacy')} className="underline underline-offset-2 hover:text-foreground">Privacy</button>
+          <button onClick={() => navigate('/terms')} className="underline underline-offset-2 hover:text-foreground">Terms</button>
+        </div>
       </footer>
     </div>
   );
