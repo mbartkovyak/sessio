@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, Navigate } from "react-router-dom";
 import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
 import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -154,7 +154,8 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       {/* Public */}
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/welcome" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/onboarding" element={<LazyPage component={Onboarding} />} />

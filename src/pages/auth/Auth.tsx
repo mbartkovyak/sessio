@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
@@ -229,6 +229,11 @@ export default function Auth() {
           )}
 
         </div>
+      </div>
+
+      <div className="relative z-10 pb-6 pt-4 flex justify-center gap-4 text-xs text-white/40">
+        <Link to="/privacy" className="underline underline-offset-2 hover:text-white/70">Privacy</Link>
+        <Link to="/terms" className="underline underline-offset-2 hover:text-white/70">Terms</Link>
       </div>
       </div>
     </div>
