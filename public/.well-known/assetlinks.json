@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.sessio.twa",
+      "package_name": "com.get_sessio.twa",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_SHA256_FROM_PWABUILDER"
+        "C4:28:D1:E0:4F:B4:63:5A:E7:4E:BF:E1:5D:2A:FD:52:75:27:9D:59:32:16:FA:D2:3E:D8:DB:2A:BF:97:8F:DC"
       ]
     }
   }
