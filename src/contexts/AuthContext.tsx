@@ -48,6 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', userId)
       .single();
     if (error) {
+      // PGRST116 = 0 rows: profile row missing (e.g. after DB wipe).
+      // Call ensure_my_profile() RPC to auto-create it from auth.users.
+      if (error.code === 'PGRST116') {
+        const { data: ensured, error: rpcErr } = await supabase.rpc('ensure_my_profile');
+        if (rpcErr) {
+          Sentry.captureException(rpcErr, { tags: { context: 'ensure_my_profile' }, extra: { userId } });
+          return;
+        }
+        setProfile(ensured as Profile | null);
+        if (ensured) {
+          try { localStorage.setItem('sessio_cached_profile', JSON.stringify(ensured)); } catch {}
+        }
+        return;
+      }
       // Auth errors (permission denied, JWT expired): token is broken, retrying won't help
       const isAuthError = error.code === '42501' || error.code === 'PGRST301';
       if (!isAuthError && retries > 0) {
