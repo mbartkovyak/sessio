@@ -1,7 +1,8 @@
 {
   "name": "Sessio",
   "short_name": "Sessio",
-  "description": "Sports coaching group management. Stop managing sessions on WhatsApp.",
+  "description": "Sports coaching group management. Schedule trainings, confirm attendance, manage your sports school.",
+  "id": "/auth",
   "start_url": "/auth",
   "display": "standalone",
   "background_color": "#e6e0d6",
@@ -9,9 +10,10 @@
   "lang": "en",
   "scope": "/",
   "orientation": "portrait",
+  "categories": ["sports"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "https://get-sessio.com/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://get-sessio.com/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "https://get-sessio.com/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

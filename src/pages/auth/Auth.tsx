@@ -101,9 +101,9 @@ export default function Auth() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col bg-black">
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-bottom"
         style={{ backgroundImage: 'url(/auth-bg.jpg)' }}
       />
       <div className="absolute inset-0 bg-black/40" />

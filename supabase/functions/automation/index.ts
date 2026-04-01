@@ -263,6 +263,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── 6. Expire stale abonaments (time-based + used-up) ──
+    if (action === 'full') {
+      const { data: expiryResult } = await supabase.rpc('expire_stale_abonaments');
+      results.abonaments_expired = (expiryResult as any)?.expired ?? 0;
+      results.abonaments_used_up = (expiryResult as any)?.used_up ?? 0;
+    }
+
     return new Response(JSON.stringify({ ok: true, ...results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
