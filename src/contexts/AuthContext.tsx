@@ -42,11 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', userId)
       .single();
     if (error) {
-      if (retries > 0) {
+      // Auth errors (permission denied, JWT expired): token is broken, retrying won't help
+      const isAuthError = error.code === '42501' || error.code === 'PGRST301';
+      if (!isAuthError && retries > 0) {
         await new Promise(r => setTimeout(r, 1000));
         return fetchProfile(userId, retries - 1);
       }
       Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+      // Never nuke existing profile on error — keep cached data visible.
+      // Auth state handler clears profile on SIGNED_OUT.
+      return;
     }
     setProfile(data as Profile | null);
     if (data) {
