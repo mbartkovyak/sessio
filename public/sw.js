@@ -11,8 +11,8 @@ self.addEventListener('push', (event) => {
   const title = data.title ?? 'Sessio';
   const options = {
     body: data.body ?? '',
-    icon: '/icons/icon-192.svg',
-    badge: '/icons/icon-192.svg',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
     tag: data.tag ?? 'sessio-notification',
     data: { url: data.url ?? '/' },
     actions: data.actions ?? [],

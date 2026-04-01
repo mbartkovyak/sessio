@@ -67,6 +67,8 @@ const Onboarding = lazy(() => import("./pages/auth/Onboarding"));
 const JoinTraining = lazy(() => import("./pages/shared/JoinTraining"));
 const JoinSchool = lazy(() => import("./pages/shared/JoinSchool"));
 const NotFound = lazy(() => import("./pages/shared/NotFound"));
+const PrivacyPolicy = lazy(() => import("./pages/shared/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/shared/TermsOfService"));
 const PlayerHome = lazy(() => import("./pages/player/PlayerHome"));
 const PlayerSearch = lazy(() => import("./pages/player/PlayerSearch"));
 const CoachPublicProfile = lazy(() => import("./pages/player/CoachPublicProfile"));
@@ -143,6 +145,8 @@ const router = createBrowserRouter(
       <Route path="/join/:inviteCode" element={<LazyPage component={JoinTraining} />} />
       <Route path="/join-school/:code" element={<LazyPage component={JoinSchool} />} />
       <Route path="/s/:id" element={<LazyPage component={SchoolPublicProfile} />} />
+      <Route path="/privacy" element={<LazyPage component={PrivacyPolicy} />} />
+      <Route path="/terms" element={<LazyPage component={TermsOfService} />} />
 
       {/* Player routes */}
       <Route path="/player" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerHome} /></ProtectedRoute>} />
