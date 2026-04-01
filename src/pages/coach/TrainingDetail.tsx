@@ -565,8 +565,19 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       if (sessErr) toast.error(localizeErrorMessage(sessErr, t('common:errors.somethingWentWrong')));
     }
 
-    // Regenerate sessions if days changed (new days need new sessions)
+    // If days changed: delete orphan sessions for removed days, then regenerate for new days
     if (daysChanged) {
+      const oldDaysArr: number[] = JSON.parse(oldDays);
+      const removedDays = oldDaysArr.filter(d => !form.days_of_week.includes(d));
+      if (removedDays.length > 0) {
+        // Delete future scheduled sessions on removed days
+        // Frontend encoding Mon=0..Sun=6 → ISODOW Mon=1..Sun=7
+        const isodowValues = removedDays.map(d => d + 1);
+        await supabase.rpc('delete_orphan_sessions', {
+          p_training_id: training.id,
+          p_removed_isodows: isodowValues,
+        }).catch(() => {}); // silent if RPC not deployed yet
+      }
       try { await supabase.rpc('generate_sessions_for_training', { p_training_id: training.id }); } catch {}
     }
 
