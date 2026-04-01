@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
 
@@ -62,37 +62,53 @@ import Landing from "./pages/auth/Landing";
 import Auth from "./pages/auth/Auth";
 import AuthCallback from "./pages/auth/AuthCallback";
 
+// Retry wrapper: auto-reloads on stale chunk errors after deploy
+function lazyRetry(importFn: () => Promise<{ default: ComponentType<any> }>) {
+  return lazy(() =>
+    importFn().catch(() => {
+      const key = 'chunk-retry';
+      const last = sessionStorage.getItem(key);
+      if (!last || Date.now() - Number(last) > 10_000) {
+        sessionStorage.setItem(key, String(Date.now()));
+        window.location.reload();
+        return new Promise(() => {}); // never resolves — page reloads
+      }
+      return Promise.reject(new Error('Failed to load page'));
+    })
+  );
+}
+
 // All other pages — lazy loaded
-const Onboarding = lazy(() => import("./pages/auth/Onboarding"));
-const JoinTraining = lazy(() => import("./pages/shared/JoinTraining"));
-const JoinSchool = lazy(() => import("./pages/shared/JoinSchool"));
-const NotFound = lazy(() => import("./pages/shared/NotFound"));
-const PrivacyPolicy = lazy(() => import("./pages/shared/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/shared/TermsOfService"));
-const PlayerHome = lazy(() => import("./pages/player/PlayerHome"));
-const PlayerSearch = lazy(() => import("./pages/player/PlayerSearch"));
-const CoachPublicProfile = lazy(() => import("./pages/player/CoachPublicProfile"));
-const SchoolPublicProfile = lazy(() => import("./pages/player/SchoolPublicProfile"));
-const PlayerCalendar = lazy(() => import("./pages/player/PlayerCalendar"));
-const PlayerProfile = lazy(() => import("./pages/player/PlayerProfile"));
-const PlayerMessages = lazy(() => import("./pages/player/PlayerMessages"));
-const PlayerChat = lazy(() => import("./pages/player/PlayerChat"));
-const PlayerDirectChat = lazy(() => import("./pages/player/PlayerDirectChat"));
-const PlayerTrainingDetail = lazy(() => import("./pages/player/PlayerTrainingDetail"));
-const CoachHome = lazy(() => import("./pages/coach/CoachHome"));
-const CoachCalendar = lazy(() => import("./pages/coach/CoachCalendar"));
-const CoachTrainings = lazy(() => import("./pages/coach/CoachTrainings"));
-const CreateTraining = lazy(() => import("./pages/coach/CreateTraining"));
-const TrainingDetail = lazy(() => import("./pages/coach/TrainingDetail"));
-const SessionDetail = lazy(() => import("./pages/coach/SessionDetail"));
-const CoachProfileEditor = lazy(() => import("./pages/coach/CoachProfileEditor"));
-const CoachMessages = lazy(() => import("./pages/coach/CoachMessages"));
-const DirectChat = lazy(() => import("./pages/coach/DirectChat"));
-const CoachStats = lazy(() => import("./pages/coach/CoachStats"));
-const CoachPasses = lazy(() => import("./pages/coach/CoachPasses"));
-const SchoolCoaches = lazy(() => import("./pages/coach/SchoolCoaches"));
-const CoachAthletes = lazy(() => import("./pages/coach/CoachAthletes"));
-const SchoolProfileEditor = lazy(() => import("./pages/school/SchoolProfileEditor"));
+const Onboarding = lazyRetry(() => import("./pages/auth/Onboarding"));
+const JoinTraining = lazyRetry(() => import("./pages/shared/JoinTraining"));
+const JoinSchool = lazyRetry(() => import("./pages/shared/JoinSchool"));
+const NotFound = lazyRetry(() => import("./pages/shared/NotFound"));
+const PrivacyPolicy = lazyRetry(() => import("./pages/shared/PrivacyPolicy"));
+const TermsOfService = lazyRetry(() => import("./pages/shared/TermsOfService"));
+const PlayerHome = lazyRetry(() => import("./pages/player/PlayerHome"));
+const PlayerSearch = lazyRetry(() => import("./pages/player/PlayerSearch"));
+const CoachPublicProfile = lazyRetry(() => import("./pages/player/CoachPublicProfile"));
+const SchoolPublicProfile = lazyRetry(() => import("./pages/player/SchoolPublicProfile"));
+const PlayerCalendar = lazyRetry(() => import("./pages/player/PlayerCalendar"));
+const PlayerProfile = lazyRetry(() => import("./pages/player/PlayerProfile"));
+const PlayerMessages = lazyRetry(() => import("./pages/player/PlayerMessages"));
+const PlayerChat = lazyRetry(() => import("./pages/player/PlayerChat"));
+const PlayerDirectChat = lazyRetry(() => import("./pages/player/PlayerDirectChat"));
+const PlayerTrainingDetail = lazyRetry(() => import("./pages/player/PlayerTrainingDetail"));
+const CoachHome = lazyRetry(() => import("./pages/coach/CoachHome"));
+const CoachCalendar = lazyRetry(() => import("./pages/coach/CoachCalendar"));
+const CoachTrainings = lazyRetry(() => import("./pages/coach/CoachTrainings"));
+const CreateTraining = lazyRetry(() => import("./pages/coach/CreateTraining"));
+const TrainingDetail = lazyRetry(() => import("./pages/coach/TrainingDetail"));
+const SessionDetail = lazyRetry(() => import("./pages/coach/SessionDetail"));
+const CoachProfileEditor = lazyRetry(() => import("./pages/coach/CoachProfileEditor"));
+const CoachMessages = lazyRetry(() => import("./pages/coach/CoachMessages"));
+const DirectChat = lazyRetry(() => import("./pages/coach/DirectChat"));
+const CoachStats = lazyRetry(() => import("./pages/coach/CoachStats"));
+const CoachPasses = lazyRetry(() => import("./pages/coach/CoachPasses"));
+const SchoolCoaches = lazyRetry(() => import("./pages/coach/SchoolCoaches"));
+const CoachAthletes = lazyRetry(() => import("./pages/coach/CoachAthletes"));
+const SchoolProfileEditor = lazyRetry(() => import("./pages/school/SchoolProfileEditor"));
 
 function LazyPage({ component: Component }: { component: React.LazyExoticComponent<any> }) {
   return (
