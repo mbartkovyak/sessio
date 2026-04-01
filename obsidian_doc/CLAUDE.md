@@ -118,9 +118,16 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 ### Git workflow — MANDATORY
 
 - **Push to `dev` only.** Never push directly to `main`.
+- **"Push to dev"** means push everything — code AND migration files — to the `dev` branch on GitHub.
 - **Create PRs** from `dev` → `main` using `gh pr create`.
 - **NEVER merge PRs.** Only the user merges via GitHub. Do not run `gh pr merge` under any circumstances.
 - **Always ask before destructive git operations** — force push, reset, branch delete, merge.
+
+### Deployment pipeline
+
+- **Vercel** deploys automatically on push to any branch (preview for `dev`, production for `main`).
+- **Supabase migrations** run automatically on merge to `main` via `.github/workflows/deploy-supabase.yml` (`supabase db push`). No manual SQL needed for production.
+- **Dev Supabase** has no auto-migration pipeline — migrations must be run manually on the dev project.
 
 ### Verify before pushing — MANDATORY
 
@@ -174,4 +181,4 @@ These rules exist because we've been burned repeatedly by RLS policies that sile
 
 6. **Never create cross-referencing RLS policies.** If table A's policy queries table B, table B's policy must NOT query table A — this creates infinite recursion and returns 500 on every query. Test with the anon key (`curl`) after every RLS change to catch this immediately.
 
-7. **When changing `profiles` schema: update `delete_my_account()`.** Adding a column, making one generated, or adding a new table with a user FK? Update the `delete_my_account` RPC in the same migration. This function resets the profile and deletes all user data — if it references a dropped/generated column or misses a new table, account deletion breaks silently.
+7. **Any table or column that touches a user → update `delete_my_account()` in the same migration.** New table with a user FK (`user_id`, `player_id`, `coach_id`, `owner_id`, etc.)? New column on `profiles`? Making a column generated? Add the corresponding DELETE/cleanup to `delete_my_account` immediately. This function must wipe **all** user data — if it misses a table, account deletion leaks data. No exceptions, no "we'll do it later."
