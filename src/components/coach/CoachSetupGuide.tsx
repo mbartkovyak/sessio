@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DISMISSED_KEY = 'sessio_setup_guide_dismissed';
+const CALENDAR_SEEN_KEY = 'sessio_setup_calendar_seen';
 
 interface Props {
   trainings: { id: string }[];
@@ -19,7 +20,8 @@ export default function CoachSetupGuide({ trainings }: Props) {
   const hasTraining = trainings.length > 0;
   const venues = ((profile as any)?.venues ?? []) as any[];
   const hasProfile = !!(profile?.bio?.trim()) && venues.length > 0;
-  const allDone = hasTraining && hasProfile;
+  const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
+  const allDone = hasTraining && hasProfile && calendarSeen;
 
   // Hidden once dismissed
   if (dismissed) return null;
@@ -47,10 +49,10 @@ export default function CoachSetupGuide({ trainings }: Props) {
       disabled: false,
     },
     {
-      done: hasTraining,
+      done: localStorage.getItem(CALENDAR_SEEN_KEY) === '1',
       label: t('setupGuide.checkCalendar'),
       desc: t('setupGuide.checkCalendarDesc'),
-      action: () => navigate('/coach/calendar'),
+      action: () => { localStorage.setItem(CALENDAR_SEEN_KEY, '1'); navigate('/coach/calendar'); },
       disabled: !hasTraining,
     },
   ];
