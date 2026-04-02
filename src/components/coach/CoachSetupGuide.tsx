@@ -31,6 +31,14 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
   if (dismissed) return null;
 
   const steps = [
+    // School owners: invite coaches first (before creating trainings)
+    ...(isSchoolOwner ? [{
+      done: hasCoaches,
+      label: t('setupGuide.inviteCoaches'),
+      desc: t('setupGuide.inviteCoachesDesc'),
+      action: () => navigate('/coach/coaches'),
+      disabled: false,
+    }] : []),
     {
       done: hasTraining,
       label: t('setupGuide.createTraining'),
@@ -45,14 +53,6 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
       action: () => hasTraining && navigate(`/coach/trainings/${trainings[0].id}`),
       disabled: !hasTraining,
     },
-    // School owners: invite coaches
-    ...(isSchoolOwner ? [{
-      done: hasCoaches,
-      label: t('setupGuide.inviteCoaches'),
-      desc: t('setupGuide.inviteCoachesDesc'),
-      action: () => navigate('/coach/coaches'),
-      disabled: false,
-    }] : []),
     {
       done: hasProfile,
       label: t('setupGuide.completeProfile'),
