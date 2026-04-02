@@ -50,15 +50,9 @@ export function VenueAddForm({ onSave, onCancel, saveLabel }: VenueAddFormProps)
           type="button"
           onClick={handleSave}
           disabled={!name.trim() || !address.trim()}
-          className={onCancel
-            ? 'rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40'
-            : 'flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-40'
-          }
+          className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
         >
-          {onCancel
-            ? (saveLabel ?? t('venue.save'))
-            : (saveLabel ?? t('venue.add'))
-          }
+          {saveLabel ?? (onCancel ? t('venue.save') : t('venue.add'))}
         </button>
       </div>
     </div>

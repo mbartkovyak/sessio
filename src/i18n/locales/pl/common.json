@@ -252,7 +252,7 @@
     "assignPass": "Przypisz karnet"
   },
   "venue": {
-    "name": "Nazwa miejsca (np. Kort 3)",
+    "name": "Nazwa lokalizacji (np. Kort 3)",
     "address": "Pełny adres (np. ul. Marszałkowska 12, Warszawa)",
     "add": "Dodaj lokalizację",
     "save": "Zapisz lokalizację",
