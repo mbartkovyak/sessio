@@ -62,12 +62,21 @@ export default function CreateTraining() {
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
     setLocalVenues(prev => [...prev, venue]);
-    const currentVenues = ((school as any).venues ?? []) as VenueOption[];
+    const currentSchoolVenues = ((school as any).venues ?? []) as VenueOption[];
     await supabase
       .from('schools')
-      .update({ venues: [...currentVenues, venue] })
+      .update({ venues: [...currentSchoolVenues, venue] })
       .eq('id', school.id);
     qc.invalidateQueries({ queryKey: ['my-school'] });
+    // Also save to profile so it shows in the coach profile editor
+    if (profile) {
+      const currentProfileVenues = ((profile as any).venues ?? []) as VenueOption[];
+      await supabase
+        .from('profiles')
+        .update({ venues: [...currentProfileVenues, venue] })
+        .eq('id', profile.id);
+      refreshProfile();
+    }
   }
 
   const extraErrors = isSchoolOwner && !isSolo && !selectedCoachId ? [t('create.coachRequired')] : [];
