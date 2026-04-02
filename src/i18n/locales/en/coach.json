@@ -271,8 +271,7 @@
     "noAthletes": "No participants in school trainings yet",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Start date",
-    "noSchool": "Passes are managed at the school level. Create or join a school to use passes."
+    "startDate": "Start date"
   },
   "stats": {
     "title": "Stats",
@@ -303,7 +302,6 @@
     "title": "Athletes",
     "search": "Search athletes...",
     "noAthletes": "No athletes yet",
-    "noSchool": "Join a school to manage athletes",
     "addViaPassesHint": "Add new people via Passes",
     "count": "{{count}} athletes",
     "trainings": "Signed up for",

@@ -265,7 +265,8 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
       let q = supabase
         .from('schools')
         .select('id, name, sport, city, logo_url, description, school_members(id, status)')
-        .not('name', 'is', null);
+        .not('name', 'is', null)
+        .eq('is_listed', true);
       if (search) q = q.ilike('name', `%${search}%`);
       if (sport) q = q.contains('sport', [sport]);
       if (city) q = q.ilike('city', `%${city}%`);

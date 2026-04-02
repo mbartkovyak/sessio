@@ -95,20 +95,37 @@ export default function Onboarding() {
     }
   }
 
-  // ── Submit: Solo Coach ──
+  // ── Submit: Solo Coach (auto-creates a school behind the scenes) ──
   async function submitSoloCoach() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!country || !city || !sport) return;
     setLoading(true);
     setError('');
     try {
-      const { error } = await supabase
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport, country, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport, country, city, onboarding_complete: true })
         .eq('id', user.id);
-      if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
+      if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
+
+      // Auto-create school with coach's name (hidden from discovery)
+      const { data: newSchool, error: schoolError } = await supabase
+        .from('schools')
+        .insert({ name: fullName, sport: [sport], country, city, owner_id: user.id, is_listed: false })
+        .select('id')
+        .single();
+      if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
+
+      // Auto-add owner as coach in the school
+      if (newSchool) {
+        await supabase
+          .from('school_members')
+          .insert({ school_id: newSchool.id, coach_id: user.id, status: 'approved' });
+      }
+
       await refreshProfile();
-      navigate(getPostOnboardingPath('coach'));
+      navigate(getPostOnboardingPath('school_owner'));
     } catch (e: any) {
       setError(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
       setLoading(false);

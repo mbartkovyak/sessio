@@ -271,8 +271,7 @@
     "noAthletes": "Brak uczestników w zajęciach szkoły",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Data rozpoczęcia",
-    "noSchool": "Karnety są zarządzane na poziomie szkoły. Utwórz lub dołącz do szkoły, aby używać karnetów."
+    "startDate": "Data rozpoczęcia"
   },
   "stats": {
     "title": "Statystyki",
@@ -303,7 +302,6 @@
     "title": "Sportowcy",
     "search": "Szukaj sportowców...",
     "noAthletes": "Brak sportowców",
-    "noSchool": "Dołącz do szkoły, aby zarządzać sportowcami",
     "addViaPassesHint": "Dodaj nowe osoby przez Karnety",
     "count": "{{count}} sportowców",
     "trainings": "Zapisany na",
