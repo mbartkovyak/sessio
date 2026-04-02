@@ -80,6 +80,15 @@ export function useAutoRegisterPush() {
         localStorage.setItem(VAPID_STORAGE_KEY, VAPID_KEY);
 
         const json = sub.toJSON();
+
+        // Clean up stale subscriptions from other accounts on the same browser/device.
+        // Without this, switching accounts leaves the old user's subscription active,
+        // and they receive push notifications meant for the previous account.
+        await supabase.from('push_subscriptions')
+          .delete()
+          .eq('endpoint', json.endpoint!)
+          .neq('user_id', user.id);
+
         const { error } = await supabase.from('push_subscriptions').upsert(
           { user_id: user.id, endpoint: json.endpoint!, keys: json.keys },
           { onConflict: 'user_id,endpoint' }
