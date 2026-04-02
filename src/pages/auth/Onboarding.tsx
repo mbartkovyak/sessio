@@ -8,7 +8,7 @@ import { SessioLogoCompact } from '@/components/SessioLogo';
 import PageHeader from '@/components/shared/PageHeader';
 import { toast } from 'sonner';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
-import VenueManager, { type Venue } from '@/components/shared/VenueManager';
+
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
@@ -29,7 +29,7 @@ export default function Onboarding() {
   const [city, setCity] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [venues, setVenues] = useState<Venue[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -147,7 +147,7 @@ export default function Onboarding() {
 
       const { data: newSchool, error: schoolError } = await supabase
         .from('schools')
-        .insert({ name: schoolName.trim(), sport: schoolSports, country, city, owner_id: user.id, venues })
+        .insert({ name: schoolName.trim(), sport: schoolSports, country, city, owner_id: user.id })
         .select('id')
         .single();
       if (schoolError) { setError(localizeErrorMessage(schoolError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
@@ -545,12 +545,6 @@ export default function Onboarding() {
                     </div>
                   </div>
                 )}
-                <VenueManager
-                  venues={venues}
-                  onAdd={v => setVenues(prev => [...prev, v])}
-                  onRemove={i => setVenues(prev => prev.filter((_, j) => j !== i))}
-                  title={t('auth:onboarding.mainVenue')}
-                />
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <button
                   onClick={submitSchoolOwner}

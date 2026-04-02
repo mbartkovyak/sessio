@@ -37,10 +37,16 @@
     "bio": "O tobie",
     "saving": "Zapisywanie...",
     "profileUpdated": "Profil zaktualizowany",
-    "venues": "Miejsca",
+    "venues": "Lokalizacja zajęć",
     "venueName": "Nazwa miejsca (np. Kort 3)",
     "venueAddress": "Pełny adres (np. ul. Marszałkowska 12, Warszawa)",
-    "addVenue": "Dodaj miejsce"
+    "addVenue": "Dodaj miejsce",
+    "becomeSchool": "Otwórz szkołę",
+    "becomeSchoolDesc": "Dodaj trenerów do zespołu i pojaw się w wyszukiwarce szkół",
+    "becomeSchoolConfirm": "Twoja szkoła będzie widoczna w wyszukiwarce i będziesz mógł zarządzać trenerami. Kontynuować?",
+    "schoolNamePlaceholder": "np. Akademia Tenisa Warszawa",
+    "becomeSchoolSuccess": "Szkoła utworzona! Możesz teraz zarządzać trenerami i profilem szkoły.",
+    "becomeSchoolButton": "Otwórz szkołę"
   },
   "trainings": {
     "title": "Zajęcia",
@@ -206,14 +212,14 @@
     "dropInNone": "Tylko stałe"
   },
   "setupGuide": {
-    "title": "Pierwsze kroki",
+    "title": "Jak zacząć?",
     "progress": "{{done}} z {{total}}",
     "createTraining": "Utwórz pierwsze zajęcia",
     "createTrainingDesc": "Ustaw harmonogram, miejsce i liczbę miejsc",
     "inviteAthletes": "Zaproś uczestników",
     "inviteAthletesDesc": "Udostępnij link ze strony zajęć",
     "completeProfile": "Uzupełnij swój profil",
-    "completeProfileDesc": "Dodaj bio i miejsca do publicznego profilu"
+    "completeProfileDesc": "Dodaj bio i lokalizacje do publicznego profilu"
   },
   "walkthrough": {
     "welcomeTitle": "Witaj w Sessio",

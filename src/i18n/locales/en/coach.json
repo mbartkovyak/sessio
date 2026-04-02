@@ -40,7 +40,13 @@
     "venues": "Venues",
     "venueName": "Venue name (e.g. Court 3)",
     "venueAddress": "Full address (e.g. ul. Marszałkowska 12, Warszawa)",
-    "addVenue": "Add venue"
+    "addVenue": "Add venue",
+    "becomeSchool": "Open a school",
+    "becomeSchoolDesc": "Add coaches to your team and appear in school search",
+    "becomeSchoolConfirm": "This will make your school visible in search and enable coach management. Continue?",
+    "schoolNamePlaceholder": "e.g. Warsaw Tennis Academy",
+    "becomeSchoolSuccess": "School created! You can now manage coaches and your school profile.",
+    "becomeSchoolButton": "Open school"
   },
   "trainings": {
     "title": "Trainings",

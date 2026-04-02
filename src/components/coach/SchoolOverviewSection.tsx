@@ -23,7 +23,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
   const { t } = useTranslation('school');
   const { t: tc } = useTranslation('coach');
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: fullSchool } = useMySchool();
   const { data: trainings = [], isLoading: trainingsLoading } = useSchoolTrainings(fullSchool?.id);
   const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
@@ -37,6 +37,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
 
   const coaches = fullSchool?.school_members ?? [];
   const pendingCoaches = fullSchool?.pending_members ?? [];
+  const isSolo = (fullSchool as any)?.is_listed === false;
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -112,15 +113,24 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      {isSolo ? (
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            {tc('home.greeting', { name: profile?.first_name ?? tc('home.defaultName') })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{tc('home.overview')}</p>
         </div>
-        <button onClick={() => navigate('/school/profile')}
-          className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
-          <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
-        </button>
-      </div>
+      ) : (
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+          </div>
+          <button onClick={() => navigate('/school/profile')}
+            className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
+            <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
+          </button>
+        </div>
+      )}
 
       {/* Setup guide for new coaches */}
       <CoachSetupGuide trainings={trainings} />
@@ -160,23 +170,25 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         </button>
       </div>
 
-      {/* Coaches button */}
-      <button
-        onClick={() => navigate('/coach/coaches')}
-        className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span>{t('dashboard.coachesSection')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {pendingCoaches.length > 0 && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
-          )}
-          <span className="text-xs text-muted-foreground">{coaches.length}</span>
-        </div>
-      </button>
+      {/* Coaches button — hidden for solo coaches */}
+      {!isSolo && (
+        <button
+          onClick={() => navigate('/coach/coaches')}
+          className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
+          style={{ border: '1px solid hsl(203 20% 90%)' }}
+        >
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span>{t('dashboard.coachesSection')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {pendingCoaches.length > 0 && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
+            )}
+            <span className="text-xs text-muted-foreground">{coaches.length}</span>
+          </div>
+        </button>
+      )}
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (
