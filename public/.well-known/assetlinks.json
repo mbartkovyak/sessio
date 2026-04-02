@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.get_sessio.twa",
       "sha256_cert_fingerprints": [
-        "C4:28:D1:E0:4F:B4:63:5A:E7:4E:BF:E1:5D:2A:FD:52:75:27:9D:59:32:16:FA:D2:3E:D8:DB:2A:BF:97:8F:DC"
+        "C4:28:D1:E0:4F:B4:63:5A:E7:4E:BF:E1:5D:2A:FD:52:75:27:9D:59:32:16:FA:D2:3E:D8:DB:2A:BF:97:8F:DC",
+        "08:4C:1A:BF:2D:01:65:07:7C:C7:42:3F:58:2E:CA:C4:85:0E:E1:95:AE:DD:22:A1:C0:C4:38:9B:DB:F3:FC:24"
       ]
     }
   }

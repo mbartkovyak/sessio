@@ -163,6 +163,10 @@ export default function SchoolCoaches() {
                   )}
                 </div>
               </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                {t('dashboard.inviteApprovalHint')}
+              </p>
             </div>
           </div>
         </>

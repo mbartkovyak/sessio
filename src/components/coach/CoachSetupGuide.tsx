@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const DISMISSED_KEY = 'sessio_setup_guide_dismissed';
 const CALENDAR_SEEN_KEY = 'sessio_setup_calendar_seen';
+const COACHES_SEEN_KEY = 'sessio_setup_coaches_seen';
 
 interface Props {
   trainings: { id: string }[];
@@ -19,18 +20,26 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === '1');
 
   const hasTraining = trainings.length > 0;
-  const venues = ((profile as any)?.venues ?? []) as any[];
-  const hasProfile = !!(profile?.bio?.trim()) && venues.length > 0;
+  const hasProfile = !!(profile?.bio?.trim());
   const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
   const isSchoolOwner = schoolCoachCount !== undefined;
   const hasCoaches = (schoolCoachCount ?? 0) > 1; // >1 because owner counts as one
 
-  const allDone = hasTraining && hasProfile && calendarSeen && (!isSchoolOwner || hasCoaches);
+  const coachesSeen = localStorage.getItem(COACHES_SEEN_KEY) === '1';
+  const allDone = hasTraining && hasProfile && calendarSeen && (!isSchoolOwner || coachesSeen);
 
   // Hidden once dismissed
   if (dismissed) return null;
 
   const steps = [
+    // School owners: invite coaches first (before creating trainings)
+    ...(isSchoolOwner ? [{
+      done: coachesSeen || hasCoaches,
+      label: t('setupGuide.inviteCoaches'),
+      desc: t('setupGuide.inviteCoachesDesc'),
+      action: () => { localStorage.setItem(COACHES_SEEN_KEY, '1'); navigate('/coach/coaches'); },
+      disabled: false,
+    }] : []),
     {
       done: hasTraining,
       label: t('setupGuide.createTraining'),
@@ -45,14 +54,6 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
       action: () => hasTraining && navigate(`/coach/trainings/${trainings[0].id}`),
       disabled: !hasTraining,
     },
-    // School owners: invite coaches
-    ...(isSchoolOwner ? [{
-      done: hasCoaches,
-      label: t('setupGuide.inviteCoaches'),
-      desc: t('setupGuide.inviteCoachesDesc'),
-      action: () => navigate('/coach/coaches'),
-      disabled: false,
-    }] : []),
     {
       done: hasProfile,
       label: t('setupGuide.completeProfile'),
@@ -80,15 +81,16 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
     <div className="rounded-2xl bg-white p-4 shadow-sm" style={{ border: '1px solid hsl(203 20% 90%)' }}>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-foreground">{t('setupGuide.title')}</h2>
-        {allDone ? (
+        <div className="flex items-center gap-2">
+          {!allDone && (
+            <span className="text-xs text-muted-foreground">
+              {t('setupGuide.progress', { done: doneCount, total: steps.length })}
+            </span>
+          )}
           <button onClick={handleDismiss} className="flex items-center justify-center h-6 w-6 -mr-1 rounded-full text-muted-foreground active:scale-90">
             <X className="h-4 w-4" />
           </button>
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            {t('setupGuide.progress', { done: doneCount, total: steps.length })}
-          </span>
-        )}
+        </div>
       </div>
 
       {allDone ? (

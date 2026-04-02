@@ -27,6 +27,7 @@ export default function Auth() {
     const img = new Image();
     img.src = '/auth-bg.jpg';
     img.onload = () => setBgLoaded(true);
+    img.onerror = () => setBgLoaded(true); // show page even if bg fails
   }, []);
 
   // Redirect authenticated users immediately (render-phase, no effect delay)
