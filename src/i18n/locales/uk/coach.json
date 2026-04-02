@@ -18,6 +18,7 @@
     "rescheduleDate": "Нова дата (РРРР-ММ-ДД):",
     "rescheduleStart": "Новий час початку (ГГ:ХХ):",
     "rescheduleEnd": "Новий час завершення (ГГ:ХХ):",
+    "invalidTime": "Невірний формат часу. Використовуйте ГГ:ХХ (напр. 09:00)",
     "cancelledMessage": "⚠️ {{name}} на {{date}} скасовано.",
     "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
     "viewStats": "Звіти",

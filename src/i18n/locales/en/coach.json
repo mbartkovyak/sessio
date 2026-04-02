@@ -18,6 +18,7 @@
     "rescheduleDate": "New date (YYYY-MM-DD):",
     "rescheduleStart": "New start time (HH:MM):",
     "rescheduleEnd": "New end time (HH:MM):",
+    "invalidTime": "Invalid time format. Use HH:MM (e.g. 09:00)",
     "cancelledMessage": "⚠️ {{name}} on {{date}} has been cancelled.",
     "rescheduledMessage": "📅 {{name}} was moved to {{date}} at {{time}}.",
     "viewStats": "Reports",

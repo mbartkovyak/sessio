@@ -18,6 +18,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { normalizeTime } from '@/lib/utils';
 
 export default function SchoolOverviewSection({ school }: { school: { id: string; name: string } }) {
   const { t } = useTranslation('school');
@@ -72,10 +73,14 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
     const training = session.trainings;
     const newDate = prompt(tc('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt(tc('home.rescheduleStart'), session.start_time?.slice(0, 5));
-    if (!newStart) return;
-    const newEnd = prompt(tc('home.rescheduleEnd'), session.end_time?.slice(0, 5));
-    if (!newEnd) return;
+    const rawStart = prompt(tc('home.rescheduleStart'), session.start_time?.slice(0, 5));
+    if (!rawStart) return;
+    const newStart = normalizeTime(rawStart);
+    if (!newStart) { toast.error(tc('home.invalidTime')); return; }
+    const rawEnd = prompt(tc('home.rescheduleEnd'), session.end_time?.slice(0, 5));
+    if (!rawEnd) return;
+    const newEnd = normalizeTime(rawEnd);
+    if (!newEnd) { toast.error(tc('home.invalidTime')); return; }
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
       .from('training_sessions')

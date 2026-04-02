@@ -18,6 +18,7 @@
     "rescheduleDate": "Nowa data (RRRR-MM-DD):",
     "rescheduleStart": "Nowa godzina rozpoczęcia (GG:MM):",
     "rescheduleEnd": "Nowa godzina zakończenia (GG:MM):",
+    "invalidTime": "Nieprawidłowy format godziny. Użyj GG:MM (np. 09:00)",
     "cancelledMessage": "⚠️ {{name}} w dniu {{date}} zostały odwołane.",
     "rescheduledMessage": "📅 {{name}} przeniesiono na {{date}} o {{time}}.",
     "viewStats": "Raporty",
