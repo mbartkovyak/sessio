@@ -7,6 +7,7 @@ import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useSchoolUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
+import CoachSetupGuide from '@/components/coach/CoachSetupGuide';
 import { Ticket } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import { toast } from 'sonner';
@@ -120,6 +121,9 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
           <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
         </button>
       </div>
+
+      {/* Setup guide for new coaches */}
+      <CoachSetupGuide trainings={trainings} />
 
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />
