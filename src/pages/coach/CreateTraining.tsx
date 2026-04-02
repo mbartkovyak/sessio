@@ -31,6 +31,7 @@ export default function CreateTraining() {
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
   const isSchoolMember = !isSchoolOwner && !!schoolMembership;
+  const isSolo = (school as any)?.is_listed === false;
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
@@ -69,7 +70,7 @@ export default function CreateTraining() {
     qc.invalidateQueries({ queryKey: ['my-school'] });
   }
 
-  const extraErrors = isSchoolOwner && !selectedCoachId ? [t('create.coachRequired')] : [];
+  const extraErrors = isSchoolOwner && !isSolo && !selectedCoachId ? [t('create.coachRequired')] : [];
 
   async function handleSubmit(form: TrainingFormValues) {
     try {
@@ -92,10 +93,10 @@ export default function CreateTraining() {
         : (isSchoolMember && schoolMembership?.schools)
           ? (schoolMembership.schools as any).sport?.[0] ?? 'Tennis'
           : (profile?.sport ?? 'Tennis');
-      // School owner: school lesson with assigned coach
+      // School owner: school lesson with assigned coach (solo coaches auto-assign themselves)
       if (isSchoolOwner && school) {
         payload.school_id = school.id;
-        if (selectedCoachId) payload.coach_id = selectedCoachId;
+        payload.coach_id = isSolo ? profile?.id : (selectedCoachId || undefined);
       }
       // School member coach: auto-link to school
       if (isSchoolMember && schoolMembership?.school_id) {
@@ -118,8 +119,8 @@ export default function CreateTraining() {
     }
   }
 
-  // School owner: show coach selector
-  const schoolSlot = isSchoolOwner && school ? (
+  // School owner: show coach selector (not for solo coaches)
+  const schoolSlot = isSchoolOwner && school && !isSolo ? (
     <div {...(!selectedCoachId ? { 'data-field-error': true } : {})}>
       <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')} <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
