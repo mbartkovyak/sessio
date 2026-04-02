@@ -219,6 +219,8 @@
     "createTrainingDesc": "Set up schedule, venue, and capacity",
     "inviteAthletes": "Invite your athletes",
     "inviteAthletesDesc": "Share the link from your training page",
+    "inviteCoaches": "Invite your coaches",
+    "inviteCoachesDesc": "Share the school invite link or code",
     "completeProfile": "Complete your profile",
     "completeProfileDesc": "Add bio and venues for your public page",
     "checkCalendar": "Check your calendar",

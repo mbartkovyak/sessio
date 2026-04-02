@@ -53,14 +53,14 @@ export default function SchoolCoaches() {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <button
-                              onClick={() => respondSchool.mutate({ memberId: m.id, accept: true })}
+                              onClick={() => respondSchool.mutate({ memberId: m.id, coachId: m.coach_id, accept: true })}
                               disabled={respondSchool.isPending}
                               className="flex items-center justify-center gap-1 rounded-lg bg-success/10 py-2 text-xs font-bold text-success min-h-[36px]"
                             >
                               <CheckCircle2 className="h-3.5 w-3.5" /> {t('coaches.approve')}
                             </button>
                             <button
-                              onClick={() => respondSchool.mutate({ memberId: m.id, accept: false })}
+                              onClick={() => respondSchool.mutate({ memberId: m.id, coachId: m.coach_id, accept: false })}
                               disabled={respondSchool.isPending}
                               className="flex items-center justify-center gap-1 rounded-lg bg-destructive/10 py-2 text-xs font-bold text-destructive min-h-[36px]"
                             >

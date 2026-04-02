@@ -139,7 +139,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
       )}
 
       {/* Setup guide for new coaches */}
-      <CoachSetupGuide trainings={trainings} />
+      <CoachSetupGuide trainings={trainings} schoolCoachCount={coaches.length} />
 
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />

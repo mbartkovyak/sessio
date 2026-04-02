@@ -9,9 +9,10 @@ const CALENDAR_SEEN_KEY = 'sessio_setup_calendar_seen';
 
 interface Props {
   trainings: { id: string }[];
+  schoolCoachCount?: number;
 }
 
-export default function CoachSetupGuide({ trainings }: Props) {
+export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
@@ -21,7 +22,10 @@ export default function CoachSetupGuide({ trainings }: Props) {
   const venues = ((profile as any)?.venues ?? []) as any[];
   const hasProfile = !!(profile?.bio?.trim()) && venues.length > 0;
   const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
-  const allDone = hasTraining && hasProfile && calendarSeen;
+  const isSchoolOwner = schoolCoachCount !== undefined;
+  const hasCoaches = (schoolCoachCount ?? 0) > 1; // >1 because owner counts as one
+
+  const allDone = hasTraining && hasProfile && calendarSeen && (!isSchoolOwner || hasCoaches);
 
   // Hidden once dismissed
   if (dismissed) return null;
@@ -41,11 +45,19 @@ export default function CoachSetupGuide({ trainings }: Props) {
       action: () => hasTraining && navigate(`/coach/trainings/${trainings[0].id}`),
       disabled: !hasTraining,
     },
+    // School owners: invite coaches
+    ...(isSchoolOwner ? [{
+      done: hasCoaches,
+      label: t('setupGuide.inviteCoaches'),
+      desc: t('setupGuide.inviteCoachesDesc'),
+      action: () => navigate('/coach/coaches'),
+      disabled: false,
+    }] : []),
     {
       done: hasProfile,
       label: t('setupGuide.completeProfile'),
       desc: t('setupGuide.completeProfileDesc'),
-      action: () => navigate('/coach/profile'),
+      action: () => navigate(isSchoolOwner ? '/school/profile' : '/coach/profile'),
       disabled: false,
     },
     {

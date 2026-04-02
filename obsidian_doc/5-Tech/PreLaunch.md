@@ -4,106 +4,6 @@ Priority-ordered. Walk through top to bottom. Fixes marked with code changes are
 
 ---
 
-## PRIORITY 1: Store Blockers (Do First)
-
-### 1.1 Privacy Policy & Terms of Service
-- [ ] Create `/privacy` page with policy text
-- [ ] Create `/terms` page with terms text
-- [ ] Add routes in App.tsx
-- [ ] Link from Landing page footer
-- [ ] Link from Profile pages (both coach and player)
-- **Why:** Both App Store and Play Store reject submissions without these
-- **Time:** 30 min
-
-### 1.2 OG Image for Social Sharing
-- [ ] Create `public/icons/og-default.png` (1200x630px)
-- [ ] Verify `index.html` meta tags point to it correctly
-- **Why:** When coaches paste invite links in WhatsApp, a broken image shows. First impression matters.
-- **Time:** 15 min (design) + 5 min (add)
-
-### 1.3 Fix Push Notification Icon (SVG → PNG)
-- [ ] In `public/sw.js`: change `/icons/icon-192.svg` to `/icons/icon-192.png`
-- **Why:** SVG doesn't render on all Android notification trays
-- **Time:** 1 min
-
----
-
-## PRIORITY 2: Code Bugs (Fix Before First Coach)
-
-### 2.1 School Owner Blocked from Session Generation
-- [ ] `supabase/functions/automation/index.ts:95` — change `!== 'coach'` to `!['coach', 'school_owner'].includes()`
-- **Why:** If cron fails, school owner can't manually regenerate sessions. Dead in the water.
-- **Time:** 2 min
-
-### 2.2 Onboarding Loses `?session=` Parameter
-- [ ] `src/pages/auth/Onboarding.tsx` — in `getPostOnboardingPath()`, also read `pending_invite_session` from sessionStorage and append as `?session=` query param
-- **Why:** Athletes invited to a specific drop-in session land on the full training page instead
-- **Time:** 5 min
-
-### 2.3 Silent Push Notification Failures
-- [ ] `src/lib/pushNotify.ts` — replace `.catch(() => {})` with `.catch(err => captureException(err))`
-- **Why:** If the edge function is down, nobody knows. Sentry will alert you.
-- **Time:** 2 min
-
----
-
-## PRIORITY 3: Verify Infrastructure (Before Sharing Links)
-
-### 3.1 Verify pg_cron is Running
-- [ ] Supabase dashboard → Database → Extensions → `pg_cron` enabled?
-- [ ] Run: `SELECT * FROM cron.job;` — should show the hourly automation job
-- [ ] If missing: the automation cron (session generation, reminders) is NOT running
-- **Fallback:** Add Vercel cron config to `vercel.json`
-- **Why:** Without cron: no auto-generated sessions beyond initial creation, no reminders, no attendance nudges
-- **Time:** 10 min to verify, 15 min to fix if broken
-
-### 3.2 Test Push Notifications End-to-End
-- [ ] Open app on phone → allow notifications
-- [ ] Check `push_subscriptions` table has your row
-- [ ] Send test: in app, send yourself a chat message from another account
-- [ ] Verify push arrives on lock screen
-- [ ] Test on both Android Chrome and iOS Safari (if available)
-- **Why:** If push doesn't work, the entire confirmation flow breaks
-- **Time:** 15 min
-
-### 3.3 Build Check
-- [ ] Run `bun run build` — must pass clean
-- [ ] Deploy to dev: verify app loads on `sessio-dev.vercel.app`
-- [ ] Open on phone: verify no console errors
-- **Time:** 10 min
-
----
-
-## PRIORITY 4: Android Beta (TWA/PWABuilder)
-
-### 4.1 Package for Play Store
-- [ ] Go to https://www.pwabuilder.com/
-- [ ] Enter production URL: `sessio-topaz.vercel.app`
-- [ ] Download Android package (TWA — Trusted Web Activity)
-- [ ] If TWA requires Digital Asset Links: add `public/.well-known/assetlinks.json`
-- [ ] Sign APK/AAB with a keystore (PWABuilder generates one, or use your own)
-- [ ] Upload to Google Play Console → Internal Testing track
-- **Why:** Internal testing = immediate access, no review wait. Add beta testers by email.
-- **Time:** 1-2 hours
-
-### 4.2 Play Store Listing
-- [ ] Title: "Sessio — Sports Coaching"
-- [ ] Short description: "Schedule trainings, confirm attendance, manage your sports school"
-- [ ] Category: Sports
-- [ ] Privacy Policy URL: `https://sessio-topaz.vercel.app/privacy`
-- [ ] At least 2 phone screenshots (coach dashboard, athlete calendar)
-- [ ] Content rating questionnaire: no violence, no ads, no user-generated mature content
-- **Time:** 30 min
-
-### 4.3 iOS (Can Be Day 2)
-- [ ] PWABuilder also generates iOS package (WKWebView wrapper)
-- [ ] Requires Apple Developer account ($99/year)
-- [ ] TestFlight for beta distribution
-- [ ] OR: coaches can use "Add to Home Screen" from Safari — works as PWA on iOS 16.4+
-- **Time:** 2-3 hours (if doing native wrapper), 0 min (if PWA-only)
-
----
-
 ## PRIORITY 5: E2E Test Flows (Run After Fixes)
 
 ### Critical Path (must pass before giving links to anyone)
@@ -288,15 +188,15 @@ Your honest feedback helps. No wrong answers.
 
 Things that DON'T work yet — be upfront about these:
 
-| Limitation | Workaround | When fixing |
-|------------|------------|-------------|
-| No payments | Coach collects cash/transfer outside app | After validation |
-| No review system | Athletes can't leave reviews yet | This month |
-| No waitlist auto-fill | When someone cancels, coach manually adds from waitlist | This month |
-| No profile photo upload | Use Gravatar or skip for now | This week |
-| No venue map | Venue is text-only, no Google Maps | Later |
-| Late cancel = allowed | App warns but doesn't block | By design |
-| Pass purchase is manual | Coach assigns passes, athletes can't buy | After payments |
+| Limitation              | Workaround                                              | When fixing      |
+| ----------------------- | ------------------------------------------------------- | ---------------- |
+| No payments             | Coach collects cash/transfer outside app                | After validation |
+| No review system        | Athletes can't leave reviews yet                        | This month       |
+| No waitlist auto-fill   | When someone cancels, coach manually adds from waitlist | This month       |
+| No profile photo upload | Use Gravatar or skip for now                            | This week        |
+| No venue map            | Venue is text-only, no Google Maps                      | Later            |
+| Late cancel = allowed   | App warns but doesn't block                             | By design        |
+| Pass purchase is manual | Coach assigns passes, athletes can't buy                | After payments   |
 
 ---
 

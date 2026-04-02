@@ -219,6 +219,8 @@
     "createTrainingDesc": "Ustaw harmonogram, miejsce i liczbę miejsc",
     "inviteAthletes": "Zaproś uczestników",
     "inviteAthletesDesc": "Udostępnij link ze strony zajęć",
+    "inviteCoaches": "Zaproś trenerów",
+    "inviteCoachesDesc": "Wyślij link lub kod zaproszenia do szkoły",
     "completeProfile": "Uzupełnij swój profil",
     "completeProfileDesc": "Dodaj bio i lokalizacje do publicznego profilu",
     "checkCalendar": "Sprawdź swój kalendarz",

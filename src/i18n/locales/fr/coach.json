@@ -212,6 +212,8 @@
     "createTrainingDesc": "Définissez le planning, le lieu et la capacité",
     "inviteAthletes": "Invitez vos participants",
     "inviteAthletesDesc": "Partagez le lien depuis la page du cours",
+    "inviteCoaches": "Invitez vos coachs",
+    "inviteCoachesDesc": "Partagez le lien ou le code d'invitation de l'école",
     "completeProfile": "Complétez votre profil",
     "completeProfileDesc": "Ajoutez une bio et des lieux pour votre page publique"
   },

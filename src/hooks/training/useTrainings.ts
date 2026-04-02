@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +40,27 @@ type JoinRequestWithProfileAndTraining = Tables<'join_requests'> & {
 
 export function useTrainings() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime: invalidate when a training is created/updated for this coach
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`trainings:coach:${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'trainings',
+        filter: `coach_id=eq.${user.id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: ['trainings', user.id] });
+        qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+        qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   return useQuery({
     queryKey: ['trainings', user?.id],
     enabled: !!user,
