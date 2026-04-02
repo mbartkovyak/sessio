@@ -19,7 +19,13 @@ import uk_player from './locales/uk/player.json';
 import uk_coach from './locales/uk/coach.json';
 import uk_school from './locales/uk/school.json';
 
-export const SUPPORTED_LANGS = ['en', 'pl', 'uk'] as const;
+import fr_common from './locales/fr/common.json';
+import fr_auth from './locales/fr/auth.json';
+import fr_player from './locales/fr/player.json';
+import fr_coach from './locales/fr/coach.json';
+import fr_school from './locales/fr/school.json';
+
+export const SUPPORTED_LANGS = ['en', 'pl', 'uk', 'fr'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
 function detectLanguage(): SupportedLang {
@@ -39,6 +45,7 @@ i18n.use(initReactI18next).init({
     en: { common: en_common, auth: en_auth, player: en_player, coach: en_coach, school: en_school },
     pl: { common: pl_common, auth: pl_auth, player: pl_player, coach: pl_coach, school: pl_school },
     uk: { common: uk_common, auth: uk_auth, player: uk_player, coach: uk_coach, school: uk_school },
+    fr: { common: fr_common, auth: fr_auth, player: fr_player, coach: fr_coach, school: fr_school },
   },
   lng: detectLanguage(),
   fallbackLng: 'en',
