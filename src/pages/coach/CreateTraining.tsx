@@ -122,6 +122,11 @@ export default function CreateTraining() {
         console.warn('Session generation failed:', rpcError.message);
         toast.error(t('create.sessionGenFailed'));
       }
+      // Invalidate home page session queries so they show immediately on navigate back
+      qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
       navigate(`/coach/trainings/${training.id}`);
     } catch (err: any) {
       console.error('Create training error:', err);
