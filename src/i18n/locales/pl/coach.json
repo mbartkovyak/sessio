@@ -219,7 +219,10 @@
     "inviteAthletes": "Zaproś uczestników",
     "inviteAthletesDesc": "Udostępnij link ze strony zajęć",
     "completeProfile": "Uzupełnij swój profil",
-    "completeProfileDesc": "Dodaj bio i lokalizacje do publicznego profilu"
+    "completeProfileDesc": "Dodaj bio i lokalizacje do publicznego profilu",
+    "checkCalendar": "Sprawdź swój kalendarz",
+    "checkCalendarDesc": "Zobacz sesje i śledź kto się zapisuje",
+    "allSet": "Wszystko gotowe!"
   },
   "walkthrough": {
     "welcomeTitle": "Witaj w Sessio",

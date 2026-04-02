@@ -219,7 +219,10 @@
     "inviteAthletes": "Запросіть учасників",
     "inviteAthletesDesc": "Поділіться посиланням зі сторінки заняття",
     "completeProfile": "Заповніть свій профіль",
-    "completeProfileDesc": "Додайте біо та місця до публічного профілю"
+    "completeProfileDesc": "Додайте біо та місця до публічного профілю",
+    "checkCalendar": "Перевірте свій календар",
+    "checkCalendarDesc": "Переглядайте сесії та хто записався",
+    "allSet": "Все готово!"
   },
   "walkthrough": {
     "welcomeTitle": "Ласкаво просимо до Sessio",
