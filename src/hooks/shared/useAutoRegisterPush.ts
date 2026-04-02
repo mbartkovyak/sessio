@@ -42,6 +42,14 @@ export function useAutoRegisterPush() {
   const { user } = useAuth();
   const done = useRef(false);
 
+  // Always tell the SW who the current user is (SW can restart and lose state)
+  useEffect(() => {
+    if (!user || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      reg.active?.postMessage({ type: 'SET_USER_ID', userId: user.id });
+    });
+  }, [user]);
+
   useEffect(() => {
     if (done.current || !user || !VAPID_KEY) return;
     if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
@@ -88,10 +96,6 @@ export function useAutoRegisterPush() {
             return;
           }
         }
-        // Tell the SW who we are so it can skip self-notifications
-        const sw = reg.active ?? reg.installing ?? reg.waiting;
-        sw?.postMessage({ type: 'SET_USER_ID', userId: user.id });
-
         // Notify subscribers that registration completed successfully
         pushRegistrationBus.dispatchEvent(new Event('registered'));
       } catch (e) {
