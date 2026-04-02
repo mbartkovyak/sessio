@@ -205,6 +205,16 @@
     "dropInTrial": "Одне пробне",
     "dropInNone": "Лише постійні"
   },
+  "setupGuide": {
+    "title": "Перші кроки",
+    "progress": "{{done}} з {{total}}",
+    "createTraining": "Створіть перше заняття",
+    "createTrainingDesc": "Налаштуйте розклад, місце та кількість місць",
+    "inviteAthletes": "Запросіть учасників",
+    "inviteAthletesDesc": "Поділіться посиланням зі сторінки заняття",
+    "completeProfile": "Заповніть свій профіль",
+    "completeProfileDesc": "Додайте біо та місця до публічного профілю"
+  },
   "walkthrough": {
     "welcomeTitle": "Ласкаво просимо до Sessio",
     "welcomeDesc": "Акаунт тренера готовий. Створімо перше заняття за 2 хвилини.",

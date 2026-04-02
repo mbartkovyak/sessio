@@ -205,6 +205,16 @@
     "dropInTrial": "One trial",
     "dropInNone": "Series only"
   },
+  "setupGuide": {
+    "title": "Getting started",
+    "progress": "{{done}} of {{total}}",
+    "createTraining": "Create your first training",
+    "createTrainingDesc": "Set up schedule, venue, and capacity",
+    "inviteAthletes": "Invite your athletes",
+    "inviteAthletesDesc": "Share the link from your training page",
+    "completeProfile": "Complete your profile",
+    "completeProfileDesc": "Add bio and venues for your public page"
+  },
   "walkthrough": {
     "welcomeTitle": "Welcome to Sessio",
     "welcomeDesc": "You're set up as a coach. Let's create your first training in 2 minutes.",

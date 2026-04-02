@@ -7,6 +7,7 @@ import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttend
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
 import { useUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
+import CoachSetupGuide from '@/components/coach/CoachSetupGuide';
 import Avatar from '@/components/shared/Avatar';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,6 +111,9 @@ export default function CoachOverviewSection() {
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">{t('home.overview')}</p>
       </div>
+
+      {/* Setup guide for new coaches */}
+      <CoachSetupGuide trainings={trainings} />
 
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />
