@@ -14,6 +14,7 @@
     "inviteOptionLink": "Send them a link",
     "inviteOr": "or",
     "inviteOptionCode": "Share the code — they enter it in the app",
+    "inviteApprovalHint": "When a coach joins via the link or code, you'll need to approve them on this page.",
     "pendingRequests": "Pending requests",
     "coach": "Coach",
     "you": "(you)",

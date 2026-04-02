@@ -14,6 +14,7 @@
     "inviteOptionLink": "Wyślij link",
     "inviteOr": "lub",
     "inviteOptionCode": "Podaj kod — trener wpisze go w aplikacji",
+    "inviteApprovalHint": "Gdy trener dołączy przez link lub kod, będziesz musiał zatwierdzić go na tej stronie.",
     "pendingRequests": "Oczekujące prośby",
     "coach": "Trener",
     "you": "(ty)",
