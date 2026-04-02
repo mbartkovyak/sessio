@@ -81,6 +81,13 @@ export function useAutoRegisterPush() {
 
         const json = sub.toJSON();
 
+        // One endpoint = one device. Delete stale subscriptions from other accounts
+        // that were previously logged in on this same browser.
+        await supabase.from('push_subscriptions')
+          .delete()
+          .eq('endpoint', json.endpoint!)
+          .neq('user_id', user.id);
+
         const { error } = await supabase.from('push_subscriptions').upsert(
           { user_id: user.id, endpoint: json.endpoint!, keys: json.keys },
           { onConflict: 'user_id,endpoint' }
