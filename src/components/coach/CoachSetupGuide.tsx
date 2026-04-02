@@ -20,8 +20,7 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) 
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === '1');
 
   const hasTraining = trainings.length > 0;
-  const venues = ((profile as any)?.venues ?? []) as any[];
-  const hasProfile = !!(profile?.bio?.trim()) && venues.length > 0;
+  const hasProfile = !!(profile?.bio?.trim());
   const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
   const isSchoolOwner = schoolCoachCount !== undefined;
   const hasCoaches = (schoolCoachCount ?? 0) > 1; // >1 because owner counts as one
