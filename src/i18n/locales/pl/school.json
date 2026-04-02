@@ -42,7 +42,7 @@
     "venues": "Lokalizacja zajęć",
     "venueName": "Nazwa miejsca (np. Kort 3)",
     "venueAddress": "Pełny adres (np. ul. Marszałkowska 12, Warszawa)",
-    "addVenue": "Dodaj miejsce"
+    "addVenue": "Dodaj lokalizację"
   },
   "coaches": {
     "title": "Trenerzy",
