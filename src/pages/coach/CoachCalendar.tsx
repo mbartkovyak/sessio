@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { normalizeTime } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool } from '@/hooks/school/useSchools';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
@@ -116,10 +117,14 @@ export default function CoachCalendar() {
     const training = session.trainings;
     const newDate = prompt(t('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
-    if (!newStart) return;
-    const newEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
-    if (!newEnd) return;
+    const rawStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
+    if (!rawStart) return;
+    const newStart = normalizeTime(rawStart);
+    if (!newStart) { toast.error(t('home.invalidTime')); return; }
+    const rawEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
+    if (!rawEnd) return;
+    const newEnd = normalizeTime(rawEnd);
+    if (!newEnd) { toast.error(t('home.invalidTime')); return; }
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
       .from('training_sessions')
@@ -129,11 +134,12 @@ export default function CoachCalendar() {
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
+        const oldDateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         const newDateLabel = format(new Date(newDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         await supabase.from('messages').insert({
           conversation_id: conv.id,
           sender_id: user.id,
-          content: t('home.rescheduledMessage', { name: training?.name, date: newDateLabel, time: newStart }),
+          content: t('home.rescheduledMessage', { name: training?.name, oldDate: oldDateLabel, oldTime: session.start_time?.slice(0, 5), newDate: newDateLabel, newTime: newStart }),
         });
       }
     }

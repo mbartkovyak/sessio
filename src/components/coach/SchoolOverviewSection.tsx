@@ -7,6 +7,7 @@ import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useSchoolTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttendanceSummary } from '@/hooks/training/useTrainings';
 import { useSchoolUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
+import CoachSetupGuide from '@/components/coach/CoachSetupGuide';
 import { Ticket } from 'lucide-react';
 import Avatar from '@/components/shared/Avatar';
 import { toast } from 'sonner';
@@ -17,12 +18,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { normalizeTime } from '@/lib/utils';
 
 export default function SchoolOverviewSection({ school }: { school: { id: string; name: string } }) {
   const { t } = useTranslation('school');
   const { t: tc } = useTranslation('coach');
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: fullSchool } = useMySchool();
   const { data: trainings = [], isLoading: trainingsLoading } = useSchoolTrainings(fullSchool?.id);
   const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
@@ -36,6 +38,7 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
 
   const coaches = fullSchool?.school_members ?? [];
   const pendingCoaches = fullSchool?.pending_members ?? [];
+  const isSolo = (fullSchool as any)?.is_listed === false;
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -70,10 +73,14 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
     const training = session.trainings;
     const newDate = prompt(tc('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt(tc('home.rescheduleStart'), session.start_time?.slice(0, 5));
-    if (!newStart) return;
-    const newEnd = prompt(tc('home.rescheduleEnd'), session.end_time?.slice(0, 5));
-    if (!newEnd) return;
+    const rawStart = prompt(tc('home.rescheduleStart'), session.start_time?.slice(0, 5));
+    if (!rawStart) return;
+    const newStart = normalizeTime(rawStart);
+    if (!newStart) { toast.error(tc('home.invalidTime')); return; }
+    const rawEnd = prompt(tc('home.rescheduleEnd'), session.end_time?.slice(0, 5));
+    if (!rawEnd) return;
+    const newEnd = normalizeTime(rawEnd);
+    if (!newEnd) { toast.error(tc('home.invalidTime')); return; }
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
       .from('training_sessions')
@@ -83,11 +90,12 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
+        const oldDateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         const newDateLabel = format(new Date(newDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         await supabase.from('messages').insert({
           conversation_id: conv.id,
           sender_id: user.id,
-          content: tc('home.rescheduledMessage', { name: training?.name, date: newDateLabel, time: newStart }),
+          content: tc('home.rescheduledMessage', { name: training?.name, oldDate: oldDateLabel, oldTime: session.start_time?.slice(0, 5), newDate: newDateLabel, newTime: newStart }),
         });
       }
     }
@@ -111,15 +119,27 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      {isSolo ? (
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            {tc('home.greeting', { name: profile?.first_name ?? tc('home.defaultName') })}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{tc('home.overview')}</p>
         </div>
-        <button onClick={() => navigate('/school/profile')}
-          className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
-          <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
-        </button>
-      </div>
+      ) : (
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{school.name}</h1>
+          </div>
+          <button onClick={() => navigate('/school/profile')}
+            className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97] shrink-0 mt-1">
+            <Settings className="h-3.5 w-3.5" /> {t('overview.schoolProfile')}
+          </button>
+        </div>
+      )}
+
+      {/* Setup guide for new coaches */}
+      <CoachSetupGuide trainings={trainings} schoolCoachCount={coaches.length} />
 
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />
@@ -156,23 +176,25 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
         </button>
       </div>
 
-      {/* Coaches button */}
-      <button
-        onClick={() => navigate('/coach/coaches')}
-        className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span>{t('dashboard.coachesSection')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {pendingCoaches.length > 0 && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
-          )}
-          <span className="text-xs text-muted-foreground">{coaches.length}</span>
-        </div>
-      </button>
+      {/* Coaches button — hidden for solo coaches */}
+      {!isSolo && (
+        <button
+          onClick={() => navigate('/coach/coaches')}
+          className="w-full flex items-center justify-between rounded-2xl bg-white px-4 py-3.5 shadow-sm text-sm font-semibold text-foreground transition-all active:scale-[0.97]"
+          style={{ border: '1px solid hsl(203 20% 90%)' }}
+        >
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span>{t('dashboard.coachesSection')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {pendingCoaches.length > 0 && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">{pendingCoaches.length}</span>
+            )}
+            <span className="text-xs text-muted-foreground">{coaches.length}</span>
+          </div>
+        </button>
+      )}
 
       {/* Join Requests (athletes) */}
       {joinRequests.length > 0 && (

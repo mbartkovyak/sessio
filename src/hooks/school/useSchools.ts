@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
 import { toast } from 'sonner';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getOrCreateDMConversation } from '@/hooks/shared/useConversations';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city'>;
@@ -134,15 +135,20 @@ export function useSchoolPublicTrainings(schoolId: string | undefined) {
 
 /** School owner — approve or decline a pending coach */
 export function useRespondSchoolMember() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ memberId, accept }: { memberId: string; accept: boolean }) => {
+    mutationFn: async ({ memberId, coachId, accept }: { memberId: string; coachId: string; accept: boolean }) => {
       if (accept) {
         const { error } = await supabase
           .from('school_members')
           .update({ status: 'approved' })
           .eq('id', memberId);
         if (error) throw error;
+        // Auto-create DM between school owner and new coach
+        if (user) {
+          try { await getOrCreateDMConversation(user.id, coachId); } catch {}
+        }
       } else {
         const { error } = await supabase
           .from('school_members')
@@ -154,6 +160,7 @@ export function useRespondSchoolMember() {
     onSuccess: (_, { accept }) => {
       toast.success(i18n.t(accept ? 'toast.coachApproved' : 'toast.requestDeclined', { ns: 'common' }));
       qc.invalidateQueries({ queryKey: ['my-school'] });
+      qc.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -265,7 +272,8 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
       let q = supabase
         .from('schools')
         .select('id, name, sport, city, logo_url, description, school_members(id, status)')
-        .not('name', 'is', null);
+        .not('name', 'is', null)
+        .eq('is_listed', true);
       if (search) q = q.ilike('name', `%${search}%`);
       if (sport) q = q.contains('sport', [sport]);
       if (city) q = q.ilike('city', `%${city}%`);

@@ -18,9 +18,10 @@
     "rescheduleDate": "Нова дата (РРРР-ММ-ДД):",
     "rescheduleStart": "Новий час початку (ГГ:ХХ):",
     "rescheduleEnd": "Новий час завершення (ГГ:ХХ):",
-    "cancelledMessage": "⚠️ {{name}} на {{date}} скасовано.",
-    "rescheduledMessage": "📅 {{name}} перенесено на {{date}} о {{time}}.",
-    "viewStats": "Статистика відвідуваності",
+    "invalidTime": "Невірний формат часу. Використовуйте ГГ:ХХ (напр. 09:00)",
+    "cancelledMessage": "❌ {{name}} на {{date}} — скасовано.",
+    "rescheduledMessage": "📅 {{name}} перенесено: {{oldDate}} {{oldTime}} → {{newDate}} {{newTime}}",
+    "viewStats": "Звіти",
     "markAttendance": "Позначити відвідуваність",
     "attendanceBannerTitle": "Невідмічена присутність",
     "sessionsNeedAttendance": "{{count}} сесій потребують відвідуваності",
@@ -40,7 +41,13 @@
     "venues": "Локації",
     "venueName": "Назва локації (наприклад, Корт 3)",
     "venueAddress": "Повна адреса (наприклад, вул. Маршалковська 12, Варшава)",
-    "addVenue": "Додати локацію"
+    "addVenue": "Додати локацію",
+    "becomeSchool": "Відкрити школу",
+    "becomeSchoolDesc": "Додайте тренерів до команди та з'явіться у пошуку шкіл",
+    "becomeSchoolConfirm": "Ваша школа стане видимою в пошуку і ви зможете керувати тренерами. Продовжити?",
+    "schoolNamePlaceholder": "напр. Академія Тенісу Київ",
+    "becomeSchoolSuccess": "Школу створено! Тепер ви можете керувати тренерами та профілем школи.",
+    "becomeSchoolButton": "Відкрити школу"
   },
   "trainings": {
     "title": "Заняття",
@@ -205,6 +212,21 @@
     "dropInTrial": "Одне пробне",
     "dropInNone": "Лише постійні"
   },
+  "setupGuide": {
+    "title": "Перші кроки",
+    "progress": "{{done}} з {{total}}",
+    "createTraining": "Створіть перше заняття",
+    "createTrainingDesc": "Налаштуйте розклад, місце та кількість місць",
+    "inviteAthletes": "Запросіть учасників",
+    "inviteAthletesDesc": "Поділіться посиланням зі сторінки заняття",
+    "inviteCoaches": "Запросіть тренерів",
+    "inviteCoachesDesc": "Надішліть посилання або код запрошення до школи",
+    "completeProfile": "Заповніть свій профіль",
+    "completeProfileDesc": "Додайте біо та місця до публічного профілю",
+    "checkCalendar": "Перевірте свій календар",
+    "checkCalendarDesc": "Переглядайте сесії та хто записався",
+    "allSet": "Все готово!"
+  },
   "walkthrough": {
     "welcomeTitle": "Ласкаво просимо до Sessio",
     "welcomeDesc": "Акаунт тренера готовий. Створімо перше заняття за 2 хвилини.",
@@ -261,8 +283,7 @@
     "noAthletes": "Ще немає учасників у заняттях школи",
     "daysLabel": "{{count}}д",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Дата початку",
-    "noSchool": "Абонементи керуються на рівні школи. Створіть або приєднайтесь до школи, щоб використовувати абонементи."
+    "startDate": "Дата початку"
   },
   "stats": {
     "title": "Статистика",
@@ -293,7 +314,6 @@
     "title": "Спортсмени",
     "search": "Пошук спортсменів...",
     "noAthletes": "Спортсменів ще немає",
-    "noSchool": "Приєднайтесь до школи, щоб керувати спортсменами",
     "addViaPassesHint": "Додайте нових людей через Абонементи",
     "count": "{{count}} спортсменів",
     "trainings": "Записаний на",

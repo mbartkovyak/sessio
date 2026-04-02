@@ -24,11 +24,29 @@ MVP: **group lesson management** (auto-confirm, auto-backfill) + **coach discove
 
 **Not in MVP:** Payments, AI, venue integration, native app.
 
+## Monetization — Booksy model
+
+Sessio follows the Booksy playbook. Booksy (founded Warsaw, $269M raised, $1.3B GMV, profitable) proved this model at scale in beauty/wellness. Same logic applies to sports coaching.
+
+| Revenue line | Booksy | Sessio |
+|---|---|---|
+| **SaaS subscription** (core) | $29.99/month per user + $20/staff | School pays monthly for scheduling/confirmations tool |
+| **Commission on NEW clients only** | 30% on first visit from platform-acquired client, 0% after | Commission on happy hour / discovery bookings only |
+| **Payment processing** | 2.5-2.7% per transaction | Later, when payments are added |
+| **Consumer side** | Free | Free |
+
+**Why this works (no disintermediation):**
+- SaaS fee = software, not a middleman. Coach pays because it saves them time. Nothing to route around.
+- Commission only on NEW athletes the platform brings. Existing relationships are untouched. Coach sees it as earned value, not a tax.
+- Contrast with TeachMe.To (pure marketplace): after one session the athlete has the coach's WhatsApp → they go direct → platform loses. Sessio doesn't have this problem because it's the operating system, not the middleman.
+
+Booksy result: $65.9M revenue (2024), nearly doubled from $35.2M (2023). 125K businesses, 30M+ consumers, 9M bookings/month.
+
 ## GTM
 
-Validate with one coach → seed 5-10 → coaches bring athletes via invite links → expand sports → expand cities.
+Validate with one school → seed 5-10 → schools bring athletes via invite links → expand sports → expand cities.
 
-Metrics: Does the coach use Sessio daily? Is the profile generating new athlete interest?
+Metrics: Does the school use Sessio daily? Are happy hours filling empty slots?
 
 ---
 

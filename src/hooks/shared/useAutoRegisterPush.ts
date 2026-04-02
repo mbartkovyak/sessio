@@ -42,6 +42,14 @@ export function useAutoRegisterPush() {
   const { user } = useAuth();
   const done = useRef(false);
 
+  // Always tell the SW who the current user is (SW can restart and lose state)
+  useEffect(() => {
+    if (!user || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      reg.active?.postMessage({ type: 'SET_USER_ID', userId: user.id });
+    });
+  }, [user]);
+
   useEffect(() => {
     if (done.current || !user || !VAPID_KEY) return;
     if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
@@ -72,6 +80,14 @@ export function useAutoRegisterPush() {
         localStorage.setItem(VAPID_STORAGE_KEY, VAPID_KEY);
 
         const json = sub.toJSON();
+
+        // One endpoint = one device. Delete stale subscriptions from other accounts
+        // that were previously logged in on this same browser.
+        await supabase.from('push_subscriptions')
+          .delete()
+          .eq('endpoint', json.endpoint!)
+          .neq('user_id', user.id);
+
         const { error } = await supabase.from('push_subscriptions').upsert(
           { user_id: user.id, endpoint: json.endpoint!, keys: json.keys },
           { onConflict: 'user_id,endpoint' }

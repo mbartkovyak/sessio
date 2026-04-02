@@ -31,6 +31,7 @@ export default function CreateTraining() {
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
   const isSchoolMember = !isSchoolOwner && !!schoolMembership;
+  const isSolo = (school as any)?.is_listed === false;
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>('');
   const [attempted, setAttempted] = useState(false);
@@ -61,15 +62,24 @@ export default function CreateTraining() {
   async function handleNewVenue(venue: VenueOption) {
     if (!school) return;
     setLocalVenues(prev => [...prev, venue]);
-    const currentVenues = ((school as any).venues ?? []) as VenueOption[];
+    const currentSchoolVenues = ((school as any).venues ?? []) as VenueOption[];
     await supabase
       .from('schools')
-      .update({ venues: [...currentVenues, venue] })
+      .update({ venues: [...currentSchoolVenues, venue] })
       .eq('id', school.id);
     qc.invalidateQueries({ queryKey: ['my-school'] });
+    // Also save to profile so it shows in the coach profile editor
+    if (profile) {
+      const currentProfileVenues = ((profile as any).venues ?? []) as VenueOption[];
+      await supabase
+        .from('profiles')
+        .update({ venues: [...currentProfileVenues, venue] })
+        .eq('id', profile.id);
+      refreshProfile();
+    }
   }
 
-  const extraErrors = isSchoolOwner && !selectedCoachId ? [t('create.coachRequired')] : [];
+  const extraErrors = isSchoolOwner && !isSolo && !selectedCoachId ? [t('create.coachRequired')] : [];
 
   async function handleSubmit(form: TrainingFormValues) {
     try {
@@ -92,10 +102,10 @@ export default function CreateTraining() {
         : (isSchoolMember && schoolMembership?.schools)
           ? (schoolMembership.schools as any).sport?.[0] ?? 'Tennis'
           : (profile?.sport ?? 'Tennis');
-      // School owner: school lesson with assigned coach
+      // School owner: school lesson with assigned coach (solo coaches auto-assign themselves)
       if (isSchoolOwner && school) {
         payload.school_id = school.id;
-        if (selectedCoachId) payload.coach_id = selectedCoachId;
+        payload.coach_id = isSolo ? profile?.id : (selectedCoachId || undefined);
       }
       // School member coach: auto-link to school
       if (isSchoolMember && schoolMembership?.school_id) {
@@ -112,14 +122,19 @@ export default function CreateTraining() {
         console.warn('Session generation failed:', rpcError.message);
         toast.error(t('create.sessionGenFailed'));
       }
+      // Invalidate home page session queries so they show immediately on navigate back
+      qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
       navigate(`/coach/trainings/${training.id}`);
     } catch (err: any) {
       console.error('Create training error:', err);
     }
   }
 
-  // School owner: show coach selector
-  const schoolSlot = isSchoolOwner && school ? (
+  // School owner: show coach selector (not for solo coaches)
+  const schoolSlot = isSchoolOwner && school && !isSolo ? (
     <div {...(!selectedCoachId ? { 'data-field-error': true } : {})}>
       <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')} <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (

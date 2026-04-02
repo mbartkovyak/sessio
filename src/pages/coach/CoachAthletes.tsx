@@ -39,8 +39,6 @@ export default function CoachAthletes() {
             <div className="flex items-center justify-center py-20">
               <SessioLoader />
             </div>
-          ) : !schoolId ? (
-            <p className="text-sm text-muted-foreground text-center py-10">{t('athletes.noSchool')}</p>
           ) : (
             <>
               {/* Search */}

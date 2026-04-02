@@ -7,12 +7,14 @@ import { useTrainings, useAllCoachJoinRequests, useRespondJoinRequest, useAttend
 import { useMySchoolMembership } from '@/hooks/school/useSchools';
 import { useUpcomingSessions, usePastUnmarkedSessions, type UpcomingSession } from '@/hooks/training/useTodaySessions';
 import AttendanceBanner from '@/components/coach/AttendanceBanner';
+import CoachSetupGuide from '@/components/coach/CoachSetupGuide';
 import Avatar from '@/components/shared/Avatar';
 import CoachSessionCard from '@/components/coach/CoachSessionCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { sportLabel, sportLabels } from '@/lib/constants';
+import { normalizeTime } from '@/lib/utils';
 import { SessioLoader } from '@/components/SessioLogo';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
@@ -61,10 +63,14 @@ export default function CoachOverviewSection() {
     const training = session.trainings;
     const newDate = prompt(t('home.rescheduleDate'), session.session_date);
     if (!newDate) return;
-    const newStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
-    if (!newStart) return;
-    const newEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
-    if (!newEnd) return;
+    const rawStart = prompt(t('home.rescheduleStart'), session.start_time?.slice(0, 5));
+    if (!rawStart) return;
+    const newStart = normalizeTime(rawStart);
+    if (!newStart) { toast.error(t('home.invalidTime')); return; }
+    const rawEnd = prompt(t('home.rescheduleEnd'), session.end_time?.slice(0, 5));
+    if (!rawEnd) return;
+    const newEnd = normalizeTime(rawEnd);
+    if (!newEnd) { toast.error(t('home.invalidTime')); return; }
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     const { error } = await supabase
       .from('training_sessions')
@@ -74,11 +80,12 @@ export default function CoachOverviewSection() {
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
+        const oldDateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         const newDateLabel = format(new Date(newDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         await supabase.from('messages').insert({
           conversation_id: conv.id,
           sender_id: user.id,
-          content: t('home.rescheduledMessage', { name: training?.name, date: newDateLabel, time: newStart }),
+          content: t('home.rescheduledMessage', { name: training?.name, oldDate: oldDateLabel, oldTime: session.start_time?.slice(0, 5), newDate: newDateLabel, newTime: newStart }),
         });
       }
     }
@@ -111,6 +118,9 @@ export default function CoachOverviewSection() {
         <p className="text-sm text-muted-foreground mt-0.5">{t('home.overview')}</p>
       </div>
 
+      {/* Setup guide for new coaches */}
+      <CoachSetupGuide trainings={trainings} />
+
       {/* Attendance marking banner */}
       <AttendanceBanner sessions={unmarkedSessions} />
 
@@ -131,27 +141,15 @@ export default function CoachOverviewSection() {
         </div>
       )}
 
-      {/* Athletes button */}
-      <button
-        onClick={() => navigate('/coach/athletes')}
-        className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
-        style={{ border: '1px solid hsl(203 20% 90%)' }}
-      >
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          {t('athletes.title')}
-        </div>
-      </button>
-
-      {/* Stats + Passes buttons */}
+      {/* Athletes + Passes buttons */}
       <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={() => navigate('/coach/stats')}
+          onClick={() => navigate('/coach/athletes')}
           className="flex items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
           style={{ border: '1px solid hsl(203 20% 90%)' }}
         >
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          {t('home.viewStats')}
+          <Users className="h-4 w-4 text-muted-foreground" />
+          {t('athletes.title')}
         </button>
         <button
           onClick={() => navigate('/coach/passes')}
@@ -162,6 +160,18 @@ export default function CoachOverviewSection() {
           {t('abonaments.title')}
         </button>
       </div>
+
+      {/* Reports button */}
+      <button
+        onClick={() => navigate('/coach/stats')}
+        className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all active:scale-[0.97]"
+        style={{ border: '1px solid hsl(203 20% 90%)' }}
+      >
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          {t('home.viewStats')}
+        </div>
+      </button>
 
       {/* Join Requests */}
       {joinRequests.length > 0 && (
