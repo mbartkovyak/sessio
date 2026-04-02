@@ -90,11 +90,12 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
     if (user) {
       const { data: conv } = await supabase.from('conversations').select('id').eq('training_id', training?.id).maybeSingle();
       if (conv) {
+        const oldDateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         const newDateLabel = format(new Date(newDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
         await supabase.from('messages').insert({
           conversation_id: conv.id,
           sender_id: user.id,
-          content: tc('home.rescheduledMessage', { name: training?.name, date: newDateLabel, time: newStart }),
+          content: tc('home.rescheduledMessage', { name: training?.name, oldDate: oldDateLabel, oldTime: session.start_time?.slice(0, 5), newDate: newDateLabel, newTime: newStart }),
         });
       }
     }
