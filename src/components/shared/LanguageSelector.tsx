@@ -19,6 +19,7 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
   function handleChange(lang: string) {
     i18n.changeLanguage(lang);
     localStorage.setItem('sessio_lang', lang);
+    document.documentElement.lang = lang;
     if (user) {
       supabase.from('profiles').update({ language: lang }).eq('id', user.id);
     }

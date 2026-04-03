@@ -98,6 +98,7 @@
   },
   "thisWeek": {
     "title": "Cette semaine",
+    "upcoming": "À venir",
     "notGoing": "Absent",
     "backIn": "De retour",
     "spotReleased": "Place libérée",
