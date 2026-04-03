@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGS } from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const LANG_META: Record<string, { label: string; flag: string }> = {
   en: { label: 'English', flag: '🇬🇧' },
@@ -19,6 +20,8 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
   function handleChange(lang: string) {
     i18n.changeLanguage(lang);
     localStorage.setItem('sessio_lang', lang);
+    document.documentElement.lang = lang;
+    toast(`DEBUG: lang → ${lang}, i18n.language = ${i18n.language}`);
     if (user) {
       supabase.from('profiles').update({ language: lang }).eq('id', user.id);
     }
