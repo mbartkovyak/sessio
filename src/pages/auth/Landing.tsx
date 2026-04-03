@@ -1,6 +1,6 @@
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowRight, Clock, Users, CalendarCheck, Search } from 'lucide-react';
+import { ArrowRight, Users, CalendarCheck, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SessioLogo, SessioLoader } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
@@ -34,8 +34,7 @@ export default function Landing() {
   const features = [
     { icon: CalendarCheck, title: t('landing.feature1Title'), desc: t('landing.feature1Desc') },
     { icon: Users, title: t('landing.feature2Title'), desc: t('landing.feature2Desc') },
-    { icon: Clock, title: t('landing.feature3Title'), desc: t('landing.feature3Desc') },
-    { icon: Search, title: t('landing.feature4Title'), desc: t('landing.feature4Desc') },
+    { icon: Search, title: t('landing.feature3Title'), desc: t('landing.feature3Desc') },
   ];
 
   const steps = [
@@ -111,7 +110,7 @@ export default function Landing() {
           <p className="mb-10 text-center text-white/40" style={anim(0.55)}>
             {t('landing.featuresSubtitle')}
           </p>
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-3">
             {features.map(({ icon: Icon, title, desc }, i) => (
               <div
                 key={title}
