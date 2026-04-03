@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGS } from '@/i18n';
@@ -54,20 +55,33 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
 
 function CompactDropdown({ current, onChange }: { current: string; onChange: (lang: string) => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+
+  // Position the portal dropdown below the trigger button
+  const updatePos = useCallback(() => {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+    updatePos();
     function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (btnRef.current?.contains(target) || dropRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [open]);
+  }, [open, updatePos]);
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
+        ref={btnRef}
         type="button"
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/30 backdrop-blur-sm px-3 py-1.5 text-sm text-white"
@@ -76,8 +90,12 @@ function CompactDropdown({ current, onChange }: { current: string; onChange: (la
         <span>{LANG_META[current]?.label}</span>
         <ChevronDown className="h-3.5 w-3.5 text-white/60" />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 rounded-lg border border-white/20 bg-black/70 backdrop-blur-md overflow-hidden z-50">
+      {open && createPortal(
+        <div
+          ref={dropRef}
+          className="fixed rounded-lg border border-white/20 bg-neutral-900 overflow-hidden"
+          style={{ top: pos.top, right: pos.right, zIndex: 99999 }}
+        >
           {SUPPORTED_LANGS.map(lang => (
             <button
               key={lang}
@@ -89,8 +107,9 @@ function CompactDropdown({ current, onChange }: { current: string; onChange: (la
               <span>{LANG_META[lang]?.label}</span>
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
