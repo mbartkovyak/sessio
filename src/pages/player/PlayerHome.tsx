@@ -22,13 +22,15 @@ export default function PlayerHome() {
   const navigate = useNavigate();
   const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
 
-  // All sessions within next 7 days (athletes are auto-enrolled, can cancel if needed)
+  // Sessions within next 7 days shown as "This week", fallback to all upcoming
   const thisWeekSessions = upcoming.filter((a: any) => {
     const sessionDate = new Date(a.training_sessions?.session_date + 'T00:00:00');
     return sessionDate.getTime() - Date.now() < SEVEN_DAYS_MS;
   });
 
-  const nextConfirmed = thisWeekSessions.find((a: any) => a.status === 'confirmed');
+  const displaySessions = thisWeekSessions.length > 0 ? thisWeekSessions : upcoming;
+  const sectionTitle = thisWeekSessions.length > 0 ? t('thisWeek.title') : t('thisWeek.upcoming');
+  const nextConfirmed = upcoming.find((a: any) => a.status === 'confirmed');
   const hasUpcoming = upcoming.length > 0;
 
   return (
@@ -105,8 +107,8 @@ export default function PlayerHome() {
           {/* Favourite schools */}
           <FavouriteSchoolsSection />
 
-          {/* This week — all sessions with cancel option */}
-          <ThisWeekSection sessions={thisWeekSessions} />
+          {/* Upcoming sessions with cancel option */}
+          <ThisWeekSection sessions={displaySessions} title={sectionTitle} />
         </div>
         )}
       </main>

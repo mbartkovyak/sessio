@@ -8,13 +8,13 @@ import { relativeTime } from './relativeTime';
 import { getHoursUntilSession } from './sessionUtils';
 import { useTranslation } from 'react-i18next';
 
-export default function ThisWeekSection({ sessions }: { sessions: any[] }) {
+export default function ThisWeekSection({ sessions, title }: { sessions: any[]; title?: string }) {
   const { t } = useTranslation('player');
   if (sessions.length === 0) return null;
 
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('thisWeek.title')}</h2>
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title ?? t('thisWeek.title')}</h2>
       <div className="space-y-2">
         {sessions.slice(0, 8).map((a: any) => (
           <SessionCard key={a.id} attendance={a} />

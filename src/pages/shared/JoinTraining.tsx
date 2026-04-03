@@ -153,7 +153,7 @@ export default function JoinTraining() {
           url: `/coach/sessions/${sessionId}`,
         });
       }
-      queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
       toast.success(t('join.joinedSession', { name: training.name }));
       navigate('/player');
@@ -291,7 +291,7 @@ export default function JoinTraining() {
             url: `/coach/trainings/${training.id}`,
           });
         }
-        queryClient.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+        queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
         toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
         navigate('/player');
       }
