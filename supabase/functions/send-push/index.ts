@@ -2,6 +2,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { webPush, sendPushToSubs, sendPushToUsers } from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
+  'https://get-sessio.com',
   'https://sessio-topaz.vercel.app',
   'https://sessio-dev.vercel.app',
   'https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app',
