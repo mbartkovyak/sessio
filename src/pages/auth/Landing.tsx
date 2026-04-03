@@ -53,7 +53,7 @@ export default function Landing() {
 
       {/* Navbar */}
       <nav
-        className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10 max-w-5xl mx-auto"
+        className="relative z-20 flex items-center justify-between px-5 py-4 md:px-10 max-w-5xl mx-auto"
         style={{ animation: 'fadeDown 0.5s ease-out both' }}
       >
         <span className="text-white"><SessioLogo /></span>
