@@ -27,9 +27,21 @@ Deno.serve(async (req) => {
   }
 
   // ── Auth: support JWT (user) or cron secret (scheduled) ──
+  // Read cron secret from _config (same source pg_cron uses) to avoid drift
   const cronSecret = req.headers.get('x-cron-secret');
-  const cronSecretEnv = Deno.env.get('CRON_SECRET');
-  const isCron = !!cronSecret && !!cronSecretEnv && cronSecret === cronSecretEnv;
+  let isCron = false;
+  if (cronSecret) {
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const { data } = await adminClient
+      .from('_config')
+      .select('value')
+      .eq('key', 'cron_secret')
+      .single();
+    isCron = !!data?.value && cronSecret === data.value;
+  }
 
   let userId: string | null = null;
 
