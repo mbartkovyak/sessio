@@ -116,7 +116,8 @@ export default function SessionDetail() {
     if (newDate === session.session_date && newStart === session.start_time?.slice(0, 5) && newEnd === session.end_time?.slice(0, 5)) return;
     rescheduleSession.mutate({
       sessionId: session.id, trainingName: training.name,
-      oldDate: session.session_date, newDate, newStartTime: newStart, newEndTime: newEnd,
+      oldDate: session.session_date, oldStartTime: session.start_time ?? '',
+      newDate, newStartTime: newStart, newEndTime: newEnd,
     });
   }
 

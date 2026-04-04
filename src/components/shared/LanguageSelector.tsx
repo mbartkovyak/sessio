@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 const LANG_META: Record<string, { label: string; flag: string }> = {
   en: { label: 'English', flag: '🇬🇧' },
-  fr: { label: 'Français', flag: '🇫🇷' },
   pl: { label: 'Polski', flag: '🇵🇱' },
   uk: { label: 'Українська', flag: '🇺🇦' },
 };
