@@ -47,18 +47,57 @@ export default function Auth() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithOAuth({
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: { prompt: 'select_account' },
+        skipBrowserRedirect: standalone,
       },
     });
     if (error) {
       setError(localizeErrorMessage(error, t('auth.googleFailed')));
+      setGoogleLoading(false);
+      return;
+    }
+    if (standalone && data?.url) {
+      // Open OAuth in browser tab instead of navigating the PWA away
+      localStorage.setItem('sessio_oauth_pwa', '1');
+      window.open(data.url, '_blank');
+      return; // Keep googleLoading true — resolved by visibilitychange
     }
     setGoogleLoading(false);
   }
+
+  // In standalone PWA mode, detect when user returns from Google OAuth popup
+  useEffect(() => {
+    if (!googleLoading) return;
+    if (!window.matchMedia('(display-mode: standalone)').matches) return;
+
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      localStorage.removeItem('sessio_oauth_pwa');
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate('/auth/callback');
+          return;
+        }
+        // BroadcastChannel may not have synced — check localStorage directly
+        try {
+          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
+          if (localStorage.getItem(`sb-${ref}-auth-token`)) {
+            window.location.reload();
+            return;
+          }
+        } catch {}
+        setGoogleLoading(false);
+      });
+    }
+
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [googleLoading, navigate]);
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
