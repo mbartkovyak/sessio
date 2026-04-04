@@ -147,6 +147,27 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 - **Supabase migrations** run automatically on merge to `main` via `.github/workflows/deploy-supabase.yml` (`supabase db push`). No manual SQL needed for production.
 - **Dev Supabase** has no auto-migration pipeline — migrations must be run manually on the dev project.
 
+### Dev/Prod parity — MANDATORY
+
+We lost push notifications and realtime on prod for days because of invisible config drift. **These rules are non-negotiable.**
+
+1. **Every migration that rewrites a function must copy the CURRENT body from the database, not from an older migration file.** Run `\df+ function_name` or read the latest migration that touches it. The `set_search_path` incident silently regressed `create_training_conversation()` because it was rewritten from a stale version.
+
+2. **Every migration must include `GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role` if it creates tables.** Edge Functions use the `service_role` key via PostgREST. Without explicit GRANTs, the function silently gets empty results — no errors, just `null`. The default grants differ between Supabase projects. Never assume `service_role` has access.
+
+3. **Edge Function `ALLOWED_ORIGINS` must include `get-sessio.com`.** Both `supabase/functions/send-push/index.ts` and `supabase/functions/automation/index.ts`. If you touch these files, verify the list.
+
+4. **The `_config` table values differ between dev and prod.** Never hardcode environment-specific values in migrations. The seed migration (`20260326120000`) hardcodes dev values — any migration that touches `_config` must use `ON CONFLICT DO NOTHING` or be environment-aware.
+   - **Dev:** `supabase_url` = `https://iindwpdpmtztwwsejarz.supabase.co`
+   - **Prod:** `supabase_url` = `https://wavuvwrmtsrxrzuumlid.supabase.co`
+   - **Prod `cron_secret`** must match the `CRON_SECRET` Supabase secret (check with `supabase secrets list`).
+
+5. **After every PR merge to `main`: check the GitHub Actions `deploy-supabase` workflow succeeded.** If it fails, migrations did NOT reach prod — fix immediately. Don't assume "the next PR will pick it up."
+
+6. **Vercel env vars must never contain trailing whitespace or newlines.** Use `vercel env pull` and inspect the raw file. A trailing `\n` in `VITE_SUPABASE_URL` breaks WebSocket (Realtime) while REST appears to work — an invisible failure. When adding env vars, use `printf 'value' | vercel env add NAME production` to avoid newlines.
+
+7. **Every migration file must be committed to git before the PR is merged.** If you apply a migration manually to dev or prod with `supabase db push`, the .sql file MUST be in the repo. The CI pipeline fails if the remote migration history has versions not found locally — and that failure is silent (code deploys, DB doesn't).
+
 ### Verify before pushing — MANDATORY
 
 Every change must be verified before `git push`. We've broken production multiple times by pushing "should work" code. **Never skip these:**

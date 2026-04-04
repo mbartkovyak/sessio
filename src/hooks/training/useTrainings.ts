@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
@@ -7,6 +8,7 @@ import { toast } from 'sonner';
 import { notifyUsers } from '@/lib/pushNotify';
 import { getFixedTForCurrentLanguage, getFixedTForUser } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 import type { Tables } from '@/integrations/supabase/types';
 
 type CoachProfile = Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'>;
@@ -809,8 +811,8 @@ export function useRescheduleSession(trainingId: string) {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ sessionId, trainingName, oldDate, newDate, newStartTime, newEndTime }: {
-      sessionId: string; trainingName: string; oldDate: string;
+    mutationFn: async ({ sessionId, trainingName, oldDate, oldStartTime, newDate, newStartTime, newEndTime }: {
+      sessionId: string; trainingName: string; oldDate: string; oldStartTime: string;
       newDate: string; newStartTime: string; newEndTime: string;
     }) => {
       const { error } = await supabase
@@ -819,10 +821,14 @@ export function useRescheduleSession(trainingId: string) {
         .eq('id', sessionId);
       if (error) throw error;
       // Notify in training chat
+      const oldDateLabel = format(new Date(oldDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
+      const newDateLabel = format(new Date(newDate + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });
       const chatMsg = getFixedTForCurrentLanguage('coach')('home.rescheduledMessage', {
         name: trainingName,
-        date: newDate,
-        time: newStartTime.slice(0, 5),
+        oldDate: oldDateLabel,
+        oldTime: oldStartTime.slice(0, 5),
+        newDate: newDateLabel,
+        newTime: newStartTime.slice(0, 5),
       });
       if (user) {
         const { data: conv } = await supabase

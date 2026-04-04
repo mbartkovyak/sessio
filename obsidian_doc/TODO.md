@@ -31,7 +31,6 @@ kanban-plugin: board
 
 ## Review
 
-- [ ] 
 - [ ] Add the possibility of assigning the misses
 - [ ] I am puchasing the abonament at place - then coach should confirm that this person will buy at place
 - [ ] test if I can join training from the date when the pass becomes active

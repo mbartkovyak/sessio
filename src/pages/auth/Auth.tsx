@@ -30,7 +30,36 @@ export default function Auth() {
     img.onerror = () => setBgLoaded(true); // show page even if bg fails
   }, []);
 
-  // Redirect authenticated users immediately (render-phase, no effect delay)
+  // In standalone PWA mode, detect when user returns from Google OAuth popup
+  useEffect(() => {
+    if (!googleLoading) return;
+    if (!window.matchMedia('(display-mode: standalone)').matches) return;
+
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      localStorage.removeItem('sessio_oauth_pwa');
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          navigate('/auth/callback');
+          return;
+        }
+        // BroadcastChannel may not have synced — check localStorage directly
+        try {
+          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
+          if (localStorage.getItem(`sb-${ref}-auth-token`)) {
+            window.location.reload();
+            return;
+          }
+        } catch {}
+        setGoogleLoading(false);
+      });
+    }
+
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [googleLoading, navigate]);
+
+  // Redirect authenticated users immediately
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -62,42 +91,12 @@ export default function Auth() {
       return;
     }
     if (standalone && data?.url) {
-      // Open OAuth in browser tab instead of navigating the PWA away
       localStorage.setItem('sessio_oauth_pwa', '1');
       window.open(data.url, '_blank');
-      return; // Keep googleLoading true — resolved by visibilitychange
+      return;
     }
     setGoogleLoading(false);
   }
-
-  // In standalone PWA mode, detect when user returns from Google OAuth popup
-  useEffect(() => {
-    if (!googleLoading) return;
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-
-    function onVisible() {
-      if (document.visibilityState !== 'visible') return;
-      localStorage.removeItem('sessio_oauth_pwa');
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate('/auth/callback');
-          return;
-        }
-        // BroadcastChannel may not have synced — check localStorage directly
-        try {
-          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
-          if (localStorage.getItem(`sb-${ref}-auth-token`)) {
-            window.location.reload();
-            return;
-          }
-        } catch {}
-        setGoogleLoading(false);
-      });
-    }
-
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [googleLoading, navigate]);
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
