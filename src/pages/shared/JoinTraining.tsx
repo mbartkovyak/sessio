@@ -92,6 +92,26 @@ export default function JoinTraining() {
       .then(({ data }) => setMemberCount(data ?? 0));
   }, [training]);
 
+  // In standalone PWA mode, detect when user returns from Google OAuth popup
+  useEffect(() => {
+    if (!googleLoading) return;
+    if (!window.matchMedia('(display-mode: standalone)').matches) return;
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      localStorage.removeItem('sessio_oauth_pwa');
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s) { window.location.reload(); return; }
+        try {
+          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
+          if (localStorage.getItem(`sb-${ref}-auth-token`)) { window.location.reload(); return; }
+        } catch {}
+        setGoogleLoading(false);
+      });
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [googleLoading]);
+
   // Redirect non-players and non-onboarded users
   useEffect(() => {
     if (!session || !profile || !training) return;
@@ -308,11 +328,20 @@ export default function JoinTraining() {
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' },
+      options: {
+        redirectTo: window.location.origin + '/auth/callback',
+        queryParams: { prompt: 'select_account' },
+        skipBrowserRedirect: standalone,
+      },
     });
-    if (error) { toast.error(t('join.signInFailed')); setGoogleLoading(false); }
+    if (error) { toast.error(t('join.signInFailed')); setGoogleLoading(false); return; }
+    if (standalone && data?.url) {
+      localStorage.setItem('sessio_oauth_pwa', '1');
+      window.open(data.url, '_blank');
+    }
   }
 
   async function handleMagicLink(e: React.FormEvent) {

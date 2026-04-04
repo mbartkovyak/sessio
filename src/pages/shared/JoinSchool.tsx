@@ -51,6 +51,26 @@ export default function JoinSchool() {
       });
   }, [code, session, i18n]);
 
+  // In standalone PWA mode, detect when user returns from Google OAuth popup
+  useEffect(() => {
+    if (!googleLoading) return;
+    if (!window.matchMedia('(display-mode: standalone)').matches) return;
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      localStorage.removeItem('sessio_oauth_pwa');
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s) { window.location.reload(); return; }
+        try {
+          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
+          if (localStorage.getItem(`sb-${ref}-auth-token`)) { window.location.reload(); return; }
+        } catch {}
+        setGoogleLoading(false);
+      });
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [googleLoading]);
+
   // Check status once auth resolves
   useEffect(() => {
     if (!session || !profile || !school) return;
@@ -116,11 +136,20 @@ export default function JoinSchool() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_school_invite', code ?? '');
-    const { error } = await supabase.auth.signInWithOAuth({
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' },
+      options: {
+        redirectTo: window.location.origin + '/auth/callback',
+        queryParams: { prompt: 'select_account' },
+        skipBrowserRedirect: standalone,
+      },
     });
-    if (error) { toast.error(t('joinSchool.signInFailed')); setGoogleLoading(false); }
+    if (error) { toast.error(t('joinSchool.signInFailed')); setGoogleLoading(false); return; }
+    if (standalone && data?.url) {
+      localStorage.setItem('sessio_oauth_pwa', '1');
+      window.open(data.url, '_blank');
+    }
   }
 
   async function handleMagicLink(e: React.FormEvent) {
