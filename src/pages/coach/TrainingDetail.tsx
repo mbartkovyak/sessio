@@ -583,8 +583,12 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     }
 
     qc.invalidateQueries({ queryKey: ['training-sessions', training.id] });
-    qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+    qc.invalidateQueries({ queryKey: ['school-upcoming-sessions'] });
     qc.invalidateQueries({ queryKey: ['coach-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['school-calendar-sessions'] });
+    qc.invalidateQueries({ queryKey: ['trainings'] });
+    qc.invalidateQueries({ queryKey: ['school-trainings'] });
     toast.success(t('detail.trainingUpdated'));
     onClose();
   }
