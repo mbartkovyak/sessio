@@ -6,6 +6,8 @@ const ALLOWED_ORIGINS = [
   'https://sessio-topaz.vercel.app',
   'https://sessio-dev.vercel.app',
   'https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app',
+  'capacitor://localhost',
+  'https://localhost',
 ];
 
 function getCorsHeaders(req: Request) {

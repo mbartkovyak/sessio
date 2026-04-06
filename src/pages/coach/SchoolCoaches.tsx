@@ -10,6 +10,7 @@ import { SessioLoader } from '@/components/SessioLogo';
 import { useMySchool, useRespondSchoolMember } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { sportLabel } from '@/lib/constants';
+import { getShareableOrigin } from '@/lib/platform';
 
 export default function SchoolCoaches() {
   const { t } = useTranslation('school');
@@ -21,7 +22,7 @@ export default function SchoolCoaches() {
   const coaches = school?.school_members ?? [];
   const pendingCoaches = school?.pending_members ?? [];
   const inviteCode = school?.invite_code;
-  const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
+  const inviteLink = inviteCode ? `${getShareableOrigin()}/join-school/${inviteCode}` : '';
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

@@ -11,6 +11,7 @@ import Avatar from '@/components/shared/Avatar';
 import { sportLabels } from '@/lib/constants';
 import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getAuthRedirectUrl, getEmailRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
@@ -136,19 +137,18 @@ export default function JoinSchool() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_school_invite', code ?? '');
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const external = shouldOpenExternalAuth();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/auth/callback',
+        redirectTo: getAuthRedirectUrl(),
         queryParams: { prompt: 'select_account' },
-        skipBrowserRedirect: standalone,
+        skipBrowserRedirect: external,
       },
     });
     if (error) { toast.error(t('joinSchool.signInFailed')); setGoogleLoading(false); return; }
-    if (standalone && data?.url) {
-      localStorage.setItem('sessio_oauth_pwa', '1');
-      window.open(data.url, '_blank');
+    if (external && data?.url) {
+      await openExternalAuth(data.url);
     }
   }
 
@@ -156,7 +156,7 @@ export default function JoinSchool() {
     e.preventDefault();
     sessionStorage.setItem('pending_school_invite', code ?? '');
     const { error } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
+      email, options: { emailRedirectTo: getEmailRedirectUrl() },
     });
     if (error) toast.error(localizeErrorMessage(error, t('joinSchool.failedToSend')));
     else setEmailSent(true);

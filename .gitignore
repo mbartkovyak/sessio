@@ -45,3 +45,12 @@ Pasted image*.png
 
 # Duplicate lock files (we use bun)
 package-lock.json
+
+# Capacitor iOS
+ios/App/Pods/
+ios/App/App/public/
+
+# Capacitor Android
+android/app/src/main/assets/public/
+android/.gradle/
+android/app/build/
