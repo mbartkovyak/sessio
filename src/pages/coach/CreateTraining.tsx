@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, UserPlus } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
@@ -138,12 +138,8 @@ export default function CreateTraining() {
     <div {...(!selectedCoachId ? { 'data-field-error': true } : {})}>
       <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')} <span className="text-destructive">*</span></label>
       {schoolCoaches.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+        <div className="rounded-xl border border-dashed border-border p-4 text-center">
           <p className="text-sm text-muted-foreground">{t('create.noCoaches')}</p>
-          <button type="button" onClick={() => navigate('/coach/coaches')}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-            <UserPlus className="h-4 w-4" /> {t('create.addCoaches')}
-          </button>
         </div>
       ) : (
         <>
@@ -162,10 +158,6 @@ export default function CreateTraining() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
-          <button type="button" onClick={() => navigate('/coach/coaches')}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary mt-1.5">
-            <UserPlus className="h-3.5 w-3.5" /> {t('create.addCoaches')}
-          </button>
           {attempted && !selectedCoachId && <p className="text-xs text-destructive mt-1">{t('create.coachRequired')}</p>}
         </>
       )}

@@ -15,6 +15,7 @@ import { DAYS_SHORT, SPORT_ICONS, dayShortLabel, sportLabel } from '@/lib/consta
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useTranslation } from 'react-i18next';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getShareableOrigin } from '@/lib/platform';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -58,7 +59,7 @@ export default function TrainingDetail() {
   const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
   const [pendingAthlete, setPendingAthlete] = useState<any>(null);
 
-  const inviteLink = training ? `${window.location.origin}/join/${training.invite_code}` : '';
+  const inviteLink = training ? `${getShareableOrigin()}/join/${training.invite_code}` : '';
   const daysLabel = training ? (training.days_of_week ?? [training.day_of_week]).map((d: number) => dayShortLabel(DAYS_SHORT[d])).filter(Boolean).join(', ') : '';
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-background"><SessioLoader /></div>;
@@ -593,12 +594,8 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     <div>
       <label className="text-sm font-medium text-foreground mb-1 block">{t('create.coachLabel')}</label>
       {schoolCoaches.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-4 text-center space-y-2">
+        <div className="rounded-xl border border-dashed border-border p-4 text-center">
           <p className="text-sm text-muted-foreground">{t('create.noCoaches')}</p>
-          <button type="button" onClick={() => navigate('/school/profile')}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-            <UserPlus className="h-4 w-4" /> {t('create.addCoaches')}
-          </button>
         </div>
       ) : (
         <div className="relative">
