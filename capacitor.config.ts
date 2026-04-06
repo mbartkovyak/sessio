@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.get_sessio.app',
+  appId: 'com.get-sessio.app',
   appName: 'Sessio',
   webDir: 'dist',
   server: {
