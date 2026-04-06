@@ -11,18 +11,19 @@ const COACHES_SEEN_KEY = 'sessio_setup_coaches_seen';
 interface Props {
   trainings: { id: string }[];
   schoolCoachCount?: number;
+  schoolBio?: string;
 }
 
-export default function CoachSetupGuide({ trainings, schoolCoachCount }: Props) {
+export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio }: Props) {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === '1');
 
   const hasTraining = trainings.length > 0;
-  const hasProfile = !!(profile?.bio?.trim());
-  const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
   const isSchoolOwner = schoolCoachCount !== undefined;
+  const hasProfile = isSchoolOwner ? !!(schoolBio?.trim()) : !!(profile?.bio?.trim());
+  const calendarSeen = localStorage.getItem(CALENDAR_SEEN_KEY) === '1';
   const hasCoaches = (schoolCoachCount ?? 0) > 1; // >1 because owner counts as one
 
   const coachesSeen = localStorage.getItem(COACHES_SEEN_KEY) === '1';
