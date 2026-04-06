@@ -145,7 +145,7 @@ export default function AttendanceSheet({ session, onClose }: AttendanceSheetPro
         <div className="px-4 pt-2 pb-6 shrink-0">
           <button
             onClick={handleSave}
-            disabled={markAttendance.isPending || attendance.length === 0}
+            disabled={markAttendance.isPending}
             className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground min-h-[44px] active:scale-[0.97] transition-transform disabled:opacity-60"
           >
             {t('home.saveAttendance')}
