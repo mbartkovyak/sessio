@@ -41,7 +41,10 @@ export const pushRegistrationBus = new EventTarget();
  */
 export function useAutoRegisterPush() {
   const { user } = useAuth();
-  const done = useRef(false);
+  // Tracks the user ID this hook has already registered for. Reset on sign-out
+  // so the next sign-in on the same device re-subscribes (signOut now
+  // unsubscribes the browser PushSubscription, so we must not skip).
+  const registeredForUserId = useRef<string | null>(null);
 
   // Always tell the SW who the current user is (SW can restart and lose state)
   useEffect(() => {
@@ -52,11 +55,16 @@ export function useAutoRegisterPush() {
   }, [user]);
 
   useEffect(() => {
-    if (isNative || done.current || !user || !VAPID_KEY) return;
+    if (!user) {
+      registeredForUserId.current = null;
+      return;
+    }
+    if (isNative || !VAPID_KEY) return;
+    if (registeredForUserId.current === user.id) return;
     if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
     if (Notification.permission !== 'granted') return;
 
-    done.current = true;
+    registeredForUserId.current = user.id;
 
     (async () => {
       try {

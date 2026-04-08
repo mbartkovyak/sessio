@@ -3,6 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
+import { isNative } from '@/lib/platform';
 import i18n from '@/i18n';
 
 async function hashId(id: string): Promise<string> {
@@ -157,6 +158,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     localStorage.removeItem('sessio_cached_profile');
+
+    // Cut THIS device off from push notifications for the current user before
+    // we lose the JWT. Only the row for this endpoint is deleted — other devices
+    // the user is signed in on keep receiving pushes.
+    //
+    // Defense in depth (any single step failing is still safe):
+    //   1. Delete the push_subscriptions row (RLS scopes to auth.uid()).
+    //   2. Call PushSubscription.unsubscribe() — if we miss the DB delete, the
+    //      next push attempt returns 410 and sendPushToSubs auto-cleans the row.
+    //   3. Tell the SW currentUserId = null so stray pushes can't be attributed
+    //      to the previous user (affects self-notification suppression in sw.js).
+    try {
+      if (!isNative && 'serviceWorker' in navigator && 'PushManager' in window) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            const { error } = await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('endpoint', sub.endpoint);
+            if (error) {
+              Sentry.captureMessage('Push subscription delete on signOut failed', {
+                level: 'warning',
+                extra: { error: error.message },
+              });
+            }
+            await sub.unsubscribe();
+          }
+          reg.active?.postMessage({ type: 'SET_USER_ID', userId: null });
+        }
+      }
+    } catch (e) {
+      Sentry.captureException(e, { tags: { context: 'signOut push cleanup' } });
+    }
+
     await supabase.auth.signOut({ scope: 'global' });
   }
 
