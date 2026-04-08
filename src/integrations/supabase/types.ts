@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -12,8 +13,48 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      _config: {
+        Row: {
+          key: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       abonament_types: {
         Row: {
           created_at: string
@@ -90,107 +131,6 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "training_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      _config: {
-        Row: {
-          key: string
-          value: string | null
-        }
-        Insert: {
-          key: string
-          value?: string | null
-        }
-        Update: {
-          key?: string
-          value?: string | null
-        }
-        Relationships: []
-      }
-      coaches: {
-        Row: {
-          bio: string | null
-          city: string | null
-          created_at: string
-          id: string
-          location: string | null
-          sport: string | null
-          updated_at: string
-          user_id: string
-          video_url: string | null
-        }
-        Insert: {
-          bio?: string | null
-          city?: string | null
-          created_at?: string
-          id?: string
-          location?: string | null
-          sport?: string | null
-          updated_at?: string
-          user_id: string
-          video_url?: string | null
-        }
-        Update: {
-          bio?: string | null
-          city?: string | null
-          created_at?: string
-          id?: string
-          location?: string | null
-          sport?: string | null
-          updated_at?: string
-          user_id?: string
-          video_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coaches_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      confirmations: {
-        Row: {
-          created_at: string | null
-          id: string
-          player_id: string
-          responded_at: string | null
-          session_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          player_id: string
-          responded_at?: string | null
-          session_id: string
-          status?: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          player_id?: string
-          responded_at?: string | null
-          session_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "confirmations_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "confirmations_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -282,139 +222,6 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_members: {
-        Row: {
-          group_id: string
-          id: string
-          joined_at: string | null
-          player_id: string
-          status: string
-        }
-        Insert: {
-          group_id: string
-          id?: string
-          joined_at?: string | null
-          player_id: string
-          status?: string
-        }
-        Update: {
-          group_id?: string
-          id?: string
-          joined_at?: string | null
-          player_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_members_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_messages: {
-        Row: {
-          content: string
-          created_at: string | null
-          group_id: string
-          id: string
-          sender_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          group_id: string
-          id?: string
-          sender_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          group_id?: string
-          id?: string
-          sender_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_messages_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      groups: {
-        Row: {
-          allow_waitlist: boolean
-          capacity: number
-          coach_id: string
-          confirmation_deadline_hours: number
-          created_at: string | null
-          day_of_week: number
-          end_time: string
-          id: string
-          invite_code: string
-          is_active: boolean
-          level: string
-          location: string
-          name: string
-          sport: string
-          start_time: string
-        }
-        Insert: {
-          allow_waitlist?: boolean
-          capacity?: number
-          coach_id: string
-          confirmation_deadline_hours?: number
-          created_at?: string | null
-          day_of_week: number
-          end_time: string
-          id?: string
-          invite_code: string
-          is_active?: boolean
-          level?: string
-          location: string
-          name: string
-          sport: string
-          start_time: string
-        }
-        Update: {
-          allow_waitlist?: boolean
-          capacity?: number
-          coach_id?: string
-          confirmation_deadline_hours?: number
-          created_at?: string | null
-          day_of_week?: number
-          end_time?: string
-          id?: string
-          invite_code?: string
-          is_active?: boolean
-          level?: string
-          location?: string
-          name?: string
-          sport?: string
-          start_time?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "groups_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -536,126 +343,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_read: boolean
-          message: string
-          related_group_id: string | null
-          related_session_id: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean
-          message: string
-          related_group_id?: string | null
-          related_session_id?: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean
-          message?: string
-          related_group_id?: string | null
-          related_session_id?: string | null
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_related_group_id_fkey"
-            columns: ["related_group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_related_session_id_fkey"
-            columns: ["related_session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      open_spots: {
-        Row: {
-          claimed_at: string | null
-          claimed_by: string | null
-          created_at: string | null
-          created_by_decline_of: string | null
-          group_id: string
-          id: string
-          session_id: string
-          status: string
-        }
-        Insert: {
-          claimed_at?: string | null
-          claimed_by?: string | null
-          created_at?: string | null
-          created_by_decline_of?: string | null
-          group_id: string
-          id?: string
-          session_id: string
-          status?: string
-        }
-        Update: {
-          claimed_at?: string | null
-          claimed_by?: string | null
-          created_at?: string | null
-          created_by_decline_of?: string | null
-          group_id?: string
-          id?: string
-          session_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "open_spots_claimed_by_fkey"
-            columns: ["claimed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "open_spots_created_by_decline_of_fkey"
-            columns: ["created_by_decline_of"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "open_spots_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "open_spots_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       player_abonaments: {
         Row: {
           abonament_type_id: string
@@ -702,17 +389,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "player_abonaments_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "player_abonaments_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_abonaments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -791,24 +478,39 @@ export type Database = {
       push_subscriptions: {
         Row: {
           created_at: string
-          endpoint: string
+          device_id: string
           id: string
-          keys: Json
+          last_seen_at: string
+          platform: string
+          target: string
+          transport: string
+          updated_at: string
           user_id: string
+          web_keys: Json | null
         }
         Insert: {
           created_at?: string
-          endpoint: string
+          device_id: string
           id?: string
-          keys: Json
+          last_seen_at?: string
+          platform: string
+          target: string
+          transport: string
+          updated_at?: string
           user_id: string
+          web_keys?: Json | null
         }
         Update: {
           created_at?: string
-          endpoint?: string
+          device_id?: string
           id?: string
-          keys?: Json
+          last_seen_at?: string
+          platform?: string
+          target?: string
+          transport?: string
+          updated_at?: string
           user_id?: string
+          web_keys?: Json | null
         }
         Relationships: []
       }
@@ -914,6 +616,7 @@ export type Database = {
           description: string | null
           id: string
           invite_code: string
+          is_listed: boolean
           logo_url: string | null
           name: string
           owner_id: string
@@ -928,6 +631,7 @@ export type Database = {
           description?: string | null
           id?: string
           invite_code?: string
+          is_listed?: boolean
           logo_url?: string | null
           name: string
           owner_id: string
@@ -942,6 +646,7 @@ export type Database = {
           description?: string | null
           id?: string
           invite_code?: string
+          is_listed?: boolean
           logo_url?: string | null
           name?: string
           owner_id?: string
@@ -1006,47 +711,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sessions: {
-        Row: {
-          created_at: string | null
-          end_time: string
-          group_id: string
-          id: string
-          notes: string | null
-          session_date: string
-          start_time: string
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          end_time: string
-          group_id: string
-          id?: string
-          notes?: string | null
-          session_date: string
-          start_time: string
-          status?: string
-        }
-        Update: {
-          created_at?: string | null
-          end_time?: string
-          group_id?: string
-          id?: string
-          notes?: string | null
-          session_date?: string
-          start_time?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sessions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
         ]
@@ -1196,7 +860,7 @@ export type Database = {
           cancel_deadline_hours: number
           cancel_enabled: boolean
           coach_id: string
-          confirmation_window_hours: number
+          confirmation_window_hours: number | null
           created_at: string
           day_of_week: number
           day_schedules: Json | null
@@ -1228,7 +892,7 @@ export type Database = {
           cancel_deadline_hours?: number
           cancel_enabled?: boolean
           coach_id: string
-          confirmation_window_hours?: number
+          confirmation_window_hours?: number | null
           created_at?: string
           day_of_week: number
           day_schedules?: Json | null
@@ -1260,7 +924,7 @@ export type Database = {
           cancel_deadline_hours?: number
           cancel_enabled?: boolean
           coach_id?: string
-          confirmation_window_hours?: number
+          confirmation_window_hours?: number | null
           created_at?: string
           day_of_week?: number
           day_schedules?: Json | null
@@ -1308,22 +972,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      join_single_session: {
-        Args: { p_session_id: string }
-        Returns: undefined
-      }
-      auto_deduct_session: {
-        Args: { p_session_id: string }
-        Returns: number
-      }
-      deduct_abonament_session: {
-        Args: { p_player_abonament_id: string; p_session_id: string }
-        Returns: undefined
-      }
-      undo_abonament_deduction: {
-        Args: { p_player_abonament_id: string; p_session_id: string }
-        Returns: undefined
-      }
+      auto_deduct_session: { Args: { p_session_id: string }; Returns: number }
       claim_spot: {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json
@@ -1332,7 +981,55 @@ export type Database = {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json
       }
+      create_placeholder_athlete: {
+        Args: {
+          p_email?: string
+          p_first_name: string
+          p_last_name: string
+          p_phone?: string
+          p_school_id: string
+        }
+        Returns: string
+      }
+      deduct_abonament_session: {
+        Args: { p_player_abonament_id: string; p_session_id: string }
+        Returns: undefined
+      }
       delete_my_account: { Args: never; Returns: undefined }
+      delete_orphan_sessions: {
+        Args: { p_removed_isodows: number[]; p_training_id: string }
+        Returns: number
+      }
+      ensure_my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          full_name: string | null
+          id: string
+          is_placeholder: boolean
+          language: string | null
+          last_name: string | null
+          onboarding_complete: boolean | null
+          phone: string | null
+          role: string | null
+          school_id: string | null
+          sport: string | null
+          venues: Json | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      expire_stale_abonaments: { Args: never; Returns: Json }
       generate_sessions_for_group: {
         Args: { p_group_id: string }
         Returns: Json
@@ -1359,6 +1056,44 @@ export type Database = {
         }[]
       }
       get_my_unread_count: { Args: never; Returns: number }
+      get_my_upcoming_sessions: {
+        Args: { p_from_date?: string; p_to_date?: string }
+        Returns: {
+          attendance_id: string
+          attendance_status: string
+          coach_avatar_url: string
+          coach_full_name: string
+          coach_id: string
+          confirmation_window_hours: number
+          confirmed_at: string
+          declined_at: string
+          end_time: string
+          is_active: boolean
+          max_players: number
+          session_date: string
+          session_id: string
+          session_status: string
+          sport: string
+          start_time: string
+          training_id: string
+          training_name: string
+          venue: string
+        }[]
+      }
+      get_training_member_count: {
+        Args: { p_training_id: string }
+        Returns: number
+      }
+      get_upcoming_sessions: {
+        Args: { p_limit?: number; p_training_id: string }
+        Returns: {
+          end_time: string
+          id: string
+          session_date: string
+          start_time: string
+          status: string
+        }[]
+      }
       handle_no_response_deadline: { Args: never; Returns: Json }
       is_group_member: {
         Args: { _group_id: string; _player_id: string }
@@ -1372,8 +1107,20 @@ export type Database = {
         Args: { _player_id: string; _training_id: string }
         Returns: boolean
       }
+      join_single_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
+      merge_placeholder_into_user: {
+        Args: { p_placeholder_id: string; p_real_user_id: string }
+        Returns: undefined
+      }
       owns_school: { Args: { p_school_id: string }; Returns: boolean }
       process_confirmation_window: { Args: never; Returns: Json }
+      undo_abonament_deduction: {
+        Args: { p_player_abonament_id: string; p_session_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1502,6 +1249,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

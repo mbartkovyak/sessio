@@ -8,12 +8,15 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
+import { useNativePush } from "@/hooks/shared/useNativePush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
 
-function PushRegistrar() { useAutoRegisterPush(); return null; }
+// Both hooks early-return on the wrong platform (useAutoRegisterPush skips
+// on native, useNativePush skips on web). One device = one push path.
+function PushRegistrar() { useAutoRegisterPush(); useNativePush(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
 function RefreshOnResume() {
   useEffect(() => {

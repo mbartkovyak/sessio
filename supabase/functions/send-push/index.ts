@@ -1,5 +1,10 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { webPush, sendPushToSubs, sendPushToUsers } from '../_shared/push.ts';
+import {
+  sendPushToSubs,
+  sendPushToUsers,
+  sendPushWithCleanup,
+  type Sub,
+} from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
   'https://get-sessio.com',
@@ -66,7 +71,7 @@ Deno.serve(async (req) => {
       results.sent = await sendPushToUsers(
         supabaseAdmin,
         user_ids,
-        JSON.stringify({ title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/' }),
+        { title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/', sender_id: senderId },
         senderId,
       );
     }
@@ -111,47 +116,41 @@ Deno.serve(async (req) => {
         const roleMap: Record<string, string> = {};
         for (const p of profiles ?? []) roleMap[p.id] = p.role;
 
-        // Get all subscriptions in one query
+        // Get all subscriptions in one query — transport-agnostic shape.
         const { data: subs } = await supabaseAdmin
           .from('push_subscriptions')
-          .select('endpoint, keys, user_id')
+          .select('user_id, device_id, platform, transport, target, web_keys')
           .in('user_id', participantIds);
 
         const senderName = senderProfile?.full_name ?? 'Someone';
         const preview = (message_preview ?? '').slice(0, 100);
         let sent = 0;
 
-        for (const sub of subs ?? []) {
+        // Per-sub payload customization: each recipient gets a URL based
+        // on their role (player vs coach). sendPushWithCleanup handles
+        // transport branching and stale-token cleanup.
+        for (const sub of (subs ?? []) as Sub[]) {
           const role = roleMap[sub.user_id] ?? 'player';
-          let url: string;
+          const url = conv?.training_id
+            ? (role === 'player'
+                ? `/player/messages/${conv.training_id}`
+                : `/coach/trainings/${conv.training_id}`)
+            : (role === 'player'
+                ? `/player/dm/${senderId}`
+                : `/coach/dm/${senderId}`);
 
-          if (conv?.training_id) {
-            url = role === 'player'
-              ? `/player/messages/${conv.training_id}`
-              : `/coach/trainings/${conv.training_id}`;
-          } else {
-            url = role === 'player'
-              ? `/player/dm/${senderId}`
-              : `/coach/dm/${senderId}`;
-          }
-
-          try {
-            await webPush.sendNotification(
-              { endpoint: sub.endpoint, keys: sub.keys },
-              JSON.stringify({
-                title: senderName,
-                body: preview,
-                tag: `msg-${conversation_id}`,
-                url,
-                sender_id: senderId,
-              }),
-            );
-            sent++;
-          } catch (err: any) {
-            if (err.statusCode === 410 || err.statusCode === 404) {
-              await supabaseAdmin.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-            }
-          }
+          const ok = await sendPushWithCleanup(
+            sub,
+            {
+              title: senderName,
+              body: preview,
+              tag: `msg-${conversation_id}`,
+              url,
+              sender_id: senderId,
+            },
+            supabaseAdmin,
+          );
+          if (ok) sent++;
         }
         results.sent = sent;
       }
@@ -161,17 +160,17 @@ Deno.serve(async (req) => {
     if (action === 'test') {
       const { data: subs } = await supabaseAdmin
         .from('push_subscriptions')
-        .select('endpoint, keys')
+        .select('user_id, device_id, platform, transport, target, web_keys')
         .eq('user_id', senderId);
 
       results.sent = await sendPushToSubs(
-        subs ?? [],
-        JSON.stringify({
+        (subs ?? []) as Sub[],
+        {
           title: body.title ?? 'Sessio',
           body: body.body ?? 'Test notification',
           tag: 'test',
           url: body.url ?? '/',
-        }),
+        },
         supabaseAdmin,
       );
     }

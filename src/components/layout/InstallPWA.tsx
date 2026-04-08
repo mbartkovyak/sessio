@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isNative } from '@/lib/platform';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -12,6 +13,11 @@ export default function InstallPWA() {
   const { t } = useTranslation('common');
 
   useEffect(() => {
+    // Native Capacitor app — no browser, no install prompt, skip entirely
+    // so we don't prompt app users to also install the PWA (which would
+    // create a second push_subscriptions row on the same device).
+    if (isNative) return;
+
     // Count visits
     const visits = parseInt(localStorage.getItem('sessio_visits') ?? '0', 10) + 1;
     localStorage.setItem('sessio_visits', visits.toString());
@@ -42,7 +48,7 @@ export default function InstallPWA() {
     localStorage.setItem('sessio_install_dismissed', '1');
   }
 
-  if (!showBanner) return null;
+  if (!showBanner || isNative) return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 animate-fade-in">
