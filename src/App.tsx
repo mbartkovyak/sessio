@@ -59,7 +59,10 @@ function RootLayout() {
 
 // Auth pages — static (critical path, always needed first)
 import Landing from "./pages/auth/Landing";
-import Auth from "./pages/auth/Auth";
+import SignIn from "./pages/auth/SignIn";
+import SignUp from "./pages/auth/SignUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import AuthCallback from "./pages/auth/AuthCallback";
 
 // Retry wrapper: auto-reloads on stale chunk errors after deploy
@@ -154,9 +157,13 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       {/* Public */}
-      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/" element={<Navigate to="/auth/sign-in" replace />} />
       <Route path="/welcome" element={<Landing />} />
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={<Navigate to="/auth/sign-in" replace />} />
+      <Route path="/auth/sign-in" element={<SignIn />} />
+      <Route path="/auth/sign-up" element={<SignUp />} />
+      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+      <Route path="/auth/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/onboarding" element={<LazyPage component={Onboarding} />} />
       <Route path="/join/:inviteCode" element={<LazyPage component={JoinTraining} />} />

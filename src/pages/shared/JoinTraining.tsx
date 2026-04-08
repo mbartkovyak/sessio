@@ -14,6 +14,7 @@ import { notifyUsers } from '@/lib/pushNotify';
 import { getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getAuthRedirectUrl, getEmailRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
+import { signInWithApple } from '@/lib/auth-providers';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -37,6 +38,7 @@ export default function JoinTraining() {
   const [joining, setJoining] = useState(false);
   const [joiningSessionId, setJoiningSessionId] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -324,11 +326,15 @@ export default function JoinTraining() {
     }
   }
 
-  async function handleGoogleSignIn() {
-    setGoogleLoading(true);
+  function captureInvite() {
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    captureInvite();
     const external = shouldOpenExternalAuth();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -344,11 +350,29 @@ export default function JoinTraining() {
     }
   }
 
+  async function handleAppleSignIn() {
+    setAppleLoading(true);
+    captureInvite();
+    const { error, inPlaceSession } = await signInWithApple();
+    if (error) {
+      // iOS native sheet cancels surface as ASAuthorizationError code 1001 — silent dismiss.
+      const msg = error instanceof Error ? error.message : String(error);
+      if (!/cancel|1001/i.test(msg)) {
+        toast.error(t('join.signInFailed'));
+      }
+      setAppleLoading(false);
+      return;
+    }
+    if (inPlaceSession) {
+      // Native iOS: session is already live → re-route through the callback.
+      navigate('/auth/callback');
+    }
+    // Web: browser is redirecting away — leave spinner on.
+  }
+
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
-    sessionStorage.setItem('pending_invite', inviteCode ?? '');
-    sessionStorage.setItem('pending_invite_ts', String(Date.now()));
-    if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
+    captureInvite();
     const { error } = await supabase.auth.signInWithOtp({
       email, options: { emailRedirectTo: getEmailRedirectUrl() },
     });
@@ -551,8 +575,25 @@ export default function JoinTraining() {
         ) : (
           <div className="space-y-3">
             <button
+              onClick={handleAppleSignIn}
+              disabled={appleLoading || googleLoading}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl bg-black py-4 text-base font-bold text-white min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            >
+              {appleLoading ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <>
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                  </svg>
+                  {t('auth:auth.continueApple')}
+                </>
+              )}
+            </button>
+
+            <button
               onClick={handleGoogleSignIn}
-              disabled={googleLoading}
+              disabled={googleLoading || appleLoading}
               className="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
             >
               {googleLoading ? (

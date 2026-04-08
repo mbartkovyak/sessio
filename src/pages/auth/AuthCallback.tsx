@@ -26,7 +26,7 @@ export default function AuthCallback() {
     }
 
     if (!profile) {
-      navigate('/auth');
+      navigate('/auth/sign-in');
       return;
     }
     if (!profile.onboarding_complete || !profile.role) {
