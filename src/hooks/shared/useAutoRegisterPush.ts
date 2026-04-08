@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { isNative } from '@/lib/platform';
 
 const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const VAPID_STORAGE_KEY = '_vapidKey';
@@ -44,14 +45,14 @@ export function useAutoRegisterPush() {
 
   // Always tell the SW who the current user is (SW can restart and lose state)
   useEffect(() => {
-    if (!user || !('serviceWorker' in navigator)) return;
+    if (isNative || !user || !('serviceWorker' in navigator)) return;
     navigator.serviceWorker.ready.then(reg => {
       reg.active?.postMessage({ type: 'SET_USER_ID', userId: user.id });
     });
   }, [user]);
 
   useEffect(() => {
-    if (done.current || !user || !VAPID_KEY) return;
+    if (isNative || done.current || !user || !VAPID_KEY) return;
     if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
     if (Notification.permission !== 'granted') return;
 

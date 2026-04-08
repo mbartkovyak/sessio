@@ -73,8 +73,7 @@
     "title": "Nowe zajęcia",
     "selectCoach": "Wybierz trenera",
     "coachLabel": "Trener",
-    "noCoaches": "W tej szkole nie ma jeszcze trenerów",
-    "addCoaches": "Dodaj trenerów",
+    "noCoaches": "W tej szkole nie ma jeszcze trenerów. Możesz ich dodać na stronie Trenerzy.",
     "coachRequired": "Wybierz trenera",
     "sessionGenFailed": "Zajęcia utworzono, ale nie udało się wygenerować dat."
   },

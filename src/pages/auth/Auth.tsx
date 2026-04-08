@@ -8,6 +8,7 @@ import LanguageSelector from '@/components/shared/LanguageSelector';
 import PageHeader from '@/components/shared/PageHeader';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAuthRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
 
 type Step = 'email' | 'code';
 
@@ -76,13 +77,13 @@ export default function Auth() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError('');
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const external = shouldOpenExternalAuth();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getAuthRedirectUrl(),
         queryParams: { prompt: 'select_account' },
-        skipBrowserRedirect: standalone,
+        skipBrowserRedirect: external,
       },
     });
     if (error) {
@@ -90,9 +91,8 @@ export default function Auth() {
       setGoogleLoading(false);
       return;
     }
-    if (standalone && data?.url) {
-      localStorage.setItem('sessio_oauth_pwa', '1');
-      window.open(data.url, '_blank');
+    if (external && data?.url) {
+      await openExternalAuth(data.url);
       return;
     }
     setGoogleLoading(false);

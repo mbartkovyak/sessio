@@ -73,8 +73,7 @@
     "title": "New training",
     "selectCoach": "Select coach",
     "coachLabel": "Coach",
-    "noCoaches": "No coaches in your school yet",
-    "addCoaches": "Add coaches",
+    "noCoaches": "No coaches in your school yet. You can add them on the Coaches page.",
     "coachRequired": "Coach is required",
     "sessionGenFailed": "Training created, but session generation failed."
   },

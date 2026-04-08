@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { pushRegistrationBus } from './useAutoRegisterPush';
+import { isNative } from '@/lib/platform';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -44,7 +45,7 @@ export function usePushNotifications() {
   );
 
   useEffect(() => {
-    const ok = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY;
+    const ok = !isNative && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && !!VAPID_PUBLIC_KEY;
     setSupported(ok);
 
     // Listen for auto-register completing

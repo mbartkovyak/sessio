@@ -1,5 +1,4 @@
-import { useNavigate, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Users, CalendarCheck, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SessioLogo, SessioLoader } from '@/components/SessioLogo';
@@ -11,22 +10,7 @@ const anim = (delay: number) => ({
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { profile, loading } = useAuth();
   const { t } = useTranslation('auth');
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <SessioLoader />
-      </div>
-    );
-  }
-
-  if (profile) {
-    const target = !profile.onboarding_complete ? '/onboarding'
-      : profile.role === 'player' ? '/player' : '/coach';
-    return <Navigate to={target} replace />;
-  }
 
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   if (isStandalone) return <Navigate to="/auth" replace />;

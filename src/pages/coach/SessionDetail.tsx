@@ -22,6 +22,7 @@ import { useSessionDetail } from '@/hooks/training/useTodaySessions';
 import { useSessionAttendance, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
 import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive, useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { SPORT_ICONS } from '@/lib/constants';
+import { getShareableOrigin } from '@/lib/platform';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 
 export default function SessionDetail() {
@@ -98,7 +99,7 @@ export default function SessionDetail() {
   const usedAbonamentIds = new Set(usageRecords.map((u: any) => u.player_abonament_id));
 
   // Session invite link
-  const sessionInviteLink = `${window.location.origin}/join/${training.invite_code}?session=${sessionId}`;
+  const sessionInviteLink = `${getShareableOrigin()}/join/${training.invite_code}?session=${sessionId}`;
 
   function handleCancel() {
     const dl = format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() });

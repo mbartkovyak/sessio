@@ -14,6 +14,11 @@
 
 @layer base {
   :root {
+    /* Light-only app — disables Chrome/WebView algorithmic dark mode on Android.
+       The `only` keyword is required — plain `color-scheme: light` does NOT opt out of
+       Chrome's Auto Dark Theme for Web Contents. */
+    color-scheme: only light;
+
     /* Sessio Design System — black + orange, clean whites */
     --background: 35 18% 90%;
     --foreground: 0 0% 9%;

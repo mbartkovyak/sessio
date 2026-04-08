@@ -17,6 +17,7 @@ import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getShareableOrigin } from '@/lib/platform';
 import { SessioLoader } from '@/components/SessioLogo';
 
 export default function SchoolProfileEditor() {
@@ -73,7 +74,7 @@ export default function SchoolProfileEditor() {
   const pendingMembers = (school)?.pending_members ?? [];
   const isSelfCoach = coaches.some((m: any) => m.coach_id === profile?.id);
   const inviteCode = school?.invite_code;
-  const inviteLink = inviteCode ? `${window.location.origin}/join-school/${inviteCode}` : '';
+  const inviteLink = inviteCode ? `${getShareableOrigin()}/join-school/${inviteCode}` : '';
 
   async function removeCoach(memberId: string, coachName: string) {
     if (!confirm(t('profile.removeConfirm', { name: coachName }))) return;

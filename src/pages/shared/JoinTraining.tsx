@@ -13,6 +13,7 @@ import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/cons
 import { notifyUsers } from '@/lib/pushNotify';
 import { getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { getAuthRedirectUrl, getEmailRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -328,19 +329,18 @@ export default function JoinTraining() {
     sessionStorage.setItem('pending_invite', inviteCode ?? '');
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const external = shouldOpenExternalAuth();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/auth/callback',
+        redirectTo: getAuthRedirectUrl(),
         queryParams: { prompt: 'select_account' },
-        skipBrowserRedirect: standalone,
+        skipBrowserRedirect: external,
       },
     });
     if (error) { toast.error(t('join.signInFailed')); setGoogleLoading(false); return; }
-    if (standalone && data?.url) {
-      localStorage.setItem('sessio_oauth_pwa', '1');
-      window.open(data.url, '_blank');
+    if (external && data?.url) {
+      await openExternalAuth(data.url);
     }
   }
 
@@ -350,7 +350,7 @@ export default function JoinTraining() {
     sessionStorage.setItem('pending_invite_ts', String(Date.now()));
     if (sessionParam) sessionStorage.setItem('pending_invite_session', sessionParam);
     const { error } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo: window.location.origin + '/auth/callback' },
+      email, options: { emailRedirectTo: getEmailRedirectUrl() },
     });
     if (error) toast.error(localizeErrorMessage(error, t('join.failedToJoin')));
     else setEmailSent(true);

@@ -74,6 +74,7 @@ export default function CoachProfileEditor() {
     if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); return; }
     toast.success(t('profile.profileUpdated'));
     await refreshProfile();
+    qc.invalidateQueries({ queryKey: ['my-school'] });
   }
 
   function addVenue(venue: Venue) {
