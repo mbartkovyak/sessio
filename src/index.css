@@ -78,12 +78,27 @@
     --hero-foreground: 0 0% 100%;
   }
 
-  /* No `.dark` block — Sessio is a light-only design. A previous `.dark` rule
-     was being picked up by Chrome's "Auto Dark Theme for Web Contents" inside
-     Bubblewrap TWA on Samsung phones: when Chromium's force-dark detects a
-     `.dark` stylesheet in the document, it injects `class="dark"` on <html>
-     as a hint instead of doing pixel inversion. That path does not always
-     honor `color-scheme: only light`, so we remove the hook entirely. */
+  /* Samsung Internet "Night mode" and Chrome's Auto Dark Theme workaround.
+     These features invert pages that have no explicit dark-mode declaration.
+     By declaring `@media (prefers-color-scheme: dark)` and re-asserting light
+     colors inside it, we signal "we handle our own theming, please don't
+     auto-dark us." Samsung Internet's documented opt-out is the presence of
+     this media block — even when it just re-declares the light palette.
+     `!important` is required because Samsung Internet injects its Night
+     mode stylesheet at author specificity. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: light;
+    }
+    html {
+      background-color: hsl(var(--bg-from)) !important;
+      color: hsl(var(--foreground)) !important;
+    }
+    body {
+      background-color: hsl(var(--bg-from)) !important;
+      color: hsl(var(--foreground)) !important;
+    }
+  }
 }
 
 @layer base {
