@@ -198,6 +198,7 @@
     "cancelDeadline": "Cancellation deadline",
     "cancelDeadlineDesc": "Cancellation deadline before each session (hours)",
     "hours": "{{h}}h",
+    "hoursLong": "hours",
     "off": "Any time",
     "saving": "Saving...",
     "save": "Save",

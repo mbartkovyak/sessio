@@ -465,19 +465,34 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {/* Cancellation deadline */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">{t('form.cancelDeadline')}</label>
+        <label className="text-sm font-medium text-foreground mb-1 block">{t('form.cancelDeadline')}</label>
         <p className="text-xs text-muted-foreground mb-2">{t('form.cancelDeadlineDesc')}</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="space-y-2">
           <button type="button" onClick={() => set('confirmation_window_hours', null)}
-            className={`col-span-4 rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+            className={`w-full rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
             {t('form.off')}
           </button>
-          {[12, 24, 48, 72].map(h => (
-            <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
-              className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-              {t('form.hours', { h })}
-            </button>
-          ))}
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={form.confirmation_window_hours ?? 24}
+              onFocus={() => {
+                if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
+              }}
+              onChange={e => {
+                const raw = e.target.value;
+                if (raw === '') { set('confirmation_window_hours', 0); return; }
+                const n = Math.max(0, Math.min(100, parseInt(raw, 10) || 0));
+                set('confirmation_window_hours', n);
+              }}
+              disabled={form.confirmation_window_hours === null}
+              className={`w-24 rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${form.confirmation_window_hours === null ? 'border-input text-muted-foreground opacity-60' : 'border-input'}`}
+            />
+            <span className="text-sm text-muted-foreground">{t('form.hoursLong')}</span>
+          </div>
         </div>
       </div>
 

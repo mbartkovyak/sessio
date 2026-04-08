@@ -198,6 +198,7 @@
     "cancelDeadline": "Czas na rezygnację",
     "cancelDeadlineDesc": "Ile godzin przed zajęciami można zrezygnować",
     "hours": "{{h}}h",
+    "hoursLong": "godz.",
     "off": "W dowolnym momencie",
     "saving": "Zapisywanie...",
     "save": "Zapisz",
