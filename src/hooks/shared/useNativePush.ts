@@ -1,16 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
-import {
-  FirebaseMessaging,
-  type TokenReceivedEvent,
-  type NotificationActionPerformedEvent,
-} from '@capacitor-firebase/messaging';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { isNative, isIOS } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
+// FirebaseMessaging is loaded dynamically inside the effect to avoid a
+// startup deadlock on iOS — the plugin's JS bridge synchronizes with
+// native method swizzling during import, blocking React from rendering
+// if imported at module level.
 
 /**
  * Native push registration via Firebase Cloud Messaging (iOS + Android).
@@ -61,6 +60,10 @@ export function useNativePush() {
 
     (async () => {
       try {
+        // Dynamic import to avoid iOS startup deadlock — the plugin's JS
+        // bridge synchronizes with native method swizzling on import.
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+
         // Only prompt if not already granted. Avoids the iOS system
         // permission sheet flashing on every cold start after the user
         // already answered.
@@ -115,7 +118,7 @@ export function useNativePush() {
         // so cleanup can remove them even if we unmount mid-registration.
         const tokenHandle = await FirebaseMessaging.addListener(
           'tokenReceived',
-          (e: TokenReceivedEvent) => {
+          (e) => {
             void upsert(e.token);
           },
         );
@@ -127,7 +130,7 @@ export function useNativePush() {
 
         const tapHandle = await FirebaseMessaging.addListener(
           'notificationActionPerformed',
-          (e: NotificationActionPerformedEvent) => {
+          (e) => {
             const data = (e.notification?.data ?? {}) as Record<string, unknown>;
             const url = typeof data.url === 'string' ? data.url : null;
             if (url) navigate(url);

@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/react';
-import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
 import { isNative } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
 import i18n from '@/i18n';
+// FirebaseMessaging is loaded dynamically in signOut() to avoid a startup
+// deadlock on iOS — the plugin's JS bridge tries to synchronize with
+// native method swizzling during import, blocking React from rendering.
 
 async function hashId(id: string): Promise<string> {
   const data = new TextEncoder().encode(id);
@@ -193,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
           }
         }
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
         await FirebaseMessaging.deleteToken().catch(() => {
           // Best-effort — token revocation may fail if offline.
         });
