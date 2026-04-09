@@ -13,5 +13,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    // Capacitor apps are single-WebView (no multi-tab contention).
+    // The default Web Locks–based lock causes "lock was released because
+    // another request stole it" errors on iOS WKWebView where the API
+    // behaves differently. A no-op lock is safe here.
+    lock: (name, acquireTimeout, fn) => fn(),
   }
 });
