@@ -476,26 +476,20 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
             {t('form.off')}
           </button>
           <div
-            className={`flex min-h-[44px] items-center justify-center gap-2 rounded-xl border bg-background px-3 py-3 transition-opacity focus-within:ring-2 focus-within:ring-ring ${form.confirmation_window_hours === null ? 'border-input opacity-60' : 'border-input'}`}
+            className={`flex min-h-[44px] items-center justify-center gap-2 rounded-xl border bg-background px-3 py-3 transition-opacity ${form.confirmation_window_hours === null ? 'border-input opacity-60' : 'border-input'}`}
           >
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step={1}
-              inputMode="numeric"
-              value={form.confirmation_window_hours ?? ''}
+            <select
+              value={form.confirmation_window_hours ?? 24}
               onFocus={() => {
                 if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
               }}
-              onChange={e => {
-                const raw = e.target.value;
-                if (raw === '') { set('confirmation_window_hours', 0); return; }
-                const n = Math.max(0, Math.min(100, parseInt(raw, 10) || 0));
-                set('confirmation_window_hours', n);
-              }}
-              className={`w-14 border-0 bg-transparent p-0 text-center text-sm focus:outline-none focus:ring-0 ${form.confirmation_window_hours === null ? 'text-muted-foreground' : 'text-foreground'}`}
-            />
+              onChange={e => set('confirmation_window_hours', parseInt(e.target.value, 10))}
+              className={`border-0 bg-transparent p-0 text-center text-sm focus:outline-none focus:ring-0 ${form.confirmation_window_hours === null ? 'text-muted-foreground' : 'text-foreground'}`}
+            >
+              {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
             <span className="whitespace-nowrap text-sm text-muted-foreground">{t('form.hoursLong')}</span>
           </div>
         </div>
