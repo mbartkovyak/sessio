@@ -9,6 +9,7 @@ import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { isNative } from '@/lib/platform';
 
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -505,6 +506,13 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
               setTimeout(() => {
                 scrollRef.current?.scrollTo({ top: scrollRef.current!.scrollHeight, behavior: 'smooth' });
               }, 350);
+              // Hide the iOS "previous/next/done" accessory bar in chat
+              // (wastes space with a single input). Restore on blur so
+              // other inputs (search, forms) still have the Done button.
+              if (isNative) import('@capacitor/keyboard').then(({ Keyboard }) => Keyboard.setAccessoryBarVisible({ isVisible: false }));
+            }}
+            onBlur={() => {
+              if (isNative) import('@capacitor/keyboard').then(({ Keyboard }) => Keyboard.setAccessoryBarVisible({ isVisible: true }));
             }}
             placeholder={i18n.t('chat.messagePlaceholder')}
             rows={1}

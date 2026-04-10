@@ -1,9 +1,11 @@
 import './i18n';
 import * as Sentry from '@sentry/react';
 import { createRoot } from "react-dom/client";
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import App from "./App.tsx";
 import "./index.css";
 import { setupDeepLinks } from './lib/deep-links';
+import { isNative } from './lib/platform';
 
 Sentry.init({
   dsn: "https://b0f77b62654df6d6961befbf75ae6c57@o4511111659388928.ingest.de.sentry.io/4511111675576400",
@@ -14,3 +16,11 @@ Sentry.init({
 setupDeepLinks();
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+if (isNative) {
+  // Capgo: signal that this bundle booted successfully so the plugin
+  // doesn't roll back to the previous version.
+  CapacitorUpdater.notifyAppReady().catch(err => {
+    Sentry.captureException(err, { extra: { context: 'CapacitorUpdater.notifyAppReady' } });
+  });
+}
