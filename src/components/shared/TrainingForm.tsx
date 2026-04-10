@@ -475,27 +475,18 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           >
             {t('form.off')}
           </button>
-          <button
-            type="button"
-            onClick={() => {
+          <select
+            value={form.confirmation_window_hours ?? 24}
+            onFocus={() => {
               if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
             }}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-colors min-h-[44px] ${form.confirmation_window_hours !== null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}
+            onChange={e => set('confirmation_window_hours', parseInt(e.target.value, 10))}
+            className={`w-full appearance-none rounded-xl border-2 px-4 py-3 text-center text-sm font-semibold transition-colors min-h-[44px] focus:outline-none focus:ring-0 ${form.confirmation_window_hours !== null ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-background text-foreground'}`}
           >
-            <select
-              value={form.confirmation_window_hours ?? 24}
-              onChange={e => {
-                e.stopPropagation();
-                set('confirmation_window_hours', parseInt(e.target.value, 10));
-              }}
-              className="border-0 bg-transparent p-0 text-sm font-semibold text-inherit focus:outline-none focus:ring-0"
-            >
-              {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-            {' '}{t('form.hoursLong')}
-          </button>
+            {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
+              <option key={n} value={n}>{n} {t('form.hoursLong')}</option>
+            ))}
+          </select>
         </div>
       </div>
 
