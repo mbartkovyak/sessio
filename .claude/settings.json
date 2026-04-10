@@ -1,0 +1,31 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.command // \"\"' | grep -q 'wavuvwrmtsrxrzuumlid' && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"BLOCKED: Command targets production Supabase (wavuvwrmtsrxrzuumlid). Run production operations manually via Supabase Dashboard SQL Editor.\"}}' || true",
+            "statusMessage": "Checking for production Supabase access..."
+          },
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.command // \"\"' | grep -q 'bundle upload' && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"BLOCKED: Capgo bundle uploads must go through GitHub CI, not direct CLI. Commit and push first.\"}}' || true",
+            "statusMessage": "Checking for direct Capgo upload..."
+          },
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.command // \"\"' | grep -q 'functions deploy' && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"BLOCKED: Edge function deploys must go through GitHub CI. Commit and push first, then deploy via CI or manually.\"}}' || true",
+            "statusMessage": "Checking for direct edge function deploy..."
+          },
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.command // \"\"' | grep -q 'db push' && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"BLOCKED: Database migrations must go through GitHub CI. Commit migration file and push first.\"}}' || true",
+            "statusMessage": "Checking for direct database push..."
+          }
+        ]
+      }
+    ]
+  }
+}
