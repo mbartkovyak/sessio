@@ -475,18 +475,21 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
           >
             {t('form.off')}
           </button>
-          <select
-            value={form.confirmation_window_hours ?? 24}
-            onFocus={() => {
-              if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
-            }}
-            onChange={e => set('confirmation_window_hours', parseInt(e.target.value, 10))}
-            className={`w-full appearance-none rounded-xl border-2 px-4 py-3 text-center text-sm font-semibold transition-colors min-h-[44px] focus:outline-none focus:ring-0 ${form.confirmation_window_hours !== null ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-background text-foreground'}`}
-          >
-            {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
-              <option key={n} value={n}>{n} {t('form.hoursLong')}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={form.confirmation_window_hours ?? 24}
+              onFocus={() => {
+                if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
+              }}
+              onChange={e => set('confirmation_window_hours', parseInt(e.target.value, 10))}
+              className={`w-full appearance-none rounded-xl border-2 pl-4 pr-8 py-3 text-sm font-semibold transition-colors min-h-[44px] focus:outline-none focus:ring-0 ${form.confirmation_window_hours !== null ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-background text-foreground'}`}
+            >
+              {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n} {t('form.hoursLong')}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
       </div>
 
