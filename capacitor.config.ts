@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
       autoUpdate: true,
       defaultChannel: 'production',
     },
+    Keyboard: {
+      resize: 'none',
+    },
   },
 };
 
