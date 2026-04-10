@@ -19,13 +19,20 @@ createRoot(document.getElementById("root")!).render(<App />);
 
 if (isNative) {
   // Auto-select Capgo channel based on build mode.
-  // Dev builds (bun run build:dev) → 'dev' channel.
-  // Prod builds (bun run build) → stays on defaultChannel 'production'.
-  // This lets both "Sessio Dev" and "Sessio" coexist on the same phone,
-  // each receiving OTA updates from the correct channel.
   if (import.meta.env.MODE === 'development') {
     CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(() => {});
   }
+
+  // Hide the bottom nav when the keyboard is open. Standard mobile
+  // pattern — prevents the nav from floating above the keyboard on iOS.
+  import('@capacitor/keyboard').then(({ Keyboard }) => {
+    Keyboard.addListener('keyboardWillShow', () => {
+      document.documentElement.classList.add('keyboard-visible');
+    });
+    Keyboard.addListener('keyboardWillHide', () => {
+      document.documentElement.classList.remove('keyboard-visible');
+    });
+  });
 
   // Signal that this bundle booted successfully so the plugin
   // doesn't roll back to the previous version.
