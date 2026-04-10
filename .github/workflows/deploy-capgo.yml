@@ -38,6 +38,6 @@ jobs:
         run: |
           VERSION=$(jq -r .version package.json)
           echo "Uploading version $VERSION"
-          npx @capgo/cli bundle upload --channel production --bundle "$VERSION"
+          npx @capgo/cli bundle upload --channel production --bundle "$VERSION" --apikey "$CAPGO_APIKEY"
         env:
           CAPGO_APIKEY: ${{ secrets.CAPGO_APIKEY }}
