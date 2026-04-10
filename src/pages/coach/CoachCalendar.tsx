@@ -1,5 +1,5 @@
 import { format, addWeeks, subWeeks } from 'date-fns';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -66,6 +66,10 @@ export default function CoachCalendar() {
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
   const { user, profile } = useAuth();
+
+  // Mark "Check calendar" step as done for the Getting Started guide,
+  // regardless of whether the user arrived here via the guide or the nav.
+  useEffect(() => { localStorage.setItem('sessio_setup_calendar_seen', '1'); }, []);
   const isSchoolOwner = profile?.role === 'school_owner';
   const { data: school } = useMySchool();
 
