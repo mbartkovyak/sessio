@@ -12,6 +12,17 @@
   input, textarea, select { font-size: 16px !important; }
 }
 
+/* Keyboard-aware height for chat containers on native iOS/Android.
+   With Keyboard.resize='none' (capacitor.config.ts), the WebView
+   doesn't resize when the keyboard opens — fixed elements like the
+   bottom nav stay behind the keyboard. But chat pages need their
+   container to shrink so the input stays visible above the keyboard.
+   --keyboard-height is set by @capacitor/keyboard listeners in main.tsx.
+   On web (no listeners), the variable is unset and the fallback 0px applies. */
+.h-\[100dvh\] {
+  height: calc(100dvh - var(--keyboard-height, 0px)) !important;
+}
+
 @layer base {
   :root {
     /* Light-only app — disables Chrome/WebView algorithmic dark mode on Android.
