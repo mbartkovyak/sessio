@@ -18,7 +18,16 @@ setupDeepLinks();
 createRoot(document.getElementById("root")!).render(<App />);
 
 if (isNative) {
-  // Capgo: signal that this bundle booted successfully so the plugin
+  // Auto-select Capgo channel based on build mode.
+  // Dev builds (bun run build:dev) → 'dev' channel.
+  // Prod builds (bun run build) → stays on defaultChannel 'production'.
+  // This lets both "Sessio Dev" and "Sessio" coexist on the same phone,
+  // each receiving OTA updates from the correct channel.
+  if (import.meta.env.MODE === 'development') {
+    CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(() => {});
+  }
+
+  // Signal that this bundle booted successfully so the plugin
   // doesn't roll back to the previous version.
   CapacitorUpdater.notifyAppReady().catch(err => {
     Sentry.captureException(err, { extra: { context: 'CapacitorUpdater.notifyAppReady' } });
