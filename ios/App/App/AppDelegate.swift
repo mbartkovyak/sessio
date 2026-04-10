@@ -8,7 +8,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        FirebaseApp.configure()
+        // Use the dev Firebase plist for the dev bundle ID, prod plist otherwise.
+        // Both plists live in the app bundle; the right one is selected at runtime
+        // based on the actual bundle identifier.
+        if Bundle.main.bundleIdentifier == "com.get-sessio.app.dev",
+           let devPath = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist"),
+           let options = FirebaseOptions(contentsOfFile: devPath) {
+            FirebaseApp.configure(options: options)
+        } else {
+            FirebaseApp.configure()
+        }
         return true
     }
 
