@@ -23,17 +23,6 @@ if (isNative) {
     CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(() => {});
   }
 
-  // Hide the bottom nav when the keyboard is open. Standard mobile
-  // pattern — prevents the nav from floating above the keyboard on iOS.
-  import('@capacitor/keyboard').then(({ Keyboard }) => {
-    Keyboard.addListener('keyboardWillShow', () => {
-      document.documentElement.classList.add('keyboard-visible');
-    });
-    Keyboard.addListener('keyboardWillHide', () => {
-      document.documentElement.classList.remove('keyboard-visible');
-    });
-  });
-
   // Signal that this bundle booted successfully so the plugin
   // doesn't roll back to the previous version.
   CapacitorUpdater.notifyAppReady().catch(err => {

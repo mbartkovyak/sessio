@@ -12,14 +12,6 @@
   input, textarea, select { font-size: 16px !important; }
 }
 
-/* Hide bottom nav when keyboard is open (Capacitor native only).
-   The .keyboard-visible class is toggled by @capacitor/keyboard
-   listeners in main.tsx. Standard mobile pattern — WhatsApp,
-   Instagram, etc. all hide their tab bars during keyboard input. */
-.keyboard-visible .fixed.bottom-0 {
-  display: none !important;
-}
-
 @layer base {
   :root {
     /* Light-only app — disables Chrome/WebView algorithmic dark mode on Android.
