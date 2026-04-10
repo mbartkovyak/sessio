@@ -143,8 +143,22 @@ export function useNativePush() {
         handlesRef.current.push(tapHandle);
 
         // Now fetch the current token and upsert.
-        const { token } = await FirebaseMessaging.getToken();
-        if (token && !cancelled) await upsert(token);
+        // On iOS, APNS token may not be available yet right after permission
+        // grant. Retry a few times with a short delay before giving up —
+        // the tokenReceived listener above will catch it eventually.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const { token } = await FirebaseMessaging.getToken();
+            if (token && !cancelled) await upsert(token);
+            break;
+          } catch (err) {
+            if (attempt < 2 && isIOS) {
+              await new Promise((r) => setTimeout(r, 1500));
+            } else {
+              throw err;
+            }
+          }
+        }
       } catch (e) {
         Sentry.captureException(e, {
           extra: { context: 'native push register', userId: user?.id },

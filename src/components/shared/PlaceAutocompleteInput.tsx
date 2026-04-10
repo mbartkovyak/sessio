@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { CapacitorHttp } from '@capacitor/core';
+import { isNative } from '@/lib/platform';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-// Load Google Maps script once
+// ── Web: Google Maps JS widget ──────────────────────────────────────
+
 let loadPromise: Promise<void> | null = null;
 let googleMapsAuthFailed = false;
 
@@ -12,7 +15,6 @@ function loadGoogleMaps(): Promise<void> {
   if (loadPromise) return loadPromise;
   if (!API_KEY) return Promise.reject('No API key');
 
-  // Listen for Google Maps auth errors (invalid key, domain not allowed)
   (window as any).gm_authFailure = () => { googleMapsAuthFailed = true; };
 
   loadPromise = new Promise((resolve, reject) => {
@@ -26,28 +28,68 @@ function loadGoogleMaps(): Promise<void> {
   return loadPromise;
 }
 
+// ── Native: Places REST API via fetch (bypasses origin check) ───────
+
+interface Prediction {
+  description: string;
+  place_id: string;
+}
+
+let sessionToken = crypto.randomUUID();
+
+async function fetchPredictions(input: string): Promise<Prediction[]> {
+  if (!API_KEY || input.length < 2) return [];
+  const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json`;
+  const params = {
+    input,
+    types: 'establishment|geocode',
+    key: API_KEY,
+    sessiontoken: sessionToken,
+  };
+  try {
+    const res = await CapacitorHttp.get({ url, params });
+    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+    if (data.status === 'OK') return data.predictions;
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// ── Component ───────────────────────────────────────────────────────
+
 interface Props {
   value: string;
   onChange: (address: string) => void;
-  /** Fires only when a place is selected from autocomplete dropdown (not on typing) */
   onPlaceSelect?: (address: string) => void;
   placeholder?: string;
   className?: string;
 }
 
 export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect, placeholder, className }: Props) {
+  // Use native REST approach if in Capacitor OR if Google auth failed on web
+  const [useRest, setUseRest] = useState(isNative);
+
+  if (useRest || !API_KEY) {
+    return <RestAutocomplete value={value} onChange={onChange} onPlaceSelect={onPlaceSelect} placeholder={placeholder} className={className} />;
+  }
+
+  return <WebAutocomplete value={value} onChange={onChange} onPlaceSelect={onPlaceSelect} placeholder={placeholder} className={className} onAuthFail={() => setUseRest(true)} />;
+}
+
+// ── Web widget version ──────────────────────────────────────────────
+
+function WebAutocomplete({ value, onChange, onPlaceSelect, placeholder, className, onAuthFail }: Props & { onAuthFail: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
   const [local, setLocal] = useState(value);
 
-  // Keep refs to latest callbacks so the Google listener never goes stale
   const onChangeRef = useRef(onChange);
   const onPlaceSelectRef = useRef(onPlaceSelect);
   onChangeRef.current = onChange;
   onPlaceSelectRef.current = onPlaceSelect;
 
-  // Sync from parent when value changes externally (e.g. draft restore)
   useEffect(() => {
     setLocal(value);
     if (inputRef.current && inputRef.current.value !== value) {
@@ -56,9 +98,19 @@ export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect,
   }, [value]);
 
   useEffect(() => {
-    if (!API_KEY || googleMapsAuthFailed) return;
-    loadGoogleMaps().then(() => setLoaded(true)).catch(() => {});
+    if (googleMapsAuthFailed) { onAuthFail(); return; }
+    loadGoogleMaps().then(() => setLoaded(true)).catch(() => onAuthFail());
   }, []);
+
+  // Watch for auth failure after script loads (e.g. when first prediction request fires)
+  useEffect(() => {
+    const orig = (window as any).gm_authFailure;
+    (window as any).gm_authFailure = () => {
+      googleMapsAuthFailed = true;
+      onAuthFail();
+    };
+    return () => { (window as any).gm_authFailure = orig; };
+  }, [onAuthFail]);
 
   useEffect(() => {
     if (!loaded || !inputRef.current || autocompleteRef.current) return;
@@ -84,59 +136,110 @@ export default function PlaceAutocompleteInput({ value, onChange, onPlaceSelect,
         (window as any).google.maps.event.clearInstanceListeners(ac);
       };
     } catch {
-      // Google Places failed (invalid key, API not enabled, etc.) — fall back to plain input
-      setLoaded(false);
+      onAuthFail();
     }
-  }, [loaded]);
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setLocal(e.target.value);
-    onChange(e.target.value);
-  }
-
-  // No API key → plain controlled input
-  if (!API_KEY) {
-    return (
-      <div className="space-y-1">
-        <input
-          value={local}
-          onChange={handleChange}
-          placeholder={placeholder}
-          className={className}
-        />
-        {local.trim().length > 5 && (
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-          >
-            Verify on Google Maps ↗
-          </a>
-        )}
-      </div>
-    );
-  }
+  }, [loaded, onAuthFail]);
 
   return (
     <div className="space-y-1">
       <input
         ref={inputRef}
         defaultValue={local}
-        onChange={handleChange}
+        onChange={(e) => { setLocal(e.target.value); onChange(e.target.value); }}
         placeholder={placeholder}
         className={className}
       />
-      {local && (
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-        >
-          View on Maps ↗
-        </a>
-      )}
+      {local && <MapsLink address={local} />}
     </div>
+  );
+}
+
+// ── REST API version (Capacitor + fallback) ─────────────────────────
+
+function RestAutocomplete({ value, onChange, onPlaceSelect, placeholder, className }: Props) {
+  const [local, setLocal] = useState(value);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setLocal(value); }, [value]);
+
+  // Close dropdown on outside tap
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  const handleInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocal(val);
+    onChange(val);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (val.length < 2) { setPredictions([]); setShowDropdown(false); return; }
+
+    debounceRef.current = setTimeout(async () => {
+      const results = await fetchPredictions(val);
+      setPredictions(results);
+      setShowDropdown(results.length > 0);
+    }, 300);
+  }, [onChange]);
+
+  function selectPrediction(p: Prediction) {
+    setLocal(p.description);
+    onChange(p.description);
+    onPlaceSelect?.(p.description);
+    setPredictions([]);
+    setShowDropdown(false);
+    // Reset session token after selection (Google best practice for billing)
+    sessionToken = crypto.randomUUID();
+  }
+
+  return (
+    <div className="space-y-1 relative" ref={containerRef}>
+      <input
+        value={local}
+        onChange={handleInput}
+        onFocus={() => { if (predictions.length > 0) setShowDropdown(true); }}
+        placeholder={placeholder}
+        className={className}
+        autoComplete="off"
+      />
+      {showDropdown && predictions.length > 0 && (
+        <ul className="absolute z-[10000] left-0 right-0 top-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
+          {predictions.map((p) => (
+            <li
+              key={p.place_id}
+              className="px-3 py-2.5 text-sm cursor-pointer hover:bg-muted active:bg-muted/80 border-b border-border last:border-0"
+              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); selectPrediction(p); }}
+            >
+              {p.description}
+            </li>
+          ))}
+        </ul>
+      )}
+      {local && <MapsLink address={local} />}
+    </div>
+  );
+}
+
+// ── Shared ───────────────────────────────────────────────────────────
+
+function MapsLink({ address }: { address: string }) {
+  return (
+    <a
+      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+    >
+      View on Maps ↗
+    </a>
   );
 }
