@@ -12,6 +12,18 @@
   input, textarea, select { font-size: 16px !important; }
 }
 
+/* Android: hide the fixed bottom nav while the soft keyboard is open.
+   Android WebView's default windowSoftInputMode=adjustResize shrinks the
+   window, which would otherwise leave the `position: fixed; bottom: 0` nav
+   floating just above the keyboard — confusing and broken-looking. The
+   class is toggled on <html> by useVisualViewport. iOS doesn't need this
+   (WKWebView contentInset keeps the webview full-size). The selector
+   targets both PlayerBottomNav and CoachBottomNav — the only elements
+   using `fixed bottom-0 left-0 right-0` in the app. */
+html.android-keyboard-open .fixed.bottom-0.left-0.right-0 {
+  display: none;
+}
+
 @layer base {
   :root {
     /* Light-only app — disables Chrome/WebView algorithmic dark mode on Android.
@@ -78,34 +90,26 @@
     --hero-foreground: 0 0% 100%;
   }
 
-  .dark {
-    --background: 200 15% 8%;
-    --foreground: 200 20% 95%;
-    --card: 200 14% 12%;
-    --card-foreground: 200 20% 95%;
-    --popover: 200 14% 12%;
-    --popover-foreground: 200 20% 95%;
-    --primary: 193 30% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 200 14% 16%;
-    --secondary-foreground: 200 20% 95%;
-    --muted: 200 14% 16%;
-    --muted-foreground: 200 10% 60%;
-    --accent: 38 94% 55%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 200 20% 95%;
-    --border: 200 14% 18%;
-    --input: 200 14% 18%;
-    --ring: 193 30% 55%;
-    --sidebar-background: 200 14% 10%;
-    --sidebar-foreground: 200 15% 90%;
-    --sidebar-primary: 193 30% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 14% 14%;
-    --sidebar-accent-foreground: 200 15% 90%;
-    --sidebar-border: 200 12% 14%;
-    --sidebar-ring: 193 30% 55%;
+  /* Samsung Internet "Night mode" and Chrome's Auto Dark Theme workaround.
+     These features invert pages that have no explicit dark-mode declaration.
+     By declaring `@media (prefers-color-scheme: dark)` and re-asserting light
+     colors inside it, we signal "we handle our own theming, please don't
+     auto-dark us." Samsung Internet's documented opt-out is the presence of
+     this media block — even when it just re-declares the light palette.
+     `!important` is required because Samsung Internet injects its Night
+     mode stylesheet at author specificity. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: light;
+    }
+    html {
+      background-color: hsl(var(--bg-from)) !important;
+      color: hsl(var(--foreground)) !important;
+    }
+    body {
+      background-color: hsl(var(--bg-from)) !important;
+      color: hsl(var(--foreground)) !important;
+    }
   }
 }
 
@@ -113,14 +117,26 @@
   * {
     @apply border-border;
   }
+  /* The 1x1 transparent PNG `background-image` below is a defense against
+     Chrome's "Auto Dark Theme for Web Contents" on Android. When enabled
+     (e.g. via chrome://flags or Samsung's "Dark mode for web content"),
+     Chrome's force-dark algorithm runs CIELAB lightness inversion on every
+     painted element. It does NOT honor `color-scheme: only light` when the
+     user explicitly forced the flag. The only reliable exclusion is an
+     element with `background-image: url(...)` — gradients are still inverted.
+     So we layer a 1x1 transparent PNG over the real `background-color`. */
   html {
     background-color: hsl(var(--bg-from));
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgAAIAAAUAAen63NgAAAAASUVORK5CYII=");
   }
   body {
     @apply text-foreground;
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: linear-gradient(165deg, hsl(var(--bg-from)) 0%, hsl(var(--bg-from) / 0.7) 40%, hsl(var(--bg-to) / 0.8) 70%, hsl(var(--bg-to)) 100%);
+    background-color: hsl(var(--bg-from));
+    background-image:
+      url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgAAIAAAUAAen63NgAAAAASUVORK5CYII="),
+      linear-gradient(165deg, hsl(var(--bg-from)) 0%, hsl(var(--bg-from) / 0.7) 40%, hsl(var(--bg-to) / 0.8) 70%, hsl(var(--bg-to)) 100%);
     background-attachment: fixed;
     min-height: 100dvh;
   }
@@ -170,10 +186,12 @@
   }
   .header-gradient {
     background: linear-gradient(135deg, hsl(var(--header-from)) 0%, hsl(var(--header-to)) 100%);
-    padding-top: env(safe-area-inset-top, 0px);
+    /* Prefer the --safe-area-inset-top CSS var injected by MainActivity.java
+       on Android edge-to-edge (API 35+), fall back to env() on iOS. */
+    padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   }
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   }
 
 }

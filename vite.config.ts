@@ -31,6 +31,13 @@ export default defineConfig(({ mode }) => ({
     },
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // Stub Firebase JS SDK messaging module — @capacitor-firebase/messaging
+      // imports it in its web bundle as an optional peer dep, but we only
+      // use the plugin on native. The stub satisfies Vite's static analysis
+      // without pulling Firebase JS into the web bundle.
+      "firebase/messaging": path.resolve(__dirname, "./src/lib/firebase-messaging-web-stub.ts"),
+    },
   },
 }));

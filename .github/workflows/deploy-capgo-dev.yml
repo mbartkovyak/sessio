@@ -1,0 +1,44 @@
+name: Deploy Capgo Bundle (Dev)
+
+on:
+  push:
+    branches: [dev]
+    paths-ignore:
+      - '**.md'
+      - 'obsidian_doc/**'
+      - 'supabase/**'
+      - '.github/workflows/deploy-supabase*.yml'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  upload:
+    name: Build & upload to Capgo (dev)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build dev bundle
+        run: bun run build:dev
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_DEV_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_DEV_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_DEV_SUPABASE_PROJECT_ID }}
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+
+      - name: Upload to Capgo dev channel
+        run: |
+          VERSION=$(jq -r .version package.json)-dev.$(git rev-parse --short HEAD)
+          echo "Uploading version $VERSION"
+          npx @capgo/cli bundle upload --channel dev --bundle "$VERSION" --apikey "$CAPGO_APIKEY"
+        env:
+          CAPGO_APIKEY: ${{ secrets.CAPGO_APIKEY }}

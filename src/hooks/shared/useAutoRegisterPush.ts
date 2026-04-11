@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { isNative } from '@/lib/platform';
+import { getDeviceId } from '@/lib/device-id';
 
 const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const VAPID_STORAGE_KEY = '_vapidKey';
@@ -41,7 +42,10 @@ export const pushRegistrationBus = new EventTarget();
  */
 export function useAutoRegisterPush() {
   const { user } = useAuth();
-  const done = useRef(false);
+  // Tracks the user ID this hook has already registered for. Reset on sign-out
+  // so the next sign-in on the same device re-subscribes (signOut now
+  // unsubscribes the browser PushSubscription, so we must not skip).
+  const registeredForUserId = useRef<string | null>(null);
 
   // Always tell the SW who the current user is (SW can restart and lose state)
   useEffect(() => {
@@ -52,11 +56,16 @@ export function useAutoRegisterPush() {
   }, [user]);
 
   useEffect(() => {
-    if (isNative || done.current || !user || !VAPID_KEY) return;
+    if (!user) {
+      registeredForUserId.current = null;
+      return;
+    }
+    if (isNative || !VAPID_KEY) return;
+    if (registeredForUserId.current === user.id) return;
     if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
     if (Notification.permission !== 'granted') return;
 
-    done.current = true;
+    registeredForUserId.current = user.id;
 
     (async () => {
       try {
@@ -81,22 +90,36 @@ export function useAutoRegisterPush() {
         localStorage.setItem(VAPID_STORAGE_KEY, VAPID_KEY);
 
         const json = sub.toJSON();
+        const deviceId = await getDeviceId();
+        const now = new Date().toISOString();
 
-        // One endpoint = one device. Delete stale subscriptions from other accounts
-        // that were previously logged in on this same browser.
+        // One target = one device. Delete stale subscriptions from other
+        // accounts that were previously signed in on this same browser.
+        // Keyed on (transport, target) — globally unique per device.
         await supabase.from('push_subscriptions')
           .delete()
-          .eq('endpoint', json.endpoint!)
+          .eq('transport', 'webpush')
+          .eq('target', json.endpoint!)
           .neq('user_id', user.id);
 
-        const { error } = await supabase.from('push_subscriptions').upsert(
-          { user_id: user.id, endpoint: json.endpoint!, keys: json.keys },
-          { onConflict: 'user_id,endpoint' }
-        );
+        const row = {
+          user_id: user.id,
+          device_id: deviceId,
+          platform: 'web' as const,
+          transport: 'webpush' as const,
+          target: json.endpoint!,
+          web_keys: json.keys as { p256dh: string; auth: string },
+          updated_at: now,
+          last_seen_at: now,
+        };
+
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .upsert(row, { onConflict: 'user_id,device_id' });
         if (error) {
-          const { error: insertErr } = await supabase.from('push_subscriptions').insert({
-            user_id: user.id, endpoint: json.endpoint!, keys: json.keys,
-          });
+          const { error: insertErr } = await supabase
+            .from('push_subscriptions')
+            .insert(row);
           if (insertErr) {
             Sentry.captureMessage('Push subscription DB save failed', {
               level: 'warning',

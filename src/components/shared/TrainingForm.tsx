@@ -465,19 +465,31 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
 
       {/* Cancellation deadline */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-2 block">{t('form.cancelDeadline')}</label>
+        <label className="text-sm font-medium text-foreground mb-1 block">{t('form.cancelDeadline')}</label>
         <p className="text-xs text-muted-foreground mb-2">{t('form.cancelDeadlineDesc')}</p>
-        <div className="grid grid-cols-4 gap-2">
-          <button type="button" onClick={() => set('confirmation_window_hours', null)}
-            className={`col-span-4 rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => set('confirmation_window_hours', null)}
+            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-colors min-h-[44px] ${form.confirmation_window_hours === null ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}
+          >
             {t('form.off')}
           </button>
-          {[12, 24, 48, 72].map(h => (
-            <button type="button" key={h} onClick={() => set('confirmation_window_hours', h)}
-              className={`rounded-xl border-2 py-2.5 text-xs font-semibold transition-colors ${form.confirmation_window_hours === h ? 'border-primary bg-primary/5 text-primary' : 'border-border text-foreground'}`}>
-              {t('form.hours', { h })}
-            </button>
-          ))}
+          <div className="relative">
+            <select
+              value={form.confirmation_window_hours ?? 24}
+              onFocus={() => {
+                if (form.confirmation_window_hours === null) set('confirmation_window_hours', 24);
+              }}
+              onChange={e => set('confirmation_window_hours', parseInt(e.target.value, 10))}
+              className={`w-full appearance-none rounded-xl border-2 pl-4 pr-8 py-3 text-sm font-semibold transition-colors min-h-[44px] focus:outline-none focus:ring-0 ${form.confirmation_window_hours !== null ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-background text-foreground'}`}
+            >
+              {Array.from({ length: 60 }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n} {t('form.hoursLong')}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
       </div>
 

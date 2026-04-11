@@ -199,12 +199,12 @@ Deno.serve(async (req) => {
           if (now - firstSentAt < 6 * 60 * 60 * 1000) continue; // too soon for follow-up
         }
 
-        const payload = JSON.stringify({
+        const payload = {
           title: training.name,
           body: `${session.session_date} at ${session.start_time?.slice(0, 5)} — cancel if you can't make it.`,
           tag: `confirm-${att.session_id}`,
           url: '/player',
-        });
+        };
 
         const pushCount = await sendPushToUsers(supabase, [att.user_id], payload);
         sent += pushCount;
@@ -259,12 +259,12 @@ Deno.serve(async (req) => {
           const training = s.trainings as any;
           if (!training?.coach_id) continue;
 
-          const payload = JSON.stringify({
+          const payload = {
             title: training.name,
             body: `Mark attendance for ${s.session_date}`,
             tag: `attendance-mark-${s.id}`,
             url: '/coach',
-          });
+          };
 
           const pushCount = await sendPushToUsers(supabase, [training.coach_id], payload);
           attendanceRemindersSent += pushCount;

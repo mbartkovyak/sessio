@@ -44,7 +44,14 @@ jobs:
           fi
           # Fail if hardcoded secret VALUES appear (not env var names)
           # Patterns: Stripe live keys, Google API keys, Supabase service role JWTs
-          if git grep -lE '(sk_live_[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z_-]{35}|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]{50,})' -- ':!.github/' ':!*.md' ':!*.lock' 2>/dev/null; then
+          # Excludes: Firebase client config files (google-services.json, GoogleService-Info.plist)
+          # contain Google API keys that are public-by-design — restricted to bundle ID by Firebase,
+          # not actual secrets. See https://firebase.google.com/docs/projects/api-keys
+          if git grep -lE '(sk_live_[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z_-]{35}|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]{50,})' \
+             -- ':!.github/' ':!*.md' ':!*.lock' \
+             ':!android/app/google-services.json' \
+             ':!ios/App/App/GoogleService-Info.plist' \
+             ':!ios/App/App/GoogleService-Info-Dev.plist' 2>/dev/null; then
             echo "::error::Potential hardcoded secrets found in tracked files!"
             exit 1
           fi

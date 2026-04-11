@@ -6,6 +6,7 @@ import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { pushRegistrationBus } from './useAutoRegisterPush';
 import { isNative } from '@/lib/platform';
+import { getDeviceId } from '@/lib/device-id';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -80,13 +81,21 @@ export function usePushNotifications() {
       }
 
       const sub = subscription.toJSON();
+      const deviceId = await getDeviceId();
+      const now = new Date().toISOString();
+
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
           user_id: user.id,
-          endpoint: sub.endpoint!,
-          keys: sub.keys,
-        }, { onConflict: 'user_id,endpoint' });
+          device_id: deviceId,
+          platform: 'web',
+          transport: 'webpush',
+          target: sub.endpoint!,
+          web_keys: sub.keys,
+          updated_at: now,
+          last_seen_at: now,
+        }, { onConflict: 'user_id,device_id' });
 
       if (error) {
         Sentry.captureMessage('Push subscription save failed on enable', {

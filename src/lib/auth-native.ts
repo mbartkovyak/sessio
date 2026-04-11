@@ -22,6 +22,12 @@ export function shouldOpenExternalAuth(): boolean {
 /** Open a URL in the system browser (native) or new tab (standalone PWA) */
 export async function openExternalAuth(url: string): Promise<void> {
   if (isNative) {
+    // Defensively close any lingering in-app browser before opening a new
+    // one. On a second sign-in attempt (sign-out → re-sign-in), a stale
+    // SFSafariViewController can survive on iOS and cause Browser.open()
+    // to either no-op or leave the user stranded on the previous page.
+    // Browser.close() is a safe no-op when nothing is open.
+    await Browser.close().catch(() => {});
     await Browser.open({ url });
   } else {
     localStorage.setItem('sessio_oauth_pwa', '1');

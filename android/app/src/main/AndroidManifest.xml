@@ -7,6 +7,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:forceDarkAllowed="false"
         android:theme="@style/AppTheme">
 
         <activity
@@ -20,6 +21,19 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Custom-scheme deep link for OAuth callbacks and invite URLs.
+                 com.get-sessio.app://auth/callback (Google sign-in)
+                 com.get-sessio.app://join/<code>  (training invite)
+                 com.get-sessio.app://join-school/<code>  (school invite)
+                 Capacitor forwards these to the JS appUrlOpen listener
+                 (handled by src/lib/deep-links.ts). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.get-sessio.app" />
             </intent-filter>
 
         </activity>

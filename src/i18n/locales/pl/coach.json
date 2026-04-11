@@ -198,6 +198,7 @@
     "cancelDeadline": "Czas na rezygnację",
     "cancelDeadlineDesc": "Ile godzin przed zajęciami można zrezygnować",
     "hours": "{{h}}h",
+    "hoursLong": "godz.",
     "off": "W dowolnym momencie",
     "saving": "Zapisywanie...",
     "save": "Zapisz",
@@ -222,6 +223,8 @@
     "inviteCoachesDesc": "Wyślij link lub kod zaproszenia do szkoły",
     "completeProfile": "Uzupełnij swój profil",
     "completeProfileDesc": "Dodaj bio do swojego profilu",
+    "completeSchoolProfile": "Uzupełnij profil szkoły",
+    "completeSchoolProfileDesc": "Dodaj opis na stronę szkoły",
     "checkCalendar": "Sprawdź swój kalendarz",
     "checkCalendarDesc": "Zobacz sesje i śledź kto się zapisuje",
     "allSet": "Wszystko gotowe!"

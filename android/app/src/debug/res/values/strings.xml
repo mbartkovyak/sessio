@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Debug build type override. Android merges src/debug/res over
+         src/main/res for debug variants, so only app_name is swapped —
+         title_activity_main, package_name, and custom_url_scheme still
+         come from src/main/res/values/strings.xml. -->
+    <string name="app_name">Sessio Dev</string>
+</resources>

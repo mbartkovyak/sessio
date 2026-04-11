@@ -64,8 +64,8 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio
     },
     {
       done: hasProfile,
-      label: t('setupGuide.completeProfile'),
-      desc: t('setupGuide.completeProfileDesc'),
+      label: t(isSchoolOwner ? 'setupGuide.completeSchoolProfile' : 'setupGuide.completeProfile'),
+      desc: t(isSchoolOwner ? 'setupGuide.completeSchoolProfileDesc' : 'setupGuide.completeProfileDesc'),
       action: () => navigate(isSchoolOwner ? '/school/profile' : '/coach/profile'),
       disabled: false,
     },

@@ -9,7 +9,6 @@ import { format, parseISO, isToday, isYesterday } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
-
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
 
@@ -473,7 +472,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       )}
 
       {/* ── Floating input capsule ── */}
-      <div className="shrink-0 px-4" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
+      <div className="shrink-0 px-4" style={{ paddingBottom: 'max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 12px)))' }}>
         <div
           className="max-w-md mx-auto flex items-end gap-1 rounded-full px-2 py-1.5"
           style={{
