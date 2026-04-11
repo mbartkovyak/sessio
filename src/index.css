@@ -12,6 +12,18 @@
   input, textarea, select { font-size: 16px !important; }
 }
 
+/* Android: hide the fixed bottom nav while the soft keyboard is open.
+   Android WebView's default windowSoftInputMode=adjustResize shrinks the
+   window, which would otherwise leave the `position: fixed; bottom: 0` nav
+   floating just above the keyboard — confusing and broken-looking. The
+   class is toggled on <html> by useVisualViewport. iOS doesn't need this
+   (WKWebView contentInset keeps the webview full-size). The selector
+   targets both PlayerBottomNav and CoachBottomNav — the only elements
+   using `fixed bottom-0 left-0 right-0` in the app. */
+html.android-keyboard-open .fixed.bottom-0.left-0.right-0 {
+  display: none;
+}
+
 @layer base {
   :root {
     /* Light-only app — disables Chrome/WebView algorithmic dark mode on Android.
@@ -174,10 +186,12 @@
   }
   .header-gradient {
     background: linear-gradient(135deg, hsl(var(--header-from)) 0%, hsl(var(--header-to)) 100%);
-    padding-top: env(safe-area-inset-top, 0px);
+    /* Prefer the --safe-area-inset-top CSS var injected by MainActivity.java
+       on Android edge-to-edge (API 35+), fall back to env() on iOS. */
+    padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   }
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   }
 
 }

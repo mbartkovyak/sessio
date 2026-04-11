@@ -30,7 +30,7 @@ export default function PlayerBottomNav() {
         }}
       />
       <div className="relative px-4 pointer-events-auto" style={{
-        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+        paddingBottom: 'max(10px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 10px)))',
       }}>
         <nav
           className="max-w-md mx-auto flex items-center rounded-full py-1.5 px-1.5"

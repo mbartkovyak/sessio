@@ -147,6 +147,49 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 - **Supabase migrations** run automatically on merge to `main` via `.github/workflows/deploy-supabase.yml` (`supabase db push`). No manual SQL needed for production.
 - **Dev Supabase** has no auto-migration pipeline — migrations must be run manually on the dev project.
 
+### Mobile app distribution
+
+Sessio ships on three surfaces. Both mobile apps now use Capacitor + Capgo OTA — the web bundle is baked into the native shell at build time, but JS/CSS/HTML updates can be pushed over-the-air via Capgo without a store release.
+
+- **Web** (`get-sessio.com`) — Vercel auto-deploys on push to `main`. Instant updates.
+- **iOS** — **Capacitor** (`capacitor.config.ts`, `ios/` folder). `webDir: 'dist'` with no `server.url`, so the web bundle is baked into the IPA at build time. Native changes (plugins, Info.plist, signing) require `bun run build` → `bunx cap sync ios` → archive in Xcode → TestFlight/App Store submission (Apple review ~24–48h). JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch.
+- **Android** — **Capacitor** (`capacitor.config.ts`, `android/` folder). Same model as iOS: web bundle baked at build time, native changes need a Play Store release, JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch. Use `bun run android:dev` / `bun run android:prod` to build debug/release APKs locally (see "Android Capacitor build" below). Historical note: Android previously shipped as a **Bubblewrap TWA** (package `com.get_sessio.twa`) with instant web updates via Chrome Custom Tabs — that was deprecated in favor of Capacitor for feature parity with iOS (native push via FCM, Apple/Google sign-in, deep links, Capgo OTA).
+
+**Capgo OTA** (`@capgo/capacitor-updater`): JS bundles are uploaded to a Capgo channel by CI. Dev builds (`MODE=development`) switch to the `dev` channel at runtime via `setChannel` in `main.tsx`; prod builds stay on the `production` channel (default from `capacitor.config.ts`). Workflows: `.github/workflows/deploy-capgo.yml` uploads the prod bundle on push to `main`; `deploy-capgo-dev.yml` uploads the dev bundle on push to `dev`. Capgo CANNOT update native code — plugin changes, `AndroidManifest.xml`, `build.gradle`, icons, or version bumps require a full store release.
+
+Implications:
+- JS/CSS/HTML bug fixes reach both iOS and Android users via Capgo on the next app launch — no store release needed.
+- Native changes (new plugin, manifest edit, icon update, native lib) require a full store release on the affected platform(s).
+- iOS releases need Apple review (~24–48h). Android releases need Google Play review (usually faster). Plan native-affecting changes accordingly.
+- `f1e0dee` "Add Capacitor for iOS + Android app store distribution" added the scaffolding. iOS shipped first; Android follows.
+
+#### Android Capacitor build
+
+Android dev/prod split mirrors iOS:
+
+- **Debug variant** (`app-debug.apk`) — package `com.get_sessio.app.debug`, label "Sessio Dev", auto-signed with Android's debug keystore, coexists with the prod install.
+- **Release variant** (`app-release.apk`) — package `com.get_sessio.app`, label "Sessio", signed from `android/keystore.properties` (gitignored). The production signing key for the Play Store release is at `/Users/myro/Documents/Sessio/android.keystore` (gitignored via root `.gitignore *.keystore`); `keystore.properties` and the keystore both stay local and are never committed.
+
+Commands:
+- Dev APK: `bun run android:dev` — wraps `bun run build:dev && bunx cap sync android && gradlew assembleDebug`. Bakes dev Supabase into the JS bundle.
+- Prod APK: `bun run android:prod` — wraps `bun run build && bunx cap sync android && gradlew assembleRelease`. Bakes prod Supabase into the JS bundle.
+- Both scripts include an iCloud-duplicate cleanup step (`find dist ... -name '* 2.*' -delete`) because macOS iCloud Drive silently duplicates files in `dist/`, which breaks Gradle's `compressDebugAssets` task.
+
+Gradle signing is wired in `android/app/build.gradle` via a `signingConfigs.release` block that reads `keystore.properties`. If the properties file is missing, the release buildType falls through unsigned (the block is guarded by `if (keystorePropertiesFile.exists())`).
+
+Firebase (FCM) uses `sessio-4f6a4` as the shared project across dev/prod. `android/app/google-services.json` contains two Android clients: `com.get_sessio.app` (prod/release) and `com.get_sessio.app.debug` (debug). iOS has matching bundle IDs (`com.get-sessio.app` + `com.get-sessio.app.dev`) in the same Firebase project.
+
+Native (Capacitor) builds bake env vars into the JS bundle at Vite build time. Vite text-replaces `import.meta.env.VITE_*` with literal strings during build — once the APK/IPA is packaged, the app is locked to whichever Supabase backend was configured at that moment. Rules:
+- **Debug native build (dev backend):** `bun run build:dev && bunx cap sync <platform>` before the native build. `build:dev` passes `--mode development` so Vite reads `.env.development`.
+- **Production native build (prod backend):** `bun run build && bunx cap sync <platform>`. `build` reads `.env`.
+- `.env.development` must exist and contain the dev Supabase credentials. If the file is missing, Vite **silently falls back to `.env`** and you get a prod-pointing "debug" APK.
+- **Verify before installing.** After the native build, grep inside the APK's JS bundle to confirm the expected Supabase ref is baked in:
+  ```
+  unzip -p android/app/build/outputs/apk/debug/app-debug.apk 'assets/public/assets/index-*.js' | grep -c '<expected_ref>'
+  ```
+  Should return `1` or more for the ref you expect (dev or prod).
+- `.env.development` is gitignored and must never be committed.
+
 ### Dev/Prod parity — MANDATORY
 
 We lost push notifications and realtime on prod for days because of invisible config drift. **These rules are non-negotiable.**
@@ -167,6 +210,8 @@ We lost push notifications and realtime on prod for days because of invisible co
 6. **Vercel env vars must never contain trailing whitespace or newlines.** Use `vercel env pull` and inspect the raw file. A trailing `\n` in `VITE_SUPABASE_URL` breaks WebSocket (Realtime) while REST appears to work — an invisible failure. When adding env vars, use `printf 'value' | vercel env add NAME production` to avoid newlines.
 
 7. **Every migration file must be committed to git before the PR is merged.** If you apply a migration manually to dev or prod with `supabase db push`, the .sql file MUST be in the repo. The CI pipeline fails if the remote migration history has versions not found locally — and that failure is silent (code deploys, DB doesn't).
+
+8. **Native (Capacitor) builds bake env vars into the JS bundle at Vite build time.** The Android `applicationIdSuffix ".debug"` only changes the Android package name, NOT the backend the JavaScript talks to. **Building a "debug" APK with `bun run build` produces a debug-packaged Android app that hits PROD Supabase.** Always pair `bun run build:dev` with debug variants and `bun run build` with release variants, or use the `android:dev` / `android:prod` npm scripts which do the right thing. Full rules + verification commands in "Android Capacitor build" above.
 
 ### Verify before pushing — MANDATORY
 

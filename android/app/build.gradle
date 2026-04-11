@@ -1,10 +1,32 @@
 apply plugin: 'com.android.application'
 
+// Load release signing credentials from android/keystore.properties (gitignored).
+// Without this, release builds are unsigned and can't be installed on a device.
+// The keystore itself lives at android/android.keystore (also gitignored) and is
+// used only for local sideload testing — not for Play Store signing.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
+    // `namespace` stays as the Java package of MainActivity (com.get_sessio.app)
+    // so we don't have to rename the Java source directory. It differs from
+    // `applicationId` on purpose — namespace is the R.java / BuildConfig
+    // package, applicationId is the Play Store identity. They're allowed to
+    // differ and this keeps the delta minimal.
     namespace = "com.get_sessio.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.get_sessio.app"
+        // `com.get_sessio.twa` is the package name inherited from the
+        // Bubblewrap TWA listing on Play Store (the first Sessio Android
+        // release). We keep it so the Capacitor AAB uploads as an update
+        // to the existing listing — package names are immutable on Play
+        // Store once published. The ".twa" suffix is a historical misnomer
+        // (the app is no longer a TWA), but changing it would mean losing
+        // the listing's install base, reviews, and store history.
+        applicationId "com.get_sessio.twa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 7
@@ -16,18 +38,36 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         debug {
             // Debug builds install as com.get_sessio.app.debug so they coexist
             // with the production TWA on a tester's device, and the version
             // name shows " (debug)" so testers can tell at a glance which
-            // build they're running.
+            // build they're running. Pair with `bun run build:dev` so the JS
+            // bundle is baked with dev Supabase credentials.
             applicationIdSuffix ".debug"
             versionNameSuffix " (debug)"
         }
         release {
+            // Release builds install as com.get_sessio.app. Pair with
+            // `bun run build` so the JS bundle is baked with prod Supabase
+            // credentials. Signed with the local keystore above — this is
+            // for sideload testing only, NOT for Play Store submission.
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

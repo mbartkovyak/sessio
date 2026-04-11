@@ -5,7 +5,7 @@ import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import App from "./App.tsx";
 import "./index.css";
 import { setupDeepLinks } from './lib/deep-links';
-import { isNative } from './lib/platform';
+import { isNative, isAndroid } from './lib/platform';
 
 Sentry.init({
   dsn: "https://b0f77b62654df6d6961befbf75ae6c57@o4511111659388928.ingest.de.sentry.io/4511111675576400",
@@ -14,6 +14,33 @@ Sentry.init({
 });
 
 setupDeepLinks();
+
+// Android 15+ enforces edge-to-edge display: the WebView draws full-screen
+// under the status bar and system nav. Without explicit inset values, fixed
+// elements like the bottom nav overlap the gesture indicator / nav buttons.
+// We expose `--safe-area-inset-top/bottom` CSS variables immediately on boot
+// so every fixed-position element has a reasonable clearance from first paint.
+//
+// The values are generous defaults that clear both 3-button nav (48dp) and
+// gesture nav (~24dp) on nearly every Android device. MainActivity.java can
+// refine these with per-device measurements if its WindowInsets listener
+// fires, but this script runs synchronously before React mounts so we're
+// never left with a 0px inset on first paint. iOS is untouched — iOS uses
+// WKWebView's native `env(safe-area-inset-*)` (and the var defaults to
+// `env()` in the CSS cascade via `var(--x, env(x, fallback))`).
+if (isAndroid) {
+  const html = document.documentElement.style;
+  // Only set defaults if MainActivity.java's WindowInsets listener hasn't
+  // already injected per-device values. MainActivity may refine these later
+  // (when its listener fires post-layout); this script guarantees a sane
+  // value is set synchronously before React mounts.
+  if (!html.getPropertyValue('--safe-area-inset-bottom')) {
+    html.setProperty('--safe-area-inset-top', '24px');
+    html.setProperty('--safe-area-inset-bottom', '48px');
+    html.setProperty('--safe-area-inset-left', '0px');
+    html.setProperty('--safe-area-inset-right', '0px');
+  }
+}
 
 createRoot(document.getElementById("root")!).render(<App />);
 

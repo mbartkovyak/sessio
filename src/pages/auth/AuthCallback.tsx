@@ -6,9 +6,10 @@ import { SessioLoader, SessioLogoCompact } from '@/components/SessioLogo';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const { profile, loading } = useAuth();
+  const { session, profile, loading, refreshProfile } = useAuth();
   const { t } = useTranslation('auth');
   const [pwaReturn, setPwaReturn] = useState(false);
+  const [retriedProfile, setRetriedProfile] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -25,10 +26,29 @@ export default function AuthCallback() {
       }
     }
 
-    if (!profile) {
+    // No session at all → user isn't signed in, go to sign-in.
+    if (!session) {
       navigate('/auth/sign-in');
       return;
     }
+
+    // Session exists but profile didn't load. This can happen if the first
+    // fetchProfile call raced ahead of the new session's JWT being fully
+    // propagated through the Supabase client (observed on re-sign-in). Try
+    // refreshProfile once more before giving up. Without this, the user
+    // would be bounced to /auth/sign-in even though they're authenticated.
+    // IMPORTANT: set `retriedProfile` only AFTER refreshProfile resolves,
+    // otherwise the state update triggers a re-render before the refetch
+    // completes and we'd navigate away before the retry has a chance.
+    if (!profile) {
+      if (!retriedProfile) {
+        refreshProfile().finally(() => setRetriedProfile(true));
+        return;
+      }
+      navigate('/auth/sign-in');
+      return;
+    }
+
     if (!profile.onboarding_complete || !profile.role) {
       navigate('/onboarding');
       return;
@@ -53,7 +73,7 @@ export default function AuthCallback() {
     }
 
     navigate(profile.role === 'player' ? '/player' : '/coach');
-  }, [loading, profile, navigate]);
+  }, [loading, session, profile, retriedProfile, refreshProfile, navigate]);
 
   if (pwaReturn) {
     return (
