@@ -16,6 +16,9 @@ import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+// DEBUG: remove after verifying Capgo OTA works
+const DebugBanner = () => <div className="bg-red-600 text-white text-center py-4 text-lg font-bold">🔴 CAPGO OTA WORKS — Apr 13 v2</div>;
+
 export default function PlayerHome() {
   const { t } = useTranslation('player');
   const { profile } = useAuth();
@@ -48,6 +51,7 @@ export default function PlayerHome() {
           </div>
         ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+          <DebugBanner />
           {/* Greeting */}
           <div>
             <h1 className="text-2xl font-bold text-foreground">
