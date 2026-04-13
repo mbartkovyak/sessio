@@ -13,6 +13,7 @@ import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 
 // Both hooks early-return on the wrong platform (useAutoRegisterPush skips
 // on native, useNativePush skips on web). One device = one push path.
@@ -48,6 +49,7 @@ function RootLayout() {
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
+      <PullToRefresh />
       <InstallPWA />
       <ErrorBoundary>
         <AuthProvider>
