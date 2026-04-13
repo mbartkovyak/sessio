@@ -26,7 +26,7 @@ export default function CoachHome() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* DEBUG: remove after verifying Capgo OTA */}
-      <div className="bg-red-600 text-white text-center py-4 text-lg font-bold">CAPGO OTA v4</div>
+      <div className="bg-red-600 text-white text-center py-4 text-lg font-bold">CAPGO OTA v5</div>
       <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto flex items-center justify-center text-white">
           <SessioLogoCompact />
