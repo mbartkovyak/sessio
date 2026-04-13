@@ -55,7 +55,7 @@ function RootLayout() {
         <AuthProvider>
           <PushRegistrar />
           <PrefetchRoutes />
-          <div className="relative z-[9]"><Outlet /></div>
+          <div className="relative z-[9]" style={{ paddingBottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))' }}><Outlet /></div>
         </AuthProvider>
       </ErrorBoundary>
     </>
