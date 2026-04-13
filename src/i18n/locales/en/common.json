@@ -106,7 +106,8 @@
     "unblockUser": "Unblock user",
     "report": "Report",
     "submit": "Submit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "blockedByUser": "You can't message this person"
   },
   "notifications": {
     "enableTitle": "Enable notifications",

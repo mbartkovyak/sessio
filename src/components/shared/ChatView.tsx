@@ -197,6 +197,22 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
   const conversationId = localConvId ?? hookConvId ?? undefined;
 
+  // Check if current user is blocked by the DM partner
+  const { data: isBlockedByOther = false } = useQuery({
+    queryKey: ['blocked-by-other', user?.id, otherUserId],
+    enabled: !!user && !!otherUserId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('blocked_users')
+        .select('blocker_id')
+        .eq('blocker_id', otherUserId!)
+        .eq('blocked_id', user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
   const { data: messages = [] } = useMessages(conversationId);
   const { data: allReactions = {} } = useMessageReactions(conversationId);
   const [text, setText] = useState('');
@@ -484,6 +500,11 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
       {/* ── Floating input capsule ── */}
       <div className="shrink-0 px-4" style={{ paddingBottom: 'max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 12px)))' }}>
+        {isBlockedByOther ? (
+          <div className="max-w-md mx-auto text-center py-3">
+            <p className="text-sm text-muted-foreground">{i18n.t('chat.blockedByUser')}</p>
+          </div>
+        ) : (
         <div
           className="max-w-md mx-auto flex items-end gap-1 rounded-full px-2 py-1.5"
           style={{
@@ -533,6 +554,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
             <Send className="h-[16px] w-[16px]" />
           </button>
         </div>
+        )}
       </div>
 
       {/* ── Report dialog ── */}

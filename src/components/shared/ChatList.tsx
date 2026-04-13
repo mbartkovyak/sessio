@@ -60,7 +60,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
 
   return (
     <>
-    <div className="rounded-2xl bg-white shadow-sm overflow-hidden" style={cardStyle}>
+    <div className="rounded-2xl bg-white shadow-sm" style={cardStyle}>
     <div className="divide-y divide-border" onClick={() => menuOpen && setMenuOpen(null)}>
       {visible.map(conv => {
         const isManual = isManuallyUnread(conv.id);

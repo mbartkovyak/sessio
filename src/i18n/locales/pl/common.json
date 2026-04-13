@@ -106,7 +106,8 @@
     "unblockUser": "Odblokuj użytkownika",
     "report": "Zgłoś",
     "submit": "Wyślij",
-    "cancel": "Anuluj"
+    "cancel": "Anuluj",
+    "blockedByUser": "Nie możesz wysłać wiadomości do tej osoby"
   },
   "notifications": {
     "enableTitle": "Włącz powiadomienia",
