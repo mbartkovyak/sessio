@@ -4,6 +4,8 @@ Raw ideas, opportunities, and things to explore. Not committed to — just captu
 
 Raising https://www.crowdcube.eu/?country=PL - worked for playtomic (6 mil)
 
+https://thcpathfinder.com/
+
 my mom has 2 lessons people can cancel per month + she wants coaches to be able to move their lessons a bit
 
 **I'm helping my mom's swimming school** pick a management tool. Are you using anything? How's it working for you?

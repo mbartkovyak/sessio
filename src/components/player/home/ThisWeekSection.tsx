@@ -7,6 +7,7 @@ import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
 import { getHoursUntilSession } from './sessionUtils';
 import { useTranslation } from 'react-i18next';
+import { openExternal } from '@/components/shared/VenueLink';
 
 export default function ThisWeekSection({ sessions, title }: { sessions: any[]; title?: string }) {
   const { t } = useTranslation('player');
@@ -147,6 +148,7 @@ function SessionFooter({ training }: { training: any }) {
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
           target="_blank" rel="noopener noreferrer"
+          onClick={(e) => openExternal(e, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`)}
           className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
         >
           <MapPin className="h-3 w-3" /> {training.venue.split(',')[0]}

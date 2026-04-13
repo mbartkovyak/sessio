@@ -11,6 +11,7 @@
 
 - Runs a tennis academy — **Akademia Warszawska dla kobiet** (women's tennis academy in Warsaw), expanding to Mińsk
 - **~120-130 people** trained weekly — all groups, zero individual lessons
+- **15-20% absence rate** in group lessons — this is the scale of the backfill/makeup problem he manages manually
 - **5 trainers** — they only coach, Kajtek handles all admin/scheduling/attendance
 - Never tried any scheduling tool — manages everything via **Excel + WhatsApp**
 - Payments via **bank transfer** (standing orders), upfront monthly — clients have auto-transfers set up

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sessio — Loading</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'DM Sans', sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .loading-text {
+      color: #737373;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg viewBox="0 0 32 32" width="160" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Background -->
+      <rect width="32" height="32" rx="8" fill="#171717" />
+
+      <!-- S stroke (static) -->
+      <path
+        d="M19 9c-2-1.5-6.5-0.5-6.5 3.5 0 3.5 7 3 7 7 0 3-4 4.5-7 3"
+        stroke="#ffffff"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        fill="none"
+      />
+
+      <!-- Animated ball -->
+      <circle cx="0" cy="0" r="2" fill="#f59e0b" filter="url(#glow)">
+        <animateMotion
+          path="M19,9 c-2,-1.5,-6.5,-0.5,-6.5,3.5 c0,3.5,7,3,7,7 c0,3,-4,4.5,-7,3"
+          dur="3s"
+          repeatCount="indefinite"
+          calcMode="spline"
+          keyPoints="0;1;0"
+          keyTimes="0;0.5;1"
+          keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+        />
+        <animate attributeName="r" values="2;2.3;2;1.8;2" dur="3s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+
+    <p class="loading-text">Loading...</p>
+  </div>
+</body>
+</html>

@@ -14,7 +14,7 @@ Three personas, three broken workflows, all connected.
 
 ### Coach
 
-The independent coach's day is spent more on coordination than coaching.
+The coach's day is spent more on coordination than coaching.
 
 - **Manual confirmation loop.** Groups: the coach messages each WhatsApp group "who's coming tomorrow?" and waits. Individual: SMS each client the day before. Someone cancels at 9pm — coach scrambles to find a replacement manually.
 - **Gaps in the schedule bleed money.** A client cancels an individual lesson — the coach sits idle for 45 minutes (at the pool, on the court) because there's no way to automatically offer that slot to someone else. No one to message, no system to shift the next client earlier. "Skaranie boskie."
@@ -74,7 +74,7 @@ The pain is obvious. Every coach feels it. So why is there no Doctolib for sport
 2. **Incumbents are bad and complacent.** Missing notifications, no auto-reschedule, poor UX. Coaches are unhappy but stuck. Low bar to beat.
 3. **Booking behavior is trained.** Doctolib trained France, Booksy trained Poland. People expect to book everything online. Sports coaching is one of the last holdouts.
 
-**Competition is weak.** Marketplaces (CoachUp, HOKALI) cold-started and died. Tools exist (ActiveNow, CoachNow) but have no discovery layer and bad UX. Court platforms (Playtomic) serve venues, not coaches. The closest competitor (CoachIQ) is US-only and tiny. No one combines tool + marketplace for independent coaches in Europe. → *Full analysis: [[3-Competition/Competition|3-Competition/]]*
+**Competition is weak.** Marketplaces (CoachUp, HOKALI) cold-started and died. Tools exist (ActiveNow, CoachNow) but have no discovery layer and bad UX. Court platforms (Playtomic) serve venues, not coaches. The closest competitor (CoachIQ) is US-only and tiny. No one combines tool + marketplace for coaches and small schools in Europe. → *Full analysis: [[3-Competition/Competition|3-Competition/]]*
 
 ---
 

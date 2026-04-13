@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { CapacitorHttp } from '@capacitor/core';
 import { isNative } from '@/lib/platform';
+import { openExternal } from '@/components/shared/VenueLink';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -217,7 +218,8 @@ function RestAutocomplete({ value, onChange, onPlaceSelect, placeholder, classNa
             <li
               key={p.place_id}
               className="px-3 py-2.5 text-sm cursor-pointer hover:bg-muted active:bg-muted/80 border-b border-border last:border-0"
-              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); selectPrediction(p); }}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => selectPrediction(p)}
             >
               {p.description}
             </li>
@@ -232,11 +234,14 @@ function RestAutocomplete({ value, onChange, onPlaceSelect, placeholder, classNa
 // ── Shared ───────────────────────────────────────────────────────────
 
 function MapsLink({ address }: { address: string }) {
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
   return (
     <a
-      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
+      href={url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={(e) => openExternal(e, url)}
       className="text-xs text-primary hover:underline inline-flex items-center gap-1"
     >
       View on Maps ↗
