@@ -144,8 +144,11 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 ### Deployment pipeline
 
 - **Vercel** deploys automatically on push to any branch (preview for `dev`, production for `main`).
-- **Supabase migrations** run automatically on merge to `main` via `.github/workflows/deploy-supabase.yml` (`supabase db push`). No manual SQL needed for production.
-- **Dev Supabase** has no auto-migration pipeline — migrations must be run manually on the dev project.
+- **Supabase migrations** run through GitHub CI only — never via direct CLI.
+  - **Dev:** `.github/workflows/deploy-supabase-dev.yml` runs on push to `dev` (when `supabase/` changes).
+  - **Prod:** `.github/workflows/deploy-supabase.yml` runs on merge to `main`.
+  - **NEVER run `supabase db push` directly.** Commit the migration file, push to `dev`, let CI apply it. This keeps both databases in sync with git as the single source of truth.
+  - Edge Functions deploy through the same CI workflows. Never run `supabase functions deploy` directly.
 
 ### Mobile app distribution
 

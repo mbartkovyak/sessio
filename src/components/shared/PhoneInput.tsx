@@ -82,7 +82,7 @@ export default function PhoneInput({ value, onChange, required }: PhoneInputProp
   return (
     <div>
       <label className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1.5">
-        <Phone className="h-3.5 w-3.5" /> {t('phone.label')} {required && <span className="text-destructive">*</span>}
+        <Phone className="h-3.5 w-3.5" /> {t('phone.label')} {required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground font-normal">{t('phone.optional')}</span>}
       </label>
       <div className="flex gap-2">
         <div className="relative shrink-0">

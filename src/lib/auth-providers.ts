@@ -102,11 +102,34 @@ export async function signInWithApple(): Promise<{
       if (!identityToken) {
         return { error: new Error('Missing Apple identity token') };
       }
-      const { error } = await supabase.auth.signInWithIdToken({
+      const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: identityToken,
       });
       if (error) return { error };
+
+      // Apple provides givenName/familyName ONLY on the first sign-in.
+      // Persist immediately — subsequent sign-ins won't include them.
+      const givenName = result?.response?.givenName;
+      const familyName = result?.response?.familyName;
+      if (givenName || familyName) {
+        const userId = data.session?.user?.id ?? data.user?.id;
+        if (userId) {
+          await supabase
+            .from('profiles')
+            .update({
+              ...(givenName ? { first_name: givenName } : {}),
+              ...(familyName ? { last_name: familyName } : {}),
+            })
+            .eq('id', userId)
+            .then(({ error: profileError }) => {
+              if (profileError) {
+                console.warn('Failed to save Apple name to profile:', profileError.message);
+              }
+            });
+        }
+      }
+
       return { inPlaceSession: true };
     } catch (err) {
       return { error: err };

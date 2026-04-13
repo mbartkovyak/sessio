@@ -65,7 +65,8 @@
   },
   "phone": {
     "label": "Numer telefonu",
-    "placeholder": "Numer telefonu"
+    "placeholder": "Numer telefonu",
+    "optional": "(opcjonalnie)"
   },
   "chat": {
     "noChats": "Brak czatów",
