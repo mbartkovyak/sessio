@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
+  const initialLoadDone = useRef(false);
 
   async function fetchProfile(userId: string, retries = 2) {
     const { data, error } = await supabase
@@ -102,14 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Use cached profile for instant load if it matches the current user
         const cached = profile; // from localStorage initializer
         if (cached && cached.id === session.user.id) {
+          initialLoadDone.current = true;
           setLoading(false);
           fetchProfile(session.user.id); // silent background refresh
         } else {
           await fetchProfile(session.user.id);
+          initialLoadDone.current = true;
           setLoading(false);
         }
       } else {
         setProfile(null);
+        initialLoadDone.current = true;
         setLoading(false);
       }
     });
@@ -128,11 +132,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         if (session?.user) {
           if (event === 'SIGNED_IN') {
-            // Full sign-in: show loader until profile is ready (e.g. after AuthCallback)
-            setLoading(true);
-            fetchProfile(session.user.id)
-              .then(() => setLoading(false))
-              .catch(() => setLoading(false));
+            if (initialLoadDone.current) {
+              // getSession() already handled this session — just refresh profile silently
+              fetchProfile(session.user.id);
+            } else {
+              // Fresh sign-in (e.g. OAuth callback): show loader until profile is ready
+              setLoading(true);
+              fetchProfile(session.user.id)
+                .then(() => { initialLoadDone.current = true; setLoading(false); })
+                .catch(() => { initialLoadDone.current = true; setLoading(false); });
+            }
           } else {
             // Token refresh, user update, etc: silent background refresh — do NOT set loading
             // to avoid unmounting the entire page tree and tearing down realtime subscriptions
