@@ -59,40 +59,41 @@ function isStaleTokenError(err: any): boolean {
   return false;
 }
 
+/** Result from a single push attempt — includes error detail for diagnostics. */
+export type PushResult = { ok: true } | { ok: false; error: string; stale: boolean };
+
 /**
- * Send to a single sub with stale-token cleanup. Returns true if the push
- * was delivered, false otherwise. Used directly by callers that need to
- * customize the payload per sub (e.g. notify_message, where each recipient
- * gets a different URL depending on their role).
+ * Send to a single sub with stale-token cleanup. Returns a result object
+ * with error details so callers can surface diagnostics.
  */
 export async function sendPushWithCleanup(
   sub: Sub,
   payload: PushPayload,
   supabaseAdmin: any,
-): Promise<boolean> {
+): Promise<PushResult> {
   try {
     await sendPush(sub, payload);
-    return true;
+    return { ok: true };
   } catch (err: any) {
+    const errStr = String(err);
     if (isStaleTokenError(err)) {
       await supabaseAdmin
         .from('push_subscriptions')
         .delete()
         .eq('user_id', sub.user_id)
         .eq('device_id', sub.device_id);
-    } else {
-      // Transient error (quota, network, transport misconfig). Log but
-      // don't delete — we'll retry on the next invocation.
-      console.error('sendPush failed', {
-        user_id: sub.user_id,
-        device_id: sub.device_id,
-        transport: sub.transport,
-        err: String(err),
-      });
+      console.error('sendPush stale token — deleted', { user_id: sub.user_id, device_id: sub.device_id, transport: sub.transport, err: errStr });
+      return { ok: false, error: errStr, stale: true };
     }
-    return false;
+    // Transient error (quota, network, transport misconfig). Log but
+    // don't delete — we'll retry on the next invocation.
+    console.error('sendPush failed', { user_id: sub.user_id, device_id: sub.device_id, transport: sub.transport, err: errStr });
+    return { ok: false, error: errStr, stale: false };
   }
 }
+
+/** Aggregated result from sending to multiple subs. */
+export type PushBatchResult = { sent: number; errors: string[] };
 
 /**
  * Send the same payload to every sub in the list. Cleans up stale rows by
@@ -102,12 +103,15 @@ export async function sendPushToSubs(
   subs: Sub[],
   payload: PushPayload,
   supabaseAdmin: any,
-): Promise<number> {
+): Promise<PushBatchResult> {
   let sent = 0;
+  const errors: string[] = [];
   for (const sub of subs) {
-    if (await sendPushWithCleanup(sub, payload, supabaseAdmin)) sent++;
+    const r = await sendPushWithCleanup(sub, payload, supabaseAdmin);
+    if (r.ok) sent++;
+    else errors.push(`${sub.transport}/${sub.platform}: ${r.error}`);
   }
-  return sent;
+  return { sent, errors };
 }
 
 /**
@@ -120,9 +124,9 @@ export async function sendPushToUsers(
   userIds: string[],
   payload: PushPayload,
   excludeUserId?: string,
-): Promise<number> {
+): Promise<PushBatchResult> {
   const targets = excludeUserId ? userIds.filter((id) => id !== excludeUserId) : userIds;
-  if (!targets.length) return 0;
+  if (!targets.length) return { sent: 0, errors: [] };
 
   const { data: subs } = await supabaseAdmin
     .from('push_subscriptions')
