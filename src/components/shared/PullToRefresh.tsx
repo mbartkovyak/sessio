@@ -82,8 +82,8 @@ export default function PullToRefresh() {
 
   const progress = Math.min(distance / THRESHOLD, 1);
 
-  // Position below the header + safe area (notch/Dynamic Island)
-  const safeTop = 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 56px)';
+  // Position well below the header + safe area (notch/Dynamic Island)
+  const safeTop = 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 112px)';
 
   return (
     <div
