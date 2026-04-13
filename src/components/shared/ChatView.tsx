@@ -12,6 +12,7 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 import Avatar from '@/components/shared/Avatar';
 import ReportDialog from '@/components/shared/ReportDialog';
 import { SessioLoader } from '@/components/SessioLogo';
+import { notifyMessage } from '@/lib/pushNotify';
 
 const EmojiPickerLazy = lazy(() =>
   Promise.all([
@@ -318,6 +319,9 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         toast.error(i18n.t('chat.failedSend'));
         return;
       }
+
+      // Push notification to other participants (fire-and-forget)
+      notifyMessage(convId, content);
 
       // Replace optimistic with real data + ensure chat is visible
       unhideChat(convId);
