@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
       autoUpdate: true,
       defaultChannel: 'production',
       appId: 'com.get-sessio.app',
+      version: '1.2.0',
     },
   },
 };

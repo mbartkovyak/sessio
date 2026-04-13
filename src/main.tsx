@@ -53,6 +53,23 @@ if (isNative) {
     });
   }
 
+  // DEBUG: Capgo event listeners — remove after confirming OTA works on Android
+  CapacitorUpdater.addListener('updateAvailable', (info) => {
+    console.log('[Capgo] updateAvailable:', JSON.stringify(info));
+  });
+  CapacitorUpdater.addListener('downloadComplete', (info) => {
+    console.log('[Capgo] downloadComplete:', JSON.stringify(info));
+  });
+  CapacitorUpdater.addListener('downloadFailed', (info) => {
+    console.log('[Capgo] downloadFailed:', JSON.stringify(info));
+  });
+  CapacitorUpdater.addListener('updateFailed', (info) => {
+    console.log('[Capgo] updateFailed:', JSON.stringify(info));
+  });
+  CapacitorUpdater.addListener('noNeedUpdate', (info) => {
+    console.log('[Capgo] noNeedUpdate:', JSON.stringify(info));
+  });
+
   // Signal that this bundle booted successfully so the plugin
   // doesn't roll back to the previous version.
   CapacitorUpdater.notifyAppReady().catch(err => {
