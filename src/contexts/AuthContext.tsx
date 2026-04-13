@@ -3,7 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
-import { isNative } from '@/lib/platform';
+import { isNative, isAndroid } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
 import i18n from '@/i18n';
 // FirebaseMessaging is loaded dynamically in signOut() to avoid a startup
@@ -231,6 +231,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       Sentry.captureException(e, { tags: { context: 'signOut push cleanup' } });
+    }
+
+    // Clear Android Credential Manager cached state so the next sign-in
+    // shows a fresh account picker instead of auto-selecting the old account.
+    if (isNative && isAndroid) {
+      try {
+        const { GoogleSignIn } = await import('@/lib/google-sign-in-native');
+        await GoogleSignIn.signOut();
+      } catch {
+        // Best-effort — plugin may not be registered on older shells.
+      }
     }
 
     await supabase.auth.signOut({ scope: 'global' });

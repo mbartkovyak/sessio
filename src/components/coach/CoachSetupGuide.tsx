@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, ChevronRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const DISMISSED_KEY = 'sessio_setup_guide_dismissed';
 const CALENDAR_SEEN_KEY = 'sessio_setup_calendar_seen';
@@ -18,7 +19,18 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISSED_KEY) === '1');
+  // DB is source of truth (survives reinstalls); localStorage is fast cache
+  const [dismissed, setDismissed] = useState(
+    () => !!profile?.setup_guide_dismissed || localStorage.getItem(DISMISSED_KEY) === '1',
+  );
+
+  // Sync when profile loads/refreshes (e.g. cached profile didn't have the field yet)
+  useEffect(() => {
+    if (profile?.setup_guide_dismissed && !dismissed) {
+      setDismissed(true);
+      localStorage.setItem(DISMISSED_KEY, '1');
+    }
+  }, [profile?.setup_guide_dismissed]);
 
   const hasTraining = trainings.length > 0;
   const isSchoolOwner = schoolCoachCount !== undefined;
@@ -32,8 +44,7 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio
   // Auto-dismiss once all steps are done
   useEffect(() => {
     if (allDone && !dismissed) {
-      localStorage.setItem(DISMISSED_KEY, '1');
-      setDismissed(true);
+      persistDismiss();
     }
   }, [allDone, dismissed]);
 
@@ -80,9 +91,12 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio
 
   const doneCount = steps.filter(s => s.done).length;
 
-  function handleDismiss() {
-    localStorage.setItem(DISMISSED_KEY, '1');
+  function persistDismiss() {
     setDismissed(true);
+    localStorage.setItem(DISMISSED_KEY, '1');
+    if (profile?.id) {
+      supabase.from('profiles').update({ setup_guide_dismissed: true }).eq('id', profile.id).then();
+    }
   }
 
   return (
@@ -93,7 +107,7 @@ export default function CoachSetupGuide({ trainings, schoolCoachCount, schoolBio
           <span className="text-xs text-muted-foreground">
             {t('setupGuide.progress', { done: doneCount, total: steps.length })}
           </span>
-          <button onClick={handleDismiss} className="flex items-center justify-center h-6 w-6 -mr-1 rounded-full text-muted-foreground active:scale-90">
+          <button onClick={persistDismiss} className="flex items-center justify-center h-6 w-6 -mr-1 rounded-full text-muted-foreground active:scale-90">
             <X className="h-4 w-4" />
           </button>
         </div>

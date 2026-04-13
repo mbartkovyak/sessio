@@ -1,4 +1,4 @@
-import { Send, Smile, X } from 'lucide-react';
+import { Send, Smile, X, Flag } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import { getDateLocale } from '@/lib/dateFnsLocale';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import Avatar from '@/components/shared/Avatar';
+import ReportDialog from '@/components/shared/ReportDialog';
 import { SessioLoader } from '@/components/SessioLogo';
 
 const EmojiPickerLazy = lazy(() =>
@@ -103,8 +104,8 @@ function formatTime(dateStr: string) {
 
 // ── Reaction bar (appears on long-press) ──
 
-function ReactionBar({ messageId, userId, onClose, reactions }: {
-  messageId: string; userId: string; onClose: () => void; reactions: any[];
+function ReactionBar({ messageId, userId, onClose, reactions, onReport }: {
+  messageId: string; userId: string; onClose: () => void; reactions: any[]; onReport?: () => void;
 }) {
   const toggle = useToggleReaction();
   const myReactions = new Set(reactions.filter(r => r.user_id === userId).map(r => r.emoji));
@@ -123,6 +124,14 @@ function ReactionBar({ messageId, userId, onClose, reactions }: {
             {emoji}
           </button>
         ))}
+        {onReport && (
+          <button
+            onClick={() => { onReport(); onClose(); }}
+            className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all ml-0.5"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -194,6 +203,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ msgId: string; senderId: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userScrolled = useRef(false);
@@ -407,6 +417,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                                 userId={user.id}
                                 reactions={msgReactions}
                                 onClose={() => setReactionMsgId(null)}
+                                onReport={!isMe ? () => setReportTarget({ msgId: msg.id, senderId: msg.sender_id }) : undefined}
                               />
                             )}
 
@@ -523,6 +534,15 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           </button>
         </div>
       </div>
+
+      {/* ── Report dialog ── */}
+      <ReportDialog
+        open={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        contentType="message"
+        contentId={reportTarget?.msgId ?? ''}
+        flaggedUserId={reportTarget?.senderId ?? ''}
+      />
     </div>
   );
 }

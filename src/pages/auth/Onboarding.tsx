@@ -33,8 +33,17 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Pre-fill name from profile (e.g. captured from Apple Sign In)
+  // Pre-fill name from Apple Sign In (localStorage) or profile
   useEffect(() => {
+    const stored = localStorage.getItem('sessio_apple_name');
+    if (stored) {
+      try {
+        const { firstName: fn, lastName: ln } = JSON.parse(stored);
+        if (fn && !firstName) setFirstName(fn);
+        if (ln && !lastName) setLastName(ln);
+      } catch {}
+      localStorage.removeItem('sessio_apple_name');
+    }
     if (profile?.first_name && !firstName) setFirstName(profile.first_name);
     if (profile?.last_name && !lastName) setLastName(profile.last_name);
   }, [profile]);

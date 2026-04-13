@@ -89,7 +89,24 @@
     "leaveConfirm": "Opuścić {{name}}? Nie będziesz dostawać aktualizacji ani zaproszeń.",
     "messageCoach": "Napisz",
     "trainingFallback": "Zajęcia",
-    "userFallback": "Użytkownik"
+    "userFallback": "Użytkownik",
+    "reportMessage": "Zgłoś wiadomość",
+    "reportTitle": "Zgłoś treść",
+    "reportDescription": "Dlaczego to zgłaszasz?",
+    "reportSubmitted": "Zgłoszenie wysłane. Sprawdzimy je w ciągu 24 godzin.",
+    "reportReasons": {
+      "spam": "Spam",
+      "harassment": "Nękanie",
+      "inappropriate": "Nieodpowiednia treść",
+      "other": "Inne"
+    },
+    "blockUser": "Zablokuj użytkownika",
+    "blockConfirm": "Zablokować tego użytkownika? Nie zobaczysz ich wiadomości i nie będą mogli Ci pisać.",
+    "userBlocked": "Użytkownik zablokowany",
+    "unblockUser": "Odblokuj użytkownika",
+    "report": "Zgłoś",
+    "submit": "Wyślij",
+    "cancel": "Anuluj"
   },
   "notifications": {
     "enableTitle": "Włącz powiadomienia",

@@ -1,6 +1,6 @@
 import { SignInWithApple } from '@capacitor-community/apple-sign-in';
 import { supabase } from '@/integrations/supabase/client';
-import { isNative, isIOS, getShareableOrigin } from './platform';
+import { isNative, isIOS, isAndroid, getShareableOrigin } from './platform';
 import {
   getAuthRedirectUrl,
   getEmailRedirectUrl,
@@ -53,7 +53,49 @@ function resetPasswordRedirect(): string {
 // Google
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function signInWithGoogle(): Promise<{ error?: unknown }> {
+/**
+ * The Web Client ID from Google Cloud Console / Supabase Google provider.
+ * Credential Manager uses this as serverClientId to issue tokens that
+ * Supabase can verify. Public config, not a secret.
+ */
+const GOOGLE_WEB_CLIENT_ID = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID as string;
+
+export async function signInWithGoogle(): Promise<{
+  error?: unknown;
+  inPlaceSession?: boolean;
+}> {
+  // Android native: use Credential Manager (system account picker, no browser).
+  // Falls back to browser OAuth if the native plugin isn't available (e.g. user
+  // is still on an older native shell before the store update).
+  if (isNative && isAndroid && GOOGLE_WEB_CLIENT_ID) {
+    try {
+      const { GoogleSignIn } = await import('./google-sign-in-native');
+      const result = await GoogleSignIn.signIn({ webClientId: GOOGLE_WEB_CLIENT_ID });
+      const idToken = result?.idToken;
+      if (!idToken) {
+        return { error: new Error('Missing Google ID token') };
+      }
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+      if (error) return { error };
+      return { inPlaceSession: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[GoogleSignIn] native error:', msg, err);
+      // User explicitly dismissed the picker → don't force browser fallback.
+      if (/cancel/i.test(msg)) {
+        return { error: err };
+      }
+      // Any other failure (no accounts on device, plugin missing, config
+      // error) → fall through to browser OAuth. Browser OAuth works fine
+      // for first-time sign-ins; the Chrome Custom Tab bug only manifests
+      // when switching between cached Google sessions.
+    }
+  }
+
+  // Web / iOS / fallback: browser-based OAuth redirect
   const external = shouldOpenExternalAuth();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -113,6 +155,13 @@ export async function signInWithApple(): Promise<{
       const givenName = result?.response?.givenName;
       const familyName = result?.response?.familyName;
       if (givenName || familyName) {
+        // Save to localStorage so Onboarding can pre-fill immediately.
+        // The profile update below races with AuthContext's fetchProfile,
+        // so localStorage is the reliable bridge.
+        localStorage.setItem('sessio_apple_name', JSON.stringify({
+          firstName: givenName || '',
+          lastName: familyName || '',
+        }));
         const userId = data.session?.user?.id ?? data.user?.id;
         if (userId) {
           await supabase

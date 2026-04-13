@@ -80,7 +80,8 @@
     "reviews": "Відгуки",
     "reviewsMinimum": "Оцінка з'явиться після 3 відгуків",
     "athlete": "Учасник",
-    "coachResponse": "Відповідь тренера:"
+    "coachResponse": "Відповідь тренера:",
+    "reportReview": "Поскаржитись на відгук"
   },
   "schoolProfile": {
     "title": "Школа",

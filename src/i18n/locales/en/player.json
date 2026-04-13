@@ -80,7 +80,8 @@
     "reviews": "Reviews",
     "reviewsMinimum": "Rating appears after 3 reviews",
     "athlete": "Participant",
-    "coachResponse": "Coach reply:"
+    "coachResponse": "Coach reply:",
+    "reportReview": "Report review"
   },
   "schoolProfile": {
     "title": "School",

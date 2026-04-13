@@ -89,7 +89,24 @@
     "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training.",
     "messageCoach": "Message",
     "trainingFallback": "Training",
-    "userFallback": "User"
+    "userFallback": "User",
+    "reportMessage": "Report message",
+    "reportTitle": "Report content",
+    "reportDescription": "Why are you reporting this?",
+    "reportSubmitted": "Report submitted. We'll review it within 24 hours.",
+    "reportReasons": {
+      "spam": "Spam",
+      "harassment": "Harassment",
+      "inappropriate": "Inappropriate content",
+      "other": "Other"
+    },
+    "blockUser": "Block user",
+    "blockConfirm": "Block this user? You won't see their messages and they won't be able to message you.",
+    "userBlocked": "User blocked",
+    "unblockUser": "Unblock user",
+    "report": "Report",
+    "submit": "Submit",
+    "cancel": "Cancel"
   },
   "notifications": {
     "enableTitle": "Enable notifications",

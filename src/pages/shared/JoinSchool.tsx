@@ -11,8 +11,8 @@ import Avatar from '@/components/shared/Avatar';
 import { sportLabels } from '@/lib/constants';
 import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
-import { getAuthRedirectUrl, getEmailRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
-import { signInWithApple } from '@/lib/auth-providers';
+import { getEmailRedirectUrl } from '@/lib/auth-native';
+import { signInWithGoogle, signInWithApple } from '@/lib/auth-providers';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
@@ -139,18 +139,17 @@ export default function JoinSchool() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     sessionStorage.setItem('pending_school_invite', code ?? '');
-    const external = shouldOpenExternalAuth();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: getAuthRedirectUrl(),
-        queryParams: { prompt: 'select_account' },
-        skipBrowserRedirect: external,
-      },
-    });
-    if (error) { toast.error(t('joinSchool.signInFailed')); setGoogleLoading(false); return; }
-    if (external && data?.url) {
-      await openExternalAuth(data.url);
+    const { error, inPlaceSession } = await signInWithGoogle();
+    if (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (!/cancel/i.test(msg)) {
+        toast.error(t('joinSchool.signInFailed'));
+      }
+      setGoogleLoading(false);
+      return;
+    }
+    if (inPlaceSession) {
+      navigate('/auth/callback');
     }
   }
 

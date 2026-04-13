@@ -362,8 +362,7 @@ kanban-plugin: board
 
 ## Review
 
-- [ ] Test: 1. Delete account fully works. 2. New user writing to the coach. 5. Never dissapearing check your calendar.6. test Android.
-- [ ] **WED 11–11:45** 🎯 I App store fixes
+- [ ] Test: 5. Never dissapearing check your calendar
 - [ ] **Wed 12:00**   check those 1. **ecc5c6a** — Remove coach addition buttons from training form
 	
 	  2. **393782f** — Fix setup guide bio check (school bio vs profile bio)
@@ -381,6 +380,7 @@ kanban-plugin: board
 
 **Complete**
 - [x] **WED 19:30–20:00** 🎯 Send recording to trusted person — "in 30 sec, what do we do?"
+- [x] **WED 11–11:45** 🎯 I App store fixes
 - [x] **THU 13:30–14:30** 🎯 Q&A drill — ask claude and ChatGPT
 - [x] **WED 17:00–18:30** 🎯 Pitch practice round 2 — 4 runs, record last on camera, note 3 fixes for Thursday
 - [x] **THU 09:30–11:00** 🎯 Pitch practice round 3 — 4 runs, apply Wed's 3 fixes (wording only)

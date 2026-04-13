@@ -9,6 +9,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import Avatar from './Avatar';
 import { type ConversationInfo, markConversationSeen, markAsUnread, hideChat, isManuallyUnread } from '@/hooks/shared/useConversations';
+import { useBlockUser } from '@/hooks/shared/useBlockedUsers';
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 
 interface Props {
   conversations: ConversationInfo[];
@@ -24,6 +29,8 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+  const [blockTarget, setBlockTarget] = useState<{ userId: string; convId: string } | null>(null);
+  const blockUser = useBlockUser();
 
   // useMyConversations already filters hidden from DB, but local hiddenIds
   // gives instant feedback after archiving (before query refetches)
@@ -52,6 +59,7 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
   }
 
   return (
+    <>
     <div className="rounded-2xl bg-white shadow-sm overflow-hidden" style={cardStyle}>
     <div className="divide-y divide-border" onClick={() => menuOpen && setMenuOpen(null)}>
       {visible.map(conv => {
@@ -120,12 +128,22 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
                   {t('chat.markAsUnread')}
                 </button>
                 {conv.type === 'dm' && (
-                  <button
-                    onClick={() => { if (!confirm(t('chat.archiveConfirm'))) return; hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
-                    className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
-                  >
-                    {t('chat.archive')}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => { if (!confirm(t('chat.archiveConfirm'))) return; hideChat(conv.id); setHiddenIds([...hiddenIds, conv.id]); setMenuOpen(null); }}
+                      className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
+                    >
+                      {t('chat.archive')}
+                    </button>
+                    {conv.otherUserId && (
+                      <button
+                        onClick={() => { setBlockTarget({ userId: conv.otherUserId!, convId: conv.id }); setMenuOpen(null); }}
+                        className="w-full px-4 py-2.5 text-sm text-left text-destructive hover:bg-secondary transition-colors"
+                      >
+                        {t('chat.blockUser')}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -134,5 +152,32 @@ export default function ChatList({ conversations, isLoading, getChatPath, emptyT
       })}
     </div>
     </div>
+
+      {/* Block user confirmation */}
+      <AlertDialog open={!!blockTarget} onOpenChange={v => { if (!v) setBlockTarget(null); }}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('chat.blockUser')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('chat.blockConfirm')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('chat.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (blockTarget) {
+                  blockUser.mutate(blockTarget.userId);
+                  hideChat(blockTarget.convId);
+                  setHiddenIds(prev => [...prev, blockTarget.convId]);
+                }
+                setBlockTarget(null);
+              }}
+            >
+              {t('chat.blockUser')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

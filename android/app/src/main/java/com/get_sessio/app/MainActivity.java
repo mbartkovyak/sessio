@@ -20,6 +20,10 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Local plugin — must be registered BEFORE super.onCreate() which
+        // builds the Capacitor bridge and finalizes the plugin list.
+        registerPlugin(GoogleSignInPlugin.class);
+
         super.onCreate(savedInstanceState);
 
         // Explicit edge-to-edge. API 35+ enforces this by default; calling it

@@ -37,17 +37,26 @@ export default function AuthForm({ mode }: Props) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   async function handleGoogle() {
     setError('');
     setGoogleLoading(true);
-    const { error: err } = await signInWithGoogle();
+    const { error: err, inPlaceSession } = await signInWithGoogle();
     if (err) {
-      setError(localizeErrorMessage(err, t('auth.googleFailed')));
+      // Android Credential Manager cancellation — user dismissed the picker.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/cancel/i.test(msg)) {
+        setError(localizeErrorMessage(err, t('auth.googleFailed')));
+      }
       setGoogleLoading(false);
+      return;
     }
-    // On success, Google redirects the browser away — keep the spinner so the
-    // user doesn't double-tap while navigation is in-flight.
+    if (inPlaceSession) {
+      // Android native: session is already live → route through the callback.
+      navigate('/auth/callback');
+    }
+    // Web / iOS: the browser is redirecting away — keep the spinner.
   }
 
   async function handleApple() {
@@ -176,6 +185,17 @@ export default function AuthForm({ mode }: Props) {
         {t('auth.continueGoogle')}
       </button>
 
+      <p className="text-center text-[11px] leading-tight text-white/40 px-2">
+        <Trans
+          i18nKey="auth.socialTerms"
+          ns="auth"
+          components={{
+            terms: <Link to="/terms" className="underline underline-offset-2" />,
+            privacy: <Link to="/privacy" className="underline underline-offset-2" />,
+          }}
+        />
+      </p>
+
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-white/20" />
         <span className="text-xs text-white/50">{t('auth.or')}</span>
@@ -224,6 +244,26 @@ export default function AuthForm({ mode }: Props) {
             />
           </div>
         )}
+        {mode === 'signup' && (
+          <label className="flex items-start gap-2.5 cursor-pointer px-1">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={e => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-primary rounded shrink-0"
+            />
+            <span className="text-xs leading-tight text-white/70">
+              <Trans
+                i18nKey="auth.termsCheckbox"
+                ns="auth"
+                components={{
+                  terms: <Link to="/terms" className="underline underline-offset-2 text-white/90" />,
+                  privacy: <Link to="/privacy" className="underline underline-offset-2 text-white/90" />,
+                }}
+              />
+            </span>
+          </label>
+        )}
         {mode === 'signin' && (
           <div className="flex justify-end">
             <Link
@@ -237,7 +277,7 @@ export default function AuthForm({ mode }: Props) {
         {error && <p className="text-sm text-destructive">{error}</p>}
         <button
           type="submit"
-          disabled={emailLoading || appleLoading || googleLoading || !email || !password}
+          disabled={emailLoading || appleLoading || googleLoading || !email || !password || (mode === 'signup' && !termsAccepted)}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
         >
           {emailLoading ? (
