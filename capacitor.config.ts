@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
       autoUpdate: true,
       defaultChannel: capgoChannel,
       appId: 'com.get-sessio.app',
-      version: '1.2.0',
+      version: '1.0.0',
     },
   },
 };
