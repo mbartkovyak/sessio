@@ -11,6 +11,7 @@ const config: CapacitorConfig = {
     CapacitorUpdater: {
       autoUpdate: true,
       defaultChannel: 'production',
+      appId: 'com.get-sessio.app',
     },
   },
 };

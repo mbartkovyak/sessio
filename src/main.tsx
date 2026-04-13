@@ -47,7 +47,10 @@ createRoot(document.getElementById("root")!).render(<App />);
 if (isNative) {
   // Auto-select Capgo channel based on build mode.
   if (import.meta.env.MODE === 'development') {
-    CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(() => {});
+    CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(err => {
+      console.error('[Capgo] setChannel failed:', err);
+      Sentry.captureException(err, { extra: { context: 'CapacitorUpdater.setChannel' } });
+    });
   }
 
   // Signal that this bundle booted successfully so the plugin
