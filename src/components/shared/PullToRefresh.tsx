@@ -82,10 +82,13 @@ export default function PullToRefresh() {
 
   const progress = Math.min(distance / THRESHOLD, 1);
 
+  // Position below the header + safe area (notch/Dynamic Island)
+  const safeTop = 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 56px)';
+
   return (
     <div
       className="fixed inset-x-0 z-[100] flex justify-center pointer-events-none"
-      style={{ top: Math.max(distance - 36, 4) }}
+      style={{ top: `calc(${safeTop} + ${Math.max(distance - 36, 0)}px)` }}
     >
       <div className="bg-card/90 backdrop-blur-sm rounded-full p-2 shadow-lg border border-border/50">
         <Loader2
