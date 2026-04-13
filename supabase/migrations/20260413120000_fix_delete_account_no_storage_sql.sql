@@ -1,18 +1,7 @@
--- Fix delete_my_account: fully delete the auth.users row instead of just
--- nullifying the profiles row. This ensures re-registration with the same
--- email starts completely fresh (no orphaned profile, no old data).
---
--- The auth.users deletion cascades to profiles (ON DELETE CASCADE), which
--- in turn cascades to all tables referencing profiles(id). All active FKs
--- have ON DELETE CASCADE or ON DELETE SET NULL — verified in migration
--- 20260313190000_fix_fkeys_to_profiles.sql.
---
--- Explicit DELETEs above the auth.users delete are retained because:
--- (a) Coach-owned trainings have deep cascading chains (messages →
---     conversation_participants → conversations → sessions → members)
---     that must be cleaned in the correct order.
--- (b) Belt-and-suspenders: explicit cleanup ensures no data survives even
---     if a future migration adds a table without CASCADE.
+-- Remove direct storage.objects DELETE from delete_my_account().
+-- Supabase blocks direct SQL DELETE on storage.objects.
+-- Storage cleanup is now handled client-side via the Storage API
+-- before calling this RPC.
 
 CREATE OR REPLACE FUNCTION public.delete_my_account()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
@@ -23,7 +12,6 @@ BEGIN
   IF v_uid IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
 
   -- ── Coach-owned training cascade ──────────────────────────────────────
-  -- Must delete children before parents due to FK ordering.
   DELETE FROM public.messages WHERE conversation_id IN (
     SELECT c.id FROM public.conversations c WHERE c.training_id IN (SELECT id FROM public.trainings WHERE coach_id = v_uid)
   );
@@ -36,7 +24,6 @@ BEGIN
   DELETE FROM public.training_sessions WHERE training_id IN (SELECT id FROM public.trainings WHERE coach_id = v_uid);
   DELETE FROM public.training_members WHERE training_id IN (SELECT id FROM public.trainings WHERE coach_id = v_uid);
   DELETE FROM public.join_requests WHERE training_id IN (SELECT id FROM public.trainings WHERE coach_id = v_uid);
-  -- abonament_types + player_abonaments + abonament_usage cascade from trainings deletion
   DELETE FROM public.trainings WHERE coach_id = v_uid;
 
   -- ── User participation data ───────────────────────────────────────────
@@ -58,9 +45,6 @@ BEGIN
   DELETE FROM public.school_members WHERE coach_id = v_uid;
   DELETE FROM public.schools WHERE owner_id = v_uid;
 
-  -- ── Storage files: cleaned up client-side via Storage API before this RPC call.
-  -- Direct DELETE from storage.objects is blocked by Supabase.
-
   -- ── Orphaned DM conversations (no participants left) ──────────────────
   DELETE FROM public.conversations c
   WHERE c.training_id IS NULL
@@ -70,10 +54,6 @@ BEGIN
     );
 
   -- ── Delete the auth user ──────────────────────────────────────────────
-  -- Cascades to: profiles (ON DELETE CASCADE) → and through profiles to
-  -- all remaining tables with ON DELETE CASCADE/SET NULL.
-  -- This is the nuclear option — anything the explicit DELETEs above
-  -- missed will be caught by the cascade chain.
   DELETE FROM auth.users WHERE id = v_uid;
 END;
 $$;

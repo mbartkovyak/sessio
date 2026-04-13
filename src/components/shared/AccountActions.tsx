@@ -9,7 +9,7 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function AccountActions() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
 
@@ -26,6 +26,13 @@ export default function AccountActions() {
         onClick={async () => {
           if (!confirm(t('actions.confirmDelete'))) return;
           setDeleting(true);
+          // Clean up storage files before deleting the account (direct SQL DELETE on storage.objects is blocked)
+          for (const bucket of ['avatars', 'videos'] as const) {
+            const { data: files } = await supabase.storage.from(bucket).list(user!.id);
+            if (files?.length) {
+              await supabase.storage.from(bucket).remove(files.map(f => `${user!.id}/${f.name}`));
+            }
+          }
           const { error } = await supabase.rpc('delete_my_account');
           if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); return; }
           await signOut();
