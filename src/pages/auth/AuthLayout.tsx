@@ -61,7 +61,7 @@ export default function AuthLayout({ title, subtitle, children }: Props) {
           </div>
         </div>
 
-        <div className="relative z-10 pb-6 pt-4 flex justify-center gap-4 text-xs text-white/40">
+        <div className="relative z-10 pt-4 flex justify-center gap-4 text-xs text-white/40" style={{ paddingBottom: 'max(24px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 24px)))' }}>
           <Link to="/privacy" className="underline underline-offset-2 hover:text-white/70">Privacy</Link>
           <Link to="/terms" className="underline underline-offset-2 hover:text-white/70">Terms</Link>
         </div>
