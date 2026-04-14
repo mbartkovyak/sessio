@@ -63,20 +63,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Diagnostic: check FCM config without sending ──
-    if (action === 'diagnose') {
-      const saRaw = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON') ?? '';
-      const projectId = Deno.env.get('FCM_PROJECT_ID') ?? '(not set)';
-      let saInfo: any = { raw_length: saRaw.length };
-      try {
-        const sa = JSON.parse(saRaw);
-        saInfo = { project_id: sa.project_id, client_email: sa.client_email, private_key_id: sa.private_key_id, has_private_key: !!sa.private_key, token_uri: sa.token_uri };
-      } catch (e: any) { saInfo.parse_error = e.message; }
-      results.fcm_project_id = projectId;
-      results.service_account = saInfo;
-      results.project_id_match = saInfo.project_id === projectId;
-    }
-
     // ── Generic: send push to specific users ──
     if (action === 'notify') {
       const { user_ids, title, body: pushBody, tag, url } = body;
