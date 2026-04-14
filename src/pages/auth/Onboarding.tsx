@@ -42,7 +42,6 @@ export default function Onboarding() {
         if (fn && !firstName) setFirstName(fn);
         if (ln && !lastName) setLastName(ln);
       } catch {}
-      localStorage.removeItem('sessio_apple_name');
     }
     if (profile?.first_name && !firstName) setFirstName(profile.first_name);
     if (profile?.last_name && !lastName) setLastName(profile.last_name);
@@ -94,6 +93,7 @@ export default function Onboarding() {
   // ── Submit: Athlete ──
   async function submitAthlete() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
@@ -114,6 +114,7 @@ export default function Onboarding() {
   async function submitSoloCoach() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!country || !city || !sport) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
@@ -151,6 +152,7 @@ export default function Onboarding() {
   async function submitSchoolOwner() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!country || !city || !schoolName.trim() || schoolSports.length === 0) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
@@ -186,6 +188,7 @@ export default function Onboarding() {
   async function submitJoinSchool() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!inviteCode.trim()) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
