@@ -78,7 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await new Promise(r => setTimeout(r, 1000));
         return fetchProfile(userId, retries - 1);
       }
-      Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+      // Only report real API errors, not transient network failures
+      const isNetworkError = !error.code && !error.details;
+      if (!isNetworkError) {
+        Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+      }
       // Never nuke existing profile on error — keep cached data visible.
       // Auth state handler clears profile on SIGNED_OUT.
       return;
