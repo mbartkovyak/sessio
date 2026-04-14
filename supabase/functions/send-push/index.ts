@@ -68,12 +68,14 @@ Deno.serve(async (req) => {
       const { user_ids, title, body: pushBody, tag, url } = body;
       if (!Array.isArray(user_ids) || !title) throw new Error('user_ids[] and title required');
 
-      results.sent = await sendPushToUsers(
+      const batch = await sendPushToUsers(
         supabaseAdmin,
         user_ids,
         { title, body: pushBody ?? '', tag: tag ?? 'sessio', url: url ?? '/', sender_id: senderId },
         senderId,
       );
+      results.sent = batch.sent;
+      if (batch.errors.length) results.errors = batch.errors;
     }
 
     // ── Message: notify conversation participants ──
@@ -125,6 +127,7 @@ Deno.serve(async (req) => {
         const senderName = senderProfile?.full_name ?? 'Someone';
         const preview = (message_preview ?? '').slice(0, 100);
         let sent = 0;
+        const errors: string[] = [];
 
         // Per-sub payload customization: each recipient gets a URL based
         // on their role (player vs coach). sendPushWithCleanup handles
@@ -139,7 +142,7 @@ Deno.serve(async (req) => {
                 ? `/player/dm/${senderId}`
                 : `/coach/dm/${senderId}`);
 
-          const ok = await sendPushWithCleanup(
+          const r = await sendPushWithCleanup(
             sub,
             {
               title: senderName,
@@ -150,9 +153,11 @@ Deno.serve(async (req) => {
             },
             supabaseAdmin,
           );
-          if (ok) sent++;
+          if (r.ok) sent++;
+          else errors.push(`${sub.transport}/${sub.platform}: ${r.error}`);
         }
         results.sent = sent;
+        if (errors.length) results.errors = errors;
       }
     }
 
@@ -163,7 +168,8 @@ Deno.serve(async (req) => {
         .select('user_id, device_id, platform, transport, target, web_keys')
         .eq('user_id', senderId);
 
-      results.sent = await sendPushToSubs(
+      results.subs_found = (subs ?? []).length;
+      const batch = await sendPushToSubs(
         (subs ?? []) as Sub[],
         {
           title: body.title ?? 'Sessio',
@@ -173,6 +179,8 @@ Deno.serve(async (req) => {
         },
         supabaseAdmin,
       );
+      results.sent = batch.sent;
+      if (batch.errors.length) results.errors = batch.errors;
     }
 
     return new Response(JSON.stringify({ ok: true, ...results }), {

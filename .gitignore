@@ -17,6 +17,9 @@ dist-ssr
 .tools/
 *.local
 
+# Claude Code
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -49,6 +52,20 @@ package-lock.json
 # Capacitor iOS
 ios/App/Pods/
 ios/App/App/public/
+
+# iCloud duplicates (macOS adds " 2", " 3", etc.)
+*\ 2.*
+*\ 3.*
+*\ 4.*
+*\ 5.*
+*\ 6.*
+
+# Misc junk
+*.zip
+Untitled Kanban*.md
+
+# Obsidian recordings
+obsidian_doc/2-GTM/recordings/
 
 # Capacitor Android
 android/app/src/main/assets/public/

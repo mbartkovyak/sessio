@@ -422,6 +422,7 @@ export type Database = {
           phone: string | null
           role: string | null
           school_id: string | null
+          setup_guide_dismissed: boolean
           sport: string | null
           venues: Json | null
         }
@@ -442,6 +443,7 @@ export type Database = {
           phone?: string | null
           role?: string | null
           school_id?: string | null
+          setup_guide_dismissed?: boolean
           sport?: string | null
           venues?: Json | null
         }
@@ -462,6 +464,7 @@ export type Database = {
           phone?: string | null
           role?: string | null
           school_id?: string | null
+          setup_guide_dismissed?: boolean
           sport?: string | null
           venues?: Json | null
         }
@@ -1019,6 +1022,7 @@ export type Database = {
           phone: string | null
           role: string | null
           school_id: string | null
+          setup_guide_dismissed: boolean
           sport: string | null
           venues: Json | null
         }

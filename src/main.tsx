@@ -46,8 +46,16 @@ createRoot(document.getElementById("root")!).render(<App />);
 
 if (isNative) {
   // Auto-select Capgo channel based on build mode.
+  // Guard with localStorage to avoid hitting Capgo's rate limit on every app boot.
   if (import.meta.env.MODE === 'development') {
-    CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(() => {});
+    const channelKey = '_capgo_channel';
+    if (localStorage.getItem(channelKey) !== 'dev') {
+      CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true })
+        .then(() => localStorage.setItem(channelKey, 'dev'))
+        .catch(err => {
+          console.error('[Capgo] setChannel failed:', err);
+        });
+    }
   }
 
   // Signal that this bundle booted successfully so the plugin

@@ -144,8 +144,11 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 ### Deployment pipeline
 
 - **Vercel** deploys automatically on push to any branch (preview for `dev`, production for `main`).
-- **Supabase migrations** run automatically on merge to `main` via `.github/workflows/deploy-supabase.yml` (`supabase db push`). No manual SQL needed for production.
-- **Dev Supabase** has no auto-migration pipeline — migrations must be run manually on the dev project.
+- **Supabase migrations** run through GitHub CI only — never via direct CLI.
+  - **Dev:** `.github/workflows/deploy-supabase-dev.yml` runs on push to `dev` (when `supabase/` changes).
+  - **Prod:** `.github/workflows/deploy-supabase.yml` runs on merge to `main`.
+  - **NEVER run `supabase db push` directly.** Commit the migration file, push to `dev`, let CI apply it. This keeps both databases in sync with git as the single source of truth.
+  - Edge Functions deploy through the same CI workflows. Never run `supabase functions deploy` directly.
 
 ### Mobile app distribution
 
@@ -155,7 +158,14 @@ Sessio ships on three surfaces. Both mobile apps now use Capacitor + Capgo OTA �
 - **iOS** — **Capacitor** (`capacitor.config.ts`, `ios/` folder). `webDir: 'dist'` with no `server.url`, so the web bundle is baked into the IPA at build time. Native changes (plugins, Info.plist, signing) require `bun run build` → `bunx cap sync ios` → archive in Xcode → TestFlight/App Store submission (Apple review ~24–48h). JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch.
 - **Android** — **Capacitor** (`capacitor.config.ts`, `android/` folder). Same model as iOS: web bundle baked at build time, native changes need a Play Store release, JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch. Use `bun run android:dev` / `bun run android:prod` to build debug/release APKs locally (see "Android Capacitor build" below). Historical note: Android previously shipped as a **Bubblewrap TWA** (package `com.get_sessio.twa`) with instant web updates via Chrome Custom Tabs — that was deprecated in favor of Capacitor for feature parity with iOS (native push via FCM, Apple/Google sign-in, deep links, Capgo OTA).
 
-**Capgo OTA** (`@capgo/capacitor-updater`): JS bundles are uploaded to a Capgo channel by CI. Dev builds (`MODE=development`) switch to the `dev` channel at runtime via `setChannel` in `main.tsx`; prod builds stay on the `production` channel (default from `capacitor.config.ts`). Workflows: `.github/workflows/deploy-capgo.yml` uploads the prod bundle on push to `main`; `deploy-capgo-dev.yml` uploads the dev bundle on push to `dev`. Capgo CANNOT update native code — plugin changes, `AndroidManifest.xml`, `build.gradle`, icons, or version bumps require a full store release.
+**Capgo OTA** (`@capgo/capacitor-updater`): JS bundles are uploaded to a Capgo channel by CI. The `defaultChannel` is set dynamically in `capacitor.config.ts` via `CAPGO_CHANNEL` env var — `android:dev` sets it to `dev`, prod builds default to `production`. The `setChannel` call in `main.tsx` is a fallback (guarded by localStorage to avoid rate limits). Workflows: `.github/workflows/deploy-capgo.yml` uploads the prod bundle on push to `main`; `deploy-capgo-dev.yml` uploads the dev bundle on push to `dev`. Capgo CANNOT update native code — plugin changes, `AndroidManifest.xml`, `build.gradle`, icons, or version bumps require a full store release.
+
+**Capgo version rules — DO NOT BREAK:**
+- `capacitor.config.ts` has `version: '1.0.0'` in the `CapacitorUpdater` plugin config. **NEVER change this to match `package.json` or the native `versionName`.** This version is sent to Capgo's server as the "native version." The CI uploads bundles as `1.2.0-dev.{hash}` (semver pre-release). If the config version is `>= 1.2.0`, the server rejects updates with `disable_auto_update_under_native` because `1.2.0-dev.xxx < 1.2.0` in semver. Keeping it at `1.0.0` ensures all bundles pass the version check.
+- Android's `versionNameSuffix " (debug)"` in `build.gradle` produces `"1.2.0 (debug)"` which **fails Capgo's semver parser entirely**. The `version: '1.0.0'` override in the config prevents this from reaching the server.
+- **If you bump `package.json` version** (e.g., to `2.0.0`), the CI will upload `2.0.0-dev.{hash}`. This is still `> 1.0.0`, so Capgo works. No config change needed.
+- **If you bump to a new major version** and the Capgo channel `autoUpdate` mode is `major`, ensure the major versions still match (both `1.x` or both `2.x`). Check channel settings with `npx @capgo/cli channel list com.get-sessio.app`.
+- Capgo updates apply when the app goes **background → foreground**, not on force-close/reopen.
 
 Implications:
 - JS/CSS/HTML bug fixes reach both iOS and Android users via Capgo on the next app launch — no store release needed.
@@ -236,6 +246,15 @@ These rules exist because we've been burned by auth state changes tearing down t
 4. **Prefer background refetches over loading states.** When data is already cached, never replace it with a spinner during refetch. Use `placeholderData`, `keepPreviousData`, or check `isFetching` instead of `isPending` when showing loading UI. Content should stay visible while refreshing.
 
 5. **Don't invalidate all queries blindly.** `queryClient.invalidateQueries()` with no filter fires every query. Use targeted invalidation with specific query keys. The global invalidation in `RefreshOnResume` is the ONE exception (for app resume after long background).
+
+### Push notifications — MANDATORY
+
+Message push notifications are handled by the **DB trigger `on_new_message`** (migration `20260325210000`). The trigger calls the `send-push` Edge Function via `pg_net` on every INSERT into `messages`. This is the single source of truth.
+
+1. **NEVER add client-side `notifyMessage()` or `notifyUsers()` calls for chat messages.** The trigger handles ALL message inserts regardless of source (chat, cancel, reschedule, system messages).
+2. **Client-side `notifyUsers()`** is ONLY for non-message events: join requests, training confirmations, session cancellations, etc. These are called from `JoinTraining.tsx`, `useTrainings.ts`, `TrainingDetail.tsx`.
+3. **If you touch `send-push` Edge Function or `_shared/push.ts`:** test by calling the function directly and checking the `errors` array in the response. `sent: 0` with no `errors` means 0 subscriptions found; `sent: 0` with `errors` means delivery failed.
+4. **If you touch `messages` table RLS policies:** verify the `on_new_message` trigger still fires (send a message, check Edge Function logs).
 
 ### General
 

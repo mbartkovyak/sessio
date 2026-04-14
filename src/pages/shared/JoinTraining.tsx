@@ -13,8 +13,8 @@ import { SPORT_ICONS, DAYS_FULL as DAYS, dayLabel, sportLabel } from '@/lib/cons
 import { notifyUsers } from '@/lib/pushNotify';
 import { getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
-import { getAuthRedirectUrl, getEmailRedirectUrl, shouldOpenExternalAuth, openExternalAuth } from '@/lib/auth-native';
-import { signInWithApple } from '@/lib/auth-providers';
+import { getEmailRedirectUrl } from '@/lib/auth-native';
+import { signInWithGoogle, signInWithApple } from '@/lib/auth-providers';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -335,18 +335,17 @@ export default function JoinTraining() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     captureInvite();
-    const external = shouldOpenExternalAuth();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: getAuthRedirectUrl(),
-        queryParams: { prompt: 'select_account' },
-        skipBrowserRedirect: external,
-      },
-    });
-    if (error) { toast.error(t('join.signInFailed')); setGoogleLoading(false); return; }
-    if (external && data?.url) {
-      await openExternalAuth(data.url);
+    const { error, inPlaceSession } = await signInWithGoogle();
+    if (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (!/cancel/i.test(msg)) {
+        toast.error(t('join.signInFailed'));
+      }
+      setGoogleLoading(false);
+      return;
+    }
+    if (inPlaceSession) {
+      navigate('/auth/callback');
     }
   }
 

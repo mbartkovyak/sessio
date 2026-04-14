@@ -3,7 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/lib/supabase';
-import { isNative } from '@/lib/platform';
+import { isNative, isAndroid } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
 import i18n from '@/i18n';
 // FirebaseMessaging is loaded dynamically in signOut() to avoid a startup
@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const userRef = useRef<User | null>(null);
+  const initialLoadDone = useRef(false);
 
   async function fetchProfile(userId: string, retries = 2) {
     const { data, error } = await supabase
@@ -59,6 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: ensured, error: rpcErr } = await supabase.rpc('ensure_my_profile');
         if (rpcErr) {
           Sentry.captureException(rpcErr, { tags: { context: 'ensure_my_profile' }, extra: { userId } });
+          // Profile can't be created — stale session (e.g. account was deleted).
+          // Force sign-out to prevent broken ghost state (FK violations on every action).
+          localStorage.removeItem('sessio_cached_profile');
+          supabase.auth.signOut();
           return;
         }
         setProfile(ensured as Profile | null);
@@ -102,14 +107,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Use cached profile for instant load if it matches the current user
         const cached = profile; // from localStorage initializer
         if (cached && cached.id === session.user.id) {
+          initialLoadDone.current = true;
           setLoading(false);
           fetchProfile(session.user.id); // silent background refresh
         } else {
           await fetchProfile(session.user.id);
+          initialLoadDone.current = true;
           setLoading(false);
         }
       } else {
         setProfile(null);
+        initialLoadDone.current = true;
         setLoading(false);
       }
     });
@@ -128,11 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         if (session?.user) {
           if (event === 'SIGNED_IN') {
-            // Full sign-in: show loader until profile is ready (e.g. after AuthCallback)
-            setLoading(true);
-            fetchProfile(session.user.id)
-              .then(() => setLoading(false))
-              .catch(() => setLoading(false));
+            if (initialLoadDone.current) {
+              // getSession() already handled this session — just refresh profile silently
+              fetchProfile(session.user.id);
+            } else {
+              // Fresh sign-in (e.g. OAuth callback): show loader until profile is ready
+              setLoading(true);
+              fetchProfile(session.user.id)
+                .then(() => { initialLoadDone.current = true; setLoading(false); })
+                .catch(() => { initialLoadDone.current = true; setLoading(false); });
+            }
           } else {
             // Token refresh, user update, etc: silent background refresh — do NOT set loading
             // to avoid unmounting the entire page tree and tearing down realtime subscriptions
@@ -163,68 +176,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     localStorage.removeItem('sessio_cached_profile');
 
-    // Cut THIS device off from push notifications for the current user
-    // before we lose the JWT. Only the row for this device is deleted —
-    // other devices the user is signed in on keep receiving pushes.
-    //
-    // Defense in depth (any single step failing is still safe):
-    //   Web:
-    //   1. Delete the push_subscriptions row by target (RLS scopes to auth.uid()).
-    //   2. Call PushSubscription.unsubscribe() — if we miss the DB delete,
-    //      the next push attempt returns 410 and sendPushToSubs auto-cleans.
-    //   3. Tell the SW currentUserId = null so stray pushes can't be
-    //      attributed to the previous user (affects self-notification
-    //      suppression in sw.js).
-    //   Native:
-    //   1. Delete the row by (user_id, device_id) — the stable identity.
-    //   2. Call FirebaseMessaging.deleteToken() so FCM revokes the token.
-    try {
-      if (isNative) {
-        const currentUser = userRef.current;
-        if (currentUser) {
-          const deviceId = await getDeviceId();
-          const { error } = await supabase
-            .from('push_subscriptions')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('device_id', deviceId);
-          if (error) {
-            Sentry.captureMessage('Native push delete on signOut failed', {
-              level: 'warning',
-              extra: { error: error.message },
-            });
-          }
-        }
-        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
-        await FirebaseMessaging.deleteToken().catch(() => {
-          // Best-effort — token revocation may fail if offline.
-        });
-      } else if ('serviceWorker' in navigator && 'PushManager' in window) {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) {
-          const sub = await reg.pushManager.getSubscription();
-          if (sub) {
+    // Best-effort push cleanup — runs concurrently with the actual sign-out
+    // so the UI isn't blocked for 3-5s waiting on network calls.
+    // Started BEFORE supabase.auth.signOut() so the JWT is still valid for
+    // RLS-scoped deletes. Each step is independently safe to fail.
+    const pushCleanup = (async () => {
+      try {
+        if (isNative) {
+          const currentUser = userRef.current;
+          if (currentUser) {
+            const deviceId = await getDeviceId();
             const { error } = await supabase
               .from('push_subscriptions')
               .delete()
-              .eq('transport', 'webpush')
-              .eq('target', sub.endpoint);
+              .eq('user_id', currentUser.id)
+              .eq('device_id', deviceId);
             if (error) {
-              Sentry.captureMessage('Push subscription delete on signOut failed', {
+              Sentry.captureMessage('Native push delete on signOut failed', {
                 level: 'warning',
                 extra: { error: error.message },
               });
             }
-            await sub.unsubscribe();
           }
-          reg.active?.postMessage({ type: 'SET_USER_ID', userId: null });
+          const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+          await FirebaseMessaging.deleteToken().catch(() => {});
+        } else if ('serviceWorker' in navigator && 'PushManager' in window) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+              const { error } = await supabase
+                .from('push_subscriptions')
+                .delete()
+                .eq('transport', 'webpush')
+                .eq('target', sub.endpoint);
+              if (error) {
+                Sentry.captureMessage('Push subscription delete on signOut failed', {
+                  level: 'warning',
+                  extra: { error: error.message },
+                });
+              }
+              await sub.unsubscribe();
+            }
+            reg.active?.postMessage({ type: 'SET_USER_ID', userId: null });
+          }
         }
+      } catch (e) {
+        Sentry.captureException(e, { tags: { context: 'signOut push cleanup' } });
       }
-    } catch (e) {
-      Sentry.captureException(e, { tags: { context: 'signOut push cleanup' } });
+    })();
+
+    // Clear Android Credential Manager cached state — also fire-and-forget.
+    if (isNative && isAndroid) {
+      import('@/lib/google-sign-in-native')
+        .then(({ GoogleSignIn }) => GoogleSignIn.signOut())
+        .catch(() => {});
     }
 
-    await supabase.auth.signOut({ scope: 'global' });
+    // Sign out immediately — don't wait for cleanup to finish.
+    // The auth state listener triggers navigation and UI updates.
+    await Promise.all([
+      supabase.auth.signOut({ scope: 'global' }),
+      pushCleanup,
+    ]);
   }
 
   return (

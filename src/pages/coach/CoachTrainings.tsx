@@ -8,6 +8,7 @@ import { useTrainings, useSchoolTrainings } from '@/hooks/training/useTrainings'
 import { useMySchool } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import TrainingCard from '@/components/shared/TrainingCard';
+import { openExternal } from '@/components/shared/VenueLink';
 import { useTranslation } from 'react-i18next';
 
 export default function CoachTrainings() {
@@ -82,6 +83,7 @@ export default function CoachTrainings() {
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tr.venue)}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => openExternal(e, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tr.venue)}`)}
                       className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
                     >
                       <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: tr.venue.split(',')[0] })}

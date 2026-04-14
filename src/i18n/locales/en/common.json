@@ -14,6 +14,7 @@
     "continue": "Continue",
     "loading": "Loading...",
     "signOut": "Sign out",
+    "signingOut": "Signing out...",
     "deleteAccount": "Delete account",
     "deleting": "Deleting...",
     "confirmDelete": "Delete all your data? This can't be undone.",
@@ -65,7 +66,8 @@
   },
   "phone": {
     "label": "Phone number",
-    "placeholder": "Phone number"
+    "placeholder": "Phone number",
+    "optional": "(optional)"
   },
   "chat": {
     "noChats": "No chats yet",
@@ -88,7 +90,25 @@
     "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training.",
     "messageCoach": "Message",
     "trainingFallback": "Training",
-    "userFallback": "User"
+    "userFallback": "User",
+    "reportMessage": "Report message",
+    "reportTitle": "Report content",
+    "reportDescription": "Why are you reporting this?",
+    "reportSubmitted": "Report submitted. We'll review it within 24 hours.",
+    "reportReasons": {
+      "spam": "Spam",
+      "harassment": "Harassment",
+      "inappropriate": "Inappropriate content",
+      "other": "Other"
+    },
+    "blockUser": "Block user",
+    "blockConfirm": "Block this user? You won't see their messages and they won't be able to message you.",
+    "userBlocked": "User blocked",
+    "unblockUser": "Unblock user",
+    "report": "Report",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "blockedByUser": "You can't message this person"
   },
   "notifications": {
     "enableTitle": "Enable notifications",

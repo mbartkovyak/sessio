@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { DAYS_FULL, DAYS_SHORT, dayShortLabel } from '@/lib/constants';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
-import { VenueAddForm, type Venue } from '@/components/shared/VenueManager';
+import { VenueAddForm, clearVenueDraft, loadVenueDraft, type Venue } from '@/components/shared/VenueManager';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { useTranslation } from 'react-i18next';
@@ -124,7 +124,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   };
 
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [addingNewVenue, setAddingNewVenue] = useState(false);
+  const [addingNewVenue, setAddingNewVenue] = useState(() => !!loadVenueDraft());
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)
@@ -227,6 +227,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       return;
     }
     localStorage.removeItem(DRAFT_KEY);
+    clearVenueDraft();
     setSubmitted(true);
     onSubmit(form);
   }
@@ -320,7 +321,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
               onNewVenue?.(venue);
               setAddingNewVenue(false);
             }}
-            onCancel={() => setAddingNewVenue(false)}
+            onCancel={() => { clearVenueDraft(); setAddingNewVenue(false); }}
           />
         ) : (
           <PlaceAutocompleteInput

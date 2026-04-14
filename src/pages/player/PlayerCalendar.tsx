@@ -8,6 +8,7 @@ import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
 import { toast } from 'sonner';
+import { openExternal } from '@/components/shared/VenueLink';
 import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/CalendarGrid';
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
@@ -216,6 +217,7 @@ function CalendarSessionFooter({ training }: { training: any }) {
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => openExternal(e, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`)}
           className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
         >
           <MapPin className="h-3 w-3" /> {training.venue.split(',')[0]}

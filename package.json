@@ -15,7 +15,7 @@
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
     "build:native": "bun run build && npx cap sync",
-    "android:dev": "bun run build:dev && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew assembleDebug",
+    "android:dev": "bun run build:dev && CAPGO_CHANNEL=dev npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew assembleDebug",
     "android:prod": "bun run build && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew assembleRelease",
     "android:aab": "bun run build && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew bundleRelease"
   },

@@ -9,27 +9,42 @@ import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 export default function AccountActions() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { t } = useTranslation();
+  const [signingOut, setSigningOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   return (
     <div className="space-y-3">
       <button
-        onClick={async () => { await signOut(); navigate('/auth'); }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-destructive"
+        onClick={async () => { setSigningOut(true); await signOut(); navigate('/auth'); }}
+        disabled={signingOut}
+        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-destructive disabled:opacity-60"
         style={{ border: '1px solid rgba(0,0,0,0.2)' }}
       >
-        <LogOut className="h-4 w-4" /> {t('actions.signOut')}
+        <LogOut className="h-4 w-4" /> {signingOut ? t('actions.signingOut') : t('actions.signOut')}
       </button>
       <button
         onClick={async () => {
           if (!confirm(t('actions.confirmDelete'))) return;
           setDeleting(true);
-          const { error } = await supabase.rpc('delete_my_account');
-          if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); return; }
-          await signOut();
-          navigate('/auth');
+          try {
+            // Clean up storage files before deleting the account (direct SQL DELETE on storage.objects is blocked)
+            for (const bucket of ['avatars', 'videos'] as const) {
+              const { data: files } = await supabase.storage.from(bucket).list(user!.id);
+              if (files?.length) {
+                await supabase.storage.from(bucket).remove(files.map(f => `${user!.id}/${f.name}`));
+              }
+            }
+            const { error } = await supabase.rpc('delete_my_account');
+            if (error) { toast.error(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setDeleting(false); return; }
+            await signOut();
+            navigate('/auth');
+          } catch (e) {
+            console.error('delete_my_account failed:', e);
+            toast.error(localizeErrorMessage(e, t('common:errors.somethingWentWrong')));
+            setDeleting(false);
+          }
         }}
         disabled={deleting}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 py-3 text-sm font-medium text-destructive disabled:opacity-60"

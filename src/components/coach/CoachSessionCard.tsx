@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarDays, X, MapPin, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SPORT_ICONS } from '@/lib/constants';
+import { openExternal } from '@/components/shared/VenueLink';
 
 interface CoachSessionCardProps {
   session: any;
@@ -72,6 +73,7 @@ export default function CoachSessionCard({
             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => openExternal(e, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(training.venue)}`)}
             className="flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
           >
             <MapPin className="h-3 w-3" /> {t('home.navigateTo', { venue: training.venue.split(',')[0] })}

@@ -13,6 +13,7 @@ import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 
 // Both hooks early-return on the wrong platform (useAutoRegisterPush skips
 // on native, useNativePush skips on web). One device = one push path.
@@ -48,12 +49,13 @@ function RootLayout() {
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
+      <PullToRefresh />
       <InstallPWA />
       <ErrorBoundary>
         <AuthProvider>
           <PushRegistrar />
           <PrefetchRoutes />
-          <div className="relative z-[9]"><Outlet /></div>
+          <div className="relative z-[9]" style={{ paddingBottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))' }}><Outlet /></div>
         </AuthProvider>
       </ErrorBoundary>
     </>
@@ -128,18 +130,21 @@ function PrefetchRoutes() {
   const { profile } = useAuth();
   useEffect(() => {
     if (!profile) return;
+    // Opportunistic prefetch — swallow errors (stale chunks after deploy).
+    // Actual navigation uses lazyRetry which handles reload.
+    const noop = () => {};
     if (profile.role === 'player') {
-      import('./pages/player/PlayerHome');
-      import('./pages/player/PlayerSearch');
-      import('./pages/player/PlayerCalendar');
-      import('./pages/player/PlayerProfile');
-      import('./pages/player/PlayerMessages');
+      import('./pages/player/PlayerHome').catch(noop);
+      import('./pages/player/PlayerSearch').catch(noop);
+      import('./pages/player/PlayerCalendar').catch(noop);
+      import('./pages/player/PlayerProfile').catch(noop);
+      import('./pages/player/PlayerMessages').catch(noop);
     } else {
-      import('./pages/coach/CoachHome');
-      import('./pages/coach/CoachCalendar');
-      import('./pages/coach/CoachTrainings');
-      import('./pages/coach/CoachMessages');
-      import('./pages/coach/CoachProfileEditor');
+      import('./pages/coach/CoachHome').catch(noop);
+      import('./pages/coach/CoachCalendar').catch(noop);
+      import('./pages/coach/CoachTrainings').catch(noop);
+      import('./pages/coach/CoachMessages').catch(noop);
+      import('./pages/coach/CoachProfileEditor').catch(noop);
     }
   }, [profile?.role]);
   return null;

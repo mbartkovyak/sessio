@@ -83,7 +83,8 @@
     "reviews": "Opinie",
     "reviewsMinimum": "Ocena pojawi się po 3 opiniach",
     "athlete": "Uczestnik",
-    "coachResponse": "Odpowiedź trenera:"
+    "coachResponse": "Odpowiedź trenera:",
+    "reportReview": "Zgłoś opinię"
   },
   "schoolProfile": {
     "title": "Szkoła",

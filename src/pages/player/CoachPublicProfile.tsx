@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin, MessageCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Star, MapPin, MessageCircle, Flag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
@@ -12,11 +13,13 @@ import TrainingCard from '@/components/shared/TrainingCard';
 
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
+import ReportDialog from '@/components/shared/ReportDialog';
 
 export default function CoachPublicProfile() {
   const { t } = useTranslation('player');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [reportReview, setReportReview] = useState<{ id: string; reviewerId: string } | null>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', id],
@@ -124,10 +127,21 @@ export default function CoachPublicProfile() {
                     <div key={r.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-sm text-foreground">{r.profiles?.full_name ?? t('coachProfile.athlete')}</span>
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`h-3 w-3 ${i < r.rating ? 'fill-warning text-warning' : 'text-muted'}`} />
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3 w-3 ${i < r.rating ? 'fill-warning text-warning' : 'text-muted'}`} />
+                            ))}
+                          </div>
+                          {r.reviewer_id !== user?.id && (
+                            <button
+                              onClick={() => setReportReview({ id: r.id, reviewerId: r.reviewer_id })}
+                              className="h-6 w-6 flex items-center justify-center rounded-full hover:bg-destructive/10 transition-colors"
+                              title={t('coachProfile.reportReview')}
+                            >
+                              <Flag className="h-3 w-3 text-muted-foreground" />
+                            </button>
+                          )}
                         </div>
                       </div>
                       {r.text && <p className="text-sm text-muted-foreground">{r.text}</p>}
@@ -148,6 +162,14 @@ export default function CoachPublicProfile() {
       </main>
 
       <PlayerBottomNav />
+
+      <ReportDialog
+        open={!!reportReview}
+        onClose={() => setReportReview(null)}
+        contentType="review"
+        contentId={reportReview?.id ?? ''}
+        flaggedUserId={reportReview?.reviewerId ?? ''}
+      />
     </div>
   );
 }

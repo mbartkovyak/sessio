@@ -9,13 +9,13 @@ import PageHeader from '@/components/shared/PageHeader';
 import { toast } from 'sonner';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 
-import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
+import PhoneInput from '@/components/shared/PhoneInput';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coach-details' | 'school-details';
 
 export default function Onboarding() {
-  const { user, refreshProfile, signOut } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation(['auth', 'common']);
   const [step, setStep] = useState<Step>('name');
@@ -32,6 +32,20 @@ export default function Onboarding() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Pre-fill name from Apple Sign In (localStorage) or profile
+  useEffect(() => {
+    const stored = localStorage.getItem('sessio_apple_name');
+    if (stored) {
+      try {
+        const { firstName: fn, lastName: ln } = JSON.parse(stored);
+        if (fn && !firstName) setFirstName(fn);
+        if (ln && !lastName) setLastName(ln);
+      } catch {}
+    }
+    if (profile?.first_name && !firstName) setFirstName(profile.first_name);
+    if (profile?.last_name && !lastName) setLastName(profile.last_name);
+  }, [profile]);
 
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
@@ -79,12 +93,13 @@ export default function Onboarding() {
   // ── Submit: Athlete ──
   async function submitAthlete() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'player', country, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, role: 'player', country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (error) { setError(localizeErrorMessage(error, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
       await refreshProfile();
@@ -99,13 +114,14 @@ export default function Onboarding() {
   async function submitSoloCoach() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!country || !city || !sport) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport, country, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, role: 'school_owner', sport, country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -136,12 +152,13 @@ export default function Onboarding() {
   async function submitSchoolOwner() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!country || !city || !schoolName.trim() || schoolSports.length === 0) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'school_owner', sport: schoolSports[0], country, city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, role: 'school_owner', sport: schoolSports[0], country, city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -171,6 +188,7 @@ export default function Onboarding() {
   async function submitJoinSchool() {
     if (!user) { setError(t('common:errors.notSignedIn')); return; }
     if (!inviteCode.trim()) return;
+    localStorage.removeItem('sessio_apple_name');
     setLoading(true);
     setError('');
     try {
@@ -197,7 +215,7 @@ export default function Onboarding() {
       // Update profile as coach — inherit sport/city from school
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone, role: 'coach', sport: s.sport?.[0] ?? null, country: s.country, city: s.city, onboarding_complete: true })
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone || null, role: 'coach', sport: s.sport?.[0] ?? null, country: s.country, city: s.city, onboarding_complete: true })
         .eq('id', user.id);
       if (profileError) { setError(localizeErrorMessage(profileError, t('common:errors.somethingWentWrong'))); setLoading(false); return; }
 
@@ -272,10 +290,10 @@ export default function Onboarding() {
                     className="w-full rounded-xl border border-border bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px]"
                   />
                 </div>
-                <PhoneInput value={phone} onChange={setPhone} required />
+                <PhoneInput value={phone} onChange={setPhone} />
                 <button
                   onClick={() => coachType === 'join' ? submitJoinSchool() : hasTrainingInvite ? setStep('athlete-details') : setStep('train-or-coach')}
-                  disabled={!firstName.trim() || !lastName.trim() || !isValidPhone(phone) || loading}
+                  disabled={!firstName.trim() || !lastName.trim() || loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

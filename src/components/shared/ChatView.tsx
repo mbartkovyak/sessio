@@ -1,4 +1,4 @@
-import { Send, Smile, X } from 'lucide-react';
+import { Send, Smile, X, Flag } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo, lazy, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import { getDateLocale } from '@/lib/dateFnsLocale';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import Avatar from '@/components/shared/Avatar';
+import ReportDialog from '@/components/shared/ReportDialog';
 import { SessioLoader } from '@/components/SessioLogo';
 
 const EmojiPickerLazy = lazy(() =>
@@ -103,8 +104,8 @@ function formatTime(dateStr: string) {
 
 // ── Reaction bar (appears on long-press) ──
 
-function ReactionBar({ messageId, userId, onClose, reactions }: {
-  messageId: string; userId: string; onClose: () => void; reactions: any[];
+function ReactionBar({ messageId, userId, onClose, reactions, onReport }: {
+  messageId: string; userId: string; onClose: () => void; reactions: any[]; onReport?: () => void;
 }) {
   const toggle = useToggleReaction();
   const myReactions = new Set(reactions.filter(r => r.user_id === userId).map(r => r.emoji));
@@ -123,6 +124,14 @@ function ReactionBar({ messageId, userId, onClose, reactions }: {
             {emoji}
           </button>
         ))}
+        {onReport && (
+          <button
+            onClick={() => { onReport(); onClose(); }}
+            className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all ml-0.5"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -188,12 +197,29 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
   const conversationId = localConvId ?? hookConvId ?? undefined;
 
+  // Check if current user is blocked by the DM partner
+  const { data: isBlockedByOther = false } = useQuery({
+    queryKey: ['blocked-by-other', user?.id, otherUserId],
+    enabled: !!user && !!otherUserId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('blocked_users')
+        .select('blocker_id')
+        .eq('blocker_id', otherUserId!)
+        .eq('blocked_id', user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
   const { data: messages = [] } = useMessages(conversationId);
   const { data: allReactions = {} } = useMessageReactions(conversationId);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
   const [reactionMsgId, setReactionMsgId] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ msgId: string; senderId: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userScrolled = useRef(false);
@@ -292,6 +318,8 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         toast.error(i18n.t('chat.failedSend'));
         return;
       }
+
+      // Push notifications are handled by the DB trigger on_new_message — do NOT add notifyMessage() here.
 
       // Replace optimistic with real data + ensure chat is visible
       unhideChat(convId);
@@ -407,6 +435,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
                                 userId={user.id}
                                 reactions={msgReactions}
                                 onClose={() => setReactionMsgId(null)}
+                                onReport={!isMe ? () => setReportTarget({ msgId: msg.id, senderId: msg.sender_id }) : undefined}
                               />
                             )}
 
@@ -473,6 +502,11 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
       {/* ── Floating input capsule ── */}
       <div className="shrink-0 px-4" style={{ paddingBottom: 'max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 12px)))' }}>
+        {isBlockedByOther ? (
+          <div className="max-w-md mx-auto text-center py-3">
+            <p className="text-sm text-muted-foreground">{i18n.t('chat.blockedByUser')}</p>
+          </div>
+        ) : (
         <div
           className="max-w-md mx-auto flex items-end gap-1 rounded-full px-2 py-1.5"
           style={{
@@ -522,7 +556,17 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
             <Send className="h-[16px] w-[16px]" />
           </button>
         </div>
+        )}
       </div>
+
+      {/* ── Report dialog ── */}
+      <ReportDialog
+        open={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        contentType="message"
+        contentId={reportTarget?.msgId ?? ''}
+        flaggedUserId={reportTarget?.senderId ?? ''}
+      />
     </div>
   );
 }

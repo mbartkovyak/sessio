@@ -351,8 +351,12 @@ export function useMyConversations() {
     queryKey: ['my-conversations', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_my_conversations');
+      const [{ data, error }, { data: blockedRows }] = await Promise.all([
+        supabase.rpc('get_my_conversations'),
+        supabase.from('blocked_users').select('blocked_id').eq('blocker_id', user!.id),
+      ]);
       if (error) throw error;
+      const blockedIds = new Set((blockedRows ?? []).map(r => r.blocked_id));
 
       const manualUnread = getManualUnread();
 
@@ -378,6 +382,9 @@ export function useMyConversations() {
             unreadCount,
           });
         } else {
+          // Hide DMs with blocked users
+          if (row.dm_user_id && blockedIds.has(row.dm_user_id)) continue;
+
           result.push({
             id: row.conversation_id,
             type: 'dm',
