@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, X, Check, Clock } from 'lucide-react';
+import { X, Check, Clock } from 'lucide-react';
 import type { CoachTrack } from '@/pages/onboarding/Questionnaire';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   onContinue: () => void;
 }
 
-type DemoStage = 'setup' | 'before' | 'cancelled' | 'backfilled' | 'output';
+type DemoStage = 'before' | 'cancelled' | 'backfilled';
 
 interface Participant {
   name: string;
@@ -25,13 +25,11 @@ const INITIAL: Participant[] = [
 
 export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue }: Props) {
   const { t } = useTranslation('auth');
-  const [stage, setStage] = useState<DemoStage>('setup');
+  const [stage, setStage] = useState<DemoStage>('before');
   const [participants, setParticipants] = useState<Participant[]>(INITIAL);
 
+  // Auto-loop: before → cancelled → backfilled → reset → repeat.
   useEffect(() => {
-    if (stage === 'setup') return;
-    if (stage === 'output') return;
-
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     if (stage === 'before') {
@@ -41,57 +39,36 @@ export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue 
       timers.push(setTimeout(() => {
         setParticipants((prev) => prev.map((p) => p.name === 'Marek' ? { ...p, status: 'cancelled' } : p));
       }, 300));
-      timers.push(setTimeout(() => setStage('backfilled'), 2000));
+      timers.push(setTimeout(() => setStage('backfilled'), 2200));
     }
     if (stage === 'backfilled') {
       timers.push(setTimeout(() => {
         setParticipants((prev) => prev.map((p) => p.name === 'Tomek' ? { ...p, status: 'signed_up' } : p));
       }, 400));
-      timers.push(setTimeout(() => setStage('output'), 2500));
+      // Pause on the finished state, then reset and start the loop again.
+      timers.push(setTimeout(() => {
+        setParticipants(INITIAL);
+        setStage('before');
+      }, 3200));
     }
 
     return () => { timers.forEach(clearTimeout); };
   }, [stage]);
 
-  function handlePlay() {
-    setParticipants(INITIAL);
-    setStage('before');
-  }
-
-  if (stage === 'output') {
-    return (
-      <div>
-        <h1 className="mb-2 text-2xl font-bold text-foreground">{t('questionnaire.coach.demoOutputTitle')}</h1>
-        <p className="mb-6 text-muted-foreground">{t('questionnaire.coach.demoOutputBody')}</p>
-        <div className="mb-6 rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
-          <p className="text-sm font-semibold text-primary">{t('questionnaire.coach.demoOutputStat')}</p>
-        </div>
-        <button
-          onClick={onContinue}
-          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
-        >
-          {t('questionnaire.common.continue')}
-        </button>
-      </div>
-    );
-  }
-
   const signedUpCount = participants.filter((p) => p.status === 'signed_up').length;
 
-  const caption = stage === 'setup'
-    ? ''
-    : stage === 'before'
-      ? t('questionnaire.coach.demoCaptionBefore')
-      : stage === 'cancelled'
-        ? t('questionnaire.coach.demoCaptionCancel')
-        : t('questionnaire.coach.demoCaptionBackfill');
+  const caption = stage === 'before'
+    ? t('questionnaire.coach.demoCaptionBefore')
+    : stage === 'cancelled'
+      ? t('questionnaire.coach.demoCaptionCancel')
+      : t('questionnaire.coach.demoCaptionBackfill');
 
   return (
     <div>
       <h1 className="mb-2 text-2xl font-bold text-foreground">{t('questionnaire.coach.demoSetupTitle')}</h1>
       <p className="mb-6 text-muted-foreground">{t('questionnaire.coach.demoSetupBody')}</p>
 
-      {/* Sample training card */}
+      {/* Sample training card — animates on a loop */}
       <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -100,12 +77,10 @@ export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue 
               {t('questionnaire.coach.demoCardSpots', { count: signedUpCount })}
             </div>
           </div>
-          {stage !== 'setup' && (
-            <div className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>{caption.split('...')[0]}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span>{caption.split('...')[0]}</span>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -116,24 +91,21 @@ export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue 
       </div>
 
       {/* Caption below card for legibility */}
-      <div className="mb-6 min-h-[1.5rem] text-center text-sm text-muted-foreground transition-opacity duration-300">
-        {caption && <span>{caption}</span>}
+      <div className="mb-4 min-h-[1.5rem] text-center text-sm text-muted-foreground transition-opacity duration-300">
+        {caption}
       </div>
 
-      {stage === 'setup' ? (
-        <button
-          onClick={handlePlay}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
-        >
-          <Play className="h-4 w-4" fill="currentColor" />
-          {t('questionnaire.common.play')}
-        </button>
-      ) : (
-        <div className="flex w-full items-center justify-center py-3.5 text-sm text-muted-foreground">
-          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary mr-2" />
-          Playing...
-        </div>
-      )}
+      {/* Stat line — always visible */}
+      <div className="mb-6 rounded-xl border-2 border-primary/20 bg-primary/5 p-3 text-center">
+        <p className="text-xs font-semibold text-primary">{t('questionnaire.coach.demoOutputStat')}</p>
+      </div>
+
+      <button
+        onClick={onContinue}
+        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
+      >
+        {t('questionnaire.common.continue')}
+      </button>
     </div>
   );
 }
