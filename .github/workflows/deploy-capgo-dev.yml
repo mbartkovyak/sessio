@@ -34,6 +34,7 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_DEV_SUPABASE_PROJECT_ID }}
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_GOOGLE_WEB_CLIENT_ID: ${{ secrets.VITE_GOOGLE_WEB_CLIENT_ID }}
 
       - name: Upload to Capgo dev channel
         run: |
