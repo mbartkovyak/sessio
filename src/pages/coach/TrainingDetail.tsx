@@ -392,7 +392,7 @@ export default function TrainingDetail() {
                   if (msg && user) {
                     try {
                       const { getOrCreateDMConversation } = await import('@/hooks/shared/useConversations');
-                      const convId = await getOrCreateDMConversation(user.id, userId);
+                      const convId = await getOrCreateDMConversation(userId);
                       await supabase.from('messages').insert({ conversation_id: convId, sender_id: user.id, content: msg });
                     } catch {}
                   }

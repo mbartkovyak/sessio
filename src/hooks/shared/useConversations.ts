@@ -269,48 +269,14 @@ export async function getOrCreateTrainingConversation(trainingId: string): Promi
   return id;
 }
 
-/** Create a DM conversation if it doesn't exist, return the id */
-export async function getOrCreateDMConversation(userId1: string, userId2: string): Promise<string> {
-  const { data: p1Convos } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', userId1);
-
-  if (p1Convos && p1Convos.length > 0) {
-    const ids = p1Convos.map(c => c.conversation_id);
-    const { data: shared } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', userId2)
-      .in('conversation_id', ids);
-
-    if (shared && shared.length > 0) {
-      const { data: dms } = await supabase
-        .from('conversations')
-        .select('id')
-        .in('id', shared.map(s => s.conversation_id))
-        .is('training_id', null)
-        .limit(1);
-      if (dms && dms.length > 0) return dms[0].id;
-    }
-  }
-
-  const id = crypto.randomUUID();
-  const { error } = await supabase
-    .from('conversations')
-    .insert({ id });
+/** Create a DM conversation if it doesn't exist, return the id.
+ *  Uses a server-side atomic function to prevent race-condition duplicates. */
+export async function getOrCreateDMConversation(otherUserId: string): Promise<string> {
+  const { data, error } = await supabase.rpc('get_or_create_dm', {
+    p_other_user_id: otherUserId,
+  });
   if (error) throw error;
-
-  const { error: partError } = await supabase.from('conversation_participants').insert([
-    { conversation_id: id, user_id: userId1 },
-    { conversation_id: id, user_id: userId2 },
-  ]);
-  if (partError) {
-    await supabase.from('conversations').delete().eq('id', id);
-    throw new Error(`Failed to add participants: ${partError.message}`);
-  }
-
-  return id;
+  return data as string;
 }
 
 // ── Conversation list (for Chats page) — single RPC ──

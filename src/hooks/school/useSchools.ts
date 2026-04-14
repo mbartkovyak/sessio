@@ -147,7 +147,7 @@ export function useRespondSchoolMember() {
         if (error) throw error;
         // Auto-create DM between school owner and new coach
         if (user) {
-          try { await getOrCreateDMConversation(user.id, coachId); } catch {}
+          try { await getOrCreateDMConversation(coachId); } catch {}
         }
       } else {
         const { error } = await supabase

@@ -36,7 +36,7 @@ export default function CoachHome() {
           <PushNotificationPrompt />
         </div>
         {showLoading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <SessioLoader />
           </div>
         ) : isSchoolOwner && school ? (

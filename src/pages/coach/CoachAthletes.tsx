@@ -36,7 +36,7 @@ export default function CoachAthletes() {
       <main className="flex-1 pb-24">
         <div className="max-w-md mx-auto px-4 pt-4 space-y-3">
           {isLoading || athletesLoading ? (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex min-h-[60vh] items-center justify-center">
               <SessioLoader />
             </div>
           ) : (

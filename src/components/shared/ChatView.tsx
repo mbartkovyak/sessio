@@ -213,7 +213,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     },
   });
 
-  const { data: messages = [] } = useMessages(conversationId);
+  const { data: messages = [], isPending: messagesLoading } = useMessages(conversationId);
   const { data: allReactions = {} } = useMessageReactions(conversationId);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -289,7 +289,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       let convId = conversationId;
       if (!convId && otherUserId) {
         try {
-          convId = await getOrCreateDMConversation(user.id, otherUserId);
+          convId = await getOrCreateDMConversation(otherUserId);
         } catch (err: any) {
           toast.error(localizeErrorMessage(err, i18n.t('chat.failedCreate')));
           return;
@@ -370,7 +370,11 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         className="flex-1 overflow-y-auto overscroll-y-contain"
       >
         <div className="max-w-lg mx-auto px-3 flex flex-col justify-end min-h-full">
-          {messages.length === 0 ? (
+          {messagesLoading ? (
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <SessioLoader />
+            </div>
+          ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center px-8 py-20">
               <span className="text-4xl mb-3">💬</span>
               <p className="font-semibold text-foreground text-sm">{i18n.t('chat.noMessagesYet')}</p>

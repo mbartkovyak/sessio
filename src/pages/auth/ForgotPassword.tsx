@@ -39,6 +39,9 @@ export default function ForgotPassword() {
               components={{ strong: <strong /> }}
             />
           </p>
+          <p className="mt-3 text-xs text-white/50">
+            {t('auth.forgotPasswordOAuthHint')}
+          </p>
           <Link
             to="/auth/sign-in"
             className="mt-4 inline-flex items-center gap-1 text-sm text-white underline underline-offset-2"
