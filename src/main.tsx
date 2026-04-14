@@ -46,29 +46,17 @@ createRoot(document.getElementById("root")!).render(<App />);
 
 if (isNative) {
   // Auto-select Capgo channel based on build mode.
+  // Guard with localStorage to avoid hitting Capgo's rate limit on every app boot.
   if (import.meta.env.MODE === 'development') {
-    CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true }).catch(err => {
-      console.error('[Capgo] setChannel failed:', err);
-      Sentry.captureException(err, { extra: { context: 'CapacitorUpdater.setChannel' } });
-    });
+    const channelKey = '_capgo_channel';
+    if (localStorage.getItem(channelKey) !== 'dev') {
+      CapacitorUpdater.setChannel({ channel: 'dev', triggerAutoUpdate: true })
+        .then(() => localStorage.setItem(channelKey, 'dev'))
+        .catch(err => {
+          console.error('[Capgo] setChannel failed:', err);
+        });
+    }
   }
-
-  // DEBUG: Capgo event listeners — remove after confirming OTA works on Android
-  CapacitorUpdater.addListener('updateAvailable', (info) => {
-    console.log('[Capgo] updateAvailable:', JSON.stringify(info));
-  });
-  CapacitorUpdater.addListener('downloadComplete', (info) => {
-    console.log('[Capgo] downloadComplete:', JSON.stringify(info));
-  });
-  CapacitorUpdater.addListener('downloadFailed', (info) => {
-    console.log('[Capgo] downloadFailed:', JSON.stringify(info));
-  });
-  CapacitorUpdater.addListener('updateFailed', (info) => {
-    console.log('[Capgo] updateFailed:', JSON.stringify(info));
-  });
-  CapacitorUpdater.addListener('noNeedUpdate', (info) => {
-    console.log('[Capgo] noNeedUpdate:', JSON.stringify(info));
-  });
 
   // Signal that this bundle booted successfully so the plugin
   // doesn't roll back to the previous version.

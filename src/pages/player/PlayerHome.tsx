@@ -48,8 +48,6 @@ export default function PlayerHome() {
           </div>
         ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-          {/* DEBUG: remove after verifying Capgo OTA */}
-          <div className="bg-red-600 text-white text-center py-4 text-lg font-bold rounded-lg">CAPGO OTA v22</div>
           {/* Greeting */}
           <div>
             <h1 className="text-2xl font-bold text-foreground">
