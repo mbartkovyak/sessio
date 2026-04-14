@@ -289,7 +289,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       let convId = conversationId;
       if (!convId && otherUserId) {
         try {
-          convId = await getOrCreateDMConversation(user.id, otherUserId);
+          convId = await getOrCreateDMConversation(otherUserId);
         } catch (err: any) {
           toast.error(localizeErrorMessage(err, i18n.t('chat.failedCreate')));
           return;
