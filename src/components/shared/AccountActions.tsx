@@ -11,16 +11,18 @@ export default function AccountActions() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
+  const [signingOut, setSigningOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   return (
     <div className="space-y-3">
       <button
-        onClick={async () => { await signOut(); navigate('/auth'); }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-destructive"
+        onClick={async () => { setSigningOut(true); await signOut(); navigate('/auth'); }}
+        disabled={signingOut}
+        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-destructive disabled:opacity-60"
         style={{ border: '1px solid rgba(0,0,0,0.2)' }}
       >
-        <LogOut className="h-4 w-4" /> {t('actions.signOut')}
+        <LogOut className="h-4 w-4" /> {signingOut ? t('actions.signingOut') : t('actions.signOut')}
       </button>
       <button
         onClick={async () => {

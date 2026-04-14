@@ -93,14 +93,16 @@ export function useAutoRegisterPush() {
         const deviceId = await getDeviceId();
         const now = new Date().toISOString();
 
-        // One target = one device. Delete stale subscriptions from other
-        // accounts that were previously signed in on this same browser.
-        // Keyed on (transport, target) — globally unique per device.
+        // One endpoint = one device. Delete ANY existing row with this
+        // (transport, target) before upserting. Covers both:
+        // - stale rows from other users who were signed in on this browser
+        // - same user with a changed device_id (cleared storage)
+        // Without this, the upsert on (user_id, device_id) can violate
+        // the (transport, target) unique constraint.
         await supabase.from('push_subscriptions')
           .delete()
           .eq('transport', 'webpush')
-          .eq('target', json.endpoint!)
-          .neq('user_id', user.id);
+          .eq('target', json.endpoint!);
 
         const row = {
           user_id: user.id,
