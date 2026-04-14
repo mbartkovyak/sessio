@@ -88,6 +88,7 @@ function lazyRetry(importFn: () => Promise<{ default: ComponentType<any> }>) {
 
 // All other pages — lazy loaded
 const Onboarding = lazyRetry(() => import("./pages/auth/Onboarding"));
+const Questionnaire = lazyRetry(() => import("./pages/onboarding/Questionnaire"));
 const JoinTraining = lazyRetry(() => import("./pages/shared/JoinTraining"));
 const JoinSchool = lazyRetry(() => import("./pages/shared/JoinSchool"));
 const NotFound = lazyRetry(() => import("./pages/shared/NotFound"));
@@ -174,6 +175,7 @@ const router = createBrowserRouter(
       <Route path="/auth/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/onboarding" element={<LazyPage component={Onboarding} />} />
+      <Route path="/onboarding/questionnaire" element={<LazyPage component={Questionnaire} />} />
       <Route path="/join/:inviteCode" element={<LazyPage component={JoinTraining} />} />
       <Route path="/join-school/:code" element={<LazyPage component={JoinSchool} />} />
       <Route path="/s/:id" element={<LazyPage component={SchoolPublicProfile} />} />

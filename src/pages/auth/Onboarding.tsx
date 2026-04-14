@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 
 import PhoneInput from '@/components/shared/PhoneInput';
+import OnboardingProgress from '@/components/shared/OnboardingProgress';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coach-details' | 'school-details';
@@ -69,17 +70,9 @@ export default function Onboarding() {
     }
   }, []);
 
-  function getPostOnboardingPath(role: string) {
-    const pendingInvite = sessionStorage.getItem('pending_invite');
-    if (pendingInvite) {
-      const pendingSession = sessionStorage.getItem('pending_invite_session');
-      sessionStorage.removeItem('pending_invite');
-      sessionStorage.removeItem('pending_invite_ts');
-      sessionStorage.removeItem('pending_invite_session');
-      const sessionSuffix = pendingSession ? `?session=${pendingSession}` : '';
-      return `/join/${pendingInvite}${sessionSuffix}`;
-    }
-    return role === 'player' ? '/player' : '/coach';
+  function getPostOnboardingPath(_role: string) {
+    // Route to the new questionnaire; it will honor pending invites on finish.
+    return '/onboarding/questionnaire';
   }
 
   function goBack() {
@@ -240,6 +233,25 @@ export default function Onboarding() {
 
   const showBack = step !== 'name';
 
+  // Unified progress across existing onboarding + new questionnaire.
+  // Totals: athlete 6 (3 existing + 3 new), solo coach 10, school owner 11, join school 10.
+  const progressCurrent = (() => {
+    if (step === 'name') return 1;
+    if (step === 'train-or-coach') return 2;
+    if (step === 'athlete-details') return hasTrainingInvite ? 2 : 3;
+    if (step === 'coach-type') return 3;
+    if (step === 'coach-details') return 4;
+    if (step === 'school-details') return 5;
+    return 1;
+  })();
+  const progressTotal = (() => {
+    if (step === 'athlete-details') return hasTrainingInvite ? 5 : 6;
+    if (step === 'school-details') return 11;
+    if (step === 'coach-details') return 10;
+    if (step === 'coach-type') return 10;
+    return 6; // 'name' / 'train-or-coach' — assume athlete default; recalibrates once role is picked
+  })();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <PageHeader className="rounded-b-2xl px-4 py-4">
@@ -257,6 +269,9 @@ export default function Onboarding() {
           >
             <LogOut className="h-3.5 w-3.5" /> {t('auth:onboarding.signOut')}
           </button>
+        </div>
+        <div className="max-w-md mx-auto mt-3">
+          <OnboardingProgress current={progressCurrent} total={progressTotal} />
         </div>
       </PageHeader>
 

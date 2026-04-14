@@ -420,6 +420,8 @@ export type Database = {
           last_name: string | null
           onboarding_complete: boolean | null
           phone: string | null
+          primary_goal: string | null
+          questionnaire_complete: boolean
           role: string | null
           school_id: string | null
           setup_guide_dismissed: boolean
@@ -441,6 +443,8 @@ export type Database = {
           last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
+          primary_goal?: string | null
+          questionnaire_complete?: boolean
           role?: string | null
           school_id?: string | null
           setup_guide_dismissed?: boolean
@@ -462,6 +466,8 @@ export type Database = {
           last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
+          primary_goal?: string | null
+          questionnaire_complete?: boolean
           role?: string | null
           school_id?: string | null
           setup_guide_dismissed?: boolean
@@ -1020,6 +1026,8 @@ export type Database = {
           last_name: string | null
           onboarding_complete: boolean | null
           phone: string | null
+          primary_goal: string | null
+          questionnaire_complete: boolean
           role: string | null
           school_id: string | null
           setup_guide_dismissed: boolean
