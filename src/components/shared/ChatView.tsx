@@ -371,7 +371,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
       >
         <div className="max-w-lg mx-auto px-3 flex flex-col justify-end min-h-full">
           {messagesLoading ? (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex min-h-[60vh] items-center justify-center">
               <SessioLoader />
             </div>
           ) : messages.length === 0 ? (
