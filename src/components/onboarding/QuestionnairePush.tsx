@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell, Loader2, Check } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/shared/usePushNotifications';
+import { isNative } from '@/lib/platform';
 import type { CoachTrack } from '@/pages/onboarding/Questionnaire';
 
 interface Props {
@@ -12,8 +13,12 @@ interface Props {
 
 export default function QuestionnairePush({ audience, coachTrack, onDone }: Props) {
   const { t } = useTranslation('auth');
-  const { supported, subscribe } = usePushNotifications();
+  const { supported, permission, subscribe } = usePushNotifications();
   const [loading, setLoading] = useState(false);
+
+  // If web permission is already granted, surface that directly — tapping
+  // "Enable" won't produce a system dialog and leaves the user confused.
+  const alreadyGrantedWeb = !isNative && typeof Notification !== 'undefined' && permission === 'granted';
 
   const bullets = audience === 'athlete'
     ? [t('questionnaire.athlete.pushBullet1'), t('questionnaire.athlete.pushBullet2'), t('questionnaire.athlete.pushBullet3')]
@@ -25,11 +30,26 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
   const subtitle = audience === 'athlete' ? t('questionnaire.athlete.pushSubtitle') : t('questionnaire.coach.pushSubtitle');
 
   async function handleEnable() {
-    if (!supported) { onDone(false); return; }
     setLoading(true);
-    const result = await subscribe();
-    setLoading(false);
-    onDone(result === true);
+    try {
+      if (isNative) {
+        // Native (iOS/Android) — FirebaseMessaging owns the system dialog.
+        // useNativePush at app root will pick up the token once granted.
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+        const current = await FirebaseMessaging.checkPermissions();
+        if (current.receive === 'granted') { onDone(true); return; }
+        const result = await FirebaseMessaging.requestPermissions();
+        onDone(result.receive === 'granted');
+        return;
+      }
+      if (!supported) { onDone(false); return; }
+      const result = await subscribe();
+      onDone(result === true);
+    } catch {
+      onDone(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -49,21 +69,38 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
         ))}
       </ul>
 
-      <button
-        onClick={handleEnable}
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
-      >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        {t('questionnaire.common.enableNotifications')}
-      </button>
-      <button
-        onClick={() => onDone(false)}
-        disabled={loading}
-        className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground min-h-[36px]"
-      >
-        {t('questionnaire.common.notNow')}
-      </button>
+      {alreadyGrantedWeb ? (
+        <>
+          <div className="mb-3 flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/5 px-4 py-3 text-sm font-medium text-success">
+            <Check className="h-4 w-4" />
+            {t('questionnaire.common.alreadyEnabled')}
+          </div>
+          <button
+            onClick={() => onDone(true)}
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
+          >
+            {t('questionnaire.common.continue')}
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={handleEnable}
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground disabled:opacity-50 min-h-[44px]"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {t('questionnaire.common.enableNotifications')}
+          </button>
+          <button
+            onClick={() => onDone(false)}
+            disabled={loading}
+            className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground min-h-[36px]"
+          >
+            {t('questionnaire.common.notNow')}
+          </button>
+        </>
+      )}
     </div>
   );
 }
