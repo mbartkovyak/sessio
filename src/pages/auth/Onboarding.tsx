@@ -257,7 +257,11 @@ export default function Onboarding() {
       <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3 text-white">
           {showBack && (
-            <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">
+            <button
+              onClick={goBack}
+              aria-label="Back"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition -ml-2"
+            >
               <ArrowLeft className="h-5 w-5" />
             </button>
           )}
