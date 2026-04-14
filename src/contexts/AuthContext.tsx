@@ -60,6 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: ensured, error: rpcErr } = await supabase.rpc('ensure_my_profile');
         if (rpcErr) {
           Sentry.captureException(rpcErr, { tags: { context: 'ensure_my_profile' }, extra: { userId } });
+          // Profile can't be created — stale session (e.g. account was deleted).
+          // Force sign-out to prevent broken ghost state (FK violations on every action).
+          localStorage.removeItem('sessio_cached_profile');
+          supabase.auth.signOut();
           return;
         }
         setProfile(ensured as Profile | null);
