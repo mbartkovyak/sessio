@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { isNative } from '@/lib/platform';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
@@ -38,6 +39,38 @@ export default function AuthForm({ mode }: Props) {
   const [appleLoading, setAppleLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Reset OAuth loading if user returns without completing auth (pressed back
+  // in the external browser). 1s delay lets a successful auth callback land first.
+  useEffect(() => {
+    if (!googleLoading && !appleLoading) return;
+
+    let timeout: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      timeout = setTimeout(() => {
+        setGoogleLoading(false);
+        setAppleLoading(false);
+      }, 1000);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') reset();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    let browserListener: { remove: () => void } | undefined;
+    if (isNative) {
+      import('@capacitor/browser').then(({ Browser }) => {
+        Browser.addListener('browserFinished', reset).then(l => { browserListener = l; });
+      });
+    }
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('visibilitychange', onVisibility);
+      browserListener?.remove();
+    };
+  }, [googleLoading, appleLoading]);
 
   async function handleGoogle() {
     setError('');
