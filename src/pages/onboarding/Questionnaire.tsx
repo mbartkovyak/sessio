@@ -94,7 +94,9 @@ export default function Questionnaire() {
     if (step === 'welcome') {
       // Back out to the existing onboarding form so users can edit their
       // name / sport / location. Re-submitting lands them back here.
-      navigate('/onboarding');
+      // `fromQuestionnaire` tells Onboarding.tsx to open on the role's
+      // last step (not the name step) so users don't lose their place.
+      navigate('/onboarding', { state: { fromQuestionnaire: true } });
       return;
     }
     if (isAthlete) {

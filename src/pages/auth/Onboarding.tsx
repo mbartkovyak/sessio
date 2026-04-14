@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
@@ -18,6 +18,7 @@ type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coac
 export default function Onboarding() {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(['auth', 'common']);
   const [step, setStep] = useState<Step>('name');
   const [firstName, setFirstName] = useState('');
@@ -46,7 +47,49 @@ export default function Onboarding() {
     }
     if (profile?.first_name && !firstName) setFirstName(profile.first_name);
     if (profile?.last_name && !lastName) setLastName(profile.last_name);
+    if (profile?.phone && !phone) setPhone(profile.phone);
   }, [profile]);
+
+  // Returning from the questionnaire via "back" — land on the role's last
+  // data-entry step with existing values prefilled so users can edit and
+  // re-submit rather than starting from scratch.
+  useEffect(() => {
+    if (!profile || !user) return;
+    if (!(location.state as any)?.fromQuestionnaire) return;
+    if (!profile.onboarding_complete) return;
+
+    if (profile.country) setCountry(profile.country);
+    if (profile.city) setCity(profile.city);
+    if (profile.sport) setSport(profile.sport);
+
+    if (profile.role === 'player') {
+      setStep('athlete-details');
+      return;
+    }
+    if (profile.role === 'coach') {
+      setCoachType('join');
+      setStep('coach-details');
+      return;
+    }
+    if (profile.role === 'school_owner') {
+      supabase
+        .from('schools')
+        .select('name, sport, is_listed')
+        .eq('owner_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.is_listed) {
+            setCoachType('school');
+            setSchoolName(data.name ?? '');
+            setSchoolSports((data.sport as string[] | null) ?? []);
+            setStep('school-details');
+          } else {
+            setCoachType('solo');
+            setStep('coach-details');
+          }
+        });
+    }
+  }, [profile, user, location.state]);
 
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
