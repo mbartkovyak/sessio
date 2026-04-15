@@ -15,19 +15,19 @@ export default function QuestionnaireBenefits({ audience, coachTrack, onContinue
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-foreground">
+      <h1 className="mb-6 text-3xl font-bold text-foreground leading-tight">
         {isAthlete ? t('questionnaire.athlete.benefitsTitle') : t('questionnaire.coach.benefitsTitle')}
       </h1>
 
-      <div className="space-y-4 mb-6">
+      <div className="space-y-5 mb-6">
         {items.map((item, i) => (
           <div key={i} className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xl">
               {item.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-foreground">{item.title}</div>
-              <div className="text-sm text-muted-foreground mt-0.5">{item.desc}</div>
+              <div className="text-base font-semibold text-foreground">{item.title}</div>
+              <div className="text-sm text-muted-foreground mt-1 leading-snug">{item.desc}</div>
             </div>
           </div>
         ))}
@@ -35,7 +35,7 @@ export default function QuestionnaireBenefits({ audience, coachTrack, onContinue
 
       <button
         onClick={onContinue}
-        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
+        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-4 text-base font-semibold text-primary-foreground min-h-[48px]"
       >
         {t('questionnaire.common.next')}
       </button>

@@ -23,18 +23,18 @@ export default function QuestionnaireFinish({ coachTrack, firstName, notificatio
 
   return (
     <div>
-      <h1 className="mb-2 text-2xl font-bold text-foreground">
+      <h1 className="mb-3 text-3xl font-bold text-foreground leading-tight">
         {t('questionnaire.coach.finishTitle', { firstName })}
       </h1>
-      <p className="mb-6 text-muted-foreground">{subtitle}</p>
+      <p className="mb-6 text-base text-muted-foreground leading-snug">{subtitle}</p>
 
-      <div className="mb-6 space-y-2 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2.5 text-sm">
-          <CheckCircle2 className="h-4 w-4 text-success" />
+      <div className="mb-6 space-y-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2.5 text-base">
+          <CheckCircle2 className="h-5 w-5 text-success" />
           <span className="text-foreground">{t('questionnaire.coach.finishChecklist1')}</span>
         </div>
-        <div className="flex items-center gap-2.5 text-sm">
-          <CheckCircle2 className={`h-4 w-4 ${notificationsEnabled ? 'text-success' : 'text-muted-foreground'}`} />
+        <div className="flex items-center gap-2.5 text-base">
+          <CheckCircle2 className={`h-5 w-5 ${notificationsEnabled ? 'text-success' : 'text-muted-foreground'}`} />
           <span className="text-foreground">
             {notificationsEnabled
               ? t('questionnaire.coach.finishChecklist2Enabled')
@@ -45,13 +45,13 @@ export default function QuestionnaireFinish({ coachTrack, firstName, notificatio
 
       <button
         onClick={onPrimary}
-        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
+        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-4 text-base font-semibold text-primary-foreground min-h-[48px]"
       >
         {primaryLabel}
       </button>
       <button
         onClick={onSecondary}
-        className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground min-h-[36px]"
+        className="mt-3 w-full text-base text-muted-foreground hover:text-foreground min-h-[44px]"
       >
         {t('questionnaire.common.goHome')}
       </button>
