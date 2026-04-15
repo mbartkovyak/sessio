@@ -39,7 +39,7 @@ export default function QuestionnaireWelcome({ audience, coachTrack, onContinue 
         onClick={onContinue}
         className="mt-6 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
       >
-        {t('questionnaire.common.getStarted')}
+        {t('questionnaire.common.next')}
       </button>
     </div>
   );
