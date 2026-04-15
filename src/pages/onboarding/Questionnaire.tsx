@@ -9,6 +9,7 @@ import OnboardingProgress from '@/components/shared/OnboardingProgress';
 import QuestionnaireWelcome from '@/components/onboarding/QuestionnaireWelcome';
 import QuestionnaireBenefits from '@/components/onboarding/QuestionnaireBenefits';
 import QuestionnaireGoal from '@/components/onboarding/QuestionnaireGoal';
+import QuestionnaireAthleteSports from '@/components/onboarding/QuestionnaireAthleteSports';
 import QuestionnairePush from '@/components/onboarding/QuestionnairePush';
 import QuestionnaireDemo from '@/components/onboarding/QuestionnaireDemo';
 import QuestionnaireFinish from '@/components/onboarding/QuestionnaireFinish';
@@ -16,7 +17,7 @@ import QuestionnaireFinish from '@/components/onboarding/QuestionnaireFinish';
 export type CoachTrack = 'solo' | 'owner' | 'member';
 type Audience = 'athlete' | 'coach';
 
-type AthleteStep = 'welcome' | 'benefits' | 'push';
+type AthleteStep = 'welcome' | 'sports' | 'push';
 type CoachStep = 'welcome' | 'goal' | 'benefits' | 'push' | 'demo' | 'finish';
 type Step = AthleteStep | CoachStep;
 
@@ -100,8 +101,8 @@ export default function Questionnaire() {
       return;
     }
     if (isAthlete) {
-      if (step === 'benefits') setStep('welcome');
-      else if (step === 'push') setStep('benefits');
+      if (step === 'sports') setStep('welcome');
+      else if (step === 'push') setStep('sports');
     } else {
       if (step === 'goal') setStep('welcome');
       else if (step === 'benefits') setStep('goal');
@@ -130,6 +131,17 @@ export default function Questionnaire() {
       .update({ primary_goal: goal })
       .eq('id', user.id);
     setStep('benefits');
+  }
+
+  async function saveSports(sports: string[]) {
+    if (!user) return;
+    if (sports.length > 0) {
+      await supabase
+        .from('profiles')
+        .update({ preferred_sports: sports } as never)
+        .eq('id', user.id);
+    }
+    setStep('push');
   }
 
   async function handlePushDone(enabled: boolean) {
@@ -193,8 +205,8 @@ export default function Questionnaire() {
 
   function renderStep() {
     if (isAthlete) {
-      if (step === 'welcome') return <QuestionnaireWelcome audience="athlete" onContinue={() => setStep('benefits')} />;
-      if (step === 'benefits') return <QuestionnaireBenefits audience="athlete" onContinue={() => setStep('push')} />;
+      if (step === 'welcome') return <QuestionnaireWelcome audience="athlete" onContinue={() => setStep('sports')} />;
+      if (step === 'sports') return <QuestionnaireAthleteSports onContinue={saveSports} />;
       if (step === 'push') return <QuestionnairePush audience="athlete" onDone={handlePushDone} />;
       return null;
     }
@@ -220,7 +232,7 @@ export default function Questionnaire() {
 
 function newStepIndexFor(step: Step, isAthlete: boolean): number {
   if (isAthlete) {
-    return step === 'welcome' ? 1 : step === 'benefits' ? 2 : 3;
+    return step === 'welcome' ? 1 : step === 'sports' ? 2 : 3;
   }
   const coachOrder: CoachStep[] = ['welcome', 'goal', 'benefits', 'push', 'demo', 'finish'];
   return coachOrder.indexOf(step as CoachStep) + 1;

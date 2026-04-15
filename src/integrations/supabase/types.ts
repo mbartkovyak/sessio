@@ -420,6 +420,7 @@ export type Database = {
           last_name: string | null
           onboarding_complete: boolean | null
           phone: string | null
+          preferred_sports: string[] | null
           primary_goal: string | null
           questionnaire_complete: boolean
           role: string | null
@@ -443,6 +444,7 @@ export type Database = {
           last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
+          preferred_sports?: string[] | null
           primary_goal?: string | null
           questionnaire_complete?: boolean
           role?: string | null
@@ -466,6 +468,7 @@ export type Database = {
           last_name?: string | null
           onboarding_complete?: boolean | null
           phone?: string | null
+          preferred_sports?: string[] | null
           primary_goal?: string | null
           questionnaire_complete?: boolean
           role?: string | null
@@ -1026,6 +1029,7 @@ export type Database = {
           last_name: string | null
           onboarding_complete: boolean | null
           phone: string | null
+          preferred_sports: string[] | null
           primary_goal: string | null
           questionnaire_complete: boolean
           role: string | null

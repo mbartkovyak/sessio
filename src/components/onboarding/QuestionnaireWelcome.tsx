@@ -27,12 +27,29 @@ export default function QuestionnaireWelcome({ audience, coachTrack, onContinue 
 
       {isAthlete ? <AthleteAnimatedPreview /> : <CoachPreview />}
 
+      {isAthlete && (
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <MiniBenefit icon="⚡" label={t('questionnaire.athlete.miniBenefit1')} />
+          <MiniBenefit icon="💳" label={t('questionnaire.athlete.miniBenefit2')} />
+          <MiniBenefit icon="📅" label={t('questionnaire.athlete.miniBenefit3')} />
+        </div>
+      )}
+
       <button
         onClick={onContinue}
         className="mt-6 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground min-h-[44px]"
       >
         {t('questionnaire.common.getStarted')}
       </button>
+    </div>
+  );
+}
+
+function MiniBenefit({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-2 py-2.5 text-center">
+      <div className="text-lg leading-none mb-1">{icon}</div>
+      <div className="text-[11px] font-medium leading-tight text-foreground">{label}</div>
     </div>
   );
 }
