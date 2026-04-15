@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Wallet, X } from 'lucide-react';
+import { Check, CheckCircle2, Wallet, X, XCircle } from 'lucide-react';
 import type { CoachTrack } from '@/pages/onboarding/Questionnaire';
 
 interface Props {
@@ -143,86 +143,91 @@ function AthleteAnimatedPreview() {
   );
 }
 
-// School/coach welcome — animated session that fills up automatically.
-// The 4th spot joins after a short delay, badge bumps from 3/4 → 4/4,
-// and the "All confirmed" caption fades in. Loops continuously.
+// Coach welcome — mirrors the real AttendanceSheet flow. Coach opens the
+// session, taps "Mark all present", and every athlete flips from absent
+// (grey XCircle) to present (success CheckCircle2) in a staggered sweep.
+// Loops continuously.
 const COACH_ATHLETES = [
-  { name: 'Anna', initials: 'A' },
-  { name: 'Marek', initials: 'M' },
-  { name: 'Kasia', initials: 'K' },
-  { name: 'Tomek', initials: 'T' },
+  { name: 'Anna Kowalska', initials: 'AK' },
+  { name: 'Marek Nowak', initials: 'MN' },
+  { name: 'Kasia Wiśniewska', initials: 'KW' },
+  { name: 'Tomek Lis', initials: 'TL' },
 ] as const;
 
+type CoachStage = 'idle' | 'tapping' | 'all_present';
+
 function CoachPreview() {
-  const [confirmedCount, setConfirmedCount] = useState(3);
+  const [stage, setStage] = useState<CoachStage>('idle');
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const cycle = () => {
-      setConfirmedCount(3);
-      timers.push(setTimeout(() => setConfirmedCount(4), 1600));
-      timers.push(setTimeout(cycle, 4200));
+      setStage('idle');
+      timers.push(setTimeout(() => setStage('tapping'), 1400));
+      timers.push(setTimeout(() => setStage('all_present'), 1750));
+      timers.push(setTimeout(cycle, 4600));
     };
     cycle();
     return () => { timers.forEach(clearTimeout); };
   }, []);
 
-  const isFull = confirmedCount === 4;
+  const allPresent = stage === 'all_present';
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm font-medium text-muted-foreground">Today · 18:00</div>
-          <div className="text-base font-semibold text-foreground">Monday Tennis · Court 3</div>
-        </div>
-        <div
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-500 ${
-            isFull ? 'bg-success/15 text-success scale-105' : 'bg-secondary text-muted-foreground'
-          }`}
-        >
-          {confirmedCount}/4
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      {/* Session header — matches AttendanceSheet */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-lg">🎾</span>
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-foreground truncate">Monday Tennis</h3>
+          <p className="text-xs text-muted-foreground">Today · 18:00 – 19:30</p>
         </div>
       </div>
 
-      {/* Animated confirmation slots */}
-      <div className="mt-4 grid grid-cols-4 gap-2">
-        {COACH_ATHLETES.map((a, i) => {
-          const confirmed = i < confirmedCount;
-          return (
-            <div
-              key={a.name}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border-2 py-2.5 transition-all duration-500 ${
-                confirmed ? 'border-success/40 bg-success/5' : 'border-dashed border-border bg-transparent'
-              }`}
-            >
-              <div
-                className={`relative flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all duration-500 ${
-                  confirmed ? 'bg-success text-white scale-100' : 'bg-muted text-muted-foreground scale-90'
-                }`}
-              >
-                {a.initials}
-                {confirmed && (
-                  <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-success ring-2 ring-card">
-                    <Check className="h-2.5 w-2.5 text-white" strokeWidth={4} />
-                  </span>
-                )}
-              </div>
-              <span className={`text-[11px] font-medium transition-colors ${confirmed ? 'text-foreground' : 'text-muted-foreground'}`}>
-                {a.name}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Caption fades in when the group fills up */}
+      {/* "Mark all present" quick action — gets "tapped" in animation */}
       <div
-        className={`mt-4 text-center text-sm font-medium transition-all duration-500 ${
-          isFull ? 'opacity-100 text-success translate-y-0' : 'opacity-0 -translate-y-1'
+        role="button"
+        aria-hidden
+        className={`mb-2 flex items-center justify-center rounded-lg bg-success/10 py-2 text-xs font-semibold text-success transition-all duration-200 ${
+          stage === 'tapping' ? 'scale-[0.97] bg-success/25' : 'scale-100'
+        } ${allPresent ? 'opacity-60' : 'opacity-100'}`}
+      >
+        Mark all present
+      </div>
+
+      {/* Participant list — staggered attendance sweep */}
+      <div className="divide-y divide-border">
+        {COACH_ATHLETES.map((a, i) => (
+          <div key={a.name} className="flex items-center gap-3 py-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-foreground">
+              {a.initials}
+            </div>
+            <span className="flex-1 text-sm font-medium text-foreground truncate">{a.name}</span>
+            <div className="relative h-6 w-6 shrink-0">
+              <XCircle
+                className={`absolute inset-0 h-6 w-6 text-muted-foreground/40 transition-opacity duration-300 ${
+                  allPresent ? 'opacity-0' : 'opacity-100'
+                }`}
+                style={{ transitionDelay: `${i * 90}ms` }}
+              />
+              <CheckCircle2
+                className={`absolute inset-0 h-6 w-6 text-success transition-all duration-300 ${
+                  allPresent ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                }`}
+                style={{ transitionDelay: `${i * 90}ms` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Caption fades in once everyone is marked */}
+      <div
+        className={`mt-3 text-center text-sm font-medium transition-all duration-500 ${
+          allPresent ? 'opacity-100 text-success translate-y-0' : 'opacity-0 translate-y-1'
         }`}
       >
-        ✨ All confirmed — no chasing needed
+        ✨ Attendance done — one tap
       </div>
     </div>
   );
