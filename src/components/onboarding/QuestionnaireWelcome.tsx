@@ -91,7 +91,7 @@ function AthleteAnimatedPreview() {
             }`}
           >
             <Check className="h-3 w-3" strokeWidth={3} />
-            Signed up
+            Booked
           </div>
           <div
             className={`absolute inset-0 flex items-center justify-center gap-1 rounded-full bg-destructive/15 text-[11px] font-semibold text-destructive transition-all duration-500 ${
