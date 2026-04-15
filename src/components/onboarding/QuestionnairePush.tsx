@@ -28,6 +28,7 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
 
   const title = audience === 'athlete' ? t('questionnaire.athlete.pushTitle') : t('questionnaire.coach.pushTitle');
   const subtitle = audience === 'athlete' ? t('questionnaire.athlete.pushSubtitle') : t('questionnaire.coach.pushSubtitle');
+  const ctaLabel = audience === 'athlete' ? t('questionnaire.athlete.pushCta') : t('questionnaire.common.enableNotifications');
 
   async function handleEnable() {
     setLoading(true);
@@ -90,7 +91,7 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-4 text-base font-semibold text-primary-foreground disabled:opacity-50 min-h-[48px]"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t('questionnaire.common.enableNotifications')}
+            {ctaLabel}
           </button>
           <button
             onClick={() => onDone(false)}
