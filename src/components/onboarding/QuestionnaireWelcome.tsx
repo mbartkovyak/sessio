@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Check, CheckCircle2, Wallet, MessageCircle, X } from 'lucide-react';
+import { Calendar, Check, CheckCircle2, Wallet, X } from 'lucide-react';
 import type { CoachTrack } from '@/pages/onboarding/Questionnaire';
 
 interface Props {
@@ -125,18 +125,19 @@ function AthleteAnimatedPreview() {
         </div>
       </div>
 
-      {/* Real-life info rows — always visible */}
+      {/* Pass balance — refunded when the session is cancelled */}
       <div className="mt-4 h-px bg-border/60" />
-      <div className="mt-3 space-y-2">
-        <div className="flex items-center gap-2 text-xs">
-          <Wallet className="h-3.5 w-3.5 text-primary shrink-0" />
-          <span className="text-muted-foreground">Pass balance</span>
-          <span className="font-semibold text-foreground ml-auto">8 sessions left</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs">
-          <MessageCircle className="h-3.5 w-3.5 text-primary shrink-0" />
-          <span className="text-muted-foreground">1 new message from your coach</span>
-        </div>
+      <div className="mt-3 flex items-center gap-2 text-xs">
+        <Wallet className="h-3.5 w-3.5 text-primary shrink-0" />
+        <span className="text-muted-foreground">Pass balance</span>
+        <span
+          key={isCancelled ? 'refunded' : 'before'}
+          className={`ml-auto font-semibold tabular-nums transition-colors duration-300 ${
+            isCancelled ? 'text-success' : 'text-foreground'
+          }`}
+        >
+          {isCancelled ? '9' : '8'} sessions left
+        </span>
       </div>
     </div>
   );
