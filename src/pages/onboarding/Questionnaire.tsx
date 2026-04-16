@@ -140,7 +140,7 @@ export default function Questionnaire() {
     if (isAthlete) {
       await completeQuestionnaire(postQuestionnairePath(profile?.role));
     } else {
-      setStep('demo');
+      setStep('finish');
     }
   }
 
