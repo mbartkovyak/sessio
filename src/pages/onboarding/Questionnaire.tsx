@@ -46,9 +46,13 @@ export default function Questionnaire() {
     const role = profile.role;
     if (role === 'player') {
       setAudience('athlete');
+      // Ensure step is valid for athlete track
+      setStep((prev) => (['welcome', 'sports', 'push'] as Step[]).includes(prev) ? prev : 'welcome');
       return;
     }
     setAudience('coach');
+    // Ensure step is valid for coach track (no 'welcome' anymore)
+    setStep((prev) => (['goal', 'demo', 'push', 'finish'] as Step[]).includes(prev) ? prev : 'goal');
     if (role === 'coach') {
       setCoachTrack('member');
     } else if (role === 'school_owner' && user) {
