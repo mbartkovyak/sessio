@@ -20,26 +20,16 @@ const TAB_META: Record<Tab, { icon: typeof CalendarPlus; labelKey: string }> = {
 export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue }: Props) {
   const { t } = useTranslation('auth');
   const [activeTab, setActiveTab] = useState<Tab>('schedule');
-  const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-cycle through tabs every 6s — reset timer when user taps a tab.
-  useEffect(() => {
-    function advance() {
-      setActiveTab((prev) => {
-        const idx = TABS.indexOf(prev);
-        return TABS[(idx + 1) % TABS.length];
-      });
+  const isLastTab = activeTab === TABS[TABS.length - 1];
+
+  function handleContinue() {
+    if (isLastTab) {
+      onContinue();
+    } else {
+      const idx = TABS.indexOf(activeTab);
+      setActiveTab(TABS[idx + 1]);
     }
-    autoRef.current = setInterval(advance, 6000);
-    return () => { if (autoRef.current) clearInterval(autoRef.current); };
-  }, []);
-
-  function selectTab(tab: Tab) {
-    setActiveTab(tab);
-    if (autoRef.current) clearInterval(autoRef.current);
-    autoRef.current = setInterval(() => {
-      setActiveTab((prev) => TABS[(TABS.indexOf(prev) + 1) % TABS.length]);
-    }, 6000);
   }
 
   return (
@@ -49,16 +39,17 @@ export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue 
 
       {/* Tab selector */}
       <div className="flex gap-1.5 mb-4">
-        {TABS.map((tab) => {
+        {TABS.map((tab, i) => {
           const meta = TAB_META[tab];
           const Icon = meta.icon;
           const active = activeTab === tab;
+          const visited = TABS.indexOf(activeTab) >= i;
           return (
             <button
               key={tab}
-              onClick={() => selectTab(tab)}
+              onClick={() => setActiveTab(tab)}
               className={`flex-1 flex flex-col items-center gap-1 rounded-xl py-2.5 text-center transition-all duration-300 ${
-                active ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-secondary/80 text-muted-foreground'
+                active ? 'bg-primary text-primary-foreground shadow-sm' : visited ? 'bg-primary/15 text-primary' : 'bg-secondary/80 text-muted-foreground'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -75,16 +66,18 @@ export default function QuestionnaireDemo({ coachTrack: _coachTrack, onContinue 
         {activeTab === 'backfill' && <BackfillDemo />}
       </div>
 
-      {/* Stat */}
-      <div className="mb-5 rounded-xl bg-primary/10 p-4 text-center">
-        <p className="text-base font-bold text-primary leading-snug">{t('questionnaire.coach.demoOutputStat')}</p>
-      </div>
+      {/* Stat — only on last tab */}
+      {isLastTab && (
+        <div className="mb-5 rounded-xl bg-primary/10 p-4 text-center">
+          <p className="text-base font-bold text-primary leading-snug">{t('questionnaire.coach.demoOutputStat')}</p>
+        </div>
+      )}
 
       <button
-        onClick={onContinue}
+        onClick={handleContinue}
         className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-4 text-base font-semibold text-primary-foreground min-h-[48px]"
       >
-        {t('questionnaire.common.continue')}
+        {isLastTab ? t('questionnaire.common.continue') : t('questionnaire.common.next')}
       </button>
     </div>
   );

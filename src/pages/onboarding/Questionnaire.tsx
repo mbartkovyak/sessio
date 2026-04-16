@@ -17,7 +17,7 @@ export type CoachTrack = 'solo' | 'owner' | 'member';
 type Audience = 'athlete' | 'coach';
 
 type AthleteStep = 'welcome' | 'sports' | 'push';
-type CoachStep = 'welcome' | 'goal' | 'demo' | 'push' | 'finish';
+type CoachStep = 'goal' | 'demo' | 'push' | 'finish';
 type Step = AthleteStep | CoachStep;
 
 // Screen positions within existing onboarding (name → role → details …).
@@ -77,17 +77,15 @@ export default function Questionnaire() {
 
   // Progress computation
   const existingTotal = audience === 'athlete' ? EXISTING_STEPS_BY_TRACK.athlete : coachTrack ? EXISTING_STEPS_BY_TRACK[coachTrack] : 4;
-  const newStepsTotal = isAthlete ? 3 : 5;
+  const newStepsTotal = isAthlete ? 3 : 4;
   const total = existingTotal + newStepsTotal;
   const newStepIndex = newStepIndexFor(step, isAthlete);
   const current = existingTotal + newStepIndex;
 
   function goBack() {
-    if (step === 'welcome') {
-      // Back out to the existing onboarding form so users can edit their
-      // name / sport / location. Re-submitting lands them back here.
-      // `fromQuestionnaire` tells Onboarding.tsx to open on the role's
-      // last step (not the name step) so users don't lose their place.
+    // First step of each track → go back to existing onboarding
+    const firstStep = isAthlete ? 'welcome' : 'goal';
+    if (step === firstStep) {
       navigate('/onboarding', { state: { fromQuestionnaire: true } });
       return;
     }
@@ -95,8 +93,7 @@ export default function Questionnaire() {
       if (step === 'sports') setStep('welcome');
       else if (step === 'push') setStep('sports');
     } else {
-      if (step === 'goal') setStep('welcome');
-      else if (step === 'demo') setStep('goal');
+      if (step === 'demo') setStep('goal');
       else if (step === 'push') setStep('demo');
       else if (step === 'finish') setStep('push');
     }
@@ -202,7 +199,6 @@ export default function Questionnaire() {
     }
     // coach
     if (!coachTrack) return null;
-    if (step === 'welcome') return <QuestionnaireWelcome audience="coach" coachTrack={coachTrack} onContinue={() => setStep('goal')} />;
     if (step === 'goal') return <QuestionnaireGoal coachTrack={coachTrack} onContinue={saveGoal} />;
     if (step === 'demo') return <QuestionnaireDemo coachTrack={coachTrack} onContinue={() => setStep('push')} />;
     if (step === 'push') return <QuestionnairePush audience="coach" coachTrack={coachTrack} onDone={handlePushDone} />;
@@ -223,7 +219,7 @@ function newStepIndexFor(step: Step, isAthlete: boolean): number {
   if (isAthlete) {
     return step === 'welcome' ? 1 : step === 'sports' ? 2 : 3;
   }
-  const coachOrder: CoachStep[] = ['welcome', 'goal', 'demo', 'push', 'finish'];
+  const coachOrder: CoachStep[] = ['goal', 'demo', 'push', 'finish'];
   return coachOrder.indexOf(step as CoachStep) + 1;
 }
 
