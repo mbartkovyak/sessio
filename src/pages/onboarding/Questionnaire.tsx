@@ -7,7 +7,6 @@ import PageHeader from '@/components/shared/PageHeader';
 import { SessioLogoCompact } from '@/components/SessioLogo';
 import OnboardingProgress from '@/components/shared/OnboardingProgress';
 import QuestionnaireWelcome from '@/components/onboarding/QuestionnaireWelcome';
-import QuestionnaireBenefits from '@/components/onboarding/QuestionnaireBenefits';
 import QuestionnaireGoal from '@/components/onboarding/QuestionnaireGoal';
 import QuestionnaireAthleteSports from '@/components/onboarding/QuestionnaireAthleteSports';
 import QuestionnairePush from '@/components/onboarding/QuestionnairePush';
@@ -18,7 +17,7 @@ export type CoachTrack = 'solo' | 'owner' | 'member';
 type Audience = 'athlete' | 'coach';
 
 type AthleteStep = 'welcome' | 'sports' | 'push';
-type CoachStep = 'welcome' | 'goal' | 'benefits' | 'push' | 'demo' | 'finish';
+type CoachStep = 'welcome' | 'goal' | 'push' | 'demo' | 'finish';
 type Step = AthleteStep | CoachStep;
 
 // Screen positions within existing onboarding (name → role → details …).
@@ -30,14 +29,6 @@ const EXISTING_STEPS_BY_TRACK: Record<CoachTrack | 'athlete', number> = {
   member: 4,
 };
 
-const NEW_STEP_POSITIONS: Record<Step, number> = {
-  welcome: 1,
-  goal: 2,
-  benefits: 2,   // coach: benefits is step 3 (handled below); athlete: benefits is step 2
-  push: 3,
-  demo: 5,
-  finish: 6,
-};
 
 export default function Questionnaire() {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -86,7 +77,7 @@ export default function Questionnaire() {
 
   // Progress computation
   const existingTotal = audience === 'athlete' ? EXISTING_STEPS_BY_TRACK.athlete : coachTrack ? EXISTING_STEPS_BY_TRACK[coachTrack] : 4;
-  const newStepsTotal = isAthlete ? 3 : 6;
+  const newStepsTotal = isAthlete ? 3 : 5;
   const total = existingTotal + newStepsTotal;
   const newStepIndex = newStepIndexFor(step, isAthlete);
   const current = existingTotal + newStepIndex;
@@ -105,8 +96,7 @@ export default function Questionnaire() {
       else if (step === 'push') setStep('sports');
     } else {
       if (step === 'goal') setStep('welcome');
-      else if (step === 'benefits') setStep('goal');
-      else if (step === 'push') setStep('benefits');
+      else if (step === 'push') setStep('goal');
       else if (step === 'demo') setStep('push');
       else if (step === 'finish') setStep('demo');
     }
@@ -130,7 +120,7 @@ export default function Questionnaire() {
       .from('profiles')
       .update({ primary_goal: goal })
       .eq('id', user.id);
-    setStep('benefits');
+    setStep('push');
   }
 
   async function saveSports(sports: string[]) {
@@ -214,7 +204,6 @@ export default function Questionnaire() {
     if (!coachTrack) return null;
     if (step === 'welcome') return <QuestionnaireWelcome audience="coach" coachTrack={coachTrack} onContinue={() => setStep('goal')} />;
     if (step === 'goal') return <QuestionnaireGoal coachTrack={coachTrack} onContinue={saveGoal} />;
-    if (step === 'benefits') return <QuestionnaireBenefits audience="coach" coachTrack={coachTrack} onContinue={() => setStep('push')} />;
     if (step === 'push') return <QuestionnairePush audience="coach" coachTrack={coachTrack} onDone={handlePushDone} />;
     if (step === 'demo') return <QuestionnaireDemo coachTrack={coachTrack} onContinue={() => setStep('finish')} />;
     if (step === 'finish') return (
@@ -234,7 +223,7 @@ function newStepIndexFor(step: Step, isAthlete: boolean): number {
   if (isAthlete) {
     return step === 'welcome' ? 1 : step === 'sports' ? 2 : 3;
   }
-  const coachOrder: CoachStep[] = ['welcome', 'goal', 'benefits', 'push', 'demo', 'finish'];
+  const coachOrder: CoachStep[] = ['welcome', 'goal', 'push', 'demo', 'finish'];
   return coachOrder.indexOf(step as CoachStep) + 1;
 }
 
