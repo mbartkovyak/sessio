@@ -20,15 +20,12 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
   // "Enable" won't produce a system dialog and leaves the user confused.
   const alreadyGrantedWeb = !isNative && typeof Notification !== 'undefined' && permission === 'granted';
 
-  const bullets = audience === 'athlete'
-    ? [t('questionnaire.athlete.pushBullet1'), t('questionnaire.athlete.pushBullet2'), t('questionnaire.athlete.pushBullet3')]
-    : coachTrack === 'member'
-      ? [t('questionnaire.coach.pushMemberBullet1'), t('questionnaire.coach.pushMemberBullet2'), t('questionnaire.coach.pushMemberBullet3')]
-      : [t('questionnaire.coach.pushOwnerBullet1'), t('questionnaire.coach.pushOwnerBullet2'), t('questionnaire.coach.pushOwnerBullet3'), t('questionnaire.coach.pushOwnerBullet4')];
-
   const title = audience === 'athlete' ? t('questionnaire.athlete.pushTitle') : t('questionnaire.coach.pushTitle');
   const subtitle = audience === 'athlete' ? t('questionnaire.athlete.pushSubtitle') : t('questionnaire.coach.pushSubtitle');
   const ctaLabel = audience === 'athlete' ? t('questionnaire.athlete.pushCta') : t('questionnaire.common.enableNotifications');
+  const bullets = audience === 'athlete'
+    ? [t('questionnaire.athlete.pushBullet1'), t('questionnaire.athlete.pushBullet2'), t('questionnaire.athlete.pushBullet3')]
+    : null;
 
   async function handleEnable() {
     setLoading(true);
@@ -61,14 +58,16 @@ export default function QuestionnairePush({ audience, coachTrack, onDone }: Prop
       <h1 className="mb-3 text-3xl font-bold text-foreground leading-tight">{title}</h1>
       <p className="mb-6 text-base text-muted-foreground leading-snug">{subtitle}</p>
 
-      <ul className="mb-6 space-y-3">
-        {bullets.map((b, i) => (
-          <li key={i} className="flex items-start gap-2.5 text-base text-foreground">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-            <span className="leading-snug">{b}</span>
-          </li>
-        ))}
-      </ul>
+      {bullets && (
+        <ul className="mb-6 space-y-3">
+          {bullets.map((b, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-base text-foreground">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span className="leading-snug">{b}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {alreadyGrantedWeb ? (
         <>
