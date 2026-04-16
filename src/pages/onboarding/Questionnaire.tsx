@@ -17,7 +17,7 @@ export type CoachTrack = 'solo' | 'owner' | 'member';
 type Audience = 'athlete' | 'coach';
 
 type AthleteStep = 'welcome' | 'sports' | 'push';
-type CoachStep = 'welcome' | 'goal' | 'push' | 'demo' | 'finish';
+type CoachStep = 'welcome' | 'goal' | 'demo' | 'push' | 'finish';
 type Step = AthleteStep | CoachStep;
 
 // Screen positions within existing onboarding (name → role → details …).
@@ -96,9 +96,9 @@ export default function Questionnaire() {
       else if (step === 'push') setStep('sports');
     } else {
       if (step === 'goal') setStep('welcome');
-      else if (step === 'push') setStep('goal');
-      else if (step === 'demo') setStep('push');
-      else if (step === 'finish') setStep('demo');
+      else if (step === 'demo') setStep('goal');
+      else if (step === 'push') setStep('demo');
+      else if (step === 'finish') setStep('push');
     }
   }
 
@@ -120,7 +120,7 @@ export default function Questionnaire() {
       .from('profiles')
       .update({ primary_goal: goal })
       .eq('id', user.id);
-    setStep('push');
+    setStep('demo');
   }
 
   async function saveSports(sports: string[]) {
@@ -204,8 +204,8 @@ export default function Questionnaire() {
     if (!coachTrack) return null;
     if (step === 'welcome') return <QuestionnaireWelcome audience="coach" coachTrack={coachTrack} onContinue={() => setStep('goal')} />;
     if (step === 'goal') return <QuestionnaireGoal coachTrack={coachTrack} onContinue={saveGoal} />;
+    if (step === 'demo') return <QuestionnaireDemo coachTrack={coachTrack} onContinue={() => setStep('push')} />;
     if (step === 'push') return <QuestionnairePush audience="coach" coachTrack={coachTrack} onDone={handlePushDone} />;
-    if (step === 'demo') return <QuestionnaireDemo coachTrack={coachTrack} onContinue={() => setStep('finish')} />;
     if (step === 'finish') return (
       <QuestionnaireFinish
         coachTrack={coachTrack}
@@ -223,7 +223,7 @@ function newStepIndexFor(step: Step, isAthlete: boolean): number {
   if (isAthlete) {
     return step === 'welcome' ? 1 : step === 'sports' ? 2 : 3;
   }
-  const coachOrder: CoachStep[] = ['welcome', 'goal', 'push', 'demo', 'finish'];
+  const coachOrder: CoachStep[] = ['welcome', 'goal', 'demo', 'push', 'finish'];
   return coachOrder.indexOf(step as CoachStep) + 1;
 }
 
