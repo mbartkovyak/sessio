@@ -17,7 +17,9 @@
     "build:native": "bun run build && npx cap sync",
     "android:dev": "bun run build:dev && CAPGO_CHANNEL=dev npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew assembleDebug",
     "android:prod": "bun run build && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew assembleRelease",
-    "android:aab": "bun run build && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew bundleRelease"
+    "android:aab": "bun run build && npx cap sync android && find dist android/app/src/main -name '* 2.*' -delete 2>/dev/null; cd android && ./gradlew bundleRelease",
+    "ios:dev": "bun run build:dev && CAPGO_CHANNEL=dev npx cap sync ios && find dist ios/App/App/public -name '* 2.*' -delete 2>/dev/null; true",
+    "ios:prod": "bun run build && npx cap sync ios && find dist ios/App/App/public -name '* 2.*' -delete 2>/dev/null; true"
   },
   "dependencies": {
     "@capacitor-community/apple-sign-in": "^7.1.0",

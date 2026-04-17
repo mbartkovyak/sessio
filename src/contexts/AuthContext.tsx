@@ -101,9 +101,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // IMPORTANT: Do NOT await inside onAuthStateChange — it deadlocks Supabase auth.
     // Instead: use getSession() for initial load, and onAuthStateChange for sign-in/out events only.
-    
+
+    Sentry.addBreadcrumb({ category: 'boot', message: 'auth:getSession:start' });
+
+    // Safety net: WKWebView on iPad (iPhone compat mode) has been observed to
+    // stall Supabase's getSession() indefinitely on cold start. Without this
+    // fallback, `loading` stays true forever and SignIn shows a spinner —
+    // the exact "App is loading indefinitely" symptom Apple rejected 1.2.0 for.
+    // If getSession resolves first, we clear this; otherwise we render sign-in
+    // after 5s and let onAuthStateChange hydrate any late session.
+    const bootTimeout = setTimeout(() => {
+      if (!initialLoadDone.current) {
+        Sentry.captureMessage('auth:getSession timed out after 5s — forcing sign-in render', { level: 'warning' });
+        initialLoadDone.current = true;
+        setLoading(false);
+      }
+    }, 5000);
+
     // 1. Restore session from storage and load profile
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearTimeout(bootTimeout);
+      Sentry.addBreadcrumb({ category: 'boot', message: 'auth:getSession:resolved', data: { hasSession: !!session } });
       setSession(session);
       setUser(session?.user ?? null);
       userRef.current = session?.user ?? null;
@@ -121,6 +139,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setProfile(null);
+        initialLoadDone.current = true;
+        setLoading(false);
+      }
+    }).catch(err => {
+      clearTimeout(bootTimeout);
+      Sentry.captureException(err, { tags: { context: 'AuthProvider:getSession' } });
+      if (!initialLoadDone.current) {
         initialLoadDone.current = true;
         setLoading(false);
       }
@@ -162,7 +187,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(bootTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Sync language preference with profile

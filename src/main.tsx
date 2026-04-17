@@ -13,6 +13,8 @@ Sentry.init({
   environment: import.meta.env.MODE,
 });
 
+Sentry.addBreadcrumb({ category: 'boot', message: 'main:start' });
+
 setupDeepLinks();
 
 // Android 15+ enforces edge-to-edge display: the WebView draws full-screen
@@ -43,6 +45,7 @@ if (isAndroid) {
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
+Sentry.addBreadcrumb({ category: 'boot', message: 'main:react-mounted' });
 
 if (isNative) {
   // Auto-select Capgo channel based on build mode.
