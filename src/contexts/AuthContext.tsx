@@ -208,6 +208,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     localStorage.removeItem('sessio_cached_profile');
 
+    // Clear React state synchronously so the UI reflects sign-out immediately.
+    // Without this, session/profile stay populated for the 3-5s that
+    // supabase.auth.signOut() + push cleanup take — during that window the
+    // user can click around the logged-in app and their actions feel like they
+    // "undo" the sign-out. The ProtectedRoute redirects to /auth/sign-in the
+    // moment profile becomes null.
+    setSession(null);
+    setUser(null);
+    userRef.current = null;
+    setProfile(null);
+    Sentry.setUser(null);
+
     // Best-effort push cleanup — runs concurrently with the actual sign-out
     // so the UI isn't blocked for 3-5s waiting on network calls.
     // Started BEFORE supabase.auth.signOut() so the JWT is still valid for
@@ -265,12 +277,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     }
 
-    // Sign out immediately — don't wait for cleanup to finish.
-    // The auth state listener triggers navigation and UI updates.
-    await Promise.all([
-      supabase.auth.signOut({ scope: 'global' }),
-      pushCleanup,
-    ]);
+    // Fire-and-forget the actual Supabase sign-out and push cleanup. The UI
+    // is already logged out (we cleared React state above); the signOut()
+    // call invalidates the server-side session in the background. Awaiting
+    // here used to block the caller for 3-5s, during which the user could
+    // click around the still-rendered logged-in UI.
+    supabase.auth.signOut({ scope: 'global' }).catch(err => {
+      Sentry.captureException(err, { tags: { context: 'supabase.signOut' } });
+    });
+    pushCleanup.catch(() => {});
   }
 
   return (
