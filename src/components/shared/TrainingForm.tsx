@@ -124,7 +124,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   };
 
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [addingNewVenue, setAddingNewVenue] = useState(() => !!loadVenueDraft());
+  const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
 
   // Also save when page goes to background (iOS fires this before killing)

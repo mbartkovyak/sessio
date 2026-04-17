@@ -54,6 +54,11 @@ export default function AuthCallback() {
       return;
     }
 
+    if (!profile.questionnaire_complete) {
+      navigate('/onboarding/questionnaire');
+      return;
+    }
+
     // Check for pending invites
     const pendingSchoolInvite = sessionStorage.getItem('pending_school_invite');
     if (pendingSchoolInvite) {

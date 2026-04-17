@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ChevronDown, ArrowLeft, LogOut } from 'lucide-react';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Country } from '@/lib/constants';
 
 import PhoneInput from '@/components/shared/PhoneInput';
+import OnboardingProgress from '@/components/shared/OnboardingProgress';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 
 type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coach-details' | 'school-details';
@@ -17,6 +18,7 @@ type Step = 'name' | 'train-or-coach' | 'athlete-details' | 'coach-type' | 'coac
 export default function Onboarding() {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(['auth', 'common']);
   const [step, setStep] = useState<Step>('name');
   const [firstName, setFirstName] = useState('');
@@ -45,7 +47,49 @@ export default function Onboarding() {
     }
     if (profile?.first_name && !firstName) setFirstName(profile.first_name);
     if (profile?.last_name && !lastName) setLastName(profile.last_name);
+    if (profile?.phone && !phone) setPhone(profile.phone);
   }, [profile]);
+
+  // Returning from the questionnaire via "back" — land on the role's last
+  // data-entry step with existing values prefilled so users can edit and
+  // re-submit rather than starting from scratch.
+  useEffect(() => {
+    if (!profile || !user) return;
+    if (!(location.state as any)?.fromQuestionnaire) return;
+    if (!profile.onboarding_complete) return;
+
+    if (profile.country) setCountry(profile.country);
+    if (profile.city) setCity(profile.city);
+    if (profile.sport) setSport(profile.sport);
+
+    if (profile.role === 'player') {
+      setStep('athlete-details');
+      return;
+    }
+    if (profile.role === 'coach') {
+      setCoachType('join');
+      setStep('coach-details');
+      return;
+    }
+    if (profile.role === 'school_owner') {
+      supabase
+        .from('schools')
+        .select('name, sport, is_listed')
+        .eq('owner_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.is_listed) {
+            setCoachType('school');
+            setSchoolName(data.name ?? '');
+            setSchoolSports((data.sport as string[] | null) ?? []);
+            setStep('school-details');
+          } else {
+            setCoachType('solo');
+            setStep('coach-details');
+          }
+        });
+    }
+  }, [profile, user, location.state]);
 
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
@@ -69,17 +113,9 @@ export default function Onboarding() {
     }
   }, []);
 
-  function getPostOnboardingPath(role: string) {
-    const pendingInvite = sessionStorage.getItem('pending_invite');
-    if (pendingInvite) {
-      const pendingSession = sessionStorage.getItem('pending_invite_session');
-      sessionStorage.removeItem('pending_invite');
-      sessionStorage.removeItem('pending_invite_ts');
-      sessionStorage.removeItem('pending_invite_session');
-      const sessionSuffix = pendingSession ? `?session=${pendingSession}` : '';
-      return `/join/${pendingInvite}${sessionSuffix}`;
-    }
-    return role === 'player' ? '/player' : '/coach';
+  function getPostOnboardingPath(_role: string) {
+    // Route to the new questionnaire; it will honor pending invites on finish.
+    return '/onboarding/questionnaire';
   }
 
   function goBack() {
@@ -240,12 +276,35 @@ export default function Onboarding() {
 
   const showBack = step !== 'name';
 
+  // Unified progress across existing onboarding + new questionnaire.
+  // Totals: athlete 6 (3 existing + 3 new), solo coach 10, school owner 11, join school 10.
+  const progressCurrent = (() => {
+    if (step === 'name') return 1;
+    if (step === 'train-or-coach') return 2;
+    if (step === 'athlete-details') return hasTrainingInvite ? 2 : 3;
+    if (step === 'coach-type') return 3;
+    if (step === 'coach-details') return 4;
+    if (step === 'school-details') return 5;
+    return 1;
+  })();
+  const progressTotal = (() => {
+    if (step === 'athlete-details') return hasTrainingInvite ? 5 : 6;
+    if (step === 'school-details') return 11;
+    if (step === 'coach-details') return 10;
+    if (step === 'coach-type') return 10;
+    return 6; // 'name' / 'train-or-coach' — assume athlete default; recalibrates once role is picked
+  })();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <PageHeader className="rounded-b-2xl px-4 py-4">
         <div className="max-w-md mx-auto flex items-center gap-3 text-white">
           {showBack && (
-            <button onClick={goBack} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 -ml-2">
+            <button
+              onClick={goBack}
+              aria-label="Back"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition -ml-2"
+            >
               <ArrowLeft className="h-5 w-5" />
             </button>
           )}
@@ -257,6 +316,9 @@ export default function Onboarding() {
           >
             <LogOut className="h-3.5 w-3.5" /> {t('auth:onboarding.signOut')}
           </button>
+        </div>
+        <div className="max-w-md mx-auto mt-3">
+          <OnboardingProgress current={progressCurrent} total={progressTotal} />
         </div>
       </PageHeader>
 

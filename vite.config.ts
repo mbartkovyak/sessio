@@ -1,8 +1,23 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode, command }) => {
+  // Build-time guard: prevent silently shipping a bundle without Supabase credentials.
+  // This has happened before — missing .env produced a broken IPA that Apple rejected.
+  // Skip during `vite dev` to avoid blocking local server startup; only guard `vite build`.
+  if (command === 'build') {
+    const env = loadEnv(mode, process.cwd(), 'VITE_');
+    const required = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY'];
+    const missing = required.filter(k => !env[k]);
+    if (missing.length > 0) {
+      console.error('\n\x1b[31m✗ Build aborted: missing required env vars: ' + missing.join(', ') + '\x1b[0m');
+      console.error('\x1b[33m  For prod builds, run: vercel env pull .env --environment=production');
+      console.error('  For dev builds, ensure .env.development exists\x1b[0m\n');
+      process.exit(1);
+    }
+  }
+  return {
   server: {
     host: "localhost",
     port: 5173,
@@ -40,4 +55,5 @@ export default defineConfig(({ mode }) => ({
       "firebase/messaging": path.resolve(__dirname, "./src/lib/firebase-messaging-web-stub.ts"),
     },
   },
-}));
+  };
+});

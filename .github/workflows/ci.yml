@@ -27,7 +27,7 @@ jobs:
         run: bun run build
         env:
           VITE_SUPABASE_URL: "https://example.supabase.co"
-          VITE_SUPABASE_ANON_KEY: "placeholder-for-ci"
+          VITE_SUPABASE_PUBLISHABLE_KEY: "placeholder-for-ci"
 
   secrets:
     name: Secret scan

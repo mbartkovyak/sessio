@@ -20,10 +20,16 @@ export default function AuthLayout({ title, subtitle, children }: Props) {
   const [bgLoaded, setBgLoaded] = useState(false);
 
   useEffect(() => {
+    // Safety net: on iPad WKWebView, image requests can stall with neither
+    // onload nor onerror firing, leaving the whole auth screen stuck on
+    // SessioLoader indefinitely. Force bgLoaded after 2s so the sign-in form
+    // always renders even if the image load never completes.
+    const fallback = setTimeout(() => setBgLoaded(true), 2000);
     const img = new Image();
     img.src = '/auth-bg.jpg';
-    img.onload = () => setBgLoaded(true);
-    img.onerror = () => setBgLoaded(true);
+    img.onload = () => { clearTimeout(fallback); setBgLoaded(true); };
+    img.onerror = () => { clearTimeout(fallback); setBgLoaded(true); };
+    return () => clearTimeout(fallback);
   }, []);
 
   if (!bgLoaded) {
