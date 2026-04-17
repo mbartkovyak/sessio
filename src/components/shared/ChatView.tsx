@@ -285,8 +285,13 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
     try {
       // Training conversations always exist (auto-created by DB trigger).
-      // DMs: create on first message if needed.
+      // DMs: create on first message if needed. Do NOT call setLocalConvId here —
+      // that activates useMessages, which fires an initial fetch that can race
+      // with the optimistic setQueryData below and return [] (DB hasn't seen the
+      // insert yet), overwriting the user's just-sent message. We activate the
+      // query AFTER the DB insert is confirmed.
       let convId = conversationId;
+      const isNewDM = !convId;
       if (!convId && otherUserId) {
         try {
           convId = await getOrCreateDMConversation(otherUserId);
@@ -294,8 +299,6 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
           toast.error(localizeErrorMessage(err, i18n.t('chat.failedCreate')));
           return;
         }
-        setLocalConvId(convId);
-        qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
       }
       if (!convId) return;
 
@@ -321,7 +324,12 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
 
       // Push notifications are handled by the DB trigger on_new_message — do NOT add notifyMessage() here.
 
-      // Replace optimistic with real data + ensure chat is visible
+      // Now activate the query (for new DMs) and refresh. Cache already has the
+      // optimistic message; the refetch will return the real one with a DB id.
+      if (isNewDM) {
+        setLocalConvId(convId);
+        qc.invalidateQueries({ queryKey: ['dm-conversation', user.id, otherUserId] });
+      }
       unhideChat(convId);
       qc.invalidateQueries({ queryKey: ['messages', convId] });
       qc.invalidateQueries({ queryKey: ['my-conversations'] });
@@ -370,7 +378,7 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
         className="flex-1 overflow-y-auto overscroll-y-contain"
       >
         <div className="max-w-lg mx-auto px-3 flex flex-col justify-end min-h-full">
-          {messagesLoading ? (
+          {messagesLoading && !!conversationId && messages.length === 0 ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <SessioLoader />
             </div>

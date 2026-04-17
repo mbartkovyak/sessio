@@ -106,11 +106,21 @@ export default function Questionnaire() {
   async function completeQuestionnaire(route: string) {
     if (!user) return;
     setBusy(true);
-    await supabase
-      .from('profiles')
-      .update({ questionnaire_complete: true })
-      .eq('id', user.id);
-    await refreshProfile();
+    // Safety net: never leave the user stuck on a spinner. If Supabase hangs
+    // or errors, proceed to the destination anyway — worst case the flag
+    // gets re-set on next questionnaire attempt, which is harmless.
+    try {
+      await Promise.race([
+        supabase.from('profiles').update({ questionnaire_complete: true }).eq('id', user.id),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]);
+      await Promise.race([
+        refreshProfile(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ]);
+    } catch {
+      // swallow — we'd rather ship the user to the app than keep them stuck
+    }
     setBusy(false);
     navigate(route, { replace: true });
   }
