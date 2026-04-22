@@ -285,7 +285,10 @@
     "noAthletes": "Ще немає учасників у заняттях школи",
     "daysLabel": "{{count}}д",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Дата початку"
+    "startDate": "Дата початку",
+    "pendingRequests": "Очікують підтвердження",
+    "approve": "Затвердити",
+    "decline": "Відхилити"
   },
   "stats": {
     "title": "Статистика",

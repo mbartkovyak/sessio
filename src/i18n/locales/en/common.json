@@ -135,7 +135,13 @@
     "addedToTrainingTitle": "You've been added",
     "addedToTrainingBody": "You've been added to {{training}}.",
     "removedFromTrainingTitle": "Removed from training",
-    "removedFromTrainingBody": "You were removed from {{training}}."
+    "removedFromTrainingBody": "You were removed from {{training}}.",
+    "passRequestTitle": "New pass request",
+    "passRequestBody": "{{name}} requested a {{type}} pass.",
+    "passApprovedTitle": "Pass approved",
+    "passApprovedBody": "Your {{type}} pass has been activated.",
+    "passDeclinedTitle": "Pass declined",
+    "passDeclinedBody": "Your {{type}} pass request was declined."
   },
   "form": {
     "sport": "Sport",
@@ -280,7 +286,9 @@
   },
   "abonaments": {
     "typeCreated": "Pass type created",
-    "assigned": "Pass assigned"
+    "assigned": "Pass assigned",
+    "approved": "Pass approved",
+    "declined": "Pass request declined"
   },
   "toast": {
     "trainingCreated": "Training created",

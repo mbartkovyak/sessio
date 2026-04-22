@@ -137,7 +137,11 @@
     "expiresOn": "Wygasa {{date}}",
     "expired": "Wygasł",
     "usedUp": "Wykorzystany",
-    "startsOn": "Od {{date}}"
+    "startsOn": "Od {{date}}",
+    "availablePasses": "Dostępne karnety",
+    "request": "Poproś",
+    "requestSent": "Prośba o karnet wysłana",
+    "pendingApproval": "Oczekuje na akceptację"
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"

@@ -285,7 +285,10 @@
     "noAthletes": "Brak uczestników w zajęciach szkoły",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Data rozpoczęcia"
+    "startDate": "Data rozpoczęcia",
+    "pendingRequests": "Oczekujące prośby",
+    "approve": "Zatwierdź",
+    "decline": "Odrzuć"
   },
   "stats": {
     "title": "Statystyki",

@@ -285,7 +285,10 @@
     "noAthletes": "No participants in school trainings yet",
     "daysLabel": "{{count}}d",
     "sessionsLabel": "{{count}}x",
-    "startDate": "Start date"
+    "startDate": "Start date",
+    "pendingRequests": "Pending requests",
+    "approve": "Approve",
+    "decline": "Decline"
   },
   "stats": {
     "title": "Stats",

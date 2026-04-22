@@ -1,6 +1,6 @@
 # Sessio
 
-Scheduling + discovery platform for independent sports coaches. React + TypeScript + Supabase, hosted on Vercel (sessio-topaz.vercel.app).
+Scheduling + discovery platform for sports coaches and small schools. React + TypeScript + Supabase + Capacitor. Web at get-sessio.com, native iOS live on App Store (all regions), native Android pending Play Store submission (Capacitor APK available for testers, public download not yet available).
 
 ---
 
@@ -18,62 +18,80 @@ Coaches have no professional infrastructure. Sessio gives them automated schedul
 
 MVP: **group lesson management** (auto-confirm, auto-backfill) + **coach discovery** (browse, reviews, ratings).
 
-- **Athlete** — confirm lessons in 10 seconds + find new coaches. Pages: Home, Search, Calendar, Profile.
-- **Coach** — dashboard ("do I need to do anything?") + public profile. Pages: Home, Calendar, Lessons, Profile. Group + individual lessons. Messages inside each lesson.
+- **Athlete** — confirm lessons in 10 seconds + find new coaches. Pages: Home, Chats, Search, Calendar, Profile.
+- **Coach** — dashboard ("do I need to do anything?") + public profile. Pages: Home, Chats, Lessons, Calendar, Profile. Plus Passes, Athletes, Stats, Coaches (school_owner only). Group + individual lessons. Messages inside each lesson.
 - **School** — school profile, multiple coaches, invite link, cross-coach dashboard.
 
-**Not in MVP:** Payments, AI, venue integration, native app.
+**Not yet built:** Payments, AI, venue integration.
 
 ## Monetization — Booksy model
 
-Sessio follows the Booksy playbook. Booksy (founded Warsaw, $269M raised, $1.3B GMV, profitable) proved this model at scale in beauty/wellness. Same logic applies to sports coaching.
+SaaS subscription (school pays monthly) + commission on NEW platform-acquired clients only. Existing relationships untouched — no disintermediation risk. Contrast with TeachMe.To (pure marketplace): after one session they go to WhatsApp → platform loses. Sessio doesn't have this problem because it's the operating system, not the middleman.
 
-| Revenue line | Booksy | Sessio |
-|---|---|---|
-| **SaaS subscription** (core) | $29.99/month per user + $20/staff | School pays monthly for scheduling/confirmations tool |
-| **Commission on NEW clients only** | 30% on first visit from platform-acquired client, 0% after | Commission on happy hour / discovery bookings only |
-| **Payment processing** | 2.5-2.7% per transaction | Later, when payments are added |
-| **Consumer side** | Free | Free |
-
-**Why this works (no disintermediation):**
-- SaaS fee = software, not a middleman. Coach pays because it saves them time. Nothing to route around.
-- Commission only on NEW athletes the platform brings. Existing relationships are untouched. Coach sees it as earned value, not a tax.
-- Contrast with TeachMe.To (pure marketplace): after one session the athlete has the coach's WhatsApp → they go direct → platform loses. Sessio doesn't have this problem because it's the operating system, not the middleman.
-
-Booksy result: $65.9M revenue (2024), nearly doubled from $35.2M (2023). 125K businesses, 30M+ consumers, 9M bookings/month.
+| Revenue line | Sessio |
+|---|---|
+| **SaaS subscription** (core) | School pays monthly for scheduling/confirmations tool |
+| **Commission on NEW clients only** | Commission on happy hour / discovery bookings only |
+| **Payment processing** | Later, when payments are added |
+| **Consumer side** | Free |
 
 ## GTM
 
 Validate with one school → seed 5-10 → schools bring athletes via invite links → expand sports → expand cities.
 
-Metrics: Does the school use Sessio daily? Are happy hours filling empty slots?
-
 ---
 
 ## How to work here
 
-- **Be concise.** No slop. Main results only.
-- **Keep docs short.** Write the minimum that's useful. User gives a link → that's the basis, add a few extras, not a wall.
-- **Don't over-plan.** Build, don't write essays.
-- **Challenge bad ideas.** Push back when it doesn't make strategic sense.
+**We are in stability phase.** The app is live, users are on it, iOS is in all App Store regions, Android is in Play Store submission. Every change is a potential regression. The ratio is **30% coding, 70% verifying nothing breaks.**
+
+- **Small, focused changes.** One concern per commit. Don't touch what you don't need to.
+- **Prove it works before pushing.** Build, trace the flow, grep for broken imports. "Should work" is not good enough.
 - **Read before writing.** Always read files and surrounding code before modifying.
+- **Challenge bad ideas.** Push back when it doesn't make strategic sense.
+- **Be concise.** No slop. Main results only.
 
 ## Docs
 
-Business context lives in the Obsidian vault (`obsidian_doc/`). Read before making product or strategy decisions.
+Business context lives in the Obsidian vault (`obsidian_doc/`). Read before making product or strategy decisions. This CLAUDE.md is itself the authoritative tech reference — there is no separate `Tech.md`.
 
 ```
 obsidian_doc/0-Direction/Direction.md      — Vision, mission, why now, unfair advantages
-obsidian_doc/1-Product/Signup.md           — Invite link flow, coach vs athlete routing
+obsidian_doc/1-Product/Signup.md           — Invite link flow, coach vs athlete routing, questionnaire
 obsidian_doc/1-Product/ConfirmationFlow.md — Core loop: confirmation, backfill, notifications
 obsidian_doc/1-Product/Athlete/            — Athlete entity, UX, pages
 obsidian_doc/1-Product/Coach/              — Coach entity, dashboard, automation, school
 obsidian_doc/1-Product/UX References.md    — Business-side UI from competitor platforms
-obsidian_doc/2-GTM/GTM.md                 — Go-to-market, beachhead, first users
+obsidian_doc/2-GTM/GTM.md                  — Go-to-market, beachhead, first users
 obsidian_doc/3-Competition/Competition.md  — Competitive landscape and positioning
-obsidian_doc/4-Monetization/Monetization.md — Pricing model
-obsidian_doc/5-Tech/Tech.md               — Architecture and stack
+obsidian_doc/4-Monetization/Monetization.md — Pricing model (Booksy)
 ```
+
+## Architecture
+
+**3 roles:** `player` (athlete), `coach` (school member), `school_owner` (school admin or solo coach).
+- **Solo coach** = `school_owner` with `schools.is_listed = false`. Auto-created hidden school during onboarding. Same home page as school owners, but UI hides multi-coach features via `isSolo` flag.
+- `ProtectedRoute` lets `school_owner` access all `coach` routes.
+
+**File structure:** Role-based separation + shared layer.
+```
+src/pages/{auth,coach,player,school,shared}/   — Route pages, thin shells
+src/components/{coach,player,shared,layout}/   — UI components (24 shared)
+src/hooks/{coach,school,training,shared}/      — Data hooks (13 total)
+src/lib/                                       — constants, utils, pushNotify, auth-providers
+src/contexts/AuthContext.tsx                    — Session, profile, loading state
+```
+
+**Key shared components:** Avatar, TrainingForm, TrainingCard, CalendarGrid, ChatView, ChatList, SelectField, AccountActions, CoachCard, VenueManager, ProfileSheet, ReportDialog.
+
+**Key shared hooks:** useConversations (messaging), useBlockedUsers, useAutoRegisterPush, useNativePush, usePushNotifications, useUnsavedChanges, useVisualViewport.
+
+**Edge Functions** (`supabase/functions/`):
+- `send-push` — Push notifications via FCM (native) and Web Push (VAPID). Called by DB trigger for messages, by client for training events.
+- `automation` — Cron jobs: session generation, confirmation windows, reminders, deadline handling. Auth via `x-cron-secret`.
+- `send-email` — Supabase Auth webhook for transactional emails via Resend.
+
+**Tech stack:** React 18 + React Router 6 + TypeScript + Vite + Tailwind + Radix UI + TanStack Query. Supabase (Postgres + Auth + Realtime + Edge Functions). Capacitor 8 + Capgo OTA for native. Sentry for error tracking. i18n: EN, PL, UK.
 
 ---
 
@@ -94,23 +112,19 @@ PATH="/Users/myro/Documents/whisper-tools/whisper-bin:$PATH" \
 
 ## Code Rules
 
-This codebase will be handed over to a developer. It must be clean, readable, and stable — not a house of cards. Every change should leave the code better than you found it.
+**18K lines of source code, 131 lines average per file.** It must stay lean, readable, and stable. Every change should leave the code better than you found it.
 
-**The priority is simplicity.** Before adding anything, ask: can I reuse what exists? Can I simplify what's there? If a feature requires a fragile chain of workarounds, stop and restructure first. Never patch over bad structure — fix the structure. A working app built on messy foundations will eventually crash, and that's not acceptable.
-
-**Why this matters:** Complex code costs real money. Every tangled component, every duplicated hook, every unclear data flow means more Claude credits spent understanding context in future sessions. Simple code = fewer tokens to read = cheaper iterations. Keep it lean.
-
-Lovable export has heavy duplication. These rules prevent it from getting worse and actively clean it up.
+**The priority is stability, then simplicity.** Before adding anything, ask: can I reuse what exists? Can I simplify what's there? Will this break something else? Simple code = fewer tokens = cheaper iterations. Complex code costs real money in Claude credits.
 
 ### Single source of truth
 
 Before writing a new component, hook, or constant: **search for existing ones.** Extend, don't duplicate.
 
 ```
-src/lib/constants.ts     — SPORTS, CITIES, DAYS_FULL, DAYS_SHORT, SPORT_ICONS
-src/lib/utils.ts         — getInitials(), formatting helpers
-src/components/shared/   — Avatar, TrainingForm, CalendarGrid, SelectField, AccountActions
-src/hooks/shared/        — useConversations (all messaging), cross-role hooks
+src/lib/constants.ts     — SPORTS, CITIES, COUNTRIES, DAYS_FULL, DAYS_SHORT, SPORT_ICONS
+src/lib/utils.ts         — cn(), getInitials(), normalizeTime()
+src/components/shared/   — 24 components (see Architecture section above)
+src/hooks/shared/        — 8 hooks (see Architecture section above)
 ```
 
 ### One component per concept
@@ -121,17 +135,13 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 | Profile fields | `SelectField` + `AccountActions` | ~~inline selects + sign out/delete in each page~~ |
 | Avatar | `Avatar` (size prop) | ~~inline div everywhere~~ |
 | Calendar | `CalendarGrid` (generic) | ~~duplicated day-grouping + dayLabel~~ |
-| Training card | `TrainingCard` (not yet extracted) | ~~card markup in 5+ pages~~ |
+| Training card | `TrainingCard` (list/grid variants) | ~~card markup in 5+ pages~~ |
 
 ### When modifying features
 
 - Duplicated form? **Fix the duplication first** or flag it.
 - New constant? → `src/lib/constants.ts`, never inline.
 - New Supabase query that looks like an existing hook? → **Extend the existing hook.**
-
-### Remaining debt (fix when touched)
-
-1. Training card markup repeated in CoachTrainings, PlayerHome, PlayerSearch, CoachPublicProfile, SchoolPublicProfile → extract `TrainingCard`
 
 ### Git workflow — MANDATORY
 
@@ -152,11 +162,12 @@ src/hooks/shared/        — useConversations (all messaging), cross-role hooks
 
 ### Mobile app distribution
 
-Sessio ships on three surfaces. Both mobile apps now use Capacitor + Capgo OTA — the web bundle is baked into the native shell at build time, but JS/CSS/HTML updates can be pushed over-the-air via Capgo without a store release.
+Sessio ships on three surfaces. Both mobile apps use Capacitor + Capgo OTA — the web bundle is baked into the native shell at build time, but JS/CSS/HTML updates can be pushed over-the-air via Capgo without a store release.
 
 - **Web** (`get-sessio.com`) — Vercel auto-deploys on push to `main`. Instant updates.
-- **iOS** — **Capacitor** (`capacitor.config.ts`, `ios/` folder). `webDir: 'dist'` with no `server.url`, so the web bundle is baked into the IPA at build time. Native changes (plugins, Info.plist, signing) require `bun run build` → `bunx cap sync ios` → archive in Xcode → TestFlight/App Store submission (Apple review ~24–48h). JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch.
-- **Android** — **Capacitor** (`capacitor.config.ts`, `android/` folder). Same model as iOS: web bundle baked at build time, native changes need a Play Store release, JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch. Use `bun run android:dev` / `bun run android:prod` to build debug/release APKs locally (see "Android Capacitor build" below). Historical note: Android previously shipped as a **Bubblewrap TWA** (package `com.get_sessio.twa`) with instant web updates via Chrome Custom Tabs — that was deprecated in favor of Capacitor for feature parity with iOS (native push via FCM, Apple/Google sign-in, deep links, Capgo OTA).
+- **iOS** — **Capacitor** (`capacitor.config.ts`, `ios/` folder). `webDir: 'dist'` with no `server.url`, so the web bundle is baked into the IPA at build time. Native changes (plugins, Info.plist, signing) require `bun run ios:prod` → archive in Xcode → TestFlight/App Store submission (Apple review ~24–48h). **NEVER archive from Xcode without first running `bun run ios:prod`** — it rebuilds the web bundle, syncs it into `ios/App/App/public/`, and deletes iCloud-duplicated files (`* 2.*`). Using raw `bunx cap sync ios` skips the iCloud cleanup and ships a polluted bundle. Dev variant: `bun run ios:dev`. JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch.
+  - **iPad review trap**: the app is marked iPhone-only (`TARGETED_DEVICE_FAMILY = 1`, `LSRequiresIPhoneOS = true`), but iPads still install iPhone-only apps in **iPhone compatibility mode** and Apple reviewers explicitly test there. You cannot opt out. If the app hangs on iPad (2.1(a) "loading indefinitely"), the cause is always inside our code — test in the iPad Air simulator in Xcode before every App Store submission. Every boot-path async operation must have a timeout + `.catch()`; any promise that can stall will stall on iPad WKWebView eventually.
+- **Android** — **Capacitor** (`capacitor.config.ts`, `android/` folder). Same model as iOS: web bundle baked at build time, native changes need a Play Store release, JS/CSS/HTML-only changes reach users via **Capgo OTA** on next app launch. Use `bun run android:dev` / `bun run android:prod` to build debug/release APKs locally (see "Android Capacitor build" below).
 
 **Capgo OTA** (`@capgo/capacitor-updater`): JS bundles are uploaded to a Capgo channel by CI. The `defaultChannel` is set dynamically in `capacitor.config.ts` via `CAPGO_CHANNEL` env var — `android:dev` sets it to `dev`, prod builds default to `production`. The `setChannel` call in `main.tsx` is a fallback (guarded by localStorage to avoid rate limits). Workflows: `.github/workflows/deploy-capgo.yml` uploads the prod bundle on push to `main`; `deploy-capgo-dev.yml` uploads the dev bundle on push to `dev`. Capgo CANNOT update native code — plugin changes, `AndroidManifest.xml`, `build.gradle`, icons, or version bumps require a full store release.
 
@@ -168,10 +179,10 @@ Sessio ships on three surfaces. Both mobile apps now use Capacitor + Capgo OTA �
 - Capgo updates apply when the app goes **background → foreground**, not on force-close/reopen.
 
 Implications:
-- JS/CSS/HTML bug fixes reach both iOS and Android users via Capgo on the next app launch — no store release needed.
+- JS/CSS/HTML bug fixes reach iOS users via Capgo on the next app launch — no store release needed.
+- iOS is live in all App Store regions. Android Play Store submission is pending — APKs can be sideloaded for testers, but public download isn't available yet. Once Android is live, Capgo will reach both platforms the same way.
 - Native changes (new plugin, manifest edit, icon update, native lib) require a full store release on the affected platform(s).
 - iOS releases need Apple review (~24–48h). Android releases need Google Play review (usually faster). Plan native-affecting changes accordingly.
-- `f1e0dee` "Add Capacitor for iOS + Android app store distribution" added the scaffolding. iOS shipped first; Android follows.
 
 #### Android Capacitor build
 

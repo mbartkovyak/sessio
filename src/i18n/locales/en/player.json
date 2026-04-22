@@ -134,7 +134,11 @@
     "expiresOn": "Expires {{date}}",
     "expired": "Expired",
     "usedUp": "All used",
-    "startsOn": "Starts {{date}}"
+    "startsOn": "Starts {{date}}",
+    "availablePasses": "Available passes",
+    "request": "Request",
+    "requestSent": "Pass request sent",
+    "pendingApproval": "Waiting for approval"
   },
   "favouriteSchools": {
     "title": "Schools you follow"

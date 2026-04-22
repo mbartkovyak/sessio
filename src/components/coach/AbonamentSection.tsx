@@ -10,6 +10,8 @@ import {
   useSchoolAbonaments,
   useAssignAbonament,
   useSearchPlayers,
+  usePendingPassRequests,
+  useRespondPassRequest,
   isAbonamentActive,
   daysRemaining,
 } from '@/hooks/training/useAbonaments';
@@ -43,6 +45,8 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
   const deleteType = useDeleteAbonamentType();
   const assign = useAssignAbonament();
   const createPlaceholder = useCreateStandalonePlaceholder();
+  const { data: pendingRequests = [] } = usePendingPassRequests(schoolId);
+  const respondRequest = useRespondPassRequest();
 
   const active = playerAbonaments.filter((pa: any) => isAbonamentActive(pa));
   const inactive = playerAbonaments.filter((pa: any) => !isAbonamentActive(pa) && (pa.status === 'used_up' || pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())));
@@ -332,14 +336,50 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
         </div>
       )}
 
-      {/* All passes */}
-      {playerAbonaments.length > 0 && (
+      {/* Pending pass requests */}
+      {pendingRequests.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-            {t('abonaments.activePasses')} <span className="font-normal">({playerAbonaments.length})</span>
+            {t('abonaments.pendingRequests')} <span className="font-normal">({pendingRequests.length})</span>
+          </h3>
+          <div className="rounded-xl border border-warning/30 bg-warning/5 divide-y divide-warning/20">
+            {pendingRequests.map((req: any) => (
+              <div key={req.id} className="flex items-center gap-3 px-4 py-3">
+                <Avatar url={req.profiles?.avatar_url} name={req.profiles?.full_name} size="xs" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{req.profiles?.full_name}</p>
+                  <p className="text-xs text-muted-foreground">{req.abonament_types?.name}</p>
+                </div>
+                <div className="flex gap-1.5 shrink-0">
+                  <button
+                    onClick={() => respondRequest.mutate({ id: req.id, playerId: req.player_id, schoolId, abonamentType: req.abonament_types, accept: true })}
+                    disabled={respondRequest.isPending}
+                    className="rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {t('abonaments.approve')}
+                  </button>
+                  <button
+                    onClick={() => respondRequest.mutate({ id: req.id, playerId: req.player_id, schoolId, abonamentType: req.abonament_types, accept: false })}
+                    disabled={respondRequest.isPending}
+                    className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive disabled:opacity-50"
+                  >
+                    {t('abonaments.decline')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All passes (excluding pending — shown above) */}
+      {playerAbonaments.filter((pa: any) => pa.status !== 'pending').length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+            {t('abonaments.activePasses')} <span className="font-normal">({playerAbonaments.filter((pa: any) => pa.status !== 'pending').length})</span>
           </h3>
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
-            {playerAbonaments.map((pa: any) => {
+            {playerAbonaments.filter((pa: any) => pa.status !== 'pending').map((pa: any) => {
               const s = passStatusLabel(pa);
               const startDate = pa.activated_at ?? pa.created_at;
               return (
