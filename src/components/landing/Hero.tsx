@@ -3,7 +3,7 @@ import { ArrowRight, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import AudienceSelector from './AudienceSelector';
-import DemoPlayer from './DemoPlayer';
+import AnimatedDemo from './AnimatedDemo';
 import type { Audience } from './useLandingAudience';
 
 const anim = (delay: number) => ({ animation: `fadeUp 0.6s ${delay}s ease-out both` });
@@ -83,9 +83,9 @@ export default function Hero({
         </div>
       </div>
 
-      {/* Demo video */}
+      {/* Animated demo */}
       <div id="demo-player" style={anim(0.48)}>
-        <DemoPlayer audience={audience} />
+        <AnimatedDemo audience={audience} />
       </div>
     </section>
   );

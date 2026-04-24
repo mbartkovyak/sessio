@@ -36,13 +36,13 @@ export default function ReplacesStrip({ audience }: { audience: Audience }) {
           {audience === 'coach' ? (
             <div className="flex flex-wrap items-center justify-center gap-x-14 gap-y-7 md:gap-x-20">
               {COACH_BRANDS.map(({ label, src }) => (
-                <div key={label} className="group flex flex-col items-center gap-2.5">
+                <div key={label} className="flex flex-col items-center gap-2.5">
                   <img
                     src={src}
                     alt={label}
-                    className="h-11 w-11 md:h-12 md:w-12 grayscale opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100"
+                    className="h-11 w-11 md:h-12 md:w-12 transition-transform duration-300 hover:scale-105"
                   />
-                  <span className="text-xs font-medium text-[#111]/50 transition-colors group-hover:text-[#111]/80">
+                  <span className="text-xs font-medium text-[#111]/60">
                     {label}
                   </span>
                 </div>
