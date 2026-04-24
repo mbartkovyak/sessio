@@ -1,12 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { MessageCircle, FileSpreadsheet, StickyNote, Bell, ImageOff } from 'lucide-react';
+import { MessageCircle, Bell, ImageOff } from 'lucide-react';
 import type { Audience } from './useLandingAudience';
 
-const COACH_ITEMS = [
-  { icon: MessageCircle, label: 'WhatsApp' },
-  { icon: FileSpreadsheet, label: 'Excel' },
-  { icon: FileSpreadsheet, label: 'Google Sheets' },
-  { icon: StickyNote, label: 'Sticky notes' },
+const COACH_BRANDS = [
+  { label: 'WhatsApp', src: '/logos/whatsapp.svg' },
+  { label: 'Excel', src: '/logos/excel.svg' },
+  { label: 'Google Sheets', src: '/logos/google-sheets.svg' },
 ] as const;
 
 const ATHLETE_ITEMS = [
@@ -17,23 +16,44 @@ const ATHLETE_ITEMS = [
 
 export default function ReplacesStrip({ audience }: { audience: Audience }) {
   const { t } = useTranslation('auth');
-  const items = audience === 'coach' ? COACH_ITEMS : ATHLETE_ITEMS;
 
   return (
-    <section className="relative z-10 border-y border-[#111]/8 px-5 py-12 md:px-10">
+    <section className="relative z-10 border-y border-[#111]/8 px-5 py-14 md:px-10">
       <div className="mx-auto max-w-5xl">
-        <p className="mb-8 text-center font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[#111]/40">
+        <p className="mb-10 text-center font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[#111]/40">
           {t(`landing.replaces.${audience}.label`)}
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 md:gap-x-14">
-          {items.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2.5 text-[#111]/45 transition-colors hover:text-[#111]/80">
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
-              <span className="text-sm font-medium tracking-tight">{label}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 text-center text-sm text-[#111]/45 max-w-xl mx-auto">
+
+        {audience === 'coach' ? (
+          <div className="flex flex-wrap items-center justify-center gap-x-14 gap-y-8 md:gap-x-20">
+            {COACH_BRANDS.map(({ label, src }) => (
+              <div key={label} className="group flex flex-col items-center gap-3">
+                <div className="relative">
+                  {/* Strike-through on hover to visualize "replaces" */}
+                  <img
+                    src={src}
+                    alt={label}
+                    className="h-11 w-11 md:h-12 md:w-12 transition-all duration-300 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100"
+                  />
+                </div>
+                <span className="text-xs font-medium text-[#111]/50 transition-colors group-hover:text-[#111]/80">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 md:gap-x-14">
+            {ATHLETE_ITEMS.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-2.5 text-[#111]/45 transition-colors hover:text-[#111]/80">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+                <span className="text-sm font-medium tracking-tight">{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-10 text-center text-sm text-[#111]/45 max-w-xl mx-auto">
           {t(`landing.replaces.${audience}.sub`)}
         </p>
       </div>

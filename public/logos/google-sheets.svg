@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true">
+  <!-- Document body -->
+  <path fill="#0f9d58" d="M168 16H56a20 20 0 0 0-20 20v184a20 20 0 0 0 20 20h144a20 20 0 0 0 20-20V68l-52-52z"/>
+  <!-- Folded corner -->
+  <path fill="#87ceac" d="M168 16v36a16 16 0 0 0 16 16h36L168 16z"/>
+  <path fill="#0c8043" d="M168 52L220 68h-36a16 16 0 0 1-16-16z"/>
+  <!-- White grid panel -->
+  <rect x="68" y="108" width="120" height="96" rx="4" fill="#fff"/>
+  <!-- Grid lines (horizontal) -->
+  <rect x="68" y="108" width="120" height="18" fill="#0f9d58"/>
+  <!-- Vertical dividers -->
+  <rect x="108" y="108" width="2" height="96" fill="#e8f3ec"/>
+  <rect x="148" y="108" width="2" height="96" fill="#e8f3ec"/>
+  <!-- Horizontal dividers -->
+  <rect x="68" y="148" width="120" height="2" fill="#e8f3ec"/>
+  <rect x="68" y="172" width="120" height="2" fill="#e8f3ec"/>
+</svg>
