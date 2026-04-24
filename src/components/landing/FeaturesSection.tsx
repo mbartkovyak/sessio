@@ -1,18 +1,24 @@
 import { useTranslation } from 'react-i18next';
 import {
-  UserMinus, CreditCard, CalendarClock, UserPlus,
-  FileText, MessageSquareReply, TrendingUp, Users,
+  UserMinus, CreditCard, CalendarClock,
+  FileText, MessageSquareReply,
   Hand, Bell, Search, Layers,
 } from 'lucide-react';
 import type { Audience } from './useLandingAudience';
 
-const COACH_ICONS = [UserMinus, CreditCard, CalendarClock, UserPlus, FileText, MessageSquareReply, TrendingUp, Users];
+// Keep this list tight — only the highest-ROI coach features render on the landing.
+// Card order: Re-engage (card1), Save passes (card2), Fill empty hours (card3), Draft a reply (card6 in i18n).
+// i18n keys card4, card5, card7, card8 are kept in the locale files for future use but not rendered here.
+const COACH_CARD_KEYS = ['card1', 'card2', 'card3', 'card6'] as const;
+const COACH_ICONS = [UserMinus, CreditCard, CalendarClock, MessageSquareReply];
 const ATHLETE_ICONS = [Hand, Bell, Search, Layers];
 
 export default function FeaturesSection({ audience }: { audience: Audience }) {
   const { t } = useTranslation('auth');
 
-  const count = audience === 'coach' ? 8 : 4;
+  const keys = audience === 'coach'
+    ? COACH_CARD_KEYS
+    : (['card1', 'card2', 'card3', 'card4'] as const);
   const icons = audience === 'coach' ? COACH_ICONS : ATHLETE_ICONS;
 
   return (
@@ -30,10 +36,9 @@ export default function FeaturesSection({ audience }: { audience: Audience }) {
           </p>
         </div>
 
-        <div className={`grid gap-4 ${audience === 'coach' ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2'}`}>
-          {Array.from({ length: count }).map((_, i) => {
+        <div className="grid gap-4 md:grid-cols-2">
+          {keys.map((key, i) => {
             const Icon = icons[i] ?? FileText;
-            const key = `card${i + 1}`;
             return (
               <FeatureCard
                 key={key}

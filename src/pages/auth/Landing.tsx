@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SessioLogo } from '@/components/SessioLogo';
@@ -9,15 +10,16 @@ import Hero from '@/components/landing/Hero';
 import ReplacesStrip from '@/components/landing/ReplacesStrip';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import HowItWorks from '@/components/landing/HowItWorks';
-import IntegrationsStrip from '@/components/landing/IntegrationsStrip';
 import BottomCTA from '@/components/landing/BottomCTA';
 import Footer from '@/components/landing/Footer';
+import GetTheApp from '@/components/landing/GetTheApp';
 
 export default function Landing() {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const { profile } = useAuth();
   const [audience, setAudience] = useLandingAudience();
+  const [appModalOpen, setAppModalOpen] = useState(false);
 
   // Landing is web-only. Installed iOS/Android app should never see it —
   // route straight to sign-in (SignIn handles the logged-in case and redirects home).
@@ -32,7 +34,7 @@ export default function Landing() {
   const signedIn = !!profile;
   const appHome = profile?.role === 'player' ? '/player' : '/coach';
   const navCtaLabel = signedIn ? t('landing.nav.openApp') : t('landing.nav.signIn');
-  const navCtaHref = signedIn ? appHome : '/auth/sign-in';
+  const openAppModal = () => setAppModalOpen(true);
 
   return (
     <div
@@ -77,7 +79,7 @@ export default function Landing() {
         <div className="flex items-center gap-3">
           <LanguageSelector compact tone="light" />
           <button
-            onClick={() => navigate(navCtaHref)}
+            onClick={() => (signedIn ? openAppModal() : navigate('/auth/sign-in'))}
             className="rounded-full bg-[#111] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px]"
           >
             {navCtaLabel}
@@ -85,13 +87,13 @@ export default function Landing() {
         </div>
       </nav>
 
-      <Hero audience={audience} onAudienceChange={setAudience} />
+      <Hero audience={audience} onAudienceChange={setAudience} onOpenAppModal={openAppModal} />
       <ReplacesStrip audience={audience} />
       <FeaturesSection audience={audience} />
       <HowItWorks audience={audience} />
-      <IntegrationsStrip />
-      <BottomCTA audience={audience} />
+      <BottomCTA audience={audience} onOpenAppModal={openAppModal} />
       <Footer />
+      <GetTheApp open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </div>
   );
 }

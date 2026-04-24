@@ -11,18 +11,17 @@ const anim = (delay: number) => ({ animation: `fadeUp 0.6s ${delay}s ease-out bo
 export default function Hero({
   audience,
   onAudienceChange,
+  onOpenAppModal,
 }: {
   audience: Audience;
   onAudienceChange: (a: Audience) => void;
+  onOpenAppModal: () => void;
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const { profile } = useAuth();
 
   const signedIn = !!profile;
-  const appHome = profile?.role === 'player' ? '/player' : '/coach';
-
-  const primaryHref = signedIn ? appHome : '/auth/sign-up';
   const primaryLabel = signedIn
     ? t('landing.nav.openApp')
     : t(`landing.hero.${audience}.ctaPrimary`);
@@ -66,7 +65,7 @@ export default function Hero({
         {/* CTA row */}
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row" style={anim(0.34)}>
           <button
-            onClick={() => navigate(primaryHref)}
+            onClick={() => (signedIn ? onOpenAppModal() : navigate('/auth/sign-up'))}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white shadow-[0_4px_20px_rgba(230,120,30,0.3)] transition-all hover:brightness-110 hover:shadow-[0_6px_32px_rgba(230,120,30,0.45)] active:scale-[0.98] min-h-[48px] min-w-[220px]"
           >
             {primaryLabel}

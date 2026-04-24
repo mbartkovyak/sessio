@@ -4,14 +4,18 @@ import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Audience } from './useLandingAudience';
 
-export default function BottomCTA({ audience }: { audience: Audience }) {
+export default function BottomCTA({
+  audience,
+  onOpenAppModal,
+}: {
+  audience: Audience;
+  onOpenAppModal: () => void;
+}) {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const { profile } = useAuth();
 
   const signedIn = !!profile;
-  const appHome = profile?.role === 'player' ? '/player' : '/coach';
-  const href = signedIn ? appHome : '/auth/sign-up';
   const label = signedIn
     ? t('landing.nav.openApp')
     : t(`landing.bottomCta.${audience}.button`);
@@ -38,7 +42,7 @@ export default function BottomCTA({ audience }: { audience: Audience }) {
               {t(`landing.bottomCta.${audience}.sub`)}
             </p>
             <button
-              onClick={() => navigate(href)}
+              onClick={() => (signedIn ? onOpenAppModal() : navigate('/auth/sign-up'))}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-8 py-3.5 text-base font-semibold text-white shadow-[0_4px_24px_rgba(230,120,30,0.35)] transition-all hover:brightness-110 hover:shadow-[0_6px_40px_rgba(230,120,30,0.5)] active:scale-[0.98] min-h-[48px]"
             >
               {label}
