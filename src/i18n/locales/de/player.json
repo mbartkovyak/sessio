@@ -1,0 +1,146 @@
+{
+  "home": {
+    "greeting": "Hi, {{name}}",
+    "defaultName": "there",
+    "overview": "Your upcoming schedule",
+    "allSet": "Next session",
+    "next": "{{time}}",
+    "noUpcoming": "No upcoming trainings",
+    "noUpcomingDesc": "Find a coach and join a training",
+    "findCoach": "Find a coach"
+  },
+  "profile": {
+    "title": "Profile",
+    "athlete": "Participant",
+    "fullName": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search coaches and schools",
+    "allSports": "All sports",
+    "allCountries": "All countries",
+    "allCities": "All cities",
+    "noResults": "No results found",
+    "noResultsDesc": "Try different filters or a different search",
+    "school": "School",
+    "schoolCount_one": "{{count}} school",
+    "schoolCount_few": "{{count}} schools",
+    "schoolCount_many": "{{count}} schools",
+    "schoolCount_other": "{{count}} schools",
+    "coach": "Coach",
+    "coachCount_one": "{{count}} coach",
+    "coachCount_few": "{{count}} coaches",
+    "coachCount_many": "{{count}} coaches",
+    "coachCount_other": "{{count}} coaches",
+    "independentCoach": "Independent coach"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "noUpcoming": "No upcoming trainings",
+    "noUpcomingDesc": "Join a training to see it here",
+    "confirmed": "You're in",
+    "declined": "Not coming",
+    "noShow": "No-show",
+    "cancelled": "Cancelled",
+    "navigateTo": "Navigate to {{venue}}",
+    "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
+    "cancelConfirm": "Cancel this session?",
+    "keepSpot": "Keep my spot",
+    "cancelAnyway": "Cancel",
+    "cantMakeItAnymore": "I can't make it",
+    "changedMind": "Actually, I can make it",
+    "rejoinConfirm": "Rejoin this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
+  },
+  "messages": {
+    "title": "Chats",
+    "emptyDesc": "Join a training to start chatting with the group"
+  },
+  "trainingDetail": {
+    "notFound": "Training not found",
+    "goHome": "Go home",
+    "coach": "Coach",
+    "participants": "participants",
+    "openChat": "Group chat",
+    "viewProfile": "View profile",
+    "leave": "Leave training",
+    "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training."
+  },
+  "coachProfile": {
+    "title": "Coach",
+    "about": "About",
+    "availableTrainings": "Available trainings",
+    "requestToJoin": "Request to join",
+    "joinTraining": "Join training",
+    "reviews": "Reviews",
+    "reviewsMinimum": "Rating appears after 3 reviews",
+    "athlete": "Participant",
+    "coachResponse": "Coach reply:",
+    "reportReview": "Report review"
+  },
+  "schoolProfile": {
+    "title": "School",
+    "groupTrainings": "Group trainings",
+    "spots_one": "{{count}} spot",
+    "spots_few": "{{count}} spots",
+    "spots_many": "{{count}} spots",
+    "spots_other": "{{count}} spots",
+    "coachName": "Coach {{name}}",
+    "noTrainings": "No trainings available yet",
+    "coachCount_one": "{{count}} coach",
+    "coachCount_few": "{{count}} coaches",
+    "coachCount_many": "{{count}} coaches",
+    "coachCount_other": "{{count}} coaches"
+  },
+  "thisWeek": {
+    "title": "This week",
+    "upcoming": "Upcoming",
+    "notGoing": "Not going",
+    "backIn": "You're back in",
+    "spotReleased": "Spot released",
+    "lateCancel": "Less than <strong>{{hours}} hours</strong> before the session. Cancelling now may count as a no-show.",
+    "cancelConfirm": "Cancel this session?",
+    "keepSpot": "Keep my spot",
+    "cancelAnyway": "Cancel",
+    "rejoinConfirm": "Rejoin this session?",
+    "rejoin": "Rejoin",
+    "stayOut": "No, stay out"
+  },
+  "joinRequests": {
+    "title": "Join requests",
+    "training": "Training",
+    "waitingApproval": "Waiting for approval",
+    "declined": "Request declined",
+    "showLess": "Show less",
+    "showAll": "Show all ({{count}})"
+  },
+  "openSpots": {
+    "title": "Open spots",
+    "claimed": "Spot claimed",
+    "tooSlow": "This spot was just taken",
+    "claimFailed": "Couldn't claim the spot",
+    "claimSpot": "Claim this spot"
+  },
+  "abonaments": {
+    "title": "My passes",
+    "myPass": "Your pass",
+    "remaining": "{{remaining}} of {{total}} left",
+    "unlimited": "Unlimited sessions",
+    "expiresOn": "Expires {{date}}",
+    "expired": "Expired",
+    "usedUp": "All used",
+    "startsOn": "Starts {{date}}",
+    "availablePasses": "Available passes",
+    "request": "Request",
+    "requestSent": "Pass request sent",
+    "pendingApproval": "Waiting for approval"
+  },
+  "favouriteSchools": {
+    "title": "Schools you follow"
+  }
+}

@@ -9,6 +9,7 @@ const LANG_META: Record<string, { label: string; flag: string }> = {
   en: { label: 'English', flag: '🇬🇧' },
   pl: { label: 'Polski', flag: '🇵🇱' },
   uk: { label: 'Українська', flag: '🇺🇦' },
+  de: { label: 'Deutsch', flag: '🇩🇪' },
 };
 
 export default function LanguageSelector({ compact }: { compact?: boolean } = {}) {
