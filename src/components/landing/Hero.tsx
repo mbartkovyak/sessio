@@ -19,7 +19,6 @@ export default function Hero({
   const { t } = useTranslation('auth');
   const { profile } = useAuth();
 
-  // CTA target: logged-in users go to their app home, logged-out users sign up
   const signedIn = !!profile;
   const appHome = profile?.role === 'player' ? '/player' : '/coach';
 
@@ -38,7 +37,7 @@ export default function Hero({
 
         {/* Eyebrow */}
         <p
-          className="mb-5 font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-accent/90 md:text-xs"
+          className="mb-5 font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-accent md:text-xs"
           style={anim(0.08)}
         >
           {t(`landing.hero.${audience}.eyebrow`)}
@@ -46,19 +45,19 @@ export default function Hero({
 
         {/* Headline */}
         <h1
-          className="mx-auto mb-6 max-w-3xl text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-white md:text-[4rem]"
+          className="mx-auto mb-6 max-w-3xl text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-[#111] md:text-[4rem]"
           style={anim(0.14)}
         >
           {t(`landing.hero.${audience}.title1`)}
           <br className="hidden sm:block" />{' '}
-          <span className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-transparent">
+          <span className="text-[#111]/55">
             {t(`landing.hero.${audience}.title2`)}
           </span>
         </h1>
 
         {/* Subtitle */}
         <p
-          className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-white/55 md:text-lg"
+          className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-[#111]/60 md:text-lg"
           style={anim(0.24)}
         >
           {t(`landing.hero.${audience}.subtitle`)}
@@ -68,19 +67,18 @@ export default function Hero({
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row" style={anim(0.34)}>
           <button
             onClick={() => navigate(primaryHref)}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white shadow-[0_0_32px_rgba(230,120,30,0.35)] transition-all hover:brightness-110 hover:shadow-[0_0_48px_rgba(230,120,30,0.5)] active:scale-[0.98] min-h-[48px] min-w-[220px]"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white shadow-[0_4px_20px_rgba(230,120,30,0.3)] transition-all hover:brightness-110 hover:shadow-[0_6px_32px_rgba(230,120,30,0.45)] active:scale-[0.98] min-h-[48px] min-w-[220px]"
           >
             {primaryLabel}
             <ArrowRight className="h-4 w-4" />
           </button>
           <button
             onClick={() => {
-              // Scroll to the demo player; click-through handled by DemoPlayer itself on hover
               document.getElementById('demo-player')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-6 py-3.5 text-base font-medium text-white/90 transition-all hover:bg-white/[0.08] hover:border-white/25 min-h-[48px] min-w-[180px]"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#111]/12 bg-white/70 px-6 py-3.5 text-base font-medium text-[#111] transition-all hover:bg-white hover:border-[#111]/20 min-h-[48px] min-w-[180px]"
           >
-            <Play className="h-4 w-4 fill-white/90 text-white/90" />
+            <Play className="h-4 w-4 fill-[#111] text-[#111]" />
             {t(`landing.hero.${audience}.ctaSecondary`)}
           </button>
         </div>

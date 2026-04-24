@@ -24,27 +24,30 @@ export default function Landing() {
   const navCtaHref = signedIn ? appHome : '/auth/sign-in';
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#0c0a08] text-white">
-      {/* Top ambient glow — sits behind everything */}
+    <div
+      className="relative min-h-screen overflow-x-hidden text-[#111]"
+      style={{ background: 'hsl(35 20% 92%)' }}
+    >
+      {/* Top ambient accent — warm orange halo behind hero */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-[900px]"
         style={{
           background:
-            'radial-gradient(ellipse 75% 45% at 50% 0%, rgba(230,120,30,0.1) 0%, transparent 70%)',
+            'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(230,120,30,0.22) 0%, rgba(230,120,30,0.06) 40%, transparent 75%)',
         }}
       />
 
-      {/* Faint grid behind hero */}
+      {/* Faint grid behind hero — near-black lines on beige */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] opacity-[0.04]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] opacity-[0.035]"
         style={{
           backgroundImage:
-            'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
+            'linear-gradient(to right, #111 1px, transparent 1px), linear-gradient(to bottom, #111 1px, transparent 1px)',
           backgroundSize: '64px 64px',
-          mask: 'linear-gradient(to bottom, #000 20%, transparent 90%)',
-          WebkitMask: 'linear-gradient(to bottom, #000 20%, transparent 90%)',
+          mask: 'linear-gradient(to bottom, #000 15%, transparent 90%)',
+          WebkitMask: 'linear-gradient(to bottom, #000 15%, transparent 90%)',
         }}
       />
 
@@ -56,15 +59,15 @@ export default function Landing() {
         <button
           onClick={() => navigate(signedIn ? appHome : '/')}
           aria-label="Sessio"
-          className="text-white"
+          className="text-[#111]"
         >
           <SessioLogo />
         </button>
         <div className="flex items-center gap-3">
-          <LanguageSelector compact />
+          <LanguageSelector compact tone="light" />
           <button
             onClick={() => navigate(navCtaHref)}
-            className="rounded-full border border-white/15 bg-white/[0.04] px-5 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/[0.1] min-h-[40px]"
+            className="rounded-full bg-[#111] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px]"
           >
             {navCtaLabel}
           </button>

@@ -19,13 +19,13 @@ export default function FeaturesSection({ audience }: { audience: Audience }) {
     <section className="relative z-10 px-5 py-20 md:px-10 md:py-28">
       <div className="mx-auto max-w-5xl">
         <div className="mb-14 text-center">
-          <p className="mb-4 font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-accent/90">
+          <p className="mb-4 font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-accent">
             {t(`landing.features.${audience}.eyebrow`)}
           </p>
-          <h2 className="mx-auto mb-4 max-w-2xl text-3xl font-bold leading-tight tracking-[-0.02em] text-white md:text-[2.5rem]">
+          <h2 className="mx-auto mb-4 max-w-2xl text-3xl font-bold leading-tight tracking-[-0.02em] text-[#111] md:text-[2.5rem]">
             {t(`landing.features.${audience}.title`)}
           </h2>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/50 md:text-lg">
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[#111]/55 md:text-lg">
             {t(`landing.features.${audience}.subtitle`)}
           </p>
         </div>
@@ -59,7 +59,7 @@ function FeatureCard({
   outcome: string;
 }) {
   return (
-    <div className="group relative rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 transition-all duration-300 hover:border-white/[0.18] hover:bg-white/[0.04] hover:-translate-y-0.5">
+    <div className="group relative rounded-2xl border border-[#111]/8 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#111]/15 hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.15)]">
       {/* Accent glow on hover */}
       <div
         aria-hidden="true"
@@ -74,15 +74,15 @@ function FeatureCard({
           <Icon className="h-4 w-4 text-accent" strokeWidth={2} />
         </div>
 
-        <h3 className="mb-3 text-[15px] font-semibold tracking-tight text-white">{title}</h3>
+        <h3 className="mb-3 text-[15px] font-semibold tracking-tight text-[#111]">{title}</h3>
 
-        <p className="mb-3 border-l-2 border-accent/40 pl-3 text-sm italic leading-relaxed text-white/75">
+        <p className="mb-3 border-l-2 border-accent/50 pl-3 text-sm italic leading-relaxed text-[#111]/80">
           <span className="ai-shimmer">"</span>
           {prompt.replace(/^"/, '').replace(/"$/, '')}
           <span className="ai-shimmer">"</span>
         </p>
 
-        <p className="text-sm leading-relaxed text-white/45">{outcome}</p>
+        <p className="text-sm leading-relaxed text-[#111]/50">{outcome}</p>
       </div>
     </div>
   );

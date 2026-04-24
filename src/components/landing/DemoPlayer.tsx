@@ -15,42 +15,27 @@ export default function DemoPlayer({ audience }: { audience: Audience }) {
   const fullSrc = `${base}-full.mp4`;
   const poster = `${base}-poster.jpg`;
 
-  // Reset loaded state when audience changes so the new video can load
   useEffect(() => {
     setLoaded(false);
-    // Give the video element a moment to re-evaluate sources after src change
     requestAnimationFrame(() => videoRef.current?.load());
   }, [audience]);
 
   return (
     <div className="relative mt-12 md:mt-16">
-      {/* Spotlight glow behind the video */}
+      {/* Spotlight glow — softer on light background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-24 blur-[80px]"
+        className="pointer-events-none absolute -inset-20 blur-[70px]"
         style={{
           background:
-            'radial-gradient(ellipse 60% 70% at 50% 50%, rgba(230,120,30,0.35) 0%, rgba(230,120,30,0.12) 40%, transparent 70%)',
+            'radial-gradient(ellipse 60% 70% at 50% 50%, rgba(230,120,30,0.25) 0%, rgba(230,120,30,0.08) 40%, transparent 70%)',
         }}
       />
 
-      {/* Subtle grid backdrop */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-          mask: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 40%, transparent 80%)',
-          WebkitMask: 'radial-gradient(ellipse 70% 80% at 50% 50%, #000 40%, transparent 80%)',
-        }}
-      />
-
-      {/* Video frame */}
-      <div className="relative mx-auto max-w-4xl rounded-2xl border border-white/10 bg-black/60 p-1.5 shadow-[0_20px_80px_-20px_rgba(230,120,30,0.35)] backdrop-blur-sm">
+      {/* Video frame — dark inner container for screen contrast */}
+      <div className="relative mx-auto max-w-4xl rounded-2xl border border-[#111]/10 bg-white p-1.5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.18)]">
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1713] via-[#15120e] to-[#0e0b08] aspect-video">
-          {/* Fallback placeholder — visible while video isn't loaded or if missing */}
+          {/* Fallback placeholder */}
           {!loaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3 text-white/40">
@@ -64,7 +49,6 @@ export default function DemoPlayer({ audience }: { audience: Audience }) {
             </div>
           )}
 
-          {/* Autoplay muted loop */}
           <video
             ref={videoRef}
             key={audience}
@@ -83,14 +67,13 @@ export default function DemoPlayer({ audience }: { audience: Audience }) {
             <source src={loopSrcMp4} type="video/mp4" />
           </video>
 
-          {/* Play button overlay (opens modal) — only interactive when a full demo might exist */}
           <button
             type="button"
             onClick={() => setModalOpen(true)}
             aria-label="Watch full demo"
             className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 bg-black/20"
           >
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 shadow-[0_0_40px_rgba(255,255,255,0.4)]">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-[0_0_40px_rgba(255,255,255,0.5)]">
               <Play className="h-6 w-6 translate-x-0.5 fill-[#111] text-[#111]" />
             </span>
           </button>

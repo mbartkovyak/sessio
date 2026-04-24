@@ -11,7 +11,7 @@ export default function AudienceSelector({
   const { t } = useTranslation('auth');
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 backdrop-blur-sm">
+    <div className="inline-flex items-center gap-1 rounded-full border border-[#111]/10 bg-white/60 p-1 backdrop-blur-sm">
       <Tab active={audience === 'coach'} onClick={() => onChange('coach')}>
         {t('landing.audienceSelector.coach')}
       </Tab>
@@ -37,8 +37,8 @@ function Tab({
       onClick={onClick}
       className={`relative rounded-full px-4 py-2 text-sm font-medium transition-all min-h-[40px] ${
         active
-          ? 'bg-white text-[#111] shadow-[0_0_20px_rgba(255,255,255,0.15)]'
-          : 'text-white/60 hover:text-white/90'
+          ? 'bg-[#111] text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)]'
+          : 'text-[#111]/55 hover:text-[#111]/85'
       }`}
     >
       {children}

@@ -42,10 +42,15 @@ function RefreshOnResume() {
 
 function RootLayout() {
   useVisualViewport();
+  const { pathname } = useLocation();
+  // Landing is light-themed and paints its own top area — the app's dark header strip doesn't belong there.
+  const isLanding = pathname === '/' || pathname === '/welcome';
   return (
     <>
       {/* Persistent dark strip behind the fixed header — prevents light bg flash between route transitions */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
+      {!isLanding && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
+      )}
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
