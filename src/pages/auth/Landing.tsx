@@ -1,8 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SessioLogo } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { isNative } from '@/lib/platform';
 import { useLandingAudience } from '@/components/landing/useLandingAudience';
 import Hero from '@/components/landing/Hero';
 import ReplacesStrip from '@/components/landing/ReplacesStrip';
@@ -17,6 +18,16 @@ export default function Landing() {
   const { t } = useTranslation('auth');
   const { profile } = useAuth();
   const [audience, setAudience] = useLandingAudience();
+
+  // Landing is web-only. Installed iOS/Android app should never see it —
+  // route straight to sign-in (SignIn handles the logged-in case and redirects home).
+  if (isNative) {
+    if (profile) {
+      const home = profile.role === 'player' ? '/player' : '/coach';
+      return <Navigate to={home} replace />;
+    }
+    return <Navigate to="/auth/sign-in" replace />;
+  }
 
   const signedIn = !!profile;
   const appHome = profile?.role === 'player' ? '/player' : '/coach';
