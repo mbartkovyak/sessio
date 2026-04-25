@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { MessageCircle, Bell, ImageOff, ChevronDown } from 'lucide-react';
-import { useInView } from '@/hooks/shared/useInView';
 import type { Audience } from './useLandingAudience';
 
 const COACH_BRANDS = [
@@ -25,15 +24,11 @@ const stagger = (i: number) => ({ animationDelay: `${i * 80}ms` });
 
 export default function ReplacesStrip({ audience }: { audience: Audience }) {
   const { t } = useTranslation('auth');
-  const { ref, isVisible } = useInView<HTMLElement>(0.2);
 
   const coachItems = [...COACH_BRANDS, ...INTEGRATIONS];
 
   return (
-    <section
-      ref={ref}
-      className={`relative z-10 border-y border-[#111]/8 px-5 py-16 md:px-10 md:py-20 ${isVisible ? 'is-visible' : ''}`}
-    >
+    <section className="relative z-10 border-y border-[#111]/8 px-5 py-16 md:px-10 md:py-20">
       <div className="mx-auto max-w-6xl space-y-12">
         {audience === 'coach' ? (
           <>
