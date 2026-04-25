@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useCursorParallax } from '@/hooks/shared/useCursorParallax';
@@ -12,11 +11,12 @@ const anim = (delay: number) => ({ animation: `fadeUp 0.6s ${delay}s ease-out bo
 export default function Hero({
   audience,
   onAudienceChange,
+  onCtaClick,
 }: {
   audience: Audience;
   onAudienceChange: (a: Audience) => void;
+  onCtaClick: () => void;
 }) {
-  const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const { ref: demoRef, style: demoStyle } = useCursorParallax<HTMLDivElement>({ maxTilt: 1.5 });
   const { ref: scrollRef, progress: scrollProgress } = useScrollProgress<HTMLElement>();
@@ -77,7 +77,7 @@ export default function Hero({
           {/* CTA */}
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={anim(0.34)}>
             <button
-              onClick={() => navigate('/auth/sign-up')}
+              onClick={onCtaClick}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-3.5 text-base font-semibold text-white shadow-[0_4px_20px_rgba(230,120,30,0.3)] transition-all hover:brightness-110 hover:shadow-[0_6px_32px_rgba(230,120,30,0.45)] active:scale-[0.98] min-h-[48px] min-w-[220px]"
             >
               {primaryLabel}

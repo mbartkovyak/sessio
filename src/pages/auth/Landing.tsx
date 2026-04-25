@@ -9,7 +9,6 @@ import { useLandingAudience } from '@/components/landing/useLandingAudience';
 import Hero from '@/components/landing/Hero';
 import ReplacesStrip from '@/components/landing/ReplacesStrip';
 import FeaturesSection from '@/components/landing/FeaturesSection';
-import CharcoalPunch from '@/components/landing/CharcoalPunch';
 import BottomCTA from '@/components/landing/BottomCTA';
 import Footer from '@/components/landing/Footer';
 import GetTheApp from '@/components/landing/GetTheApp';
@@ -99,11 +98,10 @@ export default function Landing() {
         </nav>
       </header>
 
-      <Hero audience={audience} onAudienceChange={setAudience} />
+      <Hero audience={audience} onAudienceChange={setAudience} onCtaClick={openAppModal} />
       <ReplacesStrip audience={audience} />
       <FeaturesSection audience={audience} />
-      {audience === 'coach' && <CharcoalPunch />}
-      <BottomCTA audience={audience} />
+      <BottomCTA audience={audience} onCtaClick={openAppModal} />
       <Footer />
       <GetTheApp open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </div>

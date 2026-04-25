@@ -60,7 +60,11 @@ export default function AnimatedDemo({ audience }: { audience: Audience }) {
     };
   }, [paused, scenes.length]);
 
-  const scene = scenes[index];
+  // Clamp during render: when audience flips coach→athlete, scenes shrinks from 5
+  // to 2 before the effect above resets index to 0. Without this, scenes[stale]
+  // is undefined and the next line crashes the page.
+  const safeIndex = index < scenes.length ? index : 0;
+  const scene = scenes[safeIndex];
   const prev = () => setIndex((i) => (i - 1 + scenes.length) % scenes.length);
   const next = () => setIndex((i) => (i + 1) % scenes.length);
 
@@ -109,7 +113,7 @@ export default function AnimatedDemo({ audience }: { audience: Audience }) {
                 behind, scaled down, blurred, faded. Switching feels like the
                 next frame lifts forward into focus, not a slideshow swap. */}
             {scenes.map((s, i) => {
-              const active = i === index;
+              const active = i === safeIndex;
               return (
                 <img
                   key={s.id}
@@ -149,12 +153,12 @@ export default function AnimatedDemo({ audience }: { audience: Audience }) {
             className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-[#111]/10"
           >
             <span
-              key={`fill-${s.id}-${i === index ? index : 'x'}`}
+              key={`fill-${s.id}-${i === safeIndex ? safeIndex : 'x'}`}
               className="absolute inset-y-0 left-0 bg-[#111]"
               style={{
-                width: i < index ? '100%' : i > index ? '0%' : undefined,
+                width: i < safeIndex ? '100%' : i > safeIndex ? '0%' : undefined,
                 animation:
-                  i === index && !paused
+                  i === safeIndex && !paused
                     ? `progressFill ${SCENE_DURATION_MS}ms linear forwards`
                     : undefined,
               }}

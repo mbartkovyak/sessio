@@ -1,22 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import {
-  UserMinus, CreditCard, CalendarClock,
-  FileText, MessageSquareReply,
+  FileText,
   Hand, Bell, Search, Layers,
+  CheckCircle2, RefreshCw, LayoutDashboard,
 } from 'lucide-react';
 import { useInView } from '@/hooks/shared/useInView';
-import ScheduleFrame from './feature-frames/ScheduleFrame';
-import AttendanceFrame from './feature-frames/AttendanceFrame';
-import ChatFrame from './feature-frames/ChatFrame';
 import type { Audience } from './useLandingAudience';
 
-// Athlete-variant keys (coach audience now uses product frames; see bento below).
 const ATHLETE_ICONS = [Hand, Bell, Search, Layers];
-const COACH_ICONS = [UserMinus, CreditCard, CalendarClock, MessageSquareReply];
+const COACH_ICONS = [CheckCircle2, RefreshCw, Search, LayoutDashboard];
 
 export default function FeaturesSection({ audience }: { audience: Audience }) {
   const { t } = useTranslation('auth');
-  const { ref, isVisible } = useInView<HTMLDivElement>(0.15);
+  const { ref } = useInView<HTMLDivElement>(0.15);
+  const icons = audience === 'coach' ? COACH_ICONS : ATHLETE_ICONS;
 
   return (
     <section className="relative z-10 px-5 py-20 md:px-10 md:py-28">
@@ -33,33 +30,20 @@ export default function FeaturesSection({ audience }: { audience: Audience }) {
           </p>
         </div>
 
-        {audience === 'coach' ? (
-          // Coach audience: bento grid of live-looking product frames.
-          // Mobile stacks; desktop runs 2-col with the schedule frame spanning both cols on top.
-          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
-            <div className="md:col-span-2">
-              <ScheduleFrame isVisible={isVisible} />
-            </div>
-            <AttendanceFrame isVisible={isVisible} />
-            <ChatFrame isVisible={isVisible} />
-          </div>
-        ) : (
-          // Athlete audience keeps the copilot-prompt cards for now.
-          <div className="grid gap-5 md:grid-cols-2">
-            {(['card1', 'card2', 'card3', 'card4'] as const).map((key, i) => {
-              const Icon = ATHLETE_ICONS[i] ?? FileText;
-              return (
-                <FeatureCard
-                  key={key}
-                  Icon={Icon}
-                  title={t(`landing.features.athlete.${key}.title`)}
-                  prompt={t(`landing.features.athlete.${key}.prompt`)}
-                  outcome={t(`landing.features.athlete.${key}.outcome`)}
-                />
-              );
-            })}
-          </div>
-        )}
+        <div className="grid gap-5 md:grid-cols-2">
+          {(['card1', 'card2', 'card3', 'card4'] as const).map((key, i) => {
+            const Icon = icons[i] ?? FileText;
+            return (
+              <FeatureCard
+                key={key}
+                Icon={Icon}
+                title={t(`landing.features.${audience}.${key}.title`)}
+                prompt={t(`landing.features.${audience}.${key}.prompt`)}
+                outcome={t(`landing.features.${audience}.${key}.outcome`)}
+              />
+            );
+          })}
+        </div>
       </div>
     </section>
   );

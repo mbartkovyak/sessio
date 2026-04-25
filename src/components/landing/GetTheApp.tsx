@@ -1,14 +1,29 @@
 import { useEffect, useState } from 'react';
-import { X, Apple, Smartphone, Mail, Copy, Check, ExternalLink } from 'lucide-react';
+import { X, Mail, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { APP_STORE_URL } from '@/lib/constants';
 import { detectBrowserPlatform } from '@/lib/platform';
 
 const ANDROID_CONTACT_EMAIL = 'mbartkovyak@gmail.com';
 
+function AppleLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+    </svg>
+  );
+}
+
+function AndroidLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M17.523 15.342c-.553 0-1-.447-1-1s.447-1 1-1 1 .447 1 1-.447 1-1 1zm-11.046 0c-.553 0-1-.447-1-1s.447-1 1-1 1 .447 1 1-.447 1-1 1zm11.405-6.072 1.997-3.46a.416.416 0 0 0-.152-.567.416.416 0 0 0-.566.152l-2.022 3.503C15.591 8.176 13.846 7.83 12 7.83s-3.59.346-5.139.968L4.84 5.295a.413.413 0 0 0-.566-.152.416.416 0 0 0-.152.567l1.997 3.46C2.69 11.075.5 14.443.5 18.286h23c0-3.843-2.19-7.211-5.618-9.016z" />
+    </svg>
+  );
+}
+
 export default function GetTheApp({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation('auth');
-  const [copied, setCopied] = useState(false);
   const [platform, setPlatform] = useState<'ios' | 'android' | 'desktop'>('desktop');
 
   useEffect(() => {
@@ -39,18 +54,9 @@ export default function GetTheApp({ open, onClose }: { open: boolean; onClose: (
     body: t('landing.getTheApp.androidMailBody'),
   });
 
-  async function onCopy() {
-    try {
-      await navigator.clipboard.writeText(ANDROID_CONTACT_EMAIL);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      // Clipboard can fail on older browsers / HTTP — no-op, user can still see the email.
-    }
-  }
-
   const showIOS = platform === 'ios' || platform === 'desktop';
   const showAndroid = platform === 'android' || platform === 'desktop';
+  const showQR = platform === 'desktop';
 
   return (
     <div
@@ -83,9 +89,9 @@ export default function GetTheApp({ open, onClose }: { open: boolean; onClose: (
 
           <div className={`grid gap-5 ${showIOS && showAndroid ? 'md:grid-cols-2' : ''}`}>
             {showIOS && (
-              <div className="rounded-2xl border border-[#111]/8 bg-[#fafaf7] p-5">
+              <div className="flex flex-col rounded-2xl border border-[#111]/8 bg-[#fafaf7] p-5">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#111]">
-                  <Apple className="h-5 w-5 fill-white text-white" />
+                  <AppleLogo className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="mb-1.5 text-base font-semibold text-[#111]">
                   {t('landing.getTheApp.iosHeading')}
@@ -93,11 +99,28 @@ export default function GetTheApp({ open, onClose }: { open: boolean; onClose: (
                 <p className="mb-5 text-sm leading-relaxed text-[#111]/55">
                   {t('landing.getTheApp.iosBody')}
                 </p>
+
+                {showQR && (
+                  <div className="mb-4 flex items-center gap-3 rounded-xl border border-[#111]/8 bg-white p-3">
+                    <img
+                      src="/landing/app-store-qr.svg"
+                      alt=""
+                      aria-hidden="true"
+                      width={72}
+                      height={72}
+                      className="h-[72px] w-[72px] flex-shrink-0 rounded-md"
+                    />
+                    <div className="text-xs leading-snug text-[#111]/60">
+                      {t('landing.getTheApp.iosQrHint')}
+                    </div>
+                  </div>
+                )}
+
                 <a
                   href={APP_STORE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#111] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[44px]"
+                  className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#111] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[44px]"
                 >
                   {t('landing.getTheApp.iosButton')}
                   <ExternalLink className="h-4 w-4 opacity-70" />
@@ -106,33 +129,20 @@ export default function GetTheApp({ open, onClose }: { open: boolean; onClose: (
             )}
 
             {showAndroid && (
-              <div className="rounded-2xl border border-[#111]/8 bg-[#fafaf7] p-5">
+              <div className="flex flex-col rounded-2xl border border-[#111]/8 bg-[#fafaf7] p-5">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#3ddc84]">
-                  <Smartphone className="h-5 w-5 text-[#111]" />
+                  <AndroidLogo className="h-[22px] w-[22px] text-[#111]" />
                 </div>
                 <h3 className="mb-1.5 text-base font-semibold text-[#111]">
                   {t('landing.getTheApp.androidHeading')}
                 </h3>
-                <p className="mb-4 text-sm leading-relaxed text-[#111]/55">
+                <p className="mb-5 text-sm leading-relaxed text-[#111]/55">
                   {t('landing.getTheApp.androidBody')}
                 </p>
 
-                <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#111]/10 bg-white px-3 py-2.5 text-sm text-[#111]/80">
-                  <Mail className="h-4 w-4 flex-shrink-0 text-[#111]/40" />
-                  <span className="truncate font-medium">{ANDROID_CONTACT_EMAIL}</span>
-                  <button
-                    type="button"
-                    onClick={onCopy}
-                    aria-label={t('landing.getTheApp.androidCopyButton')}
-                    className="ml-auto flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#111]/55 hover:bg-[#111]/5 hover:text-[#111]"
-                  >
-                    {copied ? <Check className="h-4 w-4 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
-                  </button>
-                </div>
-
                 <a
                   href={mailtoHref}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(230,120,30,0.3)] transition-all hover:brightness-110 active:scale-[0.98] min-h-[44px]"
+                  className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(230,120,30,0.3)] transition-all hover:brightness-110 active:scale-[0.98] min-h-[44px]"
                 >
                   <Mail className="h-4 w-4" />
                   {t('landing.getTheApp.androidEmailButton')}
