@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { CapacitorHttp } from '@capacitor/core';
+import { toast } from 'sonner';
 import { isNative } from '@/lib/platform';
 import { openExternal } from '@/components/shared/VenueLink';
 
@@ -47,14 +48,15 @@ async function fetchPredictions(input: string): Promise<Prediction[]> {
     key: API_KEY,
     sessiontoken: sessionToken,
   };
-  try {
-    const res = await CapacitorHttp.get({ url, params });
-    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
-    if (data.status === 'OK') return data.predictions;
-    return [];
-  } catch {
-    return [];
-  }
+  const res = await CapacitorHttp.get({ url, params });
+  const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+  // Surface anything non-OK so the calling component can toast it.
+  // Empty results from a successful query (ZERO_RESULTS) are not an error.
+  if (data?.status === 'OK') return data.predictions ?? [];
+  if (data?.status === 'ZERO_RESULTS') return [];
+  const detail = data?.error_message || data?.status || `HTTP ${res.status}`;
+  console.error('[Places] autocomplete failed', { status: data?.status, error_message: data?.error_message, http: res.status, raw: res.data });
+  throw new Error(`Places: ${detail}`);
 }
 
 // ── Component ───────────────────────────────────────────────────────
@@ -163,6 +165,7 @@ function RestAutocomplete({ value, onChange, onPlaceSelect, placeholder, classNa
   const [showDropdown, setShowDropdown] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const errorToastedRef = useRef(false);
 
   useEffect(() => { setLocal(value); }, [value]);
 
@@ -186,9 +189,19 @@ function RestAutocomplete({ value, onChange, onPlaceSelect, placeholder, classNa
     if (val.length < 2) { setPredictions([]); setShowDropdown(false); return; }
 
     debounceRef.current = setTimeout(async () => {
-      const results = await fetchPredictions(val);
-      setPredictions(results);
-      setShowDropdown(results.length > 0);
+      try {
+        const results = await fetchPredictions(val);
+        setPredictions(results);
+        setShowDropdown(results.length > 0);
+      } catch (err: any) {
+        console.error('[Places] fetchPredictions threw', err);
+        setPredictions([]);
+        setShowDropdown(false);
+        if (!errorToastedRef.current) {
+          errorToastedRef.current = true;
+          toast.error(err?.message ?? 'Address lookup failed');
+        }
+      }
     }, 300);
   }, [onChange]);
 
