@@ -35,7 +35,7 @@ export default function BottomCTA({
           />
 
           <div className="relative">
-            <h2 className="mx-auto mb-4 max-w-xl text-3xl font-bold leading-tight tracking-[-0.02em] text-[#111] md:text-[2.25rem]">
+            <h2 className="mx-auto mb-4 max-w-xl font-display text-3xl font-semibold leading-tight tracking-[-0.03em] text-[#111] md:text-[2.5rem]">
               {t(`landing.bottomCta.${audience}.title`)}
             </h2>
             <p className="mx-auto mb-8 max-w-md text-base text-[#111]/55 md:text-lg">

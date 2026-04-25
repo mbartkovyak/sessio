@@ -9,7 +9,7 @@ import { useLandingAudience } from '@/components/landing/useLandingAudience';
 import Hero from '@/components/landing/Hero';
 import ReplacesStrip from '@/components/landing/ReplacesStrip';
 import FeaturesSection from '@/components/landing/FeaturesSection';
-import HowItWorks from '@/components/landing/HowItWorks';
+import CharcoalPunch from '@/components/landing/CharcoalPunch';
 import BottomCTA from '@/components/landing/BottomCTA';
 import Footer from '@/components/landing/Footer';
 import GetTheApp from '@/components/landing/GetTheApp';
@@ -31,13 +31,24 @@ export default function Landing() {
     return <Navigate to="/auth/sign-in" replace />;
   }
 
+  // Local dev shortcut: skip landing so `bun run dev` lands on the app.
+  // Opt back in with `?landing=1`. import.meta.env.DEV is false in any `vite build`
+  // (Vercel preview + prod), so real users always see the landing page.
+  if (import.meta.env.DEV && !new URLSearchParams(window.location.search).has('landing')) {
+    if (profile) {
+      const home = profile.role === 'player' ? '/player' : '/coach';
+      return <Navigate to={home} replace />;
+    }
+    return <Navigate to="/auth/sign-in" replace />;
+  }
+
   const signedIn = !!profile;
   const appHome = profile?.role === 'player' ? '/player' : '/coach';
   const openAppModal = () => setAppModalOpen(true);
 
   return (
     <div
-      className="relative min-h-screen overflow-x-hidden text-[#111]"
+      className="grain-overlay relative min-h-screen overflow-x-hidden text-[#111]"
       style={{ background: 'hsl(35 20% 92%)' }}
     >
       {/* Top ambient accent — warm orange halo behind hero */}
@@ -100,7 +111,7 @@ export default function Landing() {
       <Hero audience={audience} onAudienceChange={setAudience} onOpenAppModal={openAppModal} />
       <ReplacesStrip audience={audience} />
       <FeaturesSection audience={audience} />
-      <HowItWorks audience={audience} />
+      {audience === 'coach' && <CharcoalPunch />}
       <BottomCTA audience={audience} onOpenAppModal={openAppModal} />
       <Footer />
       <GetTheApp open={appModalOpen} onClose={() => setAppModalOpen(false)} />

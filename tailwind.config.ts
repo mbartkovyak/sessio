@@ -13,6 +13,14 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"DM Sans"', 'Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"Geist Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      transitionTimingFunction: {
+        'out-smooth': 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
       fontSize: {
         xs: ['0.875rem', { lineHeight: '1.25rem' }],   // 14px (was 12px)
         sm: ['1rem', { lineHeight: '1.5rem' }],         // 16px (was 14px)

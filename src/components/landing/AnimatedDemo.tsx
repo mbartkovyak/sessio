@@ -1,72 +1,183 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PhoneFrame from './PhoneFrame';
 import type { Audience } from './useLandingAudience';
-import CoachReEngageScene from './scenes/CoachReEngageScene';
-import CoachFillHoursScene from './scenes/CoachFillHoursScene';
-import AthleteConfirmScene from './scenes/AthleteConfirmScene';
-import AthleteReminderScene from './scenes/AthleteReminderScene';
 
-const SCENE_DURATION_MS = 5200;
+const SCENE_DURATION_MS = 4000;
+// Apple-style ease-in-out curve. Cheap to apply, makes opacity/scale feel
+// physical rather than computer-y.
+const TRANSITION_EASE = 'cubic-bezier(0.65, 0.05, 0.35, 1)';
+const TRANSITION_OPACITY_MS = 750;
+const TRANSITION_SCALE_MS = 950;
 
-const COACH_SCENES = [
-  { id: 'coach-reengage', Component: CoachReEngageScene },
-  { id: 'coach-fill', Component: CoachFillHoursScene },
-] as const;
+type Scene = {
+  id: string;
+  img: string;
+  eyebrowKey: string;
+  captionKey: string;
+};
 
-const ATHLETE_SCENES = [
-  { id: 'athlete-confirm', Component: AthleteConfirmScene },
-  { id: 'athlete-reminder', Component: AthleteReminderScene },
-] as const;
+// Coach loop. Five real-screen frames, 2s each, plain crossfade.
+const COACH_SCENES: Scene[] = [
+  { id: 'home',       img: '/landing/demo/coach-home.png',       eyebrowKey: '1', captionKey: '1' },
+  { id: 'calendar',   img: '/landing/demo/coach-calendar.png',   eyebrowKey: '2', captionKey: '2' },
+  { id: 'attendance', img: '/landing/demo/coach-attendance.png', eyebrowKey: '3', captionKey: '3' },
+  { id: 'passes',     img: '/landing/demo/coach-passes.png',     eyebrowKey: '4', captionKey: '4' },
+  { id: 'stats',      img: '/landing/demo/coach-stats.png',      eyebrowKey: '5', captionKey: '5' },
+];
+
+const ATHLETE_SCENES: Scene[] = [
+  { id: 'home',     img: '/landing/demo/athlete-home.png',     eyebrowKey: '1', captionKey: '1' },
+  { id: 'calendar', img: '/landing/demo/athlete-calendar.png', eyebrowKey: '2', captionKey: '2' },
+];
 
 export default function AnimatedDemo({ audience }: { audience: Audience }) {
   const scenes = audience === 'coach' ? COACH_SCENES : ATHLETE_SCENES;
+  const tKey = audience === 'coach' ? 'coach' : 'athlete';
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('auth');
 
-  // Reset to scene 0 whenever the audience flips — keeps the loop starting at the right scene.
+  // Reset to first scene when audience flips
   useEffect(() => { setIndex(0); }, [audience]);
 
-  // Auto-rotate.
+  // Preload all images for the current audience
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % scenes.length), SCENE_DURATION_MS);
-    return () => clearInterval(id);
-  }, [scenes.length]);
+    scenes.forEach((s) => { const img = new Image(); img.src = s.img; });
+  }, [scenes]);
 
-  const Scene = scenes[index].Component;
-  const sceneKey = `${audience}-${scenes[index].id}`;
+  // Auto-advance, pause on hover or tab hidden
+  useEffect(() => {
+    const onVis = () => setPaused(document.hidden);
+    document.addEventListener('visibilitychange', onVis);
+    if (paused) return () => document.removeEventListener('visibilitychange', onVis);
+    const tick = setInterval(() => setIndex((i) => (i + 1) % scenes.length), SCENE_DURATION_MS);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [paused, scenes.length]);
+
+  const scene = scenes[index];
+  const prev = () => setIndex((i) => (i - 1 + scenes.length) % scenes.length);
+  const next = () => setIndex((i) => (i + 1) % scenes.length);
 
   return (
-    <div className="relative mt-12 md:mt-16">
-      {/* Spotlight glow */}
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Soft warm spotlight behind the phone */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-20 blur-[70px]"
+        className="pointer-events-none absolute -inset-10 blur-[60px]"
         style={{
           background:
-            'radial-gradient(ellipse 60% 70% at 50% 50%, rgba(230,120,30,0.25) 0%, rgba(230,120,30,0.08) 40%, transparent 70%)',
+            'radial-gradient(ellipse 55% 65% at 50% 50%, rgba(230,120,30,0.22) 0%, rgba(230,120,30,0.05) 45%, transparent 75%)',
         }}
       />
 
-      {/* Outer frame — a single white card with a soft shadow, holding the animated scene */}
-      <div className="relative mx-auto max-w-4xl rounded-3xl border border-[#111]/8 bg-white p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.2)] md:p-5">
-        <div className="relative overflow-hidden rounded-2xl bg-[#faf7f2] aspect-[16/10]">
-          {/* Keyed scene — remounts cleanly on switch, restarts its internal animation */}
-          <Scene key={sceneKey} />
+      {/* Caption track — fixed height so 1- and 2-line captions don't shift the page */}
+      <div className="relative mx-auto mb-6 flex min-h-[80px] max-w-sm flex-col items-center justify-end text-center md:mb-8 md:min-h-[88px]">
+        <p
+          key={`eye-${scene.id}`}
+          className="font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-accent"
+          style={{ animation: 'fadeUp 0.5s ease-out both', animationDelay: '80ms' }}
+        >
+          {t(`landing.demo.${tKey}.scenes.${scene.eyebrowKey}.eyebrow`)}
+        </p>
+        <p
+          key={`cap-${scene.id}`}
+          className="mt-2 font-display text-[17px] font-semibold leading-snug tracking-[-0.02em] text-[#111] md:text-lg"
+          style={{ animation: 'fadeUp 0.5s ease-out both', animationDelay: '180ms' }}
+        >
+          {t(`landing.demo.${tKey}.scenes.${scene.captionKey}.caption`)}
+        </p>
+      </div>
+
+      {/* Phone with side arrows */}
+      <div className="relative mx-auto flex items-center justify-center gap-3 md:gap-5">
+        <CarouselArrow onClick={prev} direction="prev" ariaLabel="Previous scene" />
+
+        <div className="relative w-[260px] shrink-0 md:w-[320px]">
+          <PhoneFrame>
+            {/* Stacked images — active one is sharp + at rest; the rest sit
+                behind, scaled down, blurred, faded. Switching feels like the
+                next frame lifts forward into focus, not a slideshow swap. */}
+            {scenes.map((s, i) => {
+              const active = i === index;
+              return (
+                <img
+                  key={s.id}
+                  src={s.img}
+                  alt=""
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{
+                    opacity: active ? 1 : 0,
+                    transform: active ? 'scale(1)' : 'scale(0.96)',
+                    filter: active ? 'blur(0px)' : 'blur(10px)',
+                    transition: [
+                      `opacity ${TRANSITION_OPACITY_MS}ms ${TRANSITION_EASE}`,
+                      `transform ${TRANSITION_SCALE_MS}ms ${TRANSITION_EASE}`,
+                      `filter ${TRANSITION_OPACITY_MS}ms ${TRANSITION_EASE}`,
+                    ].join(', '),
+                    pointerEvents: active ? 'auto' : 'none',
+                    willChange: 'opacity, transform, filter',
+                  }}
+                />
+              );
+            })}
+          </PhoneFrame>
         </div>
 
-        {/* Progress dots */}
-        <div className="mt-4 flex items-center justify-center gap-2">
-          {scenes.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-label={`Scene ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${
-                i === index ? 'w-6 bg-[#111]' : 'w-1.5 bg-[#111]/20 hover:bg-[#111]/40'
-              }`}
+        <CarouselArrow onClick={next} direction="next" ariaLabel="Next scene" />
+      </div>
+
+      {/* Segmented progress bar */}
+      <div className="mx-auto mt-6 flex max-w-[320px] items-center gap-1 md:mt-8">
+        {scenes.map((s, i) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Scene ${i + 1}`}
+            className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-[#111]/10"
+          >
+            <span
+              key={`fill-${s.id}-${i === index ? index : 'x'}`}
+              className="absolute inset-y-0 left-0 bg-[#111]"
+              style={{
+                width: i < index ? '100%' : i > index ? '0%' : undefined,
+                animation:
+                  i === index && !paused
+                    ? `progressFill ${SCENE_DURATION_MS}ms linear forwards`
+                    : undefined,
+              }}
             />
-          ))}
-        </div>
+          </button>
+        ))}
       </div>
     </div>
+  );
+}
+
+function CarouselArrow({
+  onClick, direction, ariaLabel,
+}: { onClick: () => void; direction: 'prev' | 'next'; ariaLabel: string }) {
+  const Icon = direction === 'prev' ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="group hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#111]/10 bg-white/70 text-[#111]/60 shadow-[0_2px_8px_rgba(17,17,17,0.04)] backdrop-blur transition-all hover:border-[#111]/20 hover:bg-white hover:text-[#111] active:scale-95 sm:flex"
+    >
+      <Icon className="h-5 w-5" strokeWidth={2} />
+    </button>
   );
 }
