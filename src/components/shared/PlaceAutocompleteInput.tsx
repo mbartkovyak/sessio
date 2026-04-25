@@ -5,6 +5,9 @@ import { isNative } from '@/lib/platform';
 import { openExternal } from '@/components/shared/VenueLink';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+// Bundle build-time tag — bump to force a fresh Capgo upload after rotating the Maps key.
+const KEY_REV = 'r2026-04-25';
+void KEY_REV;
 
 // ── Web: Google Maps JS widget ──────────────────────────────────────
 
