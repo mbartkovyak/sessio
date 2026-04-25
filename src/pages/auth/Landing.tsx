@@ -89,30 +89,21 @@ export default function Landing() {
           </button>
           <div className="flex items-center gap-2 md:gap-3">
             <LanguageSelector compact tone="light" compactBare />
-            {signedIn ? (
-              <button
-                onClick={() => navigate(appHome)}
-                className="rounded-full bg-[#111] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px]"
-              >
-                {t('landing.nav.openApp')}
-              </button>
-            ) : (
-              <button
-                onClick={openAppModal}
-                className="rounded-full bg-[#111] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px] md:px-5"
-              >
-                {t('landing.nav.getTheApp')}
-              </button>
-            )}
+            <button
+              onClick={openAppModal}
+              className="rounded-full bg-[#111] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px] md:px-5"
+            >
+              {t('landing.nav.getTheApp')}
+            </button>
           </div>
         </nav>
       </header>
 
-      <Hero audience={audience} onAudienceChange={setAudience} onOpenAppModal={openAppModal} />
+      <Hero audience={audience} onAudienceChange={setAudience} />
       <ReplacesStrip audience={audience} />
       <FeaturesSection audience={audience} />
       {audience === 'coach' && <CharcoalPunch />}
-      <BottomCTA audience={audience} onOpenAppModal={openAppModal} />
+      <BottomCTA audience={audience} />
       <Footer />
       <GetTheApp open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </div>

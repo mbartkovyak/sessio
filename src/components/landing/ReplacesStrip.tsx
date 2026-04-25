@@ -38,22 +38,28 @@ export default function ReplacesStrip({ audience }: { audience: Audience }) {
         {audience === 'coach' ? (
           <>
             <div>
-              <p
-                className="reveal-item mb-10 text-center font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[#111]/40"
-                style={stagger(0)}
-              >
-                {t('landing.replaces.coach.label')} <span className="text-[#111]/25">/</span>{' '}
-                {t('landing.replaces.integratesLabel')}
-              </p>
+              <div className="grid grid-cols-2 items-end gap-2 sm:gap-3 md:gap-5">
+                <div className="flex flex-col items-center" style={stagger(0)}>
+                  <p className="reveal-item mb-2 text-center font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[#111]/40">
+                    {t('landing.replaces.coach.label')}
+                  </p>
+                  <BranchTree treeId="r" />
+                </div>
+                <div className="flex flex-col items-center" style={stagger(1)}>
+                  <p className="reveal-item mb-2 text-center font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[#111]/40">
+                    {t('landing.replaces.integratesLabel')}
+                  </p>
+                  <BranchTree treeId="i" beginOffset={0.6} />
+                </div>
+              </div>
 
-              <div className="grid grid-cols-6 items-start gap-2 sm:gap-3 md:gap-5">
+              <div className="mt-3 grid grid-cols-6 items-start gap-2 sm:gap-3 md:gap-5">
                 {coachItems.map(({ label, src, soon }, i) => (
                   <div
                     key={label}
                     className="reveal-item flex min-w-0 flex-col items-center gap-2.5"
-                    style={stagger(1 + i)}
+                    style={stagger(2 + i)}
                   >
-                    <PulseArrow delayMs={i * 140} />
                     <div className="flex h-10 items-center justify-center sm:h-12 md:h-14">
                       <img
                         src={src}
@@ -146,5 +152,55 @@ function PulseArrow({ delayMs }: { delayMs: number }) {
       <span className="block h-3 w-px bg-accent/70" />
       <ChevronDown className="-mt-[3px] h-3.5 w-3.5" strokeWidth={2.5} />
     </div>
+  );
+}
+
+function BranchTree({ treeId, beginOffset = 0 }: { treeId: string; beginOffset?: number }) {
+  const branches = [
+    { id: 'l', d: 'M 150 4 C 150 30 50 30 50 56' },
+    { id: 'm', d: 'M 150 4 L 150 56' },
+    { id: 'r', d: 'M 150 4 C 150 30 250 30 250 56' },
+  ];
+  return (
+    <svg
+      className="block h-9 w-full sm:h-11 md:h-12"
+      viewBox="0 0 300 60"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <circle cx="150" cy="3" r="2.4" fill="hsl(var(--accent))" opacity="0.55" />
+      {branches.map(({ id, d }) => (
+        <path
+          key={id}
+          id={`branch-${treeId}-${id}`}
+          d={d}
+          stroke="hsl(var(--accent))"
+          strokeOpacity="0.28"
+          strokeWidth="1"
+          fill="none"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      {branches.map(({ id }, i) => (
+        <circle key={`dot-${id}`} r="2.6" fill="hsl(var(--accent))">
+          <animateMotion
+            dur="2s"
+            repeatCount="indefinite"
+            begin={`${beginOffset + i * 0.22}s`}
+            rotate="auto"
+          >
+            <mpath href={`#branch-${treeId}-${id}`} />
+          </animateMotion>
+          <animate
+            attributeName="opacity"
+            values="0;1;1;0"
+            keyTimes="0;0.15;0.85;1"
+            dur="2s"
+            repeatCount="indefinite"
+            begin={`${beginOffset + i * 0.22}s`}
+          />
+        </circle>
+      ))}
+    </svg>
   );
 }
