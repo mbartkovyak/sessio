@@ -27,7 +27,7 @@ export default function Hero({
     : t(`landing.hero.${audience}.ctaPrimary`);
 
   return (
-    <section className="relative z-10 px-5 pt-10 pb-16 md:px-10 md:pt-16 md:pb-24">
+    <section className="relative z-10 px-5 pt-5 pb-16 md:px-10 md:pt-10 md:pb-24">
       <div className="mx-auto max-w-5xl text-center">
         {/* Audience selector */}
         <div className="mb-8 flex justify-center" style={anim(0.02)}>

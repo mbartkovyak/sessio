@@ -33,7 +33,6 @@ export default function Landing() {
 
   const signedIn = !!profile;
   const appHome = profile?.role === 'player' ? '/player' : '/coach';
-  const navCtaLabel = signedIn ? t('landing.nav.openApp') : t('landing.nav.signIn');
   const openAppModal = () => setAppModalOpen(true);
 
   return (
@@ -65,27 +64,38 @@ export default function Landing() {
       />
 
       {/* Navbar */}
-      <nav
-        className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-10"
-        style={{ animation: 'fadeDown 0.5s ease-out both' }}
-      >
-        <button
-          onClick={() => navigate(signedIn ? appHome : '/')}
-          aria-label="Sessio"
-          className="text-[#111]"
+      <header className="relative z-20 h-16 border-b border-[#111]/[0.035]">
+        <nav
+          className="mx-auto flex h-full max-w-6xl items-center justify-between px-5 md:px-10"
+          style={{ animation: 'fadeDown 0.5s ease-out both' }}
         >
-          <SessioLogo />
-        </button>
-        <div className="flex items-center gap-3">
-          <LanguageSelector compact tone="light" />
           <button
-            onClick={() => (signedIn ? openAppModal() : navigate('/auth/sign-in'))}
-            className="rounded-full bg-[#111] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px]"
+            onClick={() => navigate(signedIn ? appHome : '/')}
+            aria-label="Sessio"
+            className="text-[#111]"
           >
-            {navCtaLabel}
+            <SessioLogo size={42} />
           </button>
-        </div>
-      </nav>
+          <div className="flex items-center gap-2 md:gap-3">
+            <LanguageSelector compact tone="light" compactBare />
+            {signedIn ? (
+              <button
+                onClick={() => navigate(appHome)}
+                className="rounded-full bg-[#111] px-5 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px]"
+              >
+                {t('landing.nav.openApp')}
+              </button>
+            ) : (
+              <button
+                onClick={openAppModal}
+                className="rounded-full bg-[#111] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px] md:px-5"
+              >
+                {t('landing.nav.getTheApp')}
+              </button>
+            )}
+          </div>
+        </nav>
+      </header>
 
       <Hero audience={audience} onAudienceChange={setAudience} onOpenAppModal={openAppModal} />
       <ReplacesStrip audience={audience} />
