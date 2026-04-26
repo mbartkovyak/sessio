@@ -11,14 +11,14 @@
     "save": "Save changes",
     "cancel": "Cancel",
     "back": "Back",
-    "continue": "Continue",
+    "continue": "Weiter",
     "loading": "Loading...",
     "signOut": "Sign out",
     "signingOut": "Signing out...",
     "deleteAccount": "Delete account",
     "deleting": "Deleting...",
     "confirmDelete": "Delete all your data? This can't be undone.",
-    "getStarted": "Get started",
+    "getStarted": "Loslegen",
     "shareLink": "Share link",
     "linkCopied": "Link copied",
     "reschedule": "Reschedule",
@@ -26,14 +26,14 @@
   },
   "sports": {
     "Tennis": "Tennis",
-    "Swimming": "Swimming",
-    "Running": "Running",
+    "Swimming": "Schwimmen",
+    "Running": "Laufen",
     "Fitness": "Fitness",
     "Yoga": "Yoga",
-    "Football": "Football",
+    "Football": "Fußball",
     "Badminton": "Badminton",
-    "Boxing": "Boxing",
-    "Other": "Other"
+    "Boxing": "Boxen",
+    "Other": "Sonstiges"
   },
   "days": {
     "Monday": "Monday",
@@ -65,8 +65,8 @@
     "loadMore": "Load more"
   },
   "phone": {
-    "label": "Phone number",
-    "placeholder": "Phone number",
+    "label": "Telefonnummer",
+    "placeholder": "Telefonnummer",
     "optional": "(optional)"
   },
   "chat": {
@@ -144,19 +144,19 @@
     "passDeclinedBody": "Your {{type}} pass request was declined."
   },
   "form": {
-    "sport": "Sport",
-    "selectSport": "Select sport",
-    "addSport": "+ Add sport",
-    "country": "Country",
-    "selectCountry": "Select country",
-    "city": "City",
-    "selectCity": "Select city",
+    "sport": "Sportart",
+    "selectSport": "Sportart wählen",
+    "addSport": "+ Sportart hinzufügen",
+    "country": "Land",
+    "selectCountry": "Land wählen",
+    "city": "Stadt",
+    "selectCity": "Stadt wählen",
     "select": "Select",
     "language": "Language"
   },
   "countries": {
-    "US": "United States",
-    "Poland": "Poland",
+    "US": "Vereinigte Staaten",
+    "Poland": "Polen",
     "Ukraine": "Ukraine"
   },
   "trainingType": {
