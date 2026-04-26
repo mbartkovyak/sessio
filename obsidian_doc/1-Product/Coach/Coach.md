@@ -19,24 +19,25 @@ If the coach is still doing manual coordination or relying on word-of-mouth for 
 
 ## Pages
 
-| Page | Purpose | Key sections |
+| Page | Route | Purpose |
 |---|---|---|
-| **Home** | What needs attention now | Today's lessons, alerts, join requests, unread messages |
-| **Calendar** | Full schedule across all lessons | Weekly view, lesson status, fill rates |
-| **Lessons** | Manage all lesson offerings | Group + individual, rosters, settings, invite links, chat |
-| **Profile** | Public face + account settings | Bio, video, reviews, ratings, settings |
+| **Home** | `/coach` | Today's lessons, alerts, join requests, unread messages |
+| **Chats** | `/coach/messages`, `/coach/dm/:userId` | Training group chats + DMs with athletes |
+| **Lessons** | `/coach/trainings`, `/coach/trainings/new`, `/coach/trainings/:id`, `/coach/sessions/:id` | All training offerings — create, edit, rosters, invite links, per-session detail |
+| **Calendar** | `/coach/calendar` | Full schedule across all lessons, weekly view, session status |
+| **Profile** | `/coach/profile` | Public face + account settings: bio, sports, rating, reviews |
+| **Passes** | `/coach/passes` | Multi-session passes with auto-deduction on attendance marking |
+| **Athletes** | `/coach/athletes` | Roster across all the coach's trainings |
+| **Stats** | `/coach/stats` | Coach-level usage / attendance / fill-rate stats |
+| **Coaches** (school_owner only) | `/coach/coaches` | Invite and manage coaches inside the school |
 
-**Bottom nav: Home, Calendar, Lessons, Profile.**
-
-Messages live inside each lesson (group chat or direct chat). Unread alerts surface on Home.
+**Bottom nav: Home, Chats, Lessons, Calendar, Profile.** (`CoachBottomNav.tsx`, 5 tabs. "Lessons" label routes to `/coach/trainings`.) Passes, Athletes, Stats, and Coaches are reached from Home and from the Profile/settings area.
 
 ## School owner: additional views
 
-School owners get a **context switcher in the top-left corner** — tap to flip between personal coaching view and school management view.
+School owners get a **context switcher in the top-left of `CoachHome`** — tap to flip between personal coaching view and school management view. `/school/profile` is the School Profile editor. Other school-level views (Dashboard, Calendar, Coaches, School Profile) overlay into the coach routes and are gated by the `school_owner` role in `ProtectedRoute` (see root `CLAUDE.md`).
 
-**School view nav: Dashboard, Calendar, Coaches, School Profile.**
-
-→ Full detail: [[School/School]]
+→ Full school detail: [[School/School]]
 
 ## How coaches get on the platform
 
@@ -44,12 +45,15 @@ School owners get a **context switcher in the top-left corner** — tap to flip 
 2. **School path**: Sign up → "I coach" → "Open a school" → name, school name, sport, city → school dashboard
 3. **Invite path**: Tap school invite link → "I coach" → "Join a school" → name, sport → coach dashboard with school badge
 
-## Core automation
+## Core loop
 
-- **Auto-confirm requests**: X hours before lesson, athletes get confirm/decline prompt
-- **Auto-backfill** (group only): decline → spot to waitlist → first claim wins → coach notified
-- **Attendance tracking**: automatic, no manual entry
-- **Review collection**: athletes can rate after lessons
+The confirmation model is **assumed attending by default** — athletes don't opt in, they opt out. See [[../ConfirmationFlow]] for the canonical flow. Key pieces:
+
+- **Cancellation reminders** before each session (deadline configured per training: 12/24/48/72h).
+- **Auto-backfill** (group only): someone cancels → spot opens → waitlist/flex members can claim.
+- **Attendance tracking**: marked post-session via `AttendanceSheet`.
+- **Passes**: auto-deduct sessions on attendance mark.
+- **Review collection**: athletes can rate after lessons.
 
 ## Role evolution
 

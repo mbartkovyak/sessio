@@ -135,7 +135,13 @@
     "addedToTrainingTitle": "Вас додано до заняття",
     "addedToTrainingBody": "Вас додано до {{training}}.",
     "removedFromTrainingTitle": "Видалено з заняття",
-    "removedFromTrainingBody": "Вас видалено з {{training}}."
+    "removedFromTrainingBody": "Вас видалено з {{training}}.",
+    "passRequestTitle": "Новий запит на абонемент",
+    "passRequestBody": "{{name}} запитує абонемент {{type}}.",
+    "passApprovedTitle": "Абонемент підтверджено",
+    "passApprovedBody": "Ваш абонемент {{type}} активовано.",
+    "passDeclinedTitle": "Абонемент відхилено",
+    "passDeclinedBody": "Ваш запит на абонемент {{type}} відхилено."
   },
   "form": {
     "sport": "Спорт",
@@ -280,7 +286,9 @@
   },
   "abonaments": {
     "typeCreated": "Тип абонементу створено",
-    "assigned": "Абонемент призначено"
+    "assigned": "Абонемент призначено",
+    "approved": "Абонемент підтверджено",
+    "declined": "Запит на абонемент відхилено"
   },
   "toast": {
     "trainingCreated": "Заняття створено",

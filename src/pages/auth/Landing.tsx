@@ -1,164 +1,109 @@
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, CalendarCheck, Search } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SessioLogo, SessioLoader } from '@/components/SessioLogo';
+import { SessioLogo } from '@/components/SessioLogo';
 import LanguageSelector from '@/components/shared/LanguageSelector';
-
-const anim = (delay: number) => ({
-  animation: `fadeUp 0.6s ${delay}s ease-out both`,
-});
+import { useAuth } from '@/contexts/AuthContext';
+import { isNative } from '@/lib/platform';
+import { useLandingAudience } from '@/components/landing/useLandingAudience';
+import Hero from '@/components/landing/Hero';
+import ReplacesStrip from '@/components/landing/ReplacesStrip';
+import FeaturesSection from '@/components/landing/FeaturesSection';
+import BottomCTA from '@/components/landing/BottomCTA';
+import Footer from '@/components/landing/Footer';
+import GetTheApp from '@/components/landing/GetTheApp';
 
 export default function Landing() {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
+  const { profile } = useAuth();
+  const [audience, setAudience] = useLandingAudience();
+  const [appModalOpen, setAppModalOpen] = useState(false);
 
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-  if (isStandalone) return <Navigate to="/auth" replace />;
+  // Landing is web-only. Installed iOS/Android app should never see it —
+  // route straight to sign-in (SignIn handles the logged-in case and redirects home).
+  if (isNative) {
+    if (profile) {
+      const home = profile.role === 'player' ? '/player' : '/coach';
+      return <Navigate to={home} replace />;
+    }
+    return <Navigate to="/auth/sign-in" replace />;
+  }
 
-  const features = [
-    { icon: CalendarCheck, title: t('landing.feature1Title'), desc: t('landing.feature1Desc') },
-    { icon: Users, title: t('landing.feature2Title'), desc: t('landing.feature2Desc') },
-    { icon: Search, title: t('landing.feature3Title'), desc: t('landing.feature3Desc') },
-  ];
+  // Local dev shortcut: skip landing so `bun run dev` lands on the app.
+  // Opt back in with `?landing=1`. import.meta.env.DEV is false in any `vite build`
+  // (Vercel preview + prod), so real users always see the landing page.
+  if (import.meta.env.DEV && !new URLSearchParams(window.location.search).has('landing')) {
+    if (profile) {
+      const home = profile.role === 'player' ? '/player' : '/coach';
+      return <Navigate to={home} replace />;
+    }
+    return <Navigate to="/auth/sign-in" replace />;
+  }
 
-  const steps = [
-    { n: '1', title: t('landing.step1Title'), desc: t('landing.step1Desc') },
-    { n: '2', title: t('landing.step2Title'), desc: t('landing.step2Desc') },
-    { n: '3', title: t('landing.step3Title'), desc: t('landing.step3Desc') },
-  ];
+  const signedIn = !!profile;
+  const appHome = profile?.role === 'player' ? '/player' : '/coach';
+  const openAppModal = () => setAppModalOpen(true);
 
   return (
-    <div className="min-h-screen bg-[#111] overflow-x-hidden">
-      {/* Ambient glow behind hero — radial gradient, no blur artifacts */}
+    <div
+      className="grain-overlay relative min-h-screen overflow-x-hidden text-[#111]"
+      style={{ background: 'hsl(35 20% 92%)' }}
+    >
+      {/* Top ambient accent — warm orange halo behind hero */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[600px]"
-        style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(230,120,30,0.08) 0%, transparent 70%)' }}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[900px]"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(230,120,30,0.22) 0%, rgba(230,120,30,0.06) 40%, transparent 75%)',
+        }}
+      />
+
+      {/* Faint grid behind hero — near-black lines on beige */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] opacity-[0.035]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #111 1px, transparent 1px), linear-gradient(to bottom, #111 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+          mask: 'linear-gradient(to bottom, #000 15%, transparent 90%)',
+          WebkitMask: 'linear-gradient(to bottom, #000 15%, transparent 90%)',
+        }}
       />
 
       {/* Navbar */}
-      <nav
-        className="relative z-20 flex items-center justify-between px-5 py-4 md:px-10 max-w-5xl mx-auto"
-        style={{ animation: 'fadeDown 0.5s ease-out both' }}
-      >
-        <span className="text-white"><SessioLogo /></span>
-        <div className="flex items-center gap-3">
-          <LanguageSelector compact />
+      <header className="relative z-20 h-16 border-b border-[#111]/[0.035]">
+        <nav
+          className="mx-auto flex h-full max-w-6xl items-center justify-between px-5 md:px-10"
+          style={{ animation: 'fadeDown 0.5s ease-out both' }}
+        >
           <button
-            onClick={() => navigate('/auth')}
-            className="rounded-full bg-white/10 backdrop-blur-sm border border-white/15 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20 min-h-[44px]"
+            onClick={() => navigate(signedIn ? appHome : '/')}
+            aria-label="Sessio"
+            className="text-[#111]"
           >
-            {t('landing.signInUp')}
+            <SessioLogo size={42} />
           </button>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative z-10 px-5 pt-12 pb-20 md:px-10 md:pt-20 md:pb-28 text-center">
-        <div className="mx-auto max-w-2xl">
-          <p
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-accent/80"
-            style={anim(0.04)}
-          >
-            {t('landing.heroEyebrow')}
-          </p>
-          <h1
-            className="mb-5 text-4xl font-bold leading-[1.1] tracking-tight text-white md:text-[3.25rem]"
-            style={anim(0.1)}
-          >
-            {t('landing.heroTitle1')}<br className="hidden sm:block" /> {t('landing.heroTitle2')}
-          </h1>
-          <p
-            className="mb-10 text-base text-white/50 md:text-lg max-w-xl mx-auto leading-relaxed"
-            style={anim(0.25)}
-          >
-            {t('landing.heroSubtitle')}
-          </p>
-          <div style={anim(0.4)}>
+          <div className="flex items-center gap-2 md:gap-3">
+            <LanguageSelector compact tone="light" compactBare />
             <button
-              onClick={() => navigate('/auth')}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-8 py-3.5 text-base font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_32px_rgba(230,120,30,0.45)] active:scale-[0.98] min-h-[48px] shadow-[0_0_24px_rgba(230,120,30,0.3)]"
+              onClick={openAppModal}
+              className="rounded-full bg-[#111] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#222] active:scale-[0.98] min-h-[40px] md:px-5"
             >
-              {t('landing.getStartedFree')}
-              <ArrowRight className="h-4 w-4" />
+              {t('landing.nav.getTheApp')}
             </button>
           </div>
-        </div>
-      </section>
+        </nav>
+      </header>
 
-      {/* Feature cards */}
-      <section className="relative z-10 px-5 py-16 md:px-10">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="mb-2 text-center text-2xl font-bold text-white" style={anim(0.5)}>
-            {t('landing.featuresTitle')}
-          </h2>
-          <p className="mb-10 text-center text-white/40" style={anim(0.55)}>
-            {t('landing.featuresSubtitle')}
-          </p>
-          <div className="grid gap-5 md:grid-cols-3">
-            {features.map(({ icon: Icon, title, desc }, i) => (
-              <div
-                key={title}
-                className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 transition-all duration-300 hover:bg-white/[0.07] hover:border-white/[0.14] hover:-translate-y-0.5"
-                style={anim(0.6 + i * 0.08)}
-              >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15">
-                  <Icon className="h-5 w-5 text-accent" />
-                </div>
-                <h3 className="mb-2 font-semibold text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-white/45">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="relative z-10 px-5 py-16 md:px-10">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="mb-2 text-center text-2xl font-bold text-white" style={anim(0.9)}>
-            {t('landing.stepsTitle')}
-          </h2>
-          <p className="mb-10 text-center text-white/40" style={anim(0.95)}>
-            {t('landing.stepsSubtitle')}
-          </p>
-          <div className="space-y-6">
-            {steps.map(({ n, title, desc }, i) => (
-              <div key={n} className="flex gap-4 items-start" style={anim(1.0 + i * 0.1)}>
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                  {n}
-                </div>
-                <div className="pt-0.5">
-                  <h3 className="mb-1 font-semibold text-white">{title}</h3>
-                  <p className="text-sm text-white/45 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom CTA */}
-      <section className="relative z-10 px-5 py-16 text-center md:px-10">
-        <div className="mx-auto max-w-lg rounded-3xl bg-white/[0.04] border border-white/[0.08] px-8 py-10" style={anim(1.3)}>
-          <h2 className="mb-3 text-xl font-bold text-white">{t('landing.ctaTitle')}</h2>
-          <p className="mb-6 text-sm text-white/40">{t('landing.ctaSubtitle')}</p>
-          <button
-            onClick={() => navigate('/auth')}
-            className="rounded-full bg-accent px-8 py-3.5 text-base font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_32px_rgba(230,120,30,0.45)] active:scale-[0.98] min-h-[48px]"
-          >
-            {t('landing.ctaButton')}
-          </button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/[0.08] px-5 pt-6 text-center text-sm text-white/30" style={{ paddingBottom: 'max(24px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 24px)))' }}>
-        <p>{t('landing.footer')}</p>
-        <div className="mt-2 flex justify-center gap-4">
-          <button onClick={() => navigate('/privacy')} className="underline underline-offset-2 hover:text-white/50 transition-colors">Privacy</button>
-          <button onClick={() => navigate('/terms')} className="underline underline-offset-2 hover:text-white/50 transition-colors">Terms</button>
-        </div>
-      </footer>
+      <Hero audience={audience} onAudienceChange={setAudience} onCtaClick={openAppModal} />
+      <ReplacesStrip audience={audience} />
+      <FeaturesSection audience={audience} />
+      <BottomCTA audience={audience} onCtaClick={openAppModal} />
+      <Footer />
+      <GetTheApp open={appModalOpen} onClose={() => setAppModalOpen(false)} />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 # Play Store Listing
 
+**Status:** Play Store listing is pending submission. iOS App Store listing is live in all regions.
+
 ## English
 
 **Title:** Sessio — Sports Coaching
@@ -8,9 +10,9 @@
 Schedule trainings, confirm attendance, manage your sports school.
 
 **Full description:**
-Sessio is the scheduling app for independent sports coaches and their athletes.
+Sessio is the scheduling app for sports coaches, small schools, and their athletes.
 
-Coaches: Create your school, add trainings, share an invite link — your athletes join in 30 seconds. No more WhatsApp group chaos.
+Coaches: Create your school, add trainings, share an invite link — your athletes join in 30 seconds. Stop coordinating in group chats — Sessio handles confirmations, reminders, and filling empty spots.
 
 What Sessio does for coaches:
 • Auto-generated training sessions for months ahead
@@ -44,9 +46,9 @@ Built for coaches who want to focus on coaching, not admin.
 Planuj treningi, potwierdzaj obecność, zarządzaj swoją szkołą sportową.
 
 **Full description:**
-Sessio to aplikacja do planowania treningów dla niezależnych trenerów sportowych i ich zawodników.
+Sessio to aplikacja do planowania treningów dla trenerów sportowych, małych szkół i ich zawodników.
 
-Trenerzy: Stwórz szkołę, dodaj treningi, wyślij link zaproszenia — Twoi zawodnicy dołączą w 30 sekund. Koniec z chaosem w grupach WhatsApp.
+Trenerzy: Stwórz szkołę, dodaj treningi, wyślij link zaproszenia — Twoi zawodnicy dołączą w 30 sekund. Koniec z koordynacją w grupach — Sessio zajmuje się potwierdzeniami, przypomnieniami i zapełnianiem wolnych miejsc.
 
 Co Sessio robi dla trenerów:
 • Automatyczne generowanie sesji treningowych na miesiące do przodu

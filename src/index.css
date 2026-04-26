@@ -1,6 +1,18 @@
+@import '@fontsource/geist/400.css';
+@import '@fontsource/geist/500.css';
+@import '@fontsource/geist/600.css';
+@import '@fontsource/geist/700.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Landing page motion easing — smooth ease-out, slightly punchy on entry */
+:root {
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
 
 /* Push toasts below iPhone notch / Dynamic Island */
 [data-sonner-toaster][data-y-position="top"] {
@@ -203,7 +215,96 @@ html.android-keyboard-open .fixed.bottom-0.left-0.right-0 {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes typingPulse {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes tapPulse {
+  0%, 70%, 100% { transform: scale(1); opacity: 0.9; }
+  35% { transform: scale(0.85); opacity: 1; }
+}
+@keyframes tapRing {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  70% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+/* One-shot "click" burst that fires near the end of an interaction scene,
+   selling the tap before the loop advances to the result frame. */
+@keyframes clickBurst {
+  0% { transform: scale(1); opacity: 0.95; }
+  35% { transform: scale(0.55); opacity: 1; }
+  70% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes clickRing {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+@keyframes progressFill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+@keyframes arrowPulse {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="arrowPulse"] { animation: none !important; opacity: 0.6 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="tapPulse"], [style*="tapRing"] { animation: none !important; opacity: 0.7 !important; }
+}
 @keyframes fadeDown {
   from { opacity: 0; transform: translateY(-12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtle AI-prompt shimmer on the quote glyphs around copilot card prompts.
+   Keeps the rest of the text stable (black-on-gradient clip breaks long lines
+   in RTL/CJK), only the quote marks animate. */
+@keyframes aiShimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.ai-shimmer {
+  background: linear-gradient(90deg, hsl(30 95% 62%) 0%, hsl(30 95% 80%) 50%, hsl(30 95% 62%) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aiShimmer 2.8s linear infinite;
+}
+
+/* Scroll-triggered reveal for the Replaces/Integrates brand strip.
+   Tiles start hidden; parent adds .is-visible when section enters viewport. */
+.reveal-item {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.is-visible .reveal-item {
+  animation: fadeUp 0.6s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-item,
+  .is-visible .reveal-item {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* Landing page grain overlay — fixed SVG noise at 3.5% opacity.
+   Inline SVG filter means zero network cost and no bundle size impact. */
+.grain-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+@media (prefers-reduced-motion: reduce) {
+  .grain-overlay::after { display: none; }
 }

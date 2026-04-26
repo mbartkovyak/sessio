@@ -12,6 +12,7 @@ import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSe
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 import MyJoinRequests from '@/components/player/home/MyJoinRequests';
 import MyAbonamentsSection from '@/components/player/home/MyAbonamentsSection';
+import AvailablePassesSection from '@/components/player/home/AvailablePassesSection';
 import PushNotificationPrompt from '@/components/shared/PushNotificationPrompt';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -97,6 +98,9 @@ export default function PlayerHome() {
 
           {/* Active passes */}
           <MyAbonamentsSection />
+
+          {/* Available passes to request */}
+          <AvailablePassesSection />
 
           {/* Push notification prompt */}
           <PushNotificationPrompt />

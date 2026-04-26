@@ -42,10 +42,15 @@ function RefreshOnResume() {
 
 function RootLayout() {
   useVisualViewport();
+  const { pathname } = useLocation();
+  // Landing is light-themed and paints its own top area — the app's dark header strip doesn't belong there.
+  const isLanding = pathname === '/' || pathname === '/welcome';
   return (
     <>
       {/* Persistent dark strip behind the fixed header — prevents light bg flash between route transitions */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
+      {!isLanding && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[9] header-gradient rounded-b-2xl px-4 py-4" aria-hidden="true"><div className="h-5" /></div>
+      )}
       <NavigationLoadingBar />
       <ScrollToTop />
       <RefreshOnResume />
@@ -166,8 +171,8 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />}>
       {/* Public */}
-      <Route path="/" element={<Navigate to="/auth/sign-in" replace />} />
-      <Route path="/welcome" element={<Landing />} />
+      <Route path="/" element={<Landing />} />
+      <Route path="/welcome" element={<Navigate to="/" replace />} />
       <Route path="/auth" element={<Navigate to="/auth/sign-in" replace />} />
       <Route path="/auth/sign-in" element={<SignIn />} />
       <Route path="/auth/sign-up" element={<SignUp />} />

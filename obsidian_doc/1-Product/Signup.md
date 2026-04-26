@@ -63,6 +63,24 @@ DB: `profiles.role = 'coach'`, row in `school_members`.
 
 ---
 
+## Step 3: Questionnaire
+
+After auth + role selection, every user passes through `/onboarding/questionnaire` — a 7-step flow gated by `profile.questionnaire_complete`. Back-nav / reload falls through if already complete.
+
+Steps (components in `src/components/onboarding/`):
+
+1. **Welcome** — set expectations.
+2. **Goal** — what the user wants out of Sessio.
+3. **Sports** (athletes only) — picks sports from `SPORTS` constant.
+4. **Benefits** — reinforce value prop, increase perceived fit.
+5. **Demo** — short app walk-through.
+6. **Push** — iOS/Android/web push opt-in (native `usePushNotifications`, web via VAPID).
+7. **Finish** — flip `profile.questionnaire_complete = true`, route to the role's Home.
+
+Why it exists: conversion (drop-off is highest in the first 60 seconds post-signup, and a structured flow outperforms an empty dashboard) + user profiling (sports / goal fields feed Search relevance).
+
+---
+
 ## Context: invite link arrival
 
 If someone arrives via a **training invite link** (most common at launch):
@@ -108,6 +126,8 @@ Athletes don't become coaches through the app (for MVP).
 
 ## DB mapping
 
+All paths end with `profiles.questionnaire_complete = true` after the questionnaire finishes.
+
 | Signup path | profiles.role | schools row | school_members row |
 |---|---|---|---|
 | Athlete | `player` | — | — |
@@ -120,6 +140,6 @@ Athletes don't become coaches through the app (for MVP).
 ## Design notes
 
 - Mobile-first. Most athletes arrive via invite link on phone.
-- No email/password for MVP — Google + email OTP.
+- Auth supports Google OAuth and email/password (`SignUp.tsx`, `SignIn.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`). Passwordless email OTP is not used.
 - Step 2 (coach sub-path) should feel like a natural continuation, not a separate page. Could be a slide or expand on the same screen.
 - The "Join a school" path is invite-driven. Don't show it prominently if there's no invite context — solo coach and open school are the primary actions.

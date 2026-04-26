@@ -134,7 +134,11 @@
     "expiresOn": "Діє до {{date}}",
     "expired": "Завершився",
     "usedUp": "Використано",
-    "startsOn": "З {{date}}"
+    "startsOn": "З {{date}}",
+    "availablePasses": "Доступні абонементи",
+    "request": "Запросити",
+    "requestSent": "Запит на абонемент надіслано",
+    "pendingApproval": "Очікує підтвердження"
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"

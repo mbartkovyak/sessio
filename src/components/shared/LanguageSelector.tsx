@@ -9,9 +9,14 @@ const LANG_META: Record<string, { label: string; flag: string }> = {
   en: { label: 'English', flag: '🇬🇧' },
   pl: { label: 'Polski', flag: '🇵🇱' },
   uk: { label: 'Українська', flag: '🇺🇦' },
+  de: { label: 'Deutsch', flag: '🇩🇪' },
 };
 
-export default function LanguageSelector({ compact }: { compact?: boolean } = {}) {
+export default function LanguageSelector({
+  compact,
+  tone = 'dark',
+  compactBare = false,
+}: { compact?: boolean; tone?: 'dark' | 'light'; compactBare?: boolean } = {}) {
   const { i18n, t } = useTranslation('common');
   const { user } = useAuth();
 
@@ -26,7 +31,7 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
 
   // Compact: custom button dropdown (no native <select> — iOS overrides styling)
   if (compact) {
-    return <CompactDropdown current={i18n.language} onChange={handleChange} />;
+    return <CompactDropdown current={i18n.language} onChange={handleChange} tone={tone} bare={compactBare} />;
   }
 
   // Full: native <select> — fine on light backgrounds
@@ -51,7 +56,17 @@ export default function LanguageSelector({ compact }: { compact?: boolean } = {}
   );
 }
 
-function CompactDropdown({ current, onChange }: { current: string; onChange: (lang: string) => void }) {
+function CompactDropdown({
+  current,
+  onChange,
+  tone,
+  bare,
+}: {
+  current: string;
+  onChange: (lang: string) => void;
+  tone: 'dark' | 'light';
+  bare: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,27 +79,57 @@ function CompactDropdown({ current, onChange }: { current: string; onChange: (la
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, [open]);
 
+  const buttonCls =
+    bare
+      ? (tone === 'light'
+          ? 'flex items-center gap-2 bg-transparent px-0 py-0 text-sm text-[#111] transition-colors hover:text-[#111]/70'
+          : 'flex items-center gap-2 bg-transparent px-0 py-0 text-sm text-white transition-colors hover:text-white/80')
+      : tone === 'light'
+      ? 'flex items-center gap-2 rounded-lg border border-[#111]/10 bg-white/70 backdrop-blur-sm px-3 py-1.5 text-sm text-[#111]'
+      : 'flex items-center gap-2 rounded-lg border border-white/20 bg-black/30 backdrop-blur-sm px-3 py-1.5 text-sm text-white';
+
+  const chevronCls = bare
+    ? (tone === 'light' ? 'h-3.5 w-3.5 text-[#111]/55' : 'h-3.5 w-3.5 text-white/70')
+    : (tone === 'light' ? 'h-3.5 w-3.5 text-[#111]/40' : 'h-3.5 w-3.5 text-white/60');
+
+  const panelCls =
+    tone === 'light'
+      ? 'absolute right-0 top-full mt-1 rounded-lg border border-[#111]/10 bg-white shadow-lg overflow-hidden z-50'
+      : 'absolute right-0 top-full mt-1 rounded-lg border border-white/20 bg-black/70 backdrop-blur-md overflow-hidden z-50';
+
+  const itemCls = (active: boolean) =>
+    tone === 'light'
+      ? `flex w-full items-center gap-2 px-4 py-2.5 text-sm text-[#111] hover:bg-[#111]/5 ${active ? 'bg-[#111]/5' : ''}`
+      : `flex w-full items-center gap-2 px-4 py-2.5 text-sm text-white hover:bg-white/10 ${active ? 'bg-white/10' : ''}`;
+
+  const flagCls =
+    bare
+      ? 'inline-flex shrink-0 items-center justify-center text-[15px] leading-none [font-family:"Apple_Color_Emoji","Segoe_UI_Emoji","Noto_Color_Emoji",sans-serif]'
+      : tone === 'light'
+      ? 'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#111]/5 text-[14px] leading-none [font-family:"Apple_Color_Emoji","Segoe_UI_Emoji","Noto_Color_Emoji",sans-serif]'
+      : 'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/15 text-[14px] leading-none [font-family:"Apple_Color_Emoji","Segoe_UI_Emoji","Noto_Color_Emoji",sans-serif]';
+
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/30 backdrop-blur-sm px-3 py-1.5 text-sm text-white"
+        className={buttonCls}
       >
-        <span>{LANG_META[current]?.flag}</span>
-        <span>{LANG_META[current]?.label}</span>
-        <ChevronDown className="h-3.5 w-3.5 text-white/60" />
+        <span className={flagCls} aria-hidden="true">{LANG_META[current]?.flag}</span>
+        <span className="font-medium">{LANG_META[current]?.label}</span>
+        <ChevronDown className={chevronCls} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 rounded-lg border border-white/20 bg-black/70 backdrop-blur-md overflow-hidden z-50">
+        <div className={panelCls}>
           {SUPPORTED_LANGS.map(lang => (
             <button
               key={lang}
               type="button"
               onClick={() => { onChange(lang); setOpen(false); }}
-              className={`flex w-full items-center gap-2 px-4 py-2.5 text-sm text-white hover:bg-white/10 ${lang === current ? 'bg-white/10' : ''}`}
+              className={itemCls(lang === current)}
             >
-              <span>{LANG_META[lang]?.flag}</span>
+              <span className={flagCls} aria-hidden="true">{LANG_META[lang]?.flag}</span>
               <span>{LANG_META[lang]?.label}</span>
             </button>
           ))}

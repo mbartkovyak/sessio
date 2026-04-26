@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true">
+  <defs>
+    <linearGradient id="ex-grad" x1="128" y1="0" x2="128" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18864a"/>
+      <stop offset="1" stop-color="#0e6b38"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="40" fill="url(#ex-grad)"/>
+  <!-- Inner white sheet panel -->
+  <rect x="64" y="60" width="128" height="136" rx="8" fill="#fff"/>
+  <!-- Grid cells -->
+  <rect x="64" y="60" width="64" height="34" fill="#21a366"/>
+  <rect x="128" y="60" width="64" height="34" fill="#33c481"/>
+  <rect x="64" y="94" width="64" height="34" fill="#e8f4ec"/>
+  <rect x="128" y="94" width="64" height="34" fill="#d4ecd9"/>
+  <rect x="64" y="128" width="64" height="34" fill="#d4ecd9"/>
+  <rect x="128" y="128" width="64" height="34" fill="#c0e4c8"/>
+  <rect x="64" y="162" width="64" height="34" fill="#c0e4c8"/>
+  <rect x="128" y="162" width="64" height="34" fill="#a8d8b4"/>
+  <!-- Green X tab on the left -->
+  <path d="M8 88a16 16 0 0 1 16-16h80a16 16 0 0 1 16 16v80a16 16 0 0 1-16 16H24a16 16 0 0 1-16-16V88z" fill="#107c41"/>
+  <path d="M75 128l20-28H79l-12 18-12-18H39l20 28-21 30h16l13-19 13 19h16l-21-30z" fill="#fff"/>
+</svg>

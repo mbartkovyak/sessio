@@ -1,5 +1,8 @@
 # Ideas
 
+Before Raising: https://teachme.to/blog/a-step-by-step-guide-to-raising-vc-funding-from-a-founder-who-has-done-it-8-times-cm1s3zn6a0009v714vkgzxrmf
+and this https://www.everythingmarketplaces.com/post/fundraising-guide-benchmarks-for-marketplaces-in-2026
+
 Raw ideas, opportunities, and things to explore. Not committed to — just captured
 
 Raising https://www.crowdcube.eu/?country=PL - worked for playtomic (6 mil)
@@ -13,6 +16,8 @@ my mom has 2 lessons people can cancel per month + she wants coaches to be able 
 Propose the cheaper hour for Czarek for the hours that people leave (1 hour in the middle of the day)
 
 happy hours for hours that do not fill
+
+AI chat to voice over and then implement or implement from text, premium feature
 
 ---
 

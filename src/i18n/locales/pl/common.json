@@ -135,7 +135,13 @@
     "addedToTrainingTitle": "Dodano do zajęć",
     "addedToTrainingBody": "Dodano Cię do {{training}}.",
     "removedFromTrainingTitle": "Usunięto z zajęć",
-    "removedFromTrainingBody": "Usunięto Cię z {{training}}."
+    "removedFromTrainingBody": "Usunięto Cię z {{training}}.",
+    "passRequestTitle": "Nowa prośba o karnet",
+    "passRequestBody": "{{name}} prosi o karnet {{type}}.",
+    "passApprovedTitle": "Karnet zatwierdzony",
+    "passApprovedBody": "Twój karnet {{type}} został aktywowany.",
+    "passDeclinedTitle": "Karnet odrzucony",
+    "passDeclinedBody": "Twoja prośba o karnet {{type}} została odrzucona."
   },
   "form": {
     "sport": "Sport",
@@ -280,7 +286,9 @@
   },
   "abonaments": {
     "typeCreated": "Typ karnetu utworzony",
-    "assigned": "Karnet przypisany"
+    "assigned": "Karnet przypisany",
+    "approved": "Karnet zatwierdzony",
+    "declined": "Prośba o karnet odrzucona"
   },
   "toast": {
     "trainingCreated": "Utworzono zajęcia",

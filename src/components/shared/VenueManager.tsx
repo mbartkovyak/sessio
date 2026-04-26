@@ -1,34 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Trash2, MapPin } from 'lucide-react';
 import PlaceAutocompleteInput from '@/components/shared/PlaceAutocompleteInput';
 import { openExternal } from '@/components/shared/VenueLink';
 import { useTranslation } from 'react-i18next';
 
 export type Venue = { name: string; address: string };
-
-// ── Venue add form draft (survives WebView reload on iOS) ───────
-
-const VENUE_DRAFT_KEY = '_venueAddDraft';
-const VENUE_DRAFT_TTL = 30 * 60 * 1000; // 30 min
-
-export function loadVenueDraft(): { name: string; address: string } | null {
-  try {
-    const raw = localStorage.getItem(VENUE_DRAFT_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Date.now() - parsed.ts > VENUE_DRAFT_TTL) { localStorage.removeItem(VENUE_DRAFT_KEY); return null; }
-    return { name: parsed.name ?? '', address: parsed.address ?? '' };
-  } catch { return null; }
-}
-
-function saveVenueDraft(name: string, address: string) {
-  if (!name && !address) { localStorage.removeItem(VENUE_DRAFT_KEY); return; }
-  try { localStorage.setItem(VENUE_DRAFT_KEY, JSON.stringify({ name, address, ts: Date.now() })); } catch {}
-}
-
-export function clearVenueDraft() {
-  localStorage.removeItem(VENUE_DRAFT_KEY);
-}
 
 // ── Add form (name + address + save/add button) ─────────────────
 
@@ -41,16 +17,11 @@ interface VenueAddFormProps {
 
 export function VenueAddForm({ onSave, onCancel, saveLabel }: VenueAddFormProps) {
   const { t } = useTranslation('common');
-  const [draft] = useState(loadVenueDraft);
-  const [name, setName] = useState(draft?.name ?? '');
-  const [address, setAddress] = useState(draft?.address ?? '');
-
-  // Persist on every change
-  useEffect(() => { saveVenueDraft(name, address); }, [name, address]);
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
 
   function handleSave() {
     if (!name.trim() || !address.trim()) return;
-    clearVenueDraft();
     onSave({ name: name.trim(), address: address.trim() });
     setName('');
     setAddress('');

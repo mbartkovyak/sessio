@@ -41,7 +41,7 @@ Two stories to show — scheduling automation AND discovery/leads:
 ## What NOT to do right now
 
 - Don't pick a new hosting provider
-- Don't refactor the Lovable code
+- Don't refactor the existing code
 - Don't write more strategy docs
 - Don't build payments
 - Don't build anything the demo doesn't need

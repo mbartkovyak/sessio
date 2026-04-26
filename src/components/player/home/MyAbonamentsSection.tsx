@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Ticket } from 'lucide-react';
+import { Ticket, Clock } from 'lucide-react';
 import { useMyAbonaments, isAbonamentActive, daysRemaining } from '@/hooks/training/useAbonaments';
 import { format } from 'date-fns';
 
@@ -7,9 +7,10 @@ export default function MyAbonamentsSection() {
   const { t } = useTranslation('player');
   const { data: abonaments = [] } = useMyAbonaments();
 
-  // Only show effectively active ones
   const activePasses = abonaments.filter((pa: any) => isAbonamentActive(pa));
-  if (activePasses.length === 0) return null;
+  const pendingPasses = abonaments.filter((pa: any) => pa.status === 'pending');
+
+  if (activePasses.length === 0 && pendingPasses.length === 0) return null;
 
   return (
     <section>
@@ -61,6 +62,34 @@ export default function MyAbonamentsSection() {
                     </span>
                   )}
                 </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {pendingPasses.map((pa: any) => {
+          const school = pa.schools;
+          return (
+            <div
+              key={pa.id}
+              className="w-full rounded-2xl bg-white p-4 text-left"
+              style={{ border: '1px solid hsl(203 20% 90%)' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/10">
+                  <Clock className="h-5 w-5 text-warning" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {school?.name ?? pa.abonament_types?.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {pa.abonament_types?.name}
+                  </p>
+                </div>
+                <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning shrink-0">
+                  {t('abonaments.pendingApproval')}
+                </span>
               </div>
             </div>
           );

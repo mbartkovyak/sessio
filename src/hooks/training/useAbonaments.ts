@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import i18n from '@/i18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForUser, getFixedTForLanguage, groupUsersByLanguage } from '@/lib/notificationI18n';
 import type { Tables } from '@/integrations/supabase/types';
 
 // ── Types ──
@@ -21,6 +23,10 @@ type PlayerAbonamentWithProfile = Tables<'player_abonaments'> & {
 
 type PlayerAbonamentWithSchool = Tables<'player_abonaments'> & {
   abonament_types: AbonamentType;
+  schools: Pick<Tables<'schools'>, 'id' | 'name'> | null;
+};
+
+type AbonamentTypeWithSchool = AbonamentType & {
   schools: Pick<Tables<'schools'>, 'id' | 'name'> | null;
 };
 
@@ -164,7 +170,7 @@ export function useMyAbonaments() {
         .from('player_abonaments')
         .select('*, abonament_types(*), schools(id, name)')
         .eq('player_id', user!.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'pending'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as PlayerAbonamentWithSchool[];
@@ -340,6 +346,195 @@ export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId
         usage: usageByAbonament.get(a.id) ?? [],
       }));
     },
+  });
+}
+
+// ── Pass request flow ──
+
+/** Player: available pass types from schools where the player has training memberships */
+export function useAvailablePassTypes() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['available-passes', user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      // Get school IDs from training memberships
+      const { data: memberships, error: mErr } = await supabase
+        .from('training_members')
+        .select('trainings(school_id)')
+        .eq('user_id', user!.id);
+      if (mErr) throw mErr;
+
+      const schoolIds = [...new Set(
+        (memberships ?? [])
+          .map((m: any) => m.trainings?.school_id)
+          .filter(Boolean) as string[],
+      )];
+      if (!schoolIds.length) return [];
+
+      const { data, error } = await supabase
+        .from('abonament_types')
+        .select('*, schools(id, name)')
+        .in('school_id', schoolIds)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as AbonamentTypeWithSchool[];
+    },
+  });
+}
+
+/** Coach: pending pass requests for a school */
+export function usePendingPassRequests(schoolId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['pending-pass-requests', schoolId],
+    enabled: !!schoolId,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_abonaments')
+        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url)')
+        .eq('school_id', schoolId!)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as PlayerAbonamentWithProfile[];
+    },
+  });
+}
+
+/** Player: request a pass (inserts pending row + notifies school staff) */
+export function useRequestPass() {
+  const qc = useQueryClient();
+  const { user, profile } = useAuth();
+  return useMutation({
+    mutationFn: async ({ abonamentTypeId, schoolId, typeName }: {
+      abonamentTypeId: string;
+      schoolId: string;
+      typeName: string;
+    }) => {
+      const { error } = await supabase
+        .from('player_abonaments')
+        .insert({
+          abonament_type_id: abonamentTypeId,
+          school_id: schoolId,
+          player_id: user!.id,
+          status: 'pending',
+        });
+      if (error) throw error;
+
+      // Notify school owner + approved coaches
+      const { data: school } = await supabase
+        .from('schools')
+        .select('owner_id')
+        .eq('id', schoolId)
+        .single();
+      const { data: members } = await supabase
+        .from('school_members')
+        .select('coach_id')
+        .eq('school_id', schoolId)
+        .eq('status', 'approved');
+
+      const staffIds = [
+        school?.owner_id,
+        ...(members ?? []).map(m => m.coach_id),
+      ].filter(Boolean) as string[];
+
+      if (staffIds.length) {
+        const groups = await groupUsersByLanguage(staffIds);
+        const playerName = profile?.full_name ?? '';
+        for (const [lang, ids] of Object.entries(groups)) {
+          if (!ids?.length) continue;
+          const t = getFixedTForLanguage(lang);
+          notifyUsers(ids, {
+            title: t('notifications.passRequestTitle'),
+            body: t('notifications.passRequestBody', { name: playerName, type: typeName }),
+            tag: `pass-req-${abonamentTypeId}-${user!.id}`,
+            url: '/coach/passes',
+          });
+        }
+      }
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['available-passes'] });
+      qc.invalidateQueries({ queryKey: ['pending-pass-requests', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      toast.success(i18n.t('abonaments.requestSent', { ns: 'player' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Coach: approve or decline a pending pass request */
+export function useRespondPassRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, playerId, schoolId, abonamentType, accept }: {
+      id: string;
+      playerId: string;
+      schoolId: string;
+      abonamentType: AbonamentType;
+      accept: boolean;
+    }) => {
+      if (accept) {
+        // Activate: set status, sessions, expiry (same logic as useAssignAbonament)
+        const now = new Date();
+        let expiresAt: string | null = null;
+        if (abonamentType.duration_days) {
+          const end = new Date(now);
+          end.setDate(end.getDate() + abonamentType.duration_days);
+          end.setHours(23, 59, 59, 999);
+          expiresAt = end.toISOString();
+        }
+
+        const { error } = await supabase
+          .from('player_abonaments')
+          .update({
+            status: 'active',
+            activated_at: now.toISOString(),
+            sessions_total: abonamentType.sessions_count,
+            sessions_remaining: abonamentType.sessions_count,
+            expires_at: expiresAt,
+          })
+          .eq('id', id);
+        if (error) throw error;
+      } else {
+        // Decline: delete the pending row
+        const { error } = await supabase
+          .from('player_abonaments')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+      }
+
+      // Notify the player
+      const tNotify = await getFixedTForUser(playerId);
+      const typeName = abonamentType.name;
+      notifyUsers([playerId], {
+        title: accept
+          ? tNotify('notifications.passApprovedTitle')
+          : tNotify('notifications.passDeclinedTitle'),
+        body: accept
+          ? tNotify('notifications.passApprovedBody', { type: typeName })
+          : tNotify('notifications.passDeclinedBody', { type: typeName }),
+        tag: `pass-resp-${id}`,
+        url: '/player',
+      });
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['pending-pass-requests', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['available-passes'] });
+      toast.success(i18n.t(
+        vars.accept ? 'abonaments.approved' : 'abonaments.declined',
+        { ns: 'common' },
+      ));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 

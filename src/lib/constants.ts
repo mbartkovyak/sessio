@@ -1,5 +1,9 @@
 export const SPORTS = ['Tennis', 'Swimming', 'Running', 'Fitness', 'Yoga', 'Football', 'Badminton', 'Boxing', 'Other'] as const;
 
+/** iOS App Store link for the Sessio mobile app. Update here if the listing changes. */
+export const APP_STORE_URL = 'https://apps.apple.com/fr/app/sessio/id6761731307?l=en-GB';
+
+
 export const COUNTRIES = ['US', 'Poland', 'Ukraine'] as const;
 export type Country = typeof COUNTRIES[number];
 
