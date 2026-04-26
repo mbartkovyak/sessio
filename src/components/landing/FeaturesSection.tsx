@@ -67,10 +67,12 @@ function FeatureCard({
         }}
       />
       <div className="relative">
-        <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-accent/20 bg-accent/10">
-          <Icon className="h-5 w-5 text-accent" strokeWidth={2} />
+        <div className="mb-5 flex items-center gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/20 bg-accent/10">
+            <Icon className="h-5 w-5 text-accent" strokeWidth={2} />
+          </div>
+          <h3 className="font-display text-[22px] font-semibold leading-snug tracking-[-0.02em] text-[#111] md:text-2xl">{title}</h3>
         </div>
-        <h3 className="mb-3 font-display text-[22px] font-semibold leading-snug tracking-[-0.02em] text-[#111] md:text-2xl">{title}</h3>
         <p className="mb-3 border-l-2 border-accent/50 pl-3 text-sm italic leading-relaxed text-[#111]/80">
           <span className="ai-shimmer">"</span>
           {prompt.replace(/^"/, '').replace(/"$/, '')}
