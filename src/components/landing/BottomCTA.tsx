@@ -17,7 +17,7 @@ export default function BottomCTA({
         <h2 className="mx-auto mb-5 max-w-xl font-display text-3xl font-semibold leading-tight tracking-[-0.03em] md:text-[2.5rem]">
           {t(`landing.bottomCta.${audience}.title`)}
         </h2>
-        <p className="mx-auto mb-10 max-w-md text-base text-white/55 md:text-lg">
+        <p className="mx-auto mb-10 max-w-md whitespace-pre-line text-base text-white/55 md:text-lg">
           {t(`landing.bottomCta.${audience}.sub`)}
         </p>
         <button
