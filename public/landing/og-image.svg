@@ -1,0 +1,37 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" stroke="#ded6ca" stroke-width="1" opacity="0.55"/>
+    </pattern>
+    <clipPath id="phoneClip">
+      <rect x="805" y="78" width="256" height="554" rx="38"/>
+    </clipPath>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#171717" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#e9e2d8"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <circle cx="1012" cy="120" r="230" fill="#ff850b" opacity="0.10"/>
+  <circle cx="146" cy="532" r="180" fill="#171717" opacity="0.05"/>
+
+  <g transform="translate(82 76)">
+    <rect width="72" height="72" rx="18" fill="#171717"/>
+    <path d="M43 22c-4.5-3.4-14.6-1.1-14.6 7.9 0 7.9 15.8 6.8 15.8 15.8 0 6.8-9 10.1-15.8 6.8" stroke="#fff" stroke-width="5.6" stroke-linecap="round"/>
+    <circle cx="47" cy="19" r="4.5" fill="#ff850b"/>
+  </g>
+
+  <text x="82" y="194" fill="#171717" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="0.06em">SESSIO</text>
+  <text x="82" y="286" fill="#171717" font-family="DM Sans, Arial, sans-serif" font-size="76" font-weight="700">AI assistant</text>
+  <text x="82" y="372" fill="#171717" font-family="DM Sans, Arial, sans-serif" font-size="76" font-weight="700">for coaches</text>
+  <text x="82" y="442" fill="#66615a" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="500">Scheduling, cancellations, updates,</text>
+  <text x="82" y="490" fill="#66615a" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="500">and open spots in one place.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="780" y="54" width="306" height="628" rx="58" fill="#171717"/>
+    <rect x="796" y="70" width="274" height="596" rx="44" fill="#f6f1ea"/>
+    <image href="demo/coach-home.png" x="805" y="78" width="256" height="554" preserveAspectRatio="xMidYMin slice" clip-path="url(#phoneClip)"/>
+    <rect x="884" y="88" width="98" height="24" rx="12" fill="#171717"/>
+  </g>
+</svg>
