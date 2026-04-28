@@ -257,7 +257,7 @@
     "title": "Абонементи",
     "addType": "Додати тип абонементу",
     "typeNamePlaceholder": "наприклад, Місячний 4x",
-    "sessionsCount": "Заняття",
+    "sessionsCount": "Кількість занять",
     "durationDays": "Дійсний (днів)",
     "durationPlaceholder": "наприклад, 30",
     "sessionsOrDuration": "Вкажіть кількість занять, термін дії, або обидва",

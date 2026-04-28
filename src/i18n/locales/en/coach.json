@@ -257,7 +257,7 @@
     "title": "Passes",
     "addType": "Add pass type",
     "typeNamePlaceholder": "e.g. Monthly 4x",
-    "sessionsCount": "Sessions",
+    "sessionsCount": "Number of sessions",
     "durationDays": "Valid for (days)",
     "durationPlaceholder": "e.g. 30",
     "sessionsOrDuration": "Set sessions, duration, or both",

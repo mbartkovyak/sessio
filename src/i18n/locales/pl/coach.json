@@ -257,7 +257,7 @@
     "title": "Karnety",
     "addType": "Dodaj typ karnetu",
     "typeNamePlaceholder": "np. Miesięczny 4x",
-    "sessionsCount": "Zajęcia",
+    "sessionsCount": "Liczba zajęć",
     "durationDays": "Ważny (dni)",
     "durationPlaceholder": "np. 30",
     "sessionsOrDuration": "Podaj liczbę zajęć, okres ważności, lub oba",
