@@ -16,6 +16,7 @@ import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
+import AvailablePassesSection from '@/components/player/home/AvailablePassesSection';
 
 export default function CoachPublicProfile() {
   const { t } = useTranslation('player');
@@ -124,6 +125,8 @@ export default function CoachPublicProfile() {
               )}
             </div>
           )}
+
+          {profile?.school_id && <AvailablePassesSection schoolIds={[profile.school_id]} />}
 
           {/* Reviews */}
           <ReviewsBlock reviews={reviews} coachId={id} coachName={profile?.full_name ?? ''} />

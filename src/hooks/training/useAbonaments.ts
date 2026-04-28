@@ -351,32 +351,40 @@ export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId
 
 // ── Pass request flow ──
 
-/** Player: available pass types from schools where the player has training memberships */
-export function useAvailablePassTypes() {
+/** Player: available pass types from specific schools, or from schools where the player has training memberships. */
+export function useAvailablePassTypes(schoolIds?: Array<string | null | undefined>) {
   const { user } = useAuth();
+  const requestedSchoolIds = [...new Set((schoolIds ?? []).filter(Boolean))] as string[];
+  const hasRequestedSchools = schoolIds !== undefined;
+
   return useQuery({
-    queryKey: ['available-passes', user?.id],
-    enabled: !!user,
+    queryKey: ['available-passes', user?.id, requestedSchoolIds],
+    enabled: !!user && (!hasRequestedSchools || requestedSchoolIds.length > 0),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      // Get school IDs from training memberships
-      const { data: memberships, error: mErr } = await supabase
-        .from('training_members')
-        .select('trainings(school_id)')
-        .eq('user_id', user!.id);
-      if (mErr) throw mErr;
+      let sourceSchoolIds = requestedSchoolIds;
 
-      const schoolIds = [...new Set(
-        (memberships ?? [])
-          .map((m: any) => m.trainings?.school_id)
-          .filter(Boolean) as string[],
-      )];
-      if (!schoolIds.length) return [];
+      if (!hasRequestedSchools) {
+        // Get school IDs from training memberships for the home page.
+        const { data: memberships, error: mErr } = await supabase
+          .from('training_members')
+          .select('trainings(school_id)')
+          .eq('user_id', user!.id);
+        if (mErr) throw mErr;
+
+        sourceSchoolIds = [...new Set(
+          (memberships ?? [])
+            .map((m: any) => m.trainings?.school_id)
+            .filter(Boolean) as string[],
+        )];
+      }
+
+      if (!sourceSchoolIds.length) return [];
 
       const { data, error } = await supabase
         .from('abonament_types')
         .select('*, schools(id, name)')
-        .in('school_id', schoolIds)
+        .in('school_id', sourceSchoolIds)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
       if (error) throw error;

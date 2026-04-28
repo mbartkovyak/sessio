@@ -14,6 +14,7 @@ import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import CoachCard from '@/components/shared/CoachCard';
 import { SessioLoader } from '@/components/SessioLogo';
+import AvailablePassesSection from '@/components/player/home/AvailablePassesSection';
 
 export default function SchoolPublicProfile() {
   const { t } = useTranslation('player');
@@ -106,6 +107,8 @@ export default function SchoolPublicProfile() {
               </button>
             </div>
           )}
+
+          {id && <AvailablePassesSection schoolIds={[id]} />}
 
           {/* Reviews — aggregated across coaches */}
           <ReviewsBlock reviews={reviews} />

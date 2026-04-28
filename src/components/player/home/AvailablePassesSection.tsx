@@ -2,9 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { Ticket } from 'lucide-react';
 import { useAvailablePassTypes, useMyAbonaments, useRequestPass } from '@/hooks/training/useAbonaments';
 
-export default function AvailablePassesSection() {
+export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Array<string | null | undefined> }) {
   const { t } = useTranslation('player');
-  const { data: types = [] } = useAvailablePassTypes();
+  const { data: types = [] } = useAvailablePassTypes(schoolIds);
   const { data: myAbonaments = [] } = useMyAbonaments();
   const requestPass = useRequestPass();
 
