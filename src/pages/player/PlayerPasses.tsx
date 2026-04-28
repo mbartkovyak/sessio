@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,7 @@ import {
 
 export default function PlayerPasses() {
   const { t } = useTranslation('player');
+  const [startDates, setStartDates] = useState<Record<string, string>>({});
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const isCoachRoute = pathname.includes('/coach/');
@@ -66,6 +68,7 @@ export default function PlayerPasses() {
   const pastPasses = passes.filter((pass: any) => pass.status !== 'pending' && !isAbonamentActive(pass));
   const isLoading = coachLoading || schoolLoading || passesLoading || typesLoading;
   const title = isCoachRoute ? (coach?.full_name ?? t('coachProfile.title')) : (school?.name ?? t('schoolProfile.title'));
+  const today = todayDateValue();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -97,10 +100,14 @@ export default function PlayerPasses() {
                   type={type}
                   isPending={requestPass.isPending || pendingTypeIds.has(type.id)}
                   isAlreadyRequested={pendingTypeIds.has(type.id)}
+                  startDate={startDates[type.id] || today}
+                  minDate={today}
+                  onStartDateChange={(value) => setStartDates((dates) => ({ ...dates, [type.id]: value }))}
                   onRequest={() => requestPass.mutate({
                     abonamentTypeId: type.id,
                     schoolId: type.school_id,
                     typeName: type.name,
+                    startDate: startDates[type.id] || today,
                   })}
                 />
               )) : <EmptyState text={t('abonaments.noAvailablePasses')} />}
@@ -130,10 +137,18 @@ function PassSection({ title, icon, children }: { title: string; icon: ReactNode
 
 function PlayerPassCard({ pass }: { pass: any }) {
   const { t } = useTranslation('player');
-  const hasSessionLimit = pass.sessions_remaining != null;
+  const type = pass.abonament_types;
+  const sessionsTotal = pass.sessions_total ?? type?.sessions_count ?? null;
+  const sessionsRemaining = pass.sessions_remaining ?? (pass.status === 'pending' ? sessionsTotal : null);
+  const hasSessionLimit = sessionsTotal != null;
   const active = isAbonamentActive(pass);
   const notStarted = active && pass.activated_at && new Date(pass.activated_at) > new Date();
   const daysLeft = active && !notStarted && pass.expires_at ? daysRemaining(pass.expires_at) : null;
+  const startDate = pass.activated_at ? new Date(pass.activated_at) : null;
+  const endDate = pass.expires_at ? new Date(pass.expires_at) : deriveEndDate(pass.activated_at, type?.duration_days);
+  const dateLabels: string[] = [];
+  if (startDate) dateLabels.push(t('abonaments.startsOn', { date: format(startDate, 'd MMM yyyy') }));
+  dateLabels.push(endDate ? t('abonaments.expiresOn', { date: format(endDate, 'd MMM yyyy') }) : t('abonaments.noEndDate'));
   const status = pass.status === 'pending'
     ? t('abonaments.pendingApproval')
     : active
@@ -151,17 +166,19 @@ function PlayerPassCard({ pass }: { pass: any }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">{pass.abonament_types?.name}</p>
           <p className="text-xs text-muted-foreground">
-            {notStarted
-              ? t('abonaments.startsOn', { date: format(new Date(pass.activated_at), 'd MMM') })
-              : daysLeft != null
-                ? `${daysLeft}d`
-                : status}
+            {dateLabels.length > 0
+              ? dateLabels.join(' · ')
+              : notStarted
+                ? t('abonaments.startsOn', { date: format(new Date(pass.activated_at), 'd MMM') })
+                : daysLeft != null
+                  ? `${daysLeft}d`
+                  : status}
           </p>
         </div>
         {hasSessionLimit ? (
           <div className="shrink-0 text-right">
-            <p className="text-lg font-bold leading-tight text-foreground">{pass.sessions_remaining ?? 0}</p>
-            <p className="text-[10px] text-muted-foreground">/ {pass.sessions_total}</p>
+            <p className="text-lg font-bold leading-tight text-foreground">{sessionsRemaining ?? 0}</p>
+            <p className="text-[10px] text-muted-foreground">/ {sessionsTotal}</p>
           </div>
         ) : (
           <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
@@ -177,11 +194,17 @@ function AvailablePassCard({
   type,
   isPending,
   isAlreadyRequested,
+  startDate,
+  minDate,
+  onStartDateChange,
   onRequest,
 }: {
   type: any;
   isPending: boolean;
   isAlreadyRequested: boolean;
+  startDate: string;
+  minDate: string;
+  onStartDateChange: (value: string) => void;
   onRequest: () => void;
 }) {
   const { t } = useTranslation('player');
@@ -200,16 +223,43 @@ function AvailablePassCard({
           <p className="truncate text-sm font-semibold text-foreground">{type.name}</p>
           {details.length > 0 && <p className="text-xs text-muted-foreground">{details.join(' · ')}</p>}
         </div>
+      </div>
+      <div className="mt-3 flex items-end gap-2">
+        <label className="min-w-0 flex-1">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">{t('abonaments.requestStartDate')}</span>
+          <input
+            type="date"
+            value={startDate}
+            min={minDate}
+            disabled={isAlreadyRequested}
+            onChange={(event) => onStartDateChange(event.target.value)}
+            className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground disabled:opacity-50"
+          />
+        </label>
         <button
           onClick={onRequest}
           disabled={isPending}
-          className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          className="h-9 shrink-0 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50"
         >
           {isAlreadyRequested ? t('abonaments.pendingApproval') : t('abonaments.request')}
         </button>
       </div>
     </div>
   );
+}
+
+function deriveEndDate(startDate?: string | null, durationDays?: number | null) {
+  if (!startDate || !durationDays) return null;
+  const end = new Date(startDate);
+  end.setDate(end.getDate() + durationDays);
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
+function todayDateValue() {
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  return today.toISOString().slice(0, 10);
 }
 
 function EmptyState({ text }: { text: string }) {

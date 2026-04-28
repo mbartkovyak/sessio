@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Ticket } from 'lucide-react';
 import { useAvailablePassTypes, useMyAbonaments, useRequestPass } from '@/hooks/training/useAbonaments';
 
 export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Array<string | null | undefined> }) {
   const { t } = useTranslation('player');
+  const [startDates, setStartDates] = useState<Record<string, string>>({});
   const { data: types = [] } = useAvailablePassTypes(schoolIds);
   const { data: myAbonaments = [] } = useMyAbonaments();
   const requestPass = useRequestPass();
+  const today = todayDateValue();
 
   // Keep active passes requestable so athletes can renew or buy another pack.
   // Only hide a type while the same request is already waiting for approval.
@@ -50,14 +53,29 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
                     {type.name}{details.length > 0 ? ` · ${details.join(' · ')}` : ''}
                   </p>
                 </div>
+              </div>
+              <div className="mt-3 flex items-end gap-2">
+                <label className="min-w-0 flex-1">
+                  <span className="mb-1 block text-[11px] font-medium text-muted-foreground">
+                    {t('abonaments.requestStartDate')}
+                  </span>
+                  <input
+                    type="date"
+                    value={startDates[type.id] || today}
+                    min={today}
+                    onChange={(event) => setStartDates((dates) => ({ ...dates, [type.id]: event.target.value }))}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  />
+                </label>
                 <button
                   onClick={() => requestPass.mutate({
                     abonamentTypeId: type.id,
                     schoolId: type.school_id,
                     typeName: type.name,
+                    startDate: startDates[type.id] || today,
                   })}
                   disabled={requestPass.isPending}
-                  className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shrink-0 disabled:opacity-50"
+                  className="h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shrink-0 disabled:opacity-50"
                 >
                   {t('abonaments.request')}
                 </button>
@@ -68,4 +86,10 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
       </div>
     </section>
   );
+}
+
+function todayDateValue() {
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  return today.toISOString().slice(0, 10);
 }

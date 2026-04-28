@@ -271,6 +271,8 @@
     "usedUp": "Wykorzystany",
     "expired": "Wygasł",
     "expiresIn": "{{days}}d",
+    "expiresOn": "Do {{date}}",
+    "noEndDate": "Bez daty końcowej",
     "startsOn": "Od {{date}}",
     "markAttended": "Obecny",
     "undoAttended": "Cofnij",

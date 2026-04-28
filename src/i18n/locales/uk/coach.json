@@ -271,6 +271,8 @@
     "usedUp": "Використано",
     "expired": "Завершився",
     "expiresIn": "{{days}}д",
+    "expiresOn": "До {{date}}",
+    "noEndDate": "Без дати завершення",
     "startsOn": "З {{date}}",
     "markAttended": "Присутній",
     "undoAttended": "Скасувати",

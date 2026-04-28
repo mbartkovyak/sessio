@@ -437,11 +437,15 @@ export function useRequestPass() {
   const qc = useQueryClient();
   const { user, profile } = useAuth();
   return useMutation({
-    mutationFn: async ({ abonamentTypeId, schoolId, typeName }: {
+    mutationFn: async ({ abonamentTypeId, schoolId, typeName, startDate }: {
       abonamentTypeId: string;
       schoolId: string;
       typeName: string;
+      startDate: string;
     }) => {
+      const requestedStartDate = startDate || new Date().toISOString().slice(0, 10);
+      const start = new Date(requestedStartDate + 'T00:00:00');
+      if (Number.isNaN(start.getTime())) throw new Error('Invalid pass start date');
       const { error } = await supabase
         .from('player_abonaments')
         .insert({
@@ -449,6 +453,7 @@ export function useRequestPass() {
           school_id: schoolId,
           player_id: user!.id,
           status: 'pending',
+          activated_at: start.toISOString(),
         });
       if (error) throw error;
 
@@ -508,11 +513,18 @@ export function useRespondPassRequest() {
       accept: boolean;
     }) => {
       if (accept) {
-        // Activate: set status, sessions, expiry (same logic as useAssignAbonament)
-        const now = new Date();
+        // Activate from the player-requested start date, falling back to now for older requests.
+        const { data: requestRow, error: requestErr } = await supabase
+          .from('player_abonaments')
+          .select('activated_at')
+          .eq('id', id)
+          .single();
+        if (requestErr) throw requestErr;
+
+        const start = requestRow?.activated_at ? new Date(requestRow.activated_at) : new Date();
         let expiresAt: string | null = null;
         if (abonamentType.duration_days) {
-          const end = new Date(now);
+          const end = new Date(start);
           end.setDate(end.getDate() + abonamentType.duration_days);
           end.setHours(23, 59, 59, 999);
           expiresAt = end.toISOString();
@@ -522,7 +534,7 @@ export function useRespondPassRequest() {
           .from('player_abonaments')
           .update({
             status: 'active',
-            activated_at: now.toISOString(),
+            activated_at: start.toISOString(),
             sessions_total: abonamentType.sessions_count,
             sessions_remaining: abonamentType.sessions_count,
             expires_at: expiresAt,

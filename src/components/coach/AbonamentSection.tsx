@@ -131,19 +131,33 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
     return parts.join(' · ');
   }
 
+  function deriveEndDate(startDate?: string | null, durationDays?: number | null) {
+    if (!startDate || !durationDays) return null;
+    const end = new Date(startDate);
+    end.setDate(end.getDate() + durationDays);
+    end.setHours(23, 59, 59, 999);
+    return end;
+  }
+
+  function requestDateLabel(req: any) {
+    const startDate = req.activated_at ? new Date(req.activated_at) : null;
+    const endDate = req.expires_at ? new Date(req.expires_at) : deriveEndDate(req.activated_at, req.abonament_types?.duration_days);
+    const parts: string[] = [];
+    if (startDate) parts.push(t('abonaments.startsOn', { date: format(startDate, 'd MMM yyyy') }));
+    parts.push(endDate ? t('abonaments.expiresOn', { date: format(endDate, 'd MMM yyyy') }) : t('abonaments.noEndDate'));
+    return parts.join(' · ');
+  }
+
+  function passEndLabel(pa: any) {
+    const endDate = pa.expires_at ? new Date(pa.expires_at) : null;
+    return endDate ? t('abonaments.expiresOn', { date: format(endDate, 'd MMM yyyy') }) : t('abonaments.noEndDate');
+  }
+
   function passStatusLabel(pa: any) {
     if (pa.status === 'used_up') return { text: t('abonaments.usedUp'), cls: 'bg-muted text-muted-foreground' };
     if (pa.status === 'expired' || (pa.expires_at && new Date(pa.expires_at) < new Date())) {
       return { text: t('abonaments.expired'), cls: 'bg-destructive/10 text-destructive' };
     }
-    // Not yet started — show start date
-    const startDate = pa.activated_at ?? pa.created_at;
-    const notStarted = startDate && new Date(startDate) > new Date();
-    if (notStarted) {
-      const label = format(new Date(startDate), 'd MMM');
-      return { text: t('abonaments.startsOn', { date: label }), cls: 'bg-accent text-accent-foreground' };
-    }
-    // Active — show remaining info
     const parts: string[] = [];
     if (pa.sessions_remaining != null) parts.push(t('abonaments.remaining', { remaining: pa.sessions_remaining, total: pa.sessions_total }));
     else parts.push(t('abonaments.unlimited'));
@@ -355,7 +369,9 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
                 <Avatar url={req.profiles?.avatar_url} name={req.profiles?.full_name} size="xs" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{req.profiles?.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{req.abonament_types?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {req.abonament_types?.name} · {requestDateLabel(req)}
+                  </p>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   <button
@@ -388,7 +404,6 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
           <div className="rounded-xl border border-border bg-card divide-y divide-border">
             {playerAbonaments.filter((pa: any) => pa.status !== 'pending').map((pa: any) => {
               const s = passStatusLabel(pa);
-              const startDate = pa.activated_at ?? pa.created_at;
               const canRefund = pa.sessions_total != null && pa.sessions_remaining != null && pa.sessions_remaining < pa.sessions_total;
               return (
                 <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
@@ -396,8 +411,7 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{pa.profiles?.full_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {pa.abonament_types?.name}
-                      {startDate && ` · ${format(new Date(startDate), 'd MMM yyyy')}`}
+                      {pa.abonament_types?.name} · {passEndLabel(pa)}
                     </p>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.text}</span>

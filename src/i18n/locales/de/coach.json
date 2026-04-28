@@ -271,6 +271,8 @@
     "usedUp": "Used up",
     "expired": "Expired",
     "expiresIn": "{{days}}d left",
+    "expiresOn": "Ends {{date}}",
+    "noEndDate": "No end date",
     "startsOn": "Starts {{date}}",
     "markAttended": "Attended",
     "undoAttended": "Undo",
