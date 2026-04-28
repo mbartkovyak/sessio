@@ -262,11 +262,27 @@ export function useMyFavouriteCoaches() {
     queryKey: ['favourite-coaches', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: favourites, error: favouritesError } = await supabase
         .from('favourite_coaches')
-        .select('*, coach:coach_id(id, full_name, avatar_url, sport, city)')
+        .select('*')
         .eq('user_id', user!.id);
-      return (data ?? []) as FavouriteCoachRow[];
+      if (favouritesError) throw favouritesError;
+
+      const rows = favourites ?? [];
+      if (rows.length === 0) return [] as FavouriteCoachRow[];
+
+      const coachIds = rows.map(row => row.coach_id);
+      const { data: coaches, error: coachesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, sport, city')
+        .in('id', coachIds);
+      if (coachesError) throw coachesError;
+
+      const coachesById = new Map((coaches ?? []).map(coach => [coach.id, coach]));
+      return rows.map(row => ({
+        ...row,
+        coach: coachesById.get(row.coach_id) ?? null,
+      })) as FavouriteCoachRow[];
     },
   });
 }
