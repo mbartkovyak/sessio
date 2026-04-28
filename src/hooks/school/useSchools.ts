@@ -206,6 +206,131 @@ export function useMyFavouriteSchools() {
   });
 }
 
+// ── Coach favourites ──
+
+export function useIsFavouriteCoach(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['fav-coach', user?.id, coachId],
+    enabled: !!user && !!coachId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('favourite_coaches')
+        .select('id')
+        .eq('user_id', user!.id)
+        .eq('coach_id', coachId!)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+}
+
+export function useToggleFavouriteCoach() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ coachId, isFav }: { coachId: string; isFav: boolean }) => {
+      if (isFav) {
+        const { error } = await supabase
+          .from('favourite_coaches')
+          .delete()
+          .eq('user_id', user!.id)
+          .eq('coach_id', coachId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('favourite_coaches')
+          .insert({ user_id: user!.id, coach_id: coachId });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { isFav }) => {
+      qc.invalidateQueries({ queryKey: ['fav-coach'] });
+      qc.invalidateQueries({ queryKey: ['favourite-coaches'] });
+      toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
+    },
+  });
+}
+
+type FavouriteCoachRow = Tables<'favourite_coaches'> & {
+  coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city'> | null;
+};
+
+export function useMyFavouriteCoaches() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['favourite-coaches', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('favourite_coaches')
+        .select('*, coach:coach_id(id, full_name, avatar_url, sport, city)')
+        .eq('user_id', user!.id);
+      return (data ?? []) as FavouriteCoachRow[];
+    },
+  });
+}
+
+// ── Reviews ──
+
+export function useCanReviewCoach(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['can-review-coach', user?.id, coachId],
+    enabled: !!user && !!coachId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('can_review_coach', { p_coach_id: coachId! });
+      if (error) throw error;
+      return !!data;
+    },
+  });
+}
+
+export type SchoolReview = {
+  id: string;
+  rating: number;
+  text: string | null;
+  coach_response: string | null;
+  reviewer_id: string;
+  reviewer_name: string | null;
+  reviewer_avatar_url: string | null;
+  coach_id: string;
+  coach_name: string | null;
+  created_at: string;
+};
+
+export function useSchoolReviews(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-reviews', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_school_reviews', { p_school_id: schoolId! });
+      if (error) throw error;
+      return (data ?? []) as SchoolReview[];
+    },
+  });
+}
+
+export function useLeaveReview() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ coachId, rating, text }: { coachId: string; rating: number; text?: string }) => {
+      const { error } = await supabase
+        .from('reviews')
+        .insert({ reviewer_id: user!.id, coach_id: coachId, rating, text: text || null });
+      if (error) throw error;
+    },
+    onSuccess: (_, { coachId }) => {
+      qc.invalidateQueries({ queryKey: ['coach-reviews', coachId] });
+      qc.invalidateQueries({ queryKey: ['can-review-coach'] });
+      qc.invalidateQueries({ queryKey: ['school-reviews'] });
+      toast.success(i18n.t('toast.reviewSubmitted', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 // ── Existing hooks (unchanged) ──
 
 export function useCreateSchool() {

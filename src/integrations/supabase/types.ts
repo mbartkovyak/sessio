@@ -197,6 +197,27 @@ export type Database = {
           },
         ]
       }
+      favourite_coaches: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favourite_schools: {
         Row: {
           created_at: string
@@ -989,6 +1010,10 @@ export type Database = {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json
       }
+      can_review_coach: {
+        Args: { p_coach_id: string }
+        Returns: boolean
+      }
       claim_training_spot: {
         Args: { p_player_id: string; p_spot_id: string }
         Returns: Json
@@ -1114,6 +1139,21 @@ export type Database = {
           training_id: string
           training_name: string
           venue: string
+        }[]
+      }
+      get_school_reviews: {
+        Args: { p_school_id: string }
+        Returns: {
+          coach_id: string
+          coach_name: string | null
+          coach_response: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewer_avatar_url: string | null
+          reviewer_id: string
+          reviewer_name: string | null
+          text: string | null
         }[]
       }
       get_school_upcoming_sessions: {

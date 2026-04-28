@@ -87,6 +87,7 @@
   },
   "schoolProfile": {
     "title": "Школа",
+    "about": "Про нас",
     "groupTrainings": "Групові заняття",
     "upcomingSessions": "Найближчі заняття",
     "noUpcomingSessions": "Немає занять у наступні 2 тижні",
@@ -146,5 +147,36 @@
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"
+  },
+  "saved": {
+    "title": "Збережене",
+    "school": "Школа",
+    "coach": "Тренер"
+  },
+  "actions": {
+    "save": "Зберегти",
+    "saved": "Збережено",
+    "viewSchedule": "Дивитися розклад"
+  },
+  "venues": {
+    "title": "Місця проведення"
+  },
+  "reviews": {
+    "title": "Відгуки",
+    "seeAll": "Дивитися всі",
+    "empty": "Поки немає відгуків",
+    "athlete": "Учасник",
+    "aboutCoach": "Тренер {{name}}",
+    "ratingCount_one": "{{count}} оцінка",
+    "ratingCount_few": "{{count}} оцінки",
+    "ratingCount_many": "{{count}} оцінок",
+    "ratingCount_other": "{{count}} оцінок",
+    "allTitle": "Усі відгуки",
+    "leaveCta": "Залишити відгук",
+    "leaveTitle": "Залишити відгук",
+    "leaveDesc": "Поділіться враженнями про {{name}}",
+    "textPlaceholder": "Розкажіть іншим про ваші враження (необов'язково)",
+    "submit": "Надіслати",
+    "submitting": "Надсилання..."
   }
 }

@@ -8,7 +8,7 @@ import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
 import { relativeTime } from '@/components/player/home/relativeTime';
 import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
-import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
+import SavedSection from '@/components/player/home/SavedSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 import MyJoinRequests from '@/components/player/home/MyJoinRequests';
 import MyAbonamentsSection from '@/components/player/home/MyAbonamentsSection';
@@ -108,8 +108,8 @@ export default function PlayerHome() {
           {/* Open spots */}
           <OpenSpotsSection />
 
-          {/* Favourite schools */}
-          <FavouriteSchoolsSection />
+          {/* Saved coaches + schools */}
+          <SavedSection />
 
           {/* Upcoming sessions with cancel option */}
           <ThisWeekSection sessions={displaySessions} title={sectionTitle} />

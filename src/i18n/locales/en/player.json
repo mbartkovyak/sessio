@@ -87,6 +87,7 @@
   },
   "schoolProfile": {
     "title": "School",
+    "about": "About",
     "groupTrainings": "Group trainings",
     "upcomingSessions": "Upcoming sessions",
     "noUpcomingSessions": "No sessions scheduled in the next 2 weeks",
@@ -146,5 +147,36 @@
   },
   "favouriteSchools": {
     "title": "Schools you follow"
+  },
+  "saved": {
+    "title": "Saved",
+    "school": "School",
+    "coach": "Coach"
+  },
+  "actions": {
+    "save": "Save",
+    "saved": "Saved",
+    "viewSchedule": "View schedule"
+  },
+  "venues": {
+    "title": "Venues"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "seeAll": "See all",
+    "empty": "No reviews yet",
+    "athlete": "Athlete",
+    "aboutCoach": "Coach {{name}}",
+    "ratingCount_one": "{{count}} rating",
+    "ratingCount_few": "{{count}} ratings",
+    "ratingCount_many": "{{count}} ratings",
+    "ratingCount_other": "{{count}} ratings",
+    "allTitle": "All reviews",
+    "leaveCta": "Leave a review",
+    "leaveTitle": "Leave a review",
+    "leaveDesc": "Share your experience with {{name}}",
+    "textPlaceholder": "Tell others about your experience (optional)",
+    "submit": "Submit",
+    "submitting": "Submitting..."
   }
 }

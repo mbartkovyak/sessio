@@ -90,6 +90,7 @@
   },
   "schoolProfile": {
     "title": "Szkoła",
+    "about": "O nas",
     "groupTrainings": "Zajęcia grupowe",
     "upcomingSessions": "Najbliższe zajęcia",
     "noUpcomingSessions": "Brak zajęć w ciągu najbliższych 2 tygodni",
@@ -149,5 +150,36 @@
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"
+  },
+  "saved": {
+    "title": "Zapisane",
+    "school": "Szkoła",
+    "coach": "Trener"
+  },
+  "actions": {
+    "save": "Zapisz",
+    "saved": "Zapisane",
+    "viewSchedule": "Zobacz grafik"
+  },
+  "venues": {
+    "title": "Miejsca"
+  },
+  "reviews": {
+    "title": "Opinie",
+    "seeAll": "Zobacz wszystkie",
+    "empty": "Brak opinii",
+    "athlete": "Uczestnik",
+    "aboutCoach": "Trener {{name}}",
+    "ratingCount_one": "{{count}} ocena",
+    "ratingCount_few": "{{count}} oceny",
+    "ratingCount_many": "{{count}} ocen",
+    "ratingCount_other": "{{count}} ocen",
+    "allTitle": "Wszystkie opinie",
+    "leaveCta": "Dodaj opinię",
+    "leaveTitle": "Dodaj opinię",
+    "leaveDesc": "Podziel się swoim doświadczeniem z {{name}}",
+    "textPlaceholder": "Powiedz innym o swoim doświadczeniu (opcjonalnie)",
+    "submit": "Wyślij",
+    "submitting": "Wysyłanie..."
   }
 }
