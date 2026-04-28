@@ -158,6 +158,9 @@
     "saved": "Збережено",
     "viewSchedule": "Дивитися розклад"
   },
+  "schedule": {
+    "subtitle": "Розклад"
+  },
   "venues": {
     "title": "Місця проведення"
   },

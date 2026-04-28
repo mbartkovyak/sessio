@@ -1,19 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import { Star, MapPin, MessageCircle, Heart, CalendarDays } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Heart } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import AppHeader from '@/components/shared/AppHeader';
 import {
   useCoachReviews,
-  useCoachUpcomingSessions,
   useIsFavouriteCoach,
   useToggleFavouriteCoach,
 } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { sportLabel } from '@/lib/constants';
-import UpcomingSessionsCalendar from '@/components/shared/UpcomingSessionsCalendar';
 import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import Avatar from '@/components/shared/Avatar';
@@ -35,11 +33,10 @@ export default function CoachPublicProfile() {
   });
 
   const { data: reviewsRaw = [], isLoading: reviewsLoading } = useCoachReviews(id);
-  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useCoachUpcomingSessions(id);
   const { data: isFav } = useIsFavouriteCoach(id);
   const toggleFav = useToggleFavouriteCoach();
 
-  const isLoading = profileLoading || reviewsLoading || sessionsLoading;
+  const isLoading = profileLoading || reviewsLoading;
 
   const reviews: ReviewItem[] = useMemo(
     () =>
@@ -63,10 +60,6 @@ export default function CoachPublicProfile() {
 
   const venues = (profile?.venues as { name: string; address: string }[] | null) ?? [];
 
-  function scrollToSchedule() {
-    document.getElementById('schedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader title={profile?.full_name ?? t('coachProfile.title')} back />
@@ -77,28 +70,35 @@ export default function CoachPublicProfile() {
             <SessioLoader />
           </div>
         ) : (
-        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-          {/* Hero */}
-          <div className="text-center bg-card border border-border rounded-2xl p-6">
-            <div className="mx-auto mb-3 w-fit">
-              <Avatar url={profile?.avatar_url} name={profile?.full_name} size="2xl" />
-            </div>
+        <div className="max-w-md mx-auto px-4 py-6 space-y-5">
+          {/* Hero — name on top, avatar left + rating/sport/city to its right, bio below */}
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
             <h2 className="text-xl font-bold text-foreground">{profile?.full_name}</h2>
-            <div className="flex items-center justify-center gap-3 mt-1 flex-wrap">
-              {avgRating && (
-                <span className="flex items-center gap-1 text-sm">
-                  <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-                  <span className="font-semibold text-foreground">{avgRating}</span>
-                  <span className="text-muted-foreground">({reviews.length})</span>
-                </span>
-              )}
-              {profile?.sport && <span className="text-sm text-muted-foreground">{sportLabel(profile.sport)}</span>}
-              {profile?.city && (
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" />{profile.city}
-                </span>
-              )}
+
+            <div className="flex items-center gap-4">
+              <Avatar url={profile?.avatar_url} name={profile?.full_name} size="xl" />
+              <div className="flex-1 min-w-0 space-y-1">
+                {avgRating && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                    <span className="font-semibold text-foreground">{avgRating}</span>
+                    <span className="text-muted-foreground">({reviews.length})</span>
+                  </div>
+                )}
+                {profile?.sport && (
+                  <p className="text-sm text-muted-foreground">{sportLabel(profile.sport)}</p>
+                )}
+                {profile?.city && (
+                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3 shrink-0" />{profile.city}
+                  </p>
+                )}
+              </div>
             </div>
+
+            {profile?.bio && (
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{profile.bio}</p>
+            )}
           </div>
 
           {/* Action buttons row */}
@@ -128,14 +128,6 @@ export default function CoachPublicProfile() {
           {/* Reviews */}
           <ReviewsBlock reviews={reviews} coachId={id} coachName={profile?.full_name ?? ''} />
 
-          {/* About */}
-          {profile?.bio && (
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">{t('coachProfile.about')}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{profile.bio}</p>
-            </div>
-          )}
-
           {/* Venues */}
           {venues.length > 0 && (
             <div>
@@ -143,31 +135,16 @@ export default function CoachPublicProfile() {
               <VenueScroll venues={venues} />
             </div>
           )}
-
-          {/* Schedule */}
-          <div id="schedule" className="scroll-mt-20">
-            <h3 className="font-semibold text-foreground mb-3">{t('coachProfile.upcomingSessions')}</h3>
-            <UpcomingSessionsCalendar
-              sessions={upcomingSessions}
-              isLoading={sessionsLoading}
-              emptyState={
-                <div className="rounded-xl border border-dashed border-border p-6 text-center">
-                  <CalendarDays className="mx-auto h-7 w-7 text-muted-foreground/40 mb-2" />
-                  <p className="text-sm text-muted-foreground">{t('coachProfile.noUpcomingSessions')}</p>
-                </div>
-              }
-            />
-          </div>
         </div>
         )}
       </main>
 
-      {/* Sticky View schedule CTA — replaces bottom nav on this page */}
-      {!isLoading && (
+      {/* Sticky View schedule CTA — navigates to the schedule sub-route */}
+      {!isLoading && id && (
         <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur safe-area-bottom">
           <div className="max-w-md mx-auto px-4 py-3">
             <button
-              onClick={scrollToSchedule}
+              onClick={() => navigate(`/search/coach/${id}/schedule`)}
               className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
             >
               {t('actions.viewSchedule')}

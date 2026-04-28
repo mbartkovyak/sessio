@@ -161,6 +161,9 @@
     "saved": "Zapisane",
     "viewSchedule": "Zobacz grafik"
   },
+  "schedule": {
+    "subtitle": "Grafik"
+  },
   "venues": {
     "title": "Miejsca"
   },

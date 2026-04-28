@@ -158,6 +158,9 @@
     "saved": "Saved",
     "viewSchedule": "View schedule"
   },
+  "schedule": {
+    "subtitle": "Schedule"
+  },
   "venues": {
     "title": "Venues"
   },

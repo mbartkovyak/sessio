@@ -1,17 +1,15 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Heart, CalendarDays } from 'lucide-react';
+import { MapPin, Heart, Star } from 'lucide-react';
 import AppHeader from '@/components/shared/AppHeader';
 import {
   useSchool,
-  useSchoolUpcomingSessions,
   useIsFavouriteSchool,
   useToggleFavouriteSchool,
   useSchoolReviews,
 } from '@/hooks/school/useSchools';
 import { useAuth } from '@/contexts/AuthContext';
 import { sportLabels } from '@/lib/constants';
-import UpcomingSessionsCalendar from '@/components/shared/UpcomingSessionsCalendar';
 import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import CoachCard from '@/components/shared/CoachCard';
@@ -20,13 +18,13 @@ import { SessioLoader } from '@/components/SessioLogo';
 export default function SchoolPublicProfile() {
   const { t } = useTranslation('player');
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { session } = useAuth();
   const { data: school, isLoading: schoolLoading } = useSchool(id);
-  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useSchoolUpcomingSessions(id);
   const { data: reviewsRaw = [], isLoading: reviewsLoading } = useSchoolReviews(id);
   const { data: isFav } = useIsFavouriteSchool(id);
   const toggleFav = useToggleFavouriteSchool();
-  const isLoading = schoolLoading || sessionsLoading || reviewsLoading;
+  const isLoading = schoolLoading || reviewsLoading;
 
   const coaches = ((school as any)?.school_members ?? []).filter((m: any) => m.coach);
   const venues = ((school as any)?.venues as { name: string; address: string }[] | null) ?? [];
@@ -47,10 +45,6 @@ export default function SchoolPublicProfile() {
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
 
-  function scrollToSchedule() {
-    document.getElementById('schedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader title={school?.name ?? t('schoolProfile.title')} back />
@@ -61,31 +55,40 @@ export default function SchoolPublicProfile() {
             <SessioLoader />
           </div>
         ) : (
-        <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-          {/* School hero */}
+        <div className="max-w-md mx-auto px-4 py-6 space-y-5">
+          {/* Hero — name on top, logo left + rating/sport/city to its right, description below */}
           {school && (
-            <div className="text-center bg-card border border-border rounded-2xl p-6">
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
-                {school.logo_url
-                  ? <img src={school.logo_url} alt="" className="h-full w-full object-cover" />
-                  : <span className="text-2xl font-bold text-primary">{school.name?.charAt(0)}</span>}
-              </div>
+            <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
               <h2 className="text-xl font-bold text-foreground">{school.name}</h2>
-              <div className="flex items-center justify-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
-                {avgRating && (
-                  <span className="flex items-center gap-1">
-                    <span className="text-warning">★</span>
-                    <span className="font-semibold text-foreground">{avgRating}</span>
-                    <span>({reviews.length})</span>
-                  </span>
-                )}
-                {school.sport?.length > 0 && <span>{sportLabels(school.sport)}</span>}
-                {school.city && (
-                  <span className="flex items-center gap-0.5">
-                    <MapPin className="h-3 w-3" />{school.city}
-                  </span>
-                )}
+
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 overflow-hidden">
+                  {school.logo_url
+                    ? <img src={school.logo_url} alt="" className="h-full w-full object-cover" />
+                    : <span className="text-2xl font-bold text-primary">{school.name?.charAt(0)}</span>}
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  {avgRating && (
+                    <div className="flex items-center gap-1 text-sm">
+                      <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                      <span className="font-semibold text-foreground">{avgRating}</span>
+                      <span className="text-muted-foreground">({reviews.length})</span>
+                    </div>
+                  )}
+                  {school.sport?.length > 0 && (
+                    <p className="text-sm text-muted-foreground">{sportLabels(school.sport)}</p>
+                  )}
+                  {school.city && (
+                    <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0" />{school.city}
+                    </p>
+                  )}
+                </div>
               </div>
+
+              {school.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{school.description}</p>
+              )}
             </div>
           )}
 
@@ -107,14 +110,6 @@ export default function SchoolPublicProfile() {
           {/* Reviews — aggregated across coaches */}
           <ReviewsBlock reviews={reviews} />
 
-          {/* About */}
-          {school?.description && (
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">{t('schoolProfile.about')}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{school.description}</p>
-            </div>
-          )}
-
           {/* Venues */}
           {venues.length > 0 && (
             <div>
@@ -122,22 +117,6 @@ export default function SchoolPublicProfile() {
               <VenueScroll venues={venues} />
             </div>
           )}
-
-          {/* Schedule */}
-          <div id="schedule" className="scroll-mt-20">
-            <h3 className="font-semibold text-foreground mb-3">{t('schoolProfile.upcomingSessions')}</h3>
-            <UpcomingSessionsCalendar
-              sessions={upcomingSessions}
-              isLoading={sessionsLoading}
-              showCoach
-              emptyState={
-                <div className="rounded-xl border border-dashed border-border p-8 text-center">
-                  <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
-                  <p className="text-sm text-muted-foreground">{t('schoolProfile.noUpcomingSessions')}</p>
-                </div>
-              }
-            />
-          </div>
 
           {/* Coaches */}
           {coaches.length > 0 && (
@@ -156,12 +135,12 @@ export default function SchoolPublicProfile() {
         )}
       </main>
 
-      {/* Sticky View schedule CTA */}
-      {!isLoading && (
+      {/* Sticky View schedule CTA — navigates to the schedule sub-route */}
+      {!isLoading && id && (
         <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur safe-area-bottom">
           <div className="max-w-md mx-auto px-4 py-3">
             <button
-              onClick={scrollToSchedule}
+              onClick={() => navigate(`/s/${id}/schedule`)}
               className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
             >
               {t('actions.viewSchedule')}

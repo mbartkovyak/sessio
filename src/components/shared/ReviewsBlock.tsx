@@ -53,29 +53,19 @@ export default function ReviewsBlock({ reviews, coachId, coachName }: Props) {
       </div>
 
       {count > 0 ? (
-        <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
-          {/* Aggregate rating card */}
-          <div className="shrink-0 w-32 flex flex-col items-center justify-center rounded-2xl bg-secondary/40 p-4 text-center">
-            <p className="text-3xl font-bold text-foreground leading-none">{avg!.toFixed(1)}</p>
-            <div className="mt-1.5 flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={`h-3 w-3 ${i < Math.round(avg!) ? 'fill-warning text-warning' : 'text-muted'}`} />
-              ))}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{t('reviews.ratingCount', { count })}</p>
-          </div>
-
-          {/* Review preview cards */}
-          {reviews.slice(0, 6).map(r => (
-            <div key={r.id} className="shrink-0 w-64 rounded-2xl border border-border bg-card p-4">
-              <div className="flex items-center gap-1 mb-1">
+        <div className="flex gap-2.5 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
+          {reviews.slice(0, 5).map(r => (
+            <div key={r.id} className="shrink-0 w-52 rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center gap-0.5 mb-1">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className={`h-3 w-3 ${i < r.rating ? 'fill-warning text-warning' : 'text-muted'}`} />
                 ))}
               </div>
-              <p className="text-sm font-semibold text-foreground truncate">{r.reviewer_name ?? t('reviews.athlete')}</p>
-              {r.coach_name && <p className="text-xs text-muted-foreground truncate">{t('reviews.aboutCoach', { name: r.coach_name })}</p>}
-              {r.text && <p className="mt-1.5 text-sm text-foreground line-clamp-3">{r.text}</p>}
+              <p className="text-xs font-semibold text-foreground truncate">{r.reviewer_name ?? t('reviews.athlete')}</p>
+              {r.coach_name && (
+                <p className="text-[11px] text-muted-foreground truncate">{t('reviews.aboutCoach', { name: r.coach_name })}</p>
+              )}
+              {r.text && <p className="mt-1 text-xs text-foreground line-clamp-2">{r.text}</p>}
             </div>
           ))}
         </div>
