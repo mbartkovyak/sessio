@@ -151,7 +151,9 @@
   "saved": {
     "title": "Saved",
     "school": "School",
-    "coach": "Coach"
+    "coach": "Coach",
+    "emptyTitle": "Save coaches and schools",
+    "emptyDesc": "Tap the heart on any profile to come back to them quickly"
   },
   "actions": {
     "save": "Save",

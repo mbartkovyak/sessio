@@ -93,8 +93,11 @@ export default function PlayerHome() {
             </div>
           ) : null}
 
-          {/* Pending / declined join requests */}
-          <MyJoinRequests />
+          {/* Upcoming training */}
+          <ThisWeekSection sessions={displaySessions} title={sectionTitle} />
+
+          {/* Saved coaches + schools */}
+          <SavedSection />
 
           {/* Active passes */}
           <MyAbonamentsSection />
@@ -102,17 +105,10 @@ export default function PlayerHome() {
           {/* Available passes to request */}
           <AvailablePassesSection />
 
-          {/* Push notification prompt */}
-          <PushNotificationPrompt />
-
-          {/* Open spots */}
+          {/* Auxiliary — pending state, drop-ins, system prompts below the main flow */}
+          <MyJoinRequests />
           <OpenSpotsSection />
-
-          {/* Saved coaches + schools */}
-          <SavedSection />
-
-          {/* Upcoming sessions with cancel option */}
-          <ThisWeekSection sessions={displaySessions} title={sectionTitle} />
+          <PushNotificationPrompt />
         </div>
         )}
       </main>

@@ -154,7 +154,9 @@
   "saved": {
     "title": "Zapisane",
     "school": "Szkoła",
-    "coach": "Trener"
+    "coach": "Trener",
+    "emptyTitle": "Zapisz trenerów i szkoły",
+    "emptyDesc": "Kliknij serce na profilu, by szybko do nich wrócić"
   },
   "actions": {
     "save": "Zapisz",
