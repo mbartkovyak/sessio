@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import type { ReactNode } from 'react';
 import { SPORT_ICONS } from '@/lib/constants';
 import CalendarGrid from '@/components/shared/CalendarGrid';
@@ -26,7 +27,20 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
   const [signUpFor, setSignUpFor] = useState<PublicUpcomingSession | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const sessionIds = useMemo(() => sessions.map(s => s.session_id), [sessions]);
+  // RPC filters by session_date >= today, but same-day sessions whose end_time
+  // has already passed shouldn't be sign-up- or cancel-able. Drop them here.
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    const today = format(now, 'yyyy-MM-dd');
+    const nowTime = format(now, 'HH:mm:ss');
+    return sessions.filter(s => {
+      if (s.session_date > today) return true;
+      if (s.session_date < today) return false;
+      return (s.end_time ?? '23:59:59') > nowTime;
+    });
+  }, [sessions]);
+
+  const sessionIds = useMemo(() => upcoming.map(s => s.session_id), [upcoming]);
   const { data: attendance = {} } = useMyAttendanceForSessions(sessionIds);
   const upsertAttendance = useUpsertAttendance();
 
@@ -55,7 +69,7 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
   return (
     <>
       <CalendarGrid<PublicUpcomingSession>
-        items={sessions}
+        items={upcoming}
         getDate={(s) => s.session_date}
         isLoading={isLoading}
         emptyState={emptyState}
