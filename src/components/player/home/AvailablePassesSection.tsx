@@ -8,13 +8,14 @@ export default function AvailablePassesSection() {
   const { data: myAbonaments = [] } = useMyAbonaments();
   const requestPass = useRequestPass();
 
-  // Filter out types the player already has an active or pending pass for
-  const existingTypeIds = new Set(
+  // Keep active passes requestable so athletes can renew or buy another pack.
+  // Only hide a type while the same request is already waiting for approval.
+  const pendingTypeIds = new Set(
     myAbonaments
-      .filter((pa: any) => pa.status === 'active' || pa.status === 'pending')
+      .filter((pa: any) => pa.status === 'pending')
       .map((pa: any) => pa.abonament_type_id),
   );
-  const available = types.filter((t: any) => !existingTypeIds.has(t.id));
+  const available = types.filter((t: any) => !pendingTypeIds.has(t.id));
 
   if (available.length === 0) return null;
 
