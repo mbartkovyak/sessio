@@ -73,7 +73,7 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
                     startDate: startDates[type.id],
                   })}
                   disabled={requestPass.isPending || !startDates[type.id]}
-                  className="h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shrink-0 disabled:opacity-50"
+                  className="h-9 rounded-full bg-success px-4 text-xs font-semibold text-white shrink-0 disabled:opacity-50"
                 >
                   {t('abonaments.request')}
                 </button>

@@ -234,7 +234,7 @@ function AvailablePassCard({
         <button
           onClick={onRequest}
           disabled={isPending || !startDate}
-          className="h-9 shrink-0 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          className="h-9 shrink-0 rounded-full bg-success px-4 text-xs font-semibold text-white disabled:opacity-50"
         >
           {isAlreadyRequested ? t('abonaments.pendingApproval') : t('abonaments.request')}
         </button>
