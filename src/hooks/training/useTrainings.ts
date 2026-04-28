@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
 import { toast } from 'sonner';
 import { notifyUsers } from '@/lib/pushNotify';
-import { getFixedTForCurrentLanguage, getFixedTForUser } from '@/lib/notificationI18n';
+import { getFixedTForCurrentLanguage, getFixedTForUser, getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import type { Tables } from '@/integrations/supabase/types';
@@ -681,6 +681,149 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Sign up for a training as a regular member (or waitlist / approval-pending request).
+ *  Mirrors the recurring branch of JoinTraining so callers can join without leaving the page. */
+export type RecurringJoinResult =
+  | { kind: 'alreadyIn'; role: 'regular' | 'waitlist' }
+  | { kind: 'requestPending' }
+  | { kind: 'requestSent'; resent: boolean }
+  | { kind: 'joined'; role: 'regular' | 'waitlist' }
+  | { kind: 'full' };
+
+interface RecurringTrainingInput {
+  id: string;
+  coach_id: string | null;
+  name: string;
+  max_players?: number | null;
+  allow_waitlist?: boolean | null;
+  booking_mode?: string | null;
+  coach?: { language?: string | null } | null;
+}
+
+export function useJoinTrainingRecurring() {
+  const { profile } = useAuth();
+  const qc = useQueryClient();
+  return useMutation<RecurringJoinResult, Error, { training: RecurringTrainingInput }>({
+    mutationFn: async ({ training }) => {
+      if (!profile) throw new Error('Not authenticated');
+
+      // Already in?
+      const { data: existing } = await supabase
+        .from('training_members')
+        .select('id, role')
+        .eq('training_id', training.id)
+        .eq('user_id', profile.id)
+        .maybeSingle();
+      if (existing) {
+        return { kind: 'alreadyIn', role: existing.role as 'regular' | 'waitlist' };
+      }
+
+      // Capacity
+      const { count: activeCount } = await supabase
+        .from('training_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('training_id', training.id)
+        .eq('role', 'regular');
+      const isFull = !!training.max_players && (activeCount ?? 0) >= training.max_players;
+      if (isFull && !training.allow_waitlist) {
+        return { kind: 'full' };
+      }
+
+      // Approval mode → join_request
+      if (training.booking_mode === 'approval') {
+        const { data: existingReq } = await supabase
+          .from('join_requests')
+          .select('id, status')
+          .eq('user_id', profile.id)
+          .eq('training_id', training.id)
+          .maybeSingle();
+        if (existingReq?.status === 'pending') return { kind: 'requestPending' };
+        if (existingReq) {
+          await supabase
+            .from('join_requests')
+            .update({ status: 'pending', created_at: new Date().toISOString() })
+            .eq('id', existingReq.id);
+          notifyJoinRequest(training, profile);
+          return { kind: 'requestSent', resent: true };
+        }
+        const { error } = await supabase
+          .from('join_requests')
+          .insert({ user_id: profile.id, training_id: training.id, status: 'pending' });
+        if (error) throw error;
+        notifyJoinRequest(training, profile);
+        return { kind: 'requestSent', resent: false };
+      }
+
+      // Instant join
+      const role = isFull ? 'waitlist' : 'regular';
+      const { error } = await supabase
+        .from('training_members')
+        .insert({ training_id: training.id, user_id: profile.id, role });
+      if (error) {
+        if (error.code === '23505') return { kind: 'alreadyIn', role: 'regular' };
+        throw error;
+      }
+      notifyMemberJoined(training, profile);
+      return { kind: 'joined', role };
+    },
+    onSuccess: (result, { training }) => {
+      qc.removeQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['my-join-requests'] });
+      const tk = (k: string, opts?: any) => i18n.t(k, { ns: 'common', ...opts });
+      switch (result.kind) {
+        case 'alreadyIn':
+          toast.info(tk(result.role === 'waitlist' ? 'join.alreadyOnWaitlist' : 'join.alreadyInTraining'));
+          break;
+        case 'full':
+          toast.error(tk('join.trainingFull'));
+          break;
+        case 'requestPending':
+          toast.info(tk('join.requestAlreadySent'));
+          break;
+        case 'requestSent':
+          toast.success(tk(result.resent ? 'join.joinRequestSentAgain' : 'join.joinRequestSent'));
+          break;
+        case 'joined':
+          toast.success(
+            result.role === 'waitlist'
+              ? tk('join.addedToWaitlist')
+              : tk('join.joinedTraining', { name: training.name })
+          );
+          break;
+      }
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('join.failedToJoin', { ns: 'common' }))),
+  });
+}
+
+function notifyJoinRequest(training: RecurringTrainingInput, profile: { id: string; full_name: string | null }) {
+  if (!training.coach_id) return;
+  const tCoach = getFixedTForLanguage(training.coach?.language);
+  notifyUsers([training.coach_id], {
+    title: tCoach('join.requestNotificationTitle'),
+    body: tCoach('join.requestNotificationBody', {
+      name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+      training: training.name,
+    }),
+    tag: `join-req-${training.id}`,
+    url: `/coach/trainings/${training.id}`,
+  });
+}
+
+function notifyMemberJoined(training: RecurringTrainingInput, profile: { id: string; full_name: string | null }) {
+  if (!training.coach_id) return;
+  const tCoach = getFixedTForLanguage(training.coach?.language);
+  notifyUsers([training.coach_id], {
+    title: tCoach('join.memberJoinedTitle'),
+    body: tCoach('join.memberJoinedBody', {
+      name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+      training: training.name,
+    }),
+    tag: `joined-${training.id}`,
+    url: `/coach/trainings/${training.id}`,
   });
 }
 

@@ -223,6 +223,10 @@
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
     "signUp": "Zapisz się"
   },
+  "signUp": {
+    "justThisSession": "Tylko te zajęcia",
+    "everyWeek": "Co tydzień"
+  },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
     "soloCoachBlocked": "Szkoły zarządzają swoimi trenerami. Poproś właściciela szkoły.",

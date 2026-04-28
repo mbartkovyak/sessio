@@ -1,0 +1,146 @@
+import { useEffect } from 'react';
+import { X, Calendar, Repeat } from 'lucide-react';
+import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useJoinSingleSession, useJoinTrainingRecurring } from '@/hooks/training/useTrainings';
+import { getDateLocale } from '@/lib/dateFnsLocale';
+import { SPORT_ICONS } from '@/lib/constants';
+
+interface SessionInput {
+  session_id: string;
+  training_id: string;
+  training_name: string;
+  sport: string;
+  invite_code: string;
+  is_recurring: boolean | null;
+  drop_in_policy: string;
+  booking_mode: string;
+  session_date: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface Props {
+  session: SessionInput;
+  onClose: () => void;
+}
+
+export default function SignUpSheet({ session, onClose }: Props) {
+  const { t } = useTranslation('common');
+  const { session: authSession, profile } = useAuth();
+  const navigate = useNavigate();
+  const joinOne = useJoinSingleSession();
+  const joinRecurring = useJoinTrainingRecurring();
+
+  // If not authenticated, route through the existing auth-aware /join page
+  useEffect(() => {
+    if (!authSession || !profile) {
+      navigate(`/join/${session.invite_code}?session=${session.session_id}`);
+      onClose();
+    }
+  }, [authSession, profile, session.invite_code, session.session_id, navigate, onClose]);
+
+  // Pull training row for the recurring-join hook (needs max_players + allow_waitlist + coach language)
+  const { data: training } = useQuery({
+    queryKey: ['training-row-for-join', session.training_id],
+    enabled: !!authSession,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('trainings')
+        .select('id, name, coach_id, max_players, allow_waitlist, booking_mode, coach:profiles!trainings_coach_id_fkey(language)')
+        .eq('id', session.training_id)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
+  const isRecurring = session.is_recurring === true;
+  const allowSingle = session.drop_in_policy !== 'none';
+  const showRecurring = isRecurring;
+  const showSingle = !isRecurring || allowSingle;
+  const isApproval = session.booking_mode === 'approval';
+
+  const sessionLabel = `${format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })} · ${session.start_time?.slice(0, 5)}–${session.end_time?.slice(0, 5)}`;
+
+  async function handleSingle() {
+    try {
+      await joinOne.mutateAsync({ sessionId: session.session_id });
+      onClose();
+    } catch {
+      // toast handled by hook; keep sheet open so user can retry or close manually
+    }
+  }
+
+  async function handleRecurring() {
+    if (!training) return;
+    try {
+      await joinRecurring.mutateAsync({ training });
+      onClose();
+    } catch {
+      // toast handled by hook
+    }
+  }
+
+  const busy = joinOne.isPending || joinRecurring.isPending;
+  const recurringDisabled = busy || !training;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative w-full max-w-md rounded-t-2xl bg-card p-6 pb-8 safe-area-bottom animate-in slide-in-from-bottom duration-200"
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary">
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-1">
+          <span className="text-2xl">{SPORT_ICONS[session.sport] ?? '🎯'}</span>
+          <h3 className="text-lg font-bold text-foreground">{session.training_name}</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-5">{sessionLabel}</p>
+
+        <div className="space-y-2.5">
+          {showSingle && (
+            <button
+              onClick={handleSingle}
+              disabled={busy}
+              className="w-full flex items-center gap-3 rounded-2xl bg-primary px-4 py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            >
+              <Calendar className="h-5 w-5 shrink-0" />
+              <span className="flex-1 text-left">
+                {joinOne.isPending ? t('join.joining') : t('signUp.justThisSession')}
+              </span>
+            </button>
+          )}
+
+          {showRecurring && (
+            <button
+              onClick={handleRecurring}
+              disabled={recurringDisabled}
+              className="w-full flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-4 text-base font-semibold text-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            >
+              <Repeat className="h-5 w-5 shrink-0" />
+              <span className="flex-1 text-left">
+                {joinRecurring.isPending
+                  ? t('join.joining')
+                  : isApproval
+                    ? t('join.requestWeekly')
+                    : t('signUp.everyWeek')}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {session.drop_in_policy === 'trial' && (
+          <p className="mt-3 text-xs text-muted-foreground text-center">{t('join.trialNote')}</p>
+        )}
+      </div>
+    </div>
+  );
+}

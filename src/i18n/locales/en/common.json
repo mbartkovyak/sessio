@@ -223,6 +223,10 @@
     "orPickSession": "Or pick a single session",
     "signUp": "Sign up"
   },
+  "signUp": {
+    "justThisSession": "Just this session",
+    "everyWeek": "Every week"
+  },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
     "soloCoachBlocked": "Schools manage their own coaches. Ask the school owner to add you.",
