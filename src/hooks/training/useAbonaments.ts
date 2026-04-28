@@ -668,7 +668,7 @@ export function useMarkNoShow() {
   });
 }
 
-/** Toggle attendance status back to confirmed. Pass charge already in place from auto-deduct. */
+/** Toggle attendance status back to confirmed. Pass charge stays — both states are charged. */
 export function useRemarkAttended() {
   const qc = useQueryClient();
   return useMutation({
@@ -684,19 +684,10 @@ export function useRemarkAttended() {
         .eq('session_id', sessionId)
         .eq('user_id', userId);
       if (attErr) throw attErr;
-
-      // Catch up the deduction in case the session was previously refunded.
-      // auto_deduct_session is idempotent — skips already-deducted players.
-      const { error: deductErr } = await supabase.rpc('auto_deduct_session', { p_session_id: sessionId });
-      if (deductErr) throw deductErr;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
-      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
-      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });

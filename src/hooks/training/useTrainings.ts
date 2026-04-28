@@ -612,6 +612,10 @@ export function useUpsertAttendance() {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // confirmed↔declined transitions move passes via the DB charge trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -680,21 +684,15 @@ export function useMarkAttendance() {
         .update({ attendance_marked_at: new Date().toISOString() })
         .eq('id', sessionId);
       if (error) throw error;
-
-      // Charge passes for everyone marked confirmed or no_show. Idempotent — skips already-charged sessions.
-      const { error: deductErr } = await supabase.rpc('auto_deduct_session', { p_session_id: sessionId });
-      if (deductErr) throw deductErr;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['past-unmarked-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
       qc.invalidateQueries({ queryKey: ['stats-data'] });
+      // pending→confirmed transitions catch up via the DB charge trigger.
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
-      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
-      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['player-abonament-history'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -712,6 +710,10 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
       qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Drop-in deducts a pass entry via the DB charge trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -808,6 +810,10 @@ export function useJoinTrainingRecurring() {
       qc.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['my-join-requests'] });
       qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Recurring join cascades into auto-attendance INSERTs which deduct passes via the trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
       const tk = (k: string, opts?: Record<string, unknown>) => i18n.t(k, { ns: 'common', ...opts });
       switch (result.kind) {
         case 'alreadyIn':
@@ -981,6 +987,10 @@ export function useCancelSession(trainingId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      // Cancellation refunds passes via the DB trigger.
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       toast.success(i18n.t('toast.sessionCancelled', { ns: 'common' }));
     },
   });

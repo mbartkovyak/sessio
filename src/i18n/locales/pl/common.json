@@ -221,7 +221,8 @@
     "signUpWeekly": "Zapisz się co tydzień",
     "requestWeekly": "Poproś o cotygodniowe miejsce",
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
-    "signUp": "Zapisz się"
+    "signUp": "Zapisz się",
+    "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać."
   },
   "signUp": {
     "justThisSession": "Tylko te zajęcia",

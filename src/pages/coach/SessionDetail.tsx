@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ChevronRight, CalendarDays, X, CheckCircle2, ClipboardCheck, UserPlus } from 'lucide-react';
@@ -20,7 +20,7 @@ import { SessioLoader } from '@/components/SessioLogo';
 import AddMemberSheet from '@/components/coach/AddMemberSheet';
 import { useSessionDetail } from '@/hooks/training/useTodaySessions';
 import { useSessionAttendance, useCancelSession, useRescheduleSession } from '@/hooks/training/useTrainings';
-import { useSchoolAbonaments, useSessionAbonamentUsage, useAutoDeductSession, useMarkNoShow, useRemarkAttended, isAbonamentActive, useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
+import { useSchoolAbonaments, useSessionAbonamentUsage, useMarkNoShow, useRemarkAttended, isAbonamentActive, useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
 import { SPORT_ICONS } from '@/lib/constants';
 import { getShareableOrigin } from '@/lib/platform';
 import { getDateLocale } from '@/lib/dateFnsLocale';
@@ -35,7 +35,6 @@ export default function SessionDetail() {
   const { data: attendance = [], isLoading: attendanceLoading } = useSessionAttendance(sessionId);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(training?.school_id);
   const { data: usageRecords = [] } = useSessionAbonamentUsage(sessionId);
-  const autoDeduct = useAutoDeductSession();
   const markNoShow = useMarkNoShow();
   const remarkAttended = useRemarkAttended();
 
@@ -47,20 +46,9 @@ export default function SessionDetail() {
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const { data: athletePool = [] } = useSchoolAthletesWithPassHolders(training?.school_id);
 
-  // Compute isPast early (before early returns) so useEffect can reference it
   const today = new Date().toISOString().split('T')[0];
-  const isPastEarly = session ? (session.session_date < today || (session.session_date === today && new Date(`${session.session_date}T${session.end_time}`) < new Date())) : false;
-  const isCancelledEarly = session?.status === 'cancelled';
-
-  // Auto-deduct abonaments only AFTER coach has marked attendance
-  const attendanceMarked = session?.attendance_marked_at;
-  const autoDeductedRef = useRef(false);
-  useEffect(() => {
-    if (isPastEarly && !isCancelledEarly && attendanceMarked && sessionId && training?.school_id && !autoDeductedRef.current) {
-      autoDeductedRef.current = true;
-      autoDeduct.mutate(sessionId);
-    }
-  }, [isPastEarly, isCancelledEarly, attendanceMarked, sessionId, training?.school_id]);
+  const isPast = session ? (session.session_date < today || (session.session_date === today && new Date(`${session.session_date}T${session.end_time}`) < new Date())) : false;
+  const isCancelled = session?.status === 'cancelled';
 
   if (isLoading) {
     return (
@@ -84,8 +72,6 @@ export default function SessionDetail() {
 
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
   const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() });
-  const isCancelled = isCancelledEarly;
-  const isPast = isPastEarly;
 
   // Attendance: split into signed-up vs not-coming
   const signedUp = attendance.filter(a => a.status === 'confirmed');
@@ -368,6 +354,9 @@ export default function SessionDetail() {
           if (error) { toast.error(error.message); return; }
           qc.invalidateQueries({ queryKey: ['session-attendance', sessionId] });
           qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+          // Adding a confirmed attendee deducts a pass via the DB charge trigger.
+          qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+          qc.invalidateQueries({ queryKey: ['abonament-usage-session', sessionId] });
           setShowAddParticipant(false);
           toast.success(i18n.t('toast.memberAdded', { ns: 'common' }));
         }}

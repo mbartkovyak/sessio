@@ -221,7 +221,8 @@
     "signUpWeekly": "Sign up weekly",
     "requestWeekly": "Request weekly spot",
     "orPickSession": "Or pick a single session",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back."
   },
   "signUp": {
     "justThisSession": "Just this session",

@@ -178,6 +178,11 @@ export default function JoinTraining() {
       }
       queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Drop-in deducts a pass entry via the DB charge trigger.
+      queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
+      queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
       toast.success(t('join.joinedSession', { name: training.name }));
       navigate('/player');
     } catch (err: any) {
@@ -317,6 +322,11 @@ export default function JoinTraining() {
           });
         }
         queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['my-attendance'] });
+        // Becoming a regular cascades into auto-attendance INSERTs which deduct passes via the trigger.
+        queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
+        queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
+        queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
         toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
         navigate('/player');
       }
@@ -472,6 +482,7 @@ export default function JoinTraining() {
             {training.drop_in_policy === 'trial' && (
               <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
             )}
+            <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
             <button
               onClick={() => handleJoinSession(sessionParam)}
               disabled={!!joiningSessionId || joining}
@@ -509,6 +520,8 @@ export default function JoinTraining() {
               </div>
             </div>
           )}
+
+          <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
 
           {/* Primary: sign up for all sessions */}
           <button
