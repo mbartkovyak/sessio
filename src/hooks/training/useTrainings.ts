@@ -611,8 +611,31 @@ export function useUpsertAttendance() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Look up the current user's attendance status across a batch of session IDs.
+ *  Returns a `{ [session_id]: status }` map so callers can render per-session UI. */
+export function useMyAttendanceForSessions(sessionIds: string[]) {
+  const { user } = useAuth();
+  const key = sessionIds.slice().sort().join(',');
+  return useQuery({
+    queryKey: ['my-attendance', user?.id, key],
+    enabled: !!user && sessionIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('session_attendance')
+        .select('session_id, status')
+        .eq('user_id', user!.id)
+        .in('session_id', sessionIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const row of data ?? []) map[row.session_id] = row.status;
+      return map;
+    },
   });
 }
 
@@ -688,6 +711,7 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -783,6 +807,7 @@ export function useJoinTrainingRecurring() {
     onSuccess: (result, { training }) => {
       qc.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['my-join-requests'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
       const tk = (k: string, opts?: Record<string, unknown>) => i18n.t(k, { ns: 'common', ...opts });
       switch (result.kind) {
         case 'alreadyIn':
