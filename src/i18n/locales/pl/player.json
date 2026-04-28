@@ -151,6 +151,7 @@
     "pastPasses": "Poprzednie karnety",
     "request": "Poproś",
     "requestStartDate": "Data rozpoczęcia",
+    "chooseStartDate": "Najpierw wybierz datę rozpoczęcia",
     "requestSent": "Prośba o karnet wysłana",
     "pendingApproval": "Oczekuje na akceptację",
     "noPassesHere": "Nie ma tu jeszcze dostępnych karnetów",

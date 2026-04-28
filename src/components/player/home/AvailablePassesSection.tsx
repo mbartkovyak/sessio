@@ -6,6 +6,8 @@ import { useAvailablePassTypes, useMyAbonaments, useRequestPass } from '@/hooks/
 export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Array<string | null | undefined> }) {
   const { t } = useTranslation('player');
   const [startDates, setStartDates] = useState<Record<string, string>>({});
+  const [startDateErrors, setStartDateErrors] = useState<Record<string, boolean>>({});
+  const [submittingTypeId, setSubmittingTypeId] = useState<string | null>(null);
   const { data: types = [] } = useAvailablePassTypes(schoolIds);
   const { data: myAbonaments = [] } = useMyAbonaments();
   const requestPass = useRequestPass();
@@ -20,6 +22,32 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
   const available = types.filter((t: any) => !pendingTypeIds.has(t.id));
 
   if (available.length === 0) return null;
+
+  function handleStartDateChange(typeId: string, value: string) {
+    setStartDates((dates) => ({ ...dates, [typeId]: value }));
+    setStartDateErrors((errors) => ({ ...errors, [typeId]: false }));
+  }
+
+  function handleRequest(type: any) {
+    const startDate = startDates[type.id];
+    if (!startDate) {
+      setStartDateErrors((errors) => ({ ...errors, [type.id]: true }));
+      return;
+    }
+
+    setSubmittingTypeId(type.id);
+    requestPass.mutate(
+      {
+        abonamentTypeId: type.id,
+        schoolId: type.school_id,
+        typeName: type.name,
+        startDate,
+      },
+      {
+        onSettled: () => setSubmittingTypeId(null),
+      },
+    );
+  }
 
   return (
     <section>
@@ -61,23 +89,22 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
                   <input
                     type="date"
                     value={startDates[type.id] ?? ''}
-                    onChange={(event) => setStartDates((dates) => ({ ...dates, [type.id]: event.target.value }))}
-                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                    onChange={(event) => handleStartDateChange(type.id, event.target.value)}
+                    aria-invalid={!!startDateErrors[type.id]}
+                    className={`h-9 w-full rounded-lg border bg-background px-3 text-sm text-foreground ${startDateErrors[type.id] ? 'border-destructive' : 'border-border'}`}
                   />
                 </label>
                 <button
-                  onClick={() => requestPass.mutate({
-                    abonamentTypeId: type.id,
-                    schoolId: type.school_id,
-                    typeName: type.name,
-                    startDate: startDates[type.id],
-                  })}
-                  disabled={requestPass.isPending || !startDates[type.id]}
+                  onClick={() => handleRequest(type)}
+                  disabled={submittingTypeId === type.id}
                   className="h-9 rounded-full bg-success px-4 text-xs font-semibold text-white shrink-0 disabled:opacity-50"
                 >
                   {t('abonaments.request')}
                 </button>
               </div>
+              {startDateErrors[type.id] && (
+                <p className="mt-1 text-xs font-medium text-destructive">{t('abonaments.chooseStartDate')}</p>
+              )}
             </div>
           );
         })}

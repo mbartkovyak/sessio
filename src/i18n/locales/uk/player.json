@@ -148,6 +148,7 @@
     "pastPasses": "Минулі абонементи",
     "request": "Запросити",
     "requestStartDate": "Дата початку",
+    "chooseStartDate": "Спочатку оберіть дату початку",
     "requestSent": "Запит на абонемент надіслано",
     "pendingApproval": "Очікує підтвердження",
     "noPassesHere": "Тут ще немає доступних абонементів",

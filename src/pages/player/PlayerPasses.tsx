@@ -19,6 +19,8 @@ import {
 export default function PlayerPasses() {
   const { t } = useTranslation('player');
   const [startDates, setStartDates] = useState<Record<string, string>>({});
+  const [startDateErrors, setStartDateErrors] = useState<Record<string, boolean>>({});
+  const [submittingTypeId, setSubmittingTypeId] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const isCoachRoute = pathname.includes('/coach/');
@@ -69,6 +71,32 @@ export default function PlayerPasses() {
   const isLoading = coachLoading || schoolLoading || passesLoading || typesLoading;
   const title = isCoachRoute ? (coach?.full_name ?? t('coachProfile.title')) : (school?.name ?? t('schoolProfile.title'));
 
+  function handleStartDateChange(typeId: string, value: string) {
+    setStartDates((dates) => ({ ...dates, [typeId]: value }));
+    setStartDateErrors((errors) => ({ ...errors, [typeId]: false }));
+  }
+
+  function handleRequest(type: any) {
+    const startDate = startDates[type.id];
+    if (!startDate) {
+      setStartDateErrors((errors) => ({ ...errors, [type.id]: true }));
+      return;
+    }
+
+    setSubmittingTypeId(type.id);
+    requestPass.mutate(
+      {
+        abonamentTypeId: type.id,
+        schoolId: type.school_id,
+        typeName: type.name,
+        startDate,
+      },
+      {
+        onSettled: () => setSubmittingTypeId(null),
+      },
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <AppHeader title={t('actions.passes')} subtitle={title} back />
@@ -97,16 +125,12 @@ export default function PlayerPasses() {
                 <AvailablePassCard
                   key={type.id}
                   type={type}
-                  isPending={requestPass.isPending || pendingTypeIds.has(type.id)}
+                  isPending={submittingTypeId === type.id || pendingTypeIds.has(type.id)}
                   isAlreadyRequested={pendingTypeIds.has(type.id)}
                   startDate={startDates[type.id] ?? ''}
-                  onStartDateChange={(value) => setStartDates((dates) => ({ ...dates, [type.id]: value }))}
-                  onRequest={() => requestPass.mutate({
-                    abonamentTypeId: type.id,
-                    schoolId: type.school_id,
-                    typeName: type.name,
-                    startDate: startDates[type.id],
-                  })}
+                  hasStartDateError={!!startDateErrors[type.id]}
+                  onStartDateChange={(value) => handleStartDateChange(type.id, value)}
+                  onRequest={() => handleRequest(type)}
                 />
               )) : <EmptyState text={t('abonaments.noAvailablePasses')} />}
             </PassSection>
@@ -193,6 +217,7 @@ function AvailablePassCard({
   isPending,
   isAlreadyRequested,
   startDate,
+  hasStartDateError,
   onStartDateChange,
   onRequest,
 }: {
@@ -200,6 +225,7 @@ function AvailablePassCard({
   isPending: boolean;
   isAlreadyRequested: boolean;
   startDate: string;
+  hasStartDateError: boolean;
   onStartDateChange: (value: string) => void;
   onRequest: () => void;
 }) {
@@ -228,17 +254,21 @@ function AvailablePassCard({
             value={startDate}
             disabled={isAlreadyRequested}
             onChange={(event) => onStartDateChange(event.target.value)}
-            className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground disabled:opacity-50"
+            aria-invalid={hasStartDateError}
+            className={`h-9 w-full rounded-lg border bg-background px-3 text-sm text-foreground disabled:opacity-50 ${hasStartDateError ? 'border-destructive' : 'border-border'}`}
           />
         </label>
         <button
           onClick={onRequest}
-          disabled={isPending || !startDate}
+          disabled={isPending}
           className="h-9 shrink-0 rounded-full bg-success px-4 text-xs font-semibold text-white disabled:opacity-50"
         >
           {isAlreadyRequested ? t('abonaments.pendingApproval') : t('abonaments.request')}
         </button>
       </div>
+      {hasStartDateError && (
+        <p className="mt-1 text-xs font-medium text-destructive">{t('abonaments.chooseStartDate')}</p>
+      )}
     </div>
   );
 }

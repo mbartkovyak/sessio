@@ -148,6 +148,7 @@
     "pastPasses": "Past passes",
     "request": "Request",
     "requestStartDate": "Start date",
+    "chooseStartDate": "Choose a start date first",
     "requestSent": "Pass request sent",
     "pendingApproval": "Waiting for approval",
     "noPassesHere": "No passes available here yet",
