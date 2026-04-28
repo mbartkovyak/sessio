@@ -141,9 +141,18 @@
     "usedUp": "Використано",
     "startsOn": "З {{date}}",
     "availablePasses": "Доступні абонементи",
+    "activePasses": "Активні абонементи",
+    "requestedPasses": "Запити на абонементи",
+    "availableToRequest": "Доступні для запиту",
+    "pastPasses": "Минулі абонементи",
     "request": "Запросити",
     "requestSent": "Запит на абонемент надіслано",
-    "pendingApproval": "Очікує підтвердження"
+    "pendingApproval": "Очікує підтвердження",
+    "noPassesHere": "Тут ще немає доступних абонементів",
+    "noActivePasses": "Немає активних абонементів",
+    "noRequestedPasses": "Немає запитів на абонементи",
+    "noAvailablePasses": "Немає абонементів для запиту",
+    "noPastPasses": "Немає минулих абонементів"
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"
@@ -158,6 +167,7 @@
   "actions": {
     "save": "Зберегти",
     "saved": "Збережено",
+    "passes": "Абонементи",
     "viewSchedule": "Дивитися розклад"
   },
   "schedule": {

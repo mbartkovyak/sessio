@@ -136,11 +136,26 @@
     "usedUp": "All used",
     "startsOn": "Starts {{date}}",
     "availablePasses": "Available passes",
+    "activePasses": "Active passes",
+    "requestedPasses": "Requested passes",
+    "availableToRequest": "Available to request",
+    "pastPasses": "Past passes",
     "request": "Request",
     "requestSent": "Pass request sent",
-    "pendingApproval": "Waiting for approval"
+    "pendingApproval": "Waiting for approval",
+    "noPassesHere": "No passes available here yet",
+    "noActivePasses": "No active passes",
+    "noRequestedPasses": "No requested passes",
+    "noAvailablePasses": "No passes available to request",
+    "noPastPasses": "No past passes"
   },
   "favouriteSchools": {
     "title": "Schools you follow"
+  },
+  "actions": {
+    "save": "Save",
+    "saved": "Saved",
+    "passes": "Passes",
+    "viewSchedule": "View schedule"
   }
 }

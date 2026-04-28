@@ -144,9 +144,18 @@
     "usedUp": "Wykorzystany",
     "startsOn": "Od {{date}}",
     "availablePasses": "Dostępne karnety",
+    "activePasses": "Aktywne karnety",
+    "requestedPasses": "Prośby o karnet",
+    "availableToRequest": "Dostępne do zamówienia",
+    "pastPasses": "Poprzednie karnety",
     "request": "Poproś",
     "requestSent": "Prośba o karnet wysłana",
-    "pendingApproval": "Oczekuje na akceptację"
+    "pendingApproval": "Oczekuje na akceptację",
+    "noPassesHere": "Nie ma tu jeszcze dostępnych karnetów",
+    "noActivePasses": "Brak aktywnych karnetów",
+    "noRequestedPasses": "Brak próśb o karnet",
+    "noAvailablePasses": "Brak karnetów dostępnych do zamówienia",
+    "noPastPasses": "Brak poprzednich karnetów"
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"
@@ -161,6 +170,7 @@
   "actions": {
     "save": "Zapisz",
     "saved": "Zapisane",
+    "passes": "Karnety",
     "viewSchedule": "Zobacz grafik"
   },
   "schedule": {

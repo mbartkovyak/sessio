@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Heart, Star } from 'lucide-react';
+import { MapPin, Heart, Star, Ticket } from 'lucide-react';
 import AppHeader from '@/components/shared/AppHeader';
 import {
   useSchool,
@@ -14,7 +14,6 @@ import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import CoachCard from '@/components/shared/CoachCard';
 import { SessioLoader } from '@/components/SessioLogo';
-import AvailablePassesSection from '@/components/player/home/AvailablePassesSection';
 
 export default function SchoolPublicProfile() {
   const { t } = useTranslation('player');
@@ -105,10 +104,15 @@ export default function SchoolPublicProfile() {
                 <Heart className={`h-4 w-4 ${isFav ? 'fill-destructive' : ''}`} />
                 {isFav ? t('actions.saved') : t('actions.save')}
               </button>
+              <button
+                onClick={() => navigate(`/s/${id}/passes`)}
+                className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground min-h-[40px]"
+              >
+                <Ticket className="h-4 w-4" />
+                {t('actions.passes')}
+              </button>
             </div>
           )}
-
-          {id && <AvailablePassesSection schoolIds={[id]} />}
 
           {/* Reviews — aggregated across coaches */}
           <ReviewsBlock reviews={reviews} />

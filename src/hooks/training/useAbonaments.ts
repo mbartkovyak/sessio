@@ -178,6 +178,26 @@ export function useMyAbonaments() {
   });
 }
 
+/** Player's full pass history for one school */
+export function useMySchoolAbonaments(schoolId: string | undefined | null) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-school-abonaments', user?.id, schoolId],
+    enabled: !!user && !!schoolId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_abonaments')
+        .select('*, abonament_types(*), schools(id, name)')
+        .eq('player_id', user!.id)
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PlayerAbonamentWithSchool[];
+    },
+  });
+}
+
 // ── Player search (for assign picker) ──
 
 /** Search players by name across all profiles. */
@@ -466,6 +486,7 @@ export function useRequestPass() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['available-passes'] });
       qc.invalidateQueries({ queryKey: ['pending-pass-requests', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
@@ -536,6 +557,7 @@ export function useRespondPassRequest() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['available-passes'] });
       toast.success(i18n.t(
         vars.accept ? 'abonaments.approved' : 'abonaments.declined',
@@ -588,6 +610,7 @@ export function useAssignAbonament() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       toast.success(i18n.t('abonaments.assigned', { ns: 'common' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
@@ -612,6 +635,7 @@ export function useAutoDeductSession() {
         qc.invalidateQueries({ queryKey: ['abonament-usage-session', sessionId] });
         qc.invalidateQueries({ queryKey: ['school-abonaments'] });
         qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+        qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
         qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       }
     },
@@ -739,6 +763,7 @@ export function useDeductSession() {
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });

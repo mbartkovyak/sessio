@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import { Star, MapPin, MessageCircle, Heart } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Heart, Ticket } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import AppHeader from '@/components/shared/AppHeader';
 import {
@@ -16,7 +16,6 @@ import VenueScroll from '@/components/shared/VenueScroll';
 import ReviewsBlock, { type ReviewItem } from '@/components/shared/ReviewsBlock';
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
-import AvailablePassesSection from '@/components/player/home/AvailablePassesSection';
 
 export default function CoachPublicProfile() {
   const { t } = useTranslation('player');
@@ -123,10 +122,15 @@ export default function CoachPublicProfile() {
                   {t('common:chat.messageCoach')}
                 </button>
               )}
+              <button
+                onClick={() => navigate(`/search/coach/${id}/passes`)}
+                className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground min-h-[40px]"
+              >
+                <Ticket className="h-4 w-4" />
+                {t('actions.passes')}
+              </button>
             </div>
           )}
-
-          {profile?.school_id && <AvailablePassesSection schoolIds={[profile.school_id]} />}
 
           {/* Reviews */}
           <ReviewsBlock reviews={reviews} coachId={id} coachName={profile?.full_name ?? ''} />

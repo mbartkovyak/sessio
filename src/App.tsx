@@ -111,6 +111,7 @@ const PlayerMessages = lazyRetry(() => import("./pages/player/PlayerMessages"));
 const PlayerChat = lazyRetry(() => import("./pages/player/PlayerChat"));
 const PlayerDirectChat = lazyRetry(() => import("./pages/player/PlayerDirectChat"));
 const PlayerTrainingDetail = lazyRetry(() => import("./pages/player/PlayerTrainingDetail"));
+const PlayerPasses = lazyRetry(() => import("./pages/player/PlayerPasses"));
 const CoachHome = lazyRetry(() => import("./pages/coach/CoachHome"));
 const CoachCalendar = lazyRetry(() => import("./pages/coach/CoachCalendar"));
 const CoachTrainings = lazyRetry(() => import("./pages/coach/CoachTrainings"));
@@ -194,8 +195,11 @@ const router = createBrowserRouter(
       <Route path="/player" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerHome} /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerSearch} /></ProtectedRoute>} />
       <Route path="/search/coach/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={CoachPublicProfile} /></ProtectedRoute>} />
+      <Route path="/search/coach/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
       <Route path="/search/coach/:id/schedule" element={<ProtectedRoute requiredRole="player"><LazyPage component={CoachSchedule} /></ProtectedRoute>} />
       <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={SchoolPublicProfile} /></ProtectedRoute>} />
+      <Route path="/search/school/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
+      <Route path="/s/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
       <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerMessages} /></ProtectedRoute>} />
       <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerChat} /></ProtectedRoute>} />
       <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerDirectChat} /></ProtectedRoute>} />
