@@ -288,7 +288,12 @@
     "startDate": "Data rozpoczęcia",
     "pendingRequests": "Oczekujące prośby",
     "approve": "Zatwierdź",
-    "decline": "Odrzuć"
+    "decline": "Odrzuć",
+    "refundEntry": "Zwróć",
+    "refundSheetTitle": "Zwróć wejście",
+    "refundHint": "Wybierz zajęcia, by zwrócić jedno wejście do tego karnetu.",
+    "noRefundableSessions": "Brak zajęć do zwrotu.",
+    "refunded": "Zwrócono ({{date}})"
   },
   "stats": {
     "title": "Statystyki",

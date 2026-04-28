@@ -288,7 +288,12 @@
     "startDate": "Start date",
     "pendingRequests": "Pending requests",
     "approve": "Approve",
-    "decline": "Decline"
+    "decline": "Decline",
+    "refundEntry": "Refund",
+    "refundSheetTitle": "Refund a session",
+    "refundHint": "Pick a session to give one entry back to this pass.",
+    "noRefundableSessions": "No sessions to refund.",
+    "refunded": "Refunded {{date}}"
   },
   "stats": {
     "title": "Stats",

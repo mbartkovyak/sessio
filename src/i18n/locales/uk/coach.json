@@ -288,7 +288,12 @@
     "startDate": "Дата початку",
     "pendingRequests": "Очікують підтвердження",
     "approve": "Затвердити",
-    "decline": "Відхилити"
+    "decline": "Відхилити",
+    "refundEntry": "Повернути",
+    "refundSheetTitle": "Повернути заняття",
+    "refundHint": "Оберіть заняття, щоб повернути одне використання абонементу.",
+    "noRefundableSessions": "Немає занять для повернення.",
+    "refunded": "Повернено ({{date}})"
   },
   "stats": {
     "title": "Статистика",

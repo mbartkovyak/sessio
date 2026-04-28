@@ -610,30 +610,53 @@ export function useAutoDeductSession() {
   });
 }
 
-/** Mark player as no-show: undo deduction + set attendance to no_show */
+/** Toggle attendance status to no_show. Pass charge stays — refund explicitly via pass card if needed.
+ *  Policy: no-shows pay. */
 export function useMarkNoShow() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
-      playerAbonamentId: string;
+    mutationFn: async ({ sessionId, userId }: {
+      playerAbonamentId?: string;
       sessionId: string;
       schoolId: string;
       userId: string;
     }) => {
-      // Undo the deduction
-      const { error: undoErr } = await supabase.rpc('undo_abonament_deduction', {
-        p_player_abonament_id: playerAbonamentId,
-        p_session_id: sessionId,
-      });
-      if (undoErr) throw undoErr;
-
-      // Mark attendance as no_show so auto-deduct won't re-create it
       const { error: attErr } = await supabase
         .from('session_attendance')
         .update({ status: 'no_show' })
         .eq('session_id', sessionId)
         .eq('user_id', userId);
       if (attErr) throw attErr;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Toggle attendance status back to confirmed. Pass charge already in place from auto-deduct. */
+export function useRemarkAttended() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId, userId }: {
+      playerAbonamentId?: string;
+      sessionId: string;
+      schoolId: string;
+      userId: string;
+    }) => {
+      const { error: attErr } = await supabase
+        .from('session_attendance')
+        .update({ status: 'confirmed' })
+        .eq('session_id', sessionId)
+        .eq('user_id', userId);
+      if (attErr) throw attErr;
+
+      // Catch up the deduction in case the session was previously refunded.
+      // auto_deduct_session is idempotent — skips already-deducted players.
+      const { error: deductErr } = await supabase.rpc('auto_deduct_session', { p_session_id: sessionId });
+      if (deductErr) throw deductErr;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
@@ -647,40 +670,30 @@ export function useMarkNoShow() {
   });
 }
 
-/** Re-mark as attended: deduct again + set attendance back to confirmed */
-export function useRemarkAttended() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
-      playerAbonamentId: string;
-      sessionId: string;
-      schoolId: string;
-      userId: string;
-    }) => {
-      // Re-deduct
-      const { error: deductErr } = await supabase.rpc('deduct_abonament_session', {
-        p_player_abonament_id: playerAbonamentId,
-        p_session_id: sessionId,
-      });
-      if (deductErr) throw deductErr;
-
-      // Set attendance back to confirmed
-      const { error: attErr } = await supabase
-        .from('session_attendance')
-        .update({ status: 'confirmed' })
-        .eq('session_id', sessionId)
-        .eq('user_id', userId);
-      if (attErr) throw attErr;
+/** Recent abonament_usage rows for a single pass, joined with session + training info.
+ *  Used by the refund chooser. */
+export function usePassRecentUsages(playerAbonamentId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['pass-recent-usages', playerAbonamentId],
+    enabled: !!playerAbonamentId,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('abonament_usage')
+        .select('*, training_sessions(id, session_date, start_time, trainings(name))')
+        .eq('player_abonament_id', playerAbonamentId!)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data ?? []) as (AbonamentUsage & {
+        training_sessions: {
+          id: string;
+          session_date: string;
+          start_time: string | null;
+          trainings: { name: string } | null;
+        } | null;
+      })[];
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
-      qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['attendance-summary'] });
-      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
-      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
-    },
-    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 

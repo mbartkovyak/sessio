@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, UserPlus, X } from 'lucide-react';
+import { Plus, Trash2, UserPlus, X, Undo2 } from 'lucide-react';
+import { toast } from 'sonner';
 import Avatar from '@/components/shared/Avatar';
 import PhoneInput, { isValidPhone } from '@/components/shared/PhoneInput';
 import {
@@ -12,11 +13,14 @@ import {
   useSearchPlayers,
   usePendingPassRequests,
   useRespondPassRequest,
+  usePassRecentUsages,
+  useUndoDeduction,
   isAbonamentActive,
   daysRemaining,
 } from '@/hooks/training/useAbonaments';
 import { currencyForCountry } from '@/lib/constants';
 import { format } from 'date-fns';
+import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useCreateStandalonePlaceholder } from '@/hooks/training/useTrainings';
 
 export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId: string; schoolCountry?: string | null }) {
@@ -37,6 +41,9 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
   const [sessionsCount, setSessions] = useState('');
   const [durationDays, setDuration] = useState('');
   const [price, setPrice] = useState('');
+
+  // Refund chooser sheet
+  const [refundPass, setRefundPass] = useState<{ id: string; schoolId: string; playerName: string | null } | null>(null);
 
   const { data: types = [] } = useAbonamentTypes(schoolId);
   const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
@@ -382,6 +389,7 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
             {playerAbonaments.filter((pa: any) => pa.status !== 'pending').map((pa: any) => {
               const s = passStatusLabel(pa);
               const startDate = pa.activated_at ?? pa.created_at;
+              const canRefund = pa.sessions_total != null && pa.sessions_remaining != null && pa.sessions_remaining < pa.sessions_total;
               return (
                 <div key={pa.id} className="flex items-center gap-3 px-4 py-2.5">
                   <Avatar url={pa.profiles?.avatar_url} name={pa.profiles?.full_name} size="xs" />
@@ -393,12 +401,114 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
                     </p>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.text}</span>
+                  {canRefund && (
+                    <button
+                      onClick={() => setRefundPass({ id: pa.id, schoolId, playerName: pa.profiles?.full_name ?? null })}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/40 hover:bg-accent text-foreground transition-colors shrink-0"
+                      aria-label={t('abonaments.refundEntry')}
+                      title={t('abonaments.refundEntry')}
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      {refundPass && (
+        <RefundSheet
+          passId={refundPass.id}
+          schoolId={refundPass.schoolId}
+          playerName={refundPass.playerName}
+          onClose={() => setRefundPass(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function RefundSheet({ passId, schoolId, playerName, onClose }: {
+  passId: string;
+  schoolId: string;
+  playerName: string | null;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation('coach');
+  const { data: usages = [], isLoading } = usePassRecentUsages(passId);
+  const undo = useUndoDeduction();
+
+  // Hide already-refunded rows from the list after a successful refund
+  const [refundedIds, setRefundedIds] = useState<Set<string>>(new Set());
+  const visible = usages.filter(u => !refundedIds.has(u.id));
+
+  function handleRefund(sessionId: string, usageId: string, dateLabel: string) {
+    undo.mutate(
+      { playerAbonamentId: passId, sessionId, schoolId },
+      {
+        onSuccess: () => {
+          setRefundedIds(prev => new Set(prev).add(usageId));
+          toast.success(t('abonaments.refunded', { date: dateLabel }));
+        },
+      },
+    );
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-foreground/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-card shadow-2xl animate-in slide-in-from-bottom duration-200 max-h-[80vh]">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-foreground text-sm">{t('abonaments.refundSheetTitle')}</h3>
+            {playerName && <p className="text-xs text-muted-foreground truncate">{playerName}</p>}
+          </div>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary shrink-0">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <p className="px-4 pb-3 text-xs text-muted-foreground shrink-0">{t('abonaments.refundHint')}</p>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
+          {isLoading ? (
+            <div className="space-y-2 py-2">
+              {[1, 2, 3].map(i => <div key={i} className="h-14 bg-muted animate-pulse rounded-xl" />)}
+            </div>
+          ) : visible.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">{t('abonaments.noRefundableSessions')}</p>
+          ) : (
+            <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+              {visible.map(u => {
+                const ts = u.training_sessions;
+                const dateLabel = ts?.session_date
+                  ? format(new Date(ts.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })
+                  : '';
+                const timeLabel = ts?.start_time?.slice(0, 5);
+                return (
+                  <div key={u.id} className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{ts?.trainings?.name ?? '—'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {dateLabel}{timeLabel && ` · ${timeLabel}`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => ts?.id && handleRefund(ts.id, u.id, dateLabel)}
+                      disabled={undo.isPending || !ts?.id}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground min-h-[32px] disabled:opacity-50 active:scale-[0.97] transition-transform"
+                    >
+                      {t('abonaments.refundEntry')}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

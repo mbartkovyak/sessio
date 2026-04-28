@@ -657,12 +657,21 @@ export function useMarkAttendance() {
         .update({ attendance_marked_at: new Date().toISOString() })
         .eq('id', sessionId);
       if (error) throw error;
+
+      // Charge passes for everyone marked confirmed or no_show. Idempotent — skips already-charged sessions.
+      const { error: deductErr } = await supabase.rpc('auto_deduct_session', { p_session_id: sessionId });
+      if (deductErr) throw deductErr;
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['past-unmarked-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
       qc.invalidateQueries({ queryKey: ['stats-data'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
+      qc.invalidateQueries({ queryKey: ['player-abonament-history'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
