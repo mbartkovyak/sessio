@@ -1054,6 +1054,26 @@ export type Database = {
         Args: { p_training_id: string }
         Returns: Json
       }
+      get_coach_upcoming_sessions: {
+        Args: { p_coach_id: string; p_days?: number }
+        Returns: {
+          booking_mode: string
+          coach_avatar_url: string | null
+          coach_id: string
+          coach_name: string | null
+          drop_in_policy: string
+          end_time: string
+          invite_code: string
+          is_recurring: boolean | null
+          session_date: string
+          session_id: string
+          sport: string
+          start_time: string
+          training_id: string
+          training_name: string
+          type: string
+        }[]
+      }
       get_my_conversations: {
         Args: never
         Returns: {
@@ -1094,6 +1114,26 @@ export type Database = {
           training_id: string
           training_name: string
           venue: string
+        }[]
+      }
+      get_school_upcoming_sessions: {
+        Args: { p_days?: number; p_school_id: string }
+        Returns: {
+          booking_mode: string
+          coach_avatar_url: string | null
+          coach_id: string
+          coach_name: string | null
+          drop_in_policy: string
+          end_time: string
+          invite_code: string
+          is_recurring: boolean | null
+          session_date: string
+          session_id: string
+          sport: string
+          start_time: string
+          training_id: string
+          training_name: string
+          type: string
         }[]
       }
       get_training_member_count: {

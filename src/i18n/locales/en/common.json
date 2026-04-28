@@ -218,6 +218,8 @@
     "trialUsed": "You've already used your trial session. Sign up for all sessions to keep attending.",
     "trialNote": "This is a trial session. Sign up for all sessions to continue attending.",
     "signUpAll": "Sign up for all sessions",
+    "signUpWeekly": "Sign up weekly",
+    "requestWeekly": "Request weekly spot",
     "orPickSession": "Or pick a single session",
     "signUp": "Sign up"
   },

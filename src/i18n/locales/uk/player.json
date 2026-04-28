@@ -75,6 +75,8 @@
     "title": "Тренер",
     "about": "Про мене",
     "availableTrainings": "Доступні заняття",
+    "upcomingSessions": "Найближчі заняття",
+    "noUpcomingSessions": "Немає занять у наступні 2 тижні",
     "requestToJoin": "Подати запит",
     "joinTraining": "Приєднатися до заняття",
     "reviews": "Відгуки",
@@ -86,6 +88,8 @@
   "schoolProfile": {
     "title": "Школа",
     "groupTrainings": "Групові заняття",
+    "upcomingSessions": "Найближчі заняття",
+    "noUpcomingSessions": "Немає занять у наступні 2 тижні",
     "spots_one": "{{count}} місце",
     "spots_few": "{{count}} місця",
     "spots_many": "{{count}} місць",

@@ -75,6 +75,8 @@
     "title": "Coach",
     "about": "About",
     "availableTrainings": "Available trainings",
+    "upcomingSessions": "Upcoming sessions",
+    "noUpcomingSessions": "No sessions scheduled in the next 2 weeks",
     "requestToJoin": "Request to join",
     "joinTraining": "Join training",
     "reviews": "Reviews",
@@ -86,6 +88,8 @@
   "schoolProfile": {
     "title": "School",
     "groupTrainings": "Group trainings",
+    "upcomingSessions": "Upcoming sessions",
+    "noUpcomingSessions": "No sessions scheduled in the next 2 weeks",
     "spots_one": "{{count}} spot",
     "spots_few": "{{count}} spots",
     "spots_many": "{{count}} spots",

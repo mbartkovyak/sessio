@@ -1,15 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { Star, MapPin, MessageCircle, Flag } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Flag, CalendarDays } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
-import { useCoachReviews, useCoachTrainings } from '@/hooks/school/useSchools';
+import { useCoachReviews, useCoachUpcomingSessions } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { sportLabel } from '@/lib/constants';
-import TrainingCard from '@/components/shared/TrainingCard';
+import UpcomingSessionsCalendar from '@/components/shared/UpcomingSessionsCalendar';
 
 import Avatar from '@/components/shared/Avatar';
 import { SessioLoader } from '@/components/SessioLogo';
@@ -32,9 +32,9 @@ export default function CoachPublicProfile() {
 
   const { user } = useAuth();
   const { data: reviews = [], isLoading: reviewsLoading } = useCoachReviews(id);
-  const { data: trainings = [], isLoading: trainingsLoading } = useCoachTrainings(id);
+  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useCoachUpcomingSessions(id);
 
-  const isLoading = profileLoading || reviewsLoading || trainingsLoading;
+  const isLoading = profileLoading || reviewsLoading || sessionsLoading;
 
   const avgRating = reviews.length >= 3
     ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
@@ -88,33 +88,20 @@ export default function CoachPublicProfile() {
 
           <div className="space-y-6">
 
-            {/* Available Trainings */}
-            {trainings.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">{t('coachProfile.availableTrainings')}</h3>
-                <div className="space-y-2">
-                  {trainings.map((tr: any) => (
-                    <TrainingCard
-                      key={tr.id}
-                      training={tr}
-                      badge={
-                        <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${
-                          tr.type === 'individual' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'
-                        }`}>{t(`common:trainingType.${tr.type}`)}</span>
-                      }
-                      extra={
-                        <button
-                          onClick={() => navigate(`/join/${tr.invite_code}`)}
-                          className="mt-3 w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground min-h-[36px]"
-                        >
-                          {tr.booking_mode === 'approval' ? t('coachProfile.requestToJoin') : t('coachProfile.joinTraining')}
-                        </button>
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Upcoming sessions */}
+            <div>
+              <h3 className="font-semibold text-foreground mb-3">{t('coachProfile.upcomingSessions')}</h3>
+              <UpcomingSessionsCalendar
+                sessions={upcomingSessions}
+                isLoading={sessionsLoading}
+                emptyState={
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                    <CalendarDays className="mx-auto h-7 w-7 text-muted-foreground/40 mb-2" />
+                    <p className="text-sm text-muted-foreground">{t('coachProfile.noUpcomingSessions')}</p>
+                  </div>
+                }
+              />
+            </div>
 
             {/* Reviews */}
             <div>

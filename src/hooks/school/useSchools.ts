@@ -17,8 +17,6 @@ type SchoolWithMembers = Tables<'schools'> & {
 type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
 
-type TrainingWithCoach = Tables<'trainings'> & { coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
-
 type ReviewWithReviewer = Tables<'reviews'> & { profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
 
 type FavouriteSchoolWithSchool = Tables<'favourite_schools'> & { school: SchoolBasic | null };
@@ -110,25 +108,6 @@ export function useSchool(id: string | undefined) {
         (data).school_members = all.filter((m: any) => m.status === 'approved');
       }
       return data as SchoolWithMembers;
-    },
-  });
-}
-
-/** Group trainings for a school (public-facing — group + discoverable only) */
-export function useSchoolPublicTrainings(schoolId: string | undefined) {
-  return useQuery({
-    queryKey: ['school-public-trainings', schoolId],
-    enabled: !!schoolId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trainings')
-        .select('*, coach:profiles!trainings_coach_id_fkey(id, full_name, avatar_url)')
-        .eq('school_id', schoolId!)
-        .eq('is_active', true)
-        .eq('type', 'group')
-        .order('start_time', { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as TrainingWithCoach[];
     },
   });
 }
@@ -332,19 +311,50 @@ export function useCoachReviews(coachId: string | undefined) {
   });
 }
 
-export function useCoachTrainings(coachId: string | undefined) {
+export type PublicUpcomingSession = {
+  session_id: string;
+  training_id: string;
+  training_name: string;
+  sport: string;
+  invite_code: string;
+  is_recurring: boolean | null;
+  drop_in_policy: 'allowed' | 'trial' | 'none';
+  booking_mode: 'instant' | 'approval';
+  type: 'group' | 'individual';
+  coach_id: string;
+  coach_name: string | null;
+  coach_avatar_url: string | null;
+  session_date: string;
+  start_time: string;
+  end_time: string;
+};
+
+export function useCoachUpcomingSessions(coachId: string | undefined) {
   return useQuery({
-    queryKey: ['coach-trainings-public', coachId],
+    queryKey: ['coach-upcoming-sessions', coachId],
     enabled: !!coachId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trainings')
-        .select('*')
-        .eq('coach_id', coachId!)
-        .eq('is_active', true)
-        .eq('visibility', 'discoverable');
+      const { data, error } = await supabase.rpc('get_coach_upcoming_sessions', {
+        p_coach_id: coachId!,
+        p_days: 14,
+      });
       if (error) throw error;
-      return (data ?? []) as Tables<'trainings'>[];
+      return (data ?? []) as PublicUpcomingSession[];
+    },
+  });
+}
+
+export function useSchoolUpcomingSessions(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-upcoming-sessions', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_school_upcoming_sessions', {
+        p_school_id: schoolId!,
+        p_days: 14,
+      });
+      if (error) throw error;
+      return (data ?? []) as PublicUpcomingSession[];
     },
   });
 }
