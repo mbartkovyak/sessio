@@ -45,10 +45,13 @@ export default function CoachSessionCard({
             <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
               {session.start_time?.slice(0, 5)} – {session.end_time?.slice(0, 5)}
               {coachName && ` · ${coachName}`}
-              {!isCancelled && attendance && attendance.total > 0 && (
+              {!isCancelled && attendance && attendance.confirmed > 0 && (
                 <span className="inline-flex items-center gap-0.5 text-success font-medium">
                   <CheckCircle2 className="h-3 w-3" />
-                  {t('detail.attendanceSummary', { confirmed: attendance.confirmed, total: attendance.total })}
+                  {t('detail.attendanceSummary', {
+                    confirmed: attendance.confirmed,
+                    total: training?.max_players ?? attendance.total,
+                  })}
                 </span>
               )}
             </span>
