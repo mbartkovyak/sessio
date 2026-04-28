@@ -103,30 +103,30 @@ export default function CoachPublicProfile() {
 
           {/* Action buttons row */}
           {user && id && (
-            <div className="flex items-center justify-center gap-2.5">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => toggleFav.mutate({ coachId: id, isFav: !!isFav })}
-                className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold min-h-[40px] transition-colors ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold min-h-[36px] whitespace-nowrap transition-colors ${
                   isFav ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-foreground'
                 }`}
               >
-                <Heart className={`h-4 w-4 ${isFav ? 'fill-destructive' : ''}`} />
+                <Heart className={`h-3.5 w-3.5 ${isFav ? 'fill-destructive' : ''}`} />
                 {isFav ? t('actions.saved') : t('actions.save')}
               </button>
               {user.id !== id && (
                 <button
                   onClick={() => navigate(`/player/dm/${id}`)}
-                  className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground min-h-[40px]"
+                  className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-2 text-xs font-semibold text-foreground min-h-[36px] whitespace-nowrap"
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="h-3.5 w-3.5" />
                   {t('common:chat.messageCoach')}
                 </button>
               )}
               <button
                 onClick={() => navigate(`/search/coach/${id}/passes`)}
-                className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground min-h-[40px]"
+                className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-2 text-xs font-semibold text-foreground min-h-[36px] whitespace-nowrap"
               >
-                <Ticket className="h-4 w-4" />
+                <Ticket className="h-3.5 w-3.5" />
                 {t('actions.passes')}
               </button>
             </div>
