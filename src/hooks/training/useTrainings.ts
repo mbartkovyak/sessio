@@ -685,9 +685,10 @@ export function useJoinSingleSession() {
 }
 
 /** Sign up for a training as a regular member (or waitlist / approval-pending request).
- *  Mirrors the recurring branch of JoinTraining so callers can join without leaving the page. */
+ *  Mirrors the recurring branch of JoinTraining so callers can join without leaving the page.
+ *  `isWaitlist` distinguishes waitlist from any "in-training" role (regular, flex, ...). */
 export type RecurringJoinResult =
-  | { kind: 'alreadyIn'; role: 'regular' | 'waitlist' }
+  | { kind: 'alreadyIn'; isWaitlist: boolean }
   | { kind: 'requestPending' }
   | { kind: 'requestSent'; resent: boolean }
   | { kind: 'joined'; role: 'regular' | 'waitlist' }
@@ -718,7 +719,7 @@ export function useJoinTrainingRecurring() {
         .eq('user_id', profile.id)
         .maybeSingle();
       if (existing) {
-        return { kind: 'alreadyIn', role: existing.role as 'regular' | 'waitlist' };
+        return { kind: 'alreadyIn', isWaitlist: existing.role === 'waitlist' };
       }
 
       // Capacity
@@ -758,12 +759,13 @@ export function useJoinTrainingRecurring() {
       }
 
       // Instant join
-      const role = isFull ? 'waitlist' : 'regular';
+      const role: 'regular' | 'waitlist' = isFull ? 'waitlist' : 'regular';
       const { error } = await supabase
         .from('training_members')
         .insert({ training_id: training.id, user_id: profile.id, role });
       if (error) {
-        if (error.code === '23505') return { kind: 'alreadyIn', role: 'regular' };
+        // 23505 = unique constraint, i.e. raced with another tab. Treat as already-in.
+        if (error.code === '23505') return { kind: 'alreadyIn', isWaitlist: false };
         throw error;
       }
       notifyMemberJoined(training, profile);
@@ -772,10 +774,10 @@ export function useJoinTrainingRecurring() {
     onSuccess: (result, { training }) => {
       qc.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['my-join-requests'] });
-      const tk = (k: string, opts?: any) => i18n.t(k, { ns: 'common', ...opts });
+      const tk = (k: string, opts?: Record<string, unknown>) => i18n.t(k, { ns: 'common', ...opts });
       switch (result.kind) {
         case 'alreadyIn':
-          toast.info(tk(result.role === 'waitlist' ? 'join.alreadyOnWaitlist' : 'join.alreadyInTraining'));
+          toast.info(tk(result.isWaitlist ? 'join.alreadyOnWaitlist' : 'join.alreadyInTraining'));
           break;
         case 'full':
           toast.error(tk('join.trainingFull'));

@@ -4,11 +4,14 @@ import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useJoinSingleSession, useJoinTrainingRecurring } from '@/hooks/training/useTrainings';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { SPORT_ICONS } from '@/lib/constants';
+import { notifyUsers } from '@/lib/pushNotify';
+import { getFixedTForLanguage } from '@/lib/notificationI18n';
 
 interface SessionInput {
   session_id: string;
@@ -19,6 +22,7 @@ interface SessionInput {
   is_recurring: boolean | null;
   drop_in_policy: string;
   booking_mode: string;
+  coach_id: string;
   session_date: string;
   start_time: string;
   end_time: string;
@@ -36,7 +40,7 @@ export default function SignUpSheet({ session, onClose }: Props) {
   const joinOne = useJoinSingleSession();
   const joinRecurring = useJoinTrainingRecurring();
 
-  // If not authenticated, route through the existing auth-aware /join page
+  // Logged-out viewer of a public school profile: hand off to the auth-aware /join page.
   useEffect(() => {
     if (!authSession || !profile) {
       navigate(`/join/${session.invite_code}?session=${session.session_id}`);
@@ -44,19 +48,23 @@ export default function SignUpSheet({ session, onClose }: Props) {
     }
   }, [authSession, profile, session.invite_code, session.session_id, navigate, onClose]);
 
-  // Pull training row for the recurring-join hook (needs max_players + allow_waitlist + coach language)
+  // Training row carries the fields the recurring-join hook needs (max_players,
+  // allow_waitlist, booking_mode) plus coach language for the push notification.
   const { data: training } = useQuery({
     queryKey: ['training-row-for-join', session.training_id],
-    enabled: !!authSession,
+    enabled: !!authSession && !!profile,
     queryFn: async () => {
       const { data } = await supabase
         .from('trainings')
         .select('id, name, coach_id, max_players, allow_waitlist, booking_mode, coach:profiles!trainings_coach_id_fkey(language)')
         .eq('id', session.training_id)
         .maybeSingle();
-      return data as any;
+      return data;
     },
   });
+
+  // Effect handles the redirect; render nothing until then to avoid a flash of the sheet.
+  if (!authSession || !profile) return null;
 
   const isRecurring = session.is_recurring === true;
   const allowSingle = session.drop_in_policy !== 'none';
@@ -67,22 +75,46 @@ export default function SignUpSheet({ session, onClose }: Props) {
   const sessionLabel = `${format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })} · ${session.start_time?.slice(0, 5)}–${session.end_time?.slice(0, 5)}`;
 
   async function handleSingle() {
+    if (!profile) return;
+    // Pre-check: join_single_session uses ON CONFLICT DO NOTHING, so a duplicate
+    // would silently "succeed". Catch already-joined here for an honest toast.
+    const { data: existingAtt } = await supabase
+      .from('session_attendance')
+      .select('id')
+      .eq('session_id', session.session_id)
+      .eq('user_id', profile.id)
+      .maybeSingle();
+    if (existingAtt) {
+      toast.info(t('join.alreadyInSession'));
+      onClose();
+      return;
+    }
     try {
       await joinOne.mutateAsync({ sessionId: session.session_id });
-      onClose();
+      if (session.coach_id) {
+        const tCoach = getFixedTForLanguage(training?.coach?.language);
+        notifyUsers([session.coach_id], {
+          title: tCoach('join.guestJoinedTitle'),
+          body: tCoach('join.guestJoinedBody', {
+            name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+            training: session.training_name,
+          }),
+          tag: `guest-${session.session_id}`,
+          url: `/coach/sessions/${session.session_id}`,
+        });
+      }
+      toast.success(t('join.joinedSession', { name: session.training_name }));
     } catch {
-      // toast handled by hook; keep sheet open so user can retry or close manually
+      // hook's onError already toasted; fall through to close
     }
+    onClose();
   }
 
   async function handleRecurring() {
     if (!training) return;
-    try {
-      await joinRecurring.mutateAsync({ training });
-      onClose();
-    } catch {
-      // toast handled by hook
-    }
+    // Hook handles toasts on every branch (alreadyIn / full / requestSent / joined / error).
+    await joinRecurring.mutateAsync({ training }).catch(() => {});
+    onClose();
   }
 
   const busy = joinOne.isPending || joinRecurring.isPending;
