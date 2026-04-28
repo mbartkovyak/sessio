@@ -23,7 +23,7 @@ import { format } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useCreateStandalonePlaceholder } from '@/hooks/training/useTrainings';
 
-export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId: string; schoolCountry?: string | null }) {
+export default function AbonamentSection({ schoolId, schoolCountry, canManageTypes = false }: { schoolId: string; schoolCountry?: string | null; canManageTypes?: boolean }) {
   const { t } = useTranslation('coach');
   const [showForm, setShowForm] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -172,7 +172,7 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground text-sm">{t('abonaments.title')}</h2>
-        {!showForm && (
+        {canManageTypes && !showForm && (
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-all active:scale-[0.97]"
@@ -183,7 +183,7 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
       </div>
 
       {/* Add type form */}
-      {showForm && (
+      {canManageTypes && showForm && (
         <div className="rounded-xl border border-border bg-card p-3 space-y-2.5">
           <input
             type="text"
@@ -236,11 +236,13 @@ export default function AbonamentSection({ schoolId, schoolCountry }: { schoolId
                 <p className="text-sm font-medium text-foreground">{type.name}</p>
                 <p className="text-xs text-muted-foreground">{typeLabel(type)}</p>
               </div>
-              <button
-                onClick={() => { if (confirm(t('abonaments.deleteTypeConfirm'))) deleteType.mutate({ id: type.id, schoolId }); }}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors">
-                <Trash2 className="h-3 w-3 text-destructive" />
-              </button>
+              {canManageTypes && (
+                <button
+                  onClick={() => { if (confirm(t('abonaments.deleteTypeConfirm'))) deleteType.mutate({ id: type.id, schoolId }); }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors">
+                  <Trash2 className="h-3 w-3 text-destructive" />
+                </button>
+              )}
             </div>
           ))}
         </div>
