@@ -446,6 +446,23 @@ export function useRequestPass() {
       if (!startDate) throw new Error('Pass start date is required');
       const start = new Date(startDate + 'T00:00:00');
       if (Number.isNaN(start.getTime())) throw new Error('Invalid pass start date');
+
+      const { data: abonamentType, error: typeError } = await supabase
+        .from('abonament_types')
+        .select('sessions_count, duration_days')
+        .eq('id', abonamentTypeId)
+        .eq('school_id', schoolId)
+        .single();
+      if (typeError) throw typeError;
+
+      let expiresAt: string | null = null;
+      if (abonamentType.duration_days) {
+        const end = new Date(start);
+        end.setDate(end.getDate() + abonamentType.duration_days);
+        end.setHours(23, 59, 59, 999);
+        expiresAt = end.toISOString();
+      }
+
       const { error } = await supabase
         .from('player_abonaments')
         .insert({
@@ -454,6 +471,9 @@ export function useRequestPass() {
           player_id: user!.id,
           status: 'pending',
           activated_at: start.toISOString(),
+          sessions_total: abonamentType.sessions_count,
+          sessions_remaining: abonamentType.sessions_count,
+          expires_at: expiresAt,
         });
       if (error) throw error;
 
