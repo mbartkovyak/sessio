@@ -443,8 +443,8 @@ export function useRequestPass() {
       typeName: string;
       startDate: string;
     }) => {
-      const requestedStartDate = startDate || new Date().toISOString().slice(0, 10);
-      const start = new Date(requestedStartDate + 'T00:00:00');
+      if (!startDate) throw new Error('Pass start date is required');
+      const start = new Date(startDate + 'T00:00:00');
       if (Number.isNaN(start.getTime())) throw new Error('Invalid pass start date');
       const { error } = await supabase
         .from('player_abonaments')

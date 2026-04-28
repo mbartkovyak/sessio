@@ -68,7 +68,6 @@ export default function PlayerPasses() {
   const pastPasses = passes.filter((pass: any) => pass.status !== 'pending' && !isAbonamentActive(pass));
   const isLoading = coachLoading || schoolLoading || passesLoading || typesLoading;
   const title = isCoachRoute ? (coach?.full_name ?? t('coachProfile.title')) : (school?.name ?? t('schoolProfile.title'));
-  const today = todayDateValue();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -100,14 +99,13 @@ export default function PlayerPasses() {
                   type={type}
                   isPending={requestPass.isPending || pendingTypeIds.has(type.id)}
                   isAlreadyRequested={pendingTypeIds.has(type.id)}
-                  startDate={startDates[type.id] || today}
-                  minDate={today}
+                  startDate={startDates[type.id] ?? ''}
                   onStartDateChange={(value) => setStartDates((dates) => ({ ...dates, [type.id]: value }))}
                   onRequest={() => requestPass.mutate({
                     abonamentTypeId: type.id,
                     schoolId: type.school_id,
                     typeName: type.name,
-                    startDate: startDates[type.id] || today,
+                    startDate: startDates[type.id],
                   })}
                 />
               )) : <EmptyState text={t('abonaments.noAvailablePasses')} />}
@@ -195,7 +193,6 @@ function AvailablePassCard({
   isPending,
   isAlreadyRequested,
   startDate,
-  minDate,
   onStartDateChange,
   onRequest,
 }: {
@@ -203,7 +200,6 @@ function AvailablePassCard({
   isPending: boolean;
   isAlreadyRequested: boolean;
   startDate: string;
-  minDate: string;
   onStartDateChange: (value: string) => void;
   onRequest: () => void;
 }) {
@@ -230,7 +226,6 @@ function AvailablePassCard({
           <input
             type="date"
             value={startDate}
-            min={minDate}
             disabled={isAlreadyRequested}
             onChange={(event) => onStartDateChange(event.target.value)}
             className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground disabled:opacity-50"
@@ -238,7 +233,7 @@ function AvailablePassCard({
         </label>
         <button
           onClick={onRequest}
-          disabled={isPending}
+          disabled={isPending || !startDate}
           className="h-9 shrink-0 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50"
         >
           {isAlreadyRequested ? t('abonaments.pendingApproval') : t('abonaments.request')}
@@ -254,12 +249,6 @@ function deriveEndDate(startDate?: string | null, durationDays?: number | null) 
   end.setDate(end.getDate() + durationDays);
   end.setHours(23, 59, 59, 999);
   return end;
-}
-
-function todayDateValue() {
-  const today = new Date();
-  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-  return today.toISOString().slice(0, 10);
 }
 
 function EmptyState({ text }: { text: string }) {

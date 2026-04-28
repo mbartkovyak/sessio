@@ -9,7 +9,6 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
   const { data: types = [] } = useAvailablePassTypes(schoolIds);
   const { data: myAbonaments = [] } = useMyAbonaments();
   const requestPass = useRequestPass();
-  const today = todayDateValue();
 
   // Keep active passes requestable so athletes can renew or buy another pack.
   // Only hide a type while the same request is already waiting for approval.
@@ -61,8 +60,7 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
                   </span>
                   <input
                     type="date"
-                    value={startDates[type.id] || today}
-                    min={today}
+                    value={startDates[type.id] ?? ''}
                     onChange={(event) => setStartDates((dates) => ({ ...dates, [type.id]: event.target.value }))}
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                   />
@@ -72,9 +70,9 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
                     abonamentTypeId: type.id,
                     schoolId: type.school_id,
                     typeName: type.name,
-                    startDate: startDates[type.id] || today,
+                    startDate: startDates[type.id],
                   })}
-                  disabled={requestPass.isPending}
+                  disabled={requestPass.isPending || !startDates[type.id]}
                   className="h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shrink-0 disabled:opacity-50"
                 >
                   {t('abonaments.request')}
@@ -86,10 +84,4 @@ export default function AvailablePassesSection({ schoolIds }: { schoolIds?: Arra
       </div>
     </section>
   );
-}
-
-function todayDateValue() {
-  const today = new Date();
-  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-  return today.toISOString().slice(0, 10);
 }
