@@ -60,7 +60,7 @@ export default function PlayerPasses() {
       .filter((pass: any) => pass.status === 'pending')
       .map((pass: any) => pass.abonament_type_id),
   );
-  const availableTypes = passTypes.filter((type: any) => !pendingTypeIds.has(type.id));
+  const availableTypes = passTypes;
   const activePasses = passes.filter((pass: any) => isAbonamentActive(pass));
   const requestedPasses = passes.filter((pass: any) => pass.status === 'pending');
   const pastPasses = passes.filter((pass: any) => pass.status !== 'pending' && !isAbonamentActive(pass));
@@ -95,7 +95,8 @@ export default function PlayerPasses() {
                 <AvailablePassCard
                   key={type.id}
                   type={type}
-                  isPending={requestPass.isPending}
+                  isPending={requestPass.isPending || pendingTypeIds.has(type.id)}
+                  isAlreadyRequested={pendingTypeIds.has(type.id)}
                   onRequest={() => requestPass.mutate({
                     abonamentTypeId: type.id,
                     schoolId: type.school_id,
@@ -172,7 +173,17 @@ function PlayerPassCard({ pass }: { pass: any }) {
   );
 }
 
-function AvailablePassCard({ type, isPending, onRequest }: { type: any; isPending: boolean; onRequest: () => void }) {
+function AvailablePassCard({
+  type,
+  isPending,
+  isAlreadyRequested,
+  onRequest,
+}: {
+  type: any;
+  isPending: boolean;
+  isAlreadyRequested: boolean;
+  onRequest: () => void;
+}) {
   const { t } = useTranslation('player');
   const details: string[] = [];
   if (type.sessions_count) details.push(`${type.sessions_count}x`);
@@ -194,7 +205,7 @@ function AvailablePassCard({ type, isPending, onRequest }: { type: any; isPendin
           disabled={isPending}
           className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {t('abonaments.request')}
+          {isAlreadyRequested ? t('abonaments.pendingApproval') : t('abonaments.request')}
         </button>
       </div>
     </div>
