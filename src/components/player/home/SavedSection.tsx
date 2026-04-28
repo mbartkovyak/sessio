@@ -11,8 +11,8 @@ type Item =
 export default function SavedSection() {
   const { t } = useTranslation('player');
   const navigate = useNavigate();
-  const { data: schools = [] } = useMyFavouriteSchools();
-  const { data: coaches = [] } = useMyFavouriteCoaches();
+  const { data: schools = [], isLoading: schoolsLoading } = useMyFavouriteSchools();
+  const { data: coaches = [], isLoading: coachesLoading } = useMyFavouriteCoaches();
 
   const items: Item[] = [
     ...schools
@@ -32,11 +32,25 @@ export default function SavedSection() {
         avatar_url: f.coach!.avatar_url ?? null,
       })),
   ];
+  const isLoading = schoolsLoading || coachesLoading;
 
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('saved.title')}</h2>
-      {items.length === 0 ? (
+      {items.length === 0 && isLoading ? (
+        <div className="flex gap-3 overflow-hidden pb-1 -mx-1 px-1">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="flex min-w-[100px] shrink-0 flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 shadow-sm"
+            >
+              <div className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+              <div className="h-3 w-14 rounded bg-muted animate-pulse" />
+              <div className="h-2.5 w-9 rounded bg-muted animate-pulse" />
+            </div>
+          ))}
+        </div>
+      ) : items.length === 0 ? (
         <button
           onClick={() => navigate('/search')}
           className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-card/50 p-4 text-left active:bg-secondary/40 transition-colors"

@@ -21,7 +21,7 @@ export default function PlayerHome() {
   const { t } = useTranslation('player');
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
+  const { data: upcoming = [], isLoading: upcomingLoading } = useMyUpcomingSessions();
 
   // Sessions within next 7 days shown as "This week", fallback to all upcoming
   const thisWeekSessions = upcoming.filter((a: any) => {
@@ -43,11 +43,6 @@ export default function PlayerHome() {
       </PageHeader>
 
       <main className="flex-1 pb-24">
-        {isLoading ? (
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <SessioLoader />
-          </div>
-        ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           {/* Greeting */}
           <div>
@@ -60,7 +55,13 @@ export default function PlayerHome() {
           </div>
 
           {/* Status card */}
-          {hasUpcoming && nextConfirmed ? (
+          {upcomingLoading ? (
+            <div className="card-elevated rounded-2xl p-5">
+              <div className="flex items-center justify-center py-3">
+                <SessioLoader size={40} />
+              </div>
+            </div>
+          ) : hasUpcoming && nextConfirmed ? (
             <div className="card-elevated rounded-2xl p-5 border-l-4 border-l-success">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
@@ -94,7 +95,7 @@ export default function PlayerHome() {
           ) : null}
 
           {/* Upcoming training */}
-          <ThisWeekSection sessions={displaySessions} title={sectionTitle} />
+          {!upcomingLoading && <ThisWeekSection sessions={displaySessions} title={sectionTitle} />}
 
           {/* Saved coaches + schools */}
           <SavedSection />
@@ -110,7 +111,6 @@ export default function PlayerHome() {
           <OpenSpotsSection />
           <PushNotificationPrompt />
         </div>
-        )}
       </main>
 
       <PlayerBottomNav />
