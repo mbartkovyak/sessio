@@ -148,7 +148,7 @@ export default function SchoolPublicProfile() {
           <div className="max-w-md mx-auto px-4 py-3">
             <button
               onClick={() => navigate(`/s/${id}/schedule`)}
-              className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
+              className="cta-pulse w-full rounded-2xl bg-accent py-4 text-base font-bold text-accent-foreground min-h-[56px] active:opacity-80 transition-opacity"
             >
               {t('actions.viewSchedule')}
             </button>
