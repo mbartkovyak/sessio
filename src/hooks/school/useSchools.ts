@@ -183,11 +183,12 @@ export function useToggleFavouriteSchool() {
         if (error) throw error;
       }
     },
-    onSuccess: (_, { schoolId, isFav }) => {
+    onSuccess: (_, { isFav }) => {
       qc.invalidateQueries({ queryKey: ['fav-school'] });
       qc.invalidateQueries({ queryKey: ['favourite-schools'] });
       toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
     },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -249,6 +250,7 @@ export function useToggleFavouriteCoach() {
       qc.invalidateQueries({ queryKey: ['favourite-coaches'] });
       toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
     },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
