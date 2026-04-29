@@ -227,7 +227,7 @@ export default function AbonamentSection({ schoolId, schoolCountry, canManageTyp
 
       {/* Pass types list */}
       {types.length === 0 && !showForm ? (
-        <p className="text-xs text-muted-foreground">{t('abonaments.noTypes')}</p>
+        <p className="text-xs text-muted-foreground">{t(canManageTypes ? 'abonaments.noTypes' : 'abonaments.noTypesCoach')}</p>
       ) : types.length > 0 ? (
         <div className="rounded-xl border border-border bg-card divide-y divide-border">
           {types.map((type: any) => (

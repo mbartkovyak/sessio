@@ -265,6 +265,7 @@
     "optional": "(optional)",
     "createType": "Add",
     "noTypes": "No pass types yet. Add one to assign passes.",
+    "noTypesCoach": "No pass types yet. Your school owner hasn't created any.",
     "activePasses": "Active passes",
     "remaining": "{{remaining}}/{{total}}",
     "unlimited": "Unlimited",

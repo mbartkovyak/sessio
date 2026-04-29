@@ -265,6 +265,7 @@
     "optional": "(opcjonalnie)",
     "createType": "Dodaj",
     "noTypes": "Brak typów karnetów. Dodaj, aby przypisywać karnety.",
+    "noTypesCoach": "Brak typów karnetów. Właściciel szkoły jeszcze ich nie utworzył.",
     "activePasses": "Aktywne karnety",
     "remaining": "{{remaining}}/{{total}}",
     "unlimited": "Bez limitu",
