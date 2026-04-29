@@ -20,9 +20,16 @@ export function setupDeepLinks(): void {
     CapApp.addListener('appUrlOpen', ({ url }) => {
       try {
         const parsed = new URL(url);
-        // For custom schemes, URL parses com.get-sessio.app://auth/callback as
-        // host="auth", pathname="/callback". Combine them to get the full path.
-        const path = `/${parsed.host}${parsed.pathname}`.replace(/\/+$/, '') || '/';
+        // For HTTPS universal/app links the host is the domain (get-sessio.com)
+        // and the pathname is already the full route ("/join/X"). For custom
+        // schemes (com.get-sessio.app://) URL parses host as the first path
+        // segment ("join") and pathname as everything after, so we have to
+        // glue them back together.
+        const isHttp = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        const path = (isHttp
+          ? parsed.pathname
+          : `/${parsed.host}${parsed.pathname}`
+        ).replace(/\/+$/, '') || '/';
 
         if (path.startsWith('/auth/callback')) {
           // OAuth callback — Supabase puts tokens in the hash fragment.
