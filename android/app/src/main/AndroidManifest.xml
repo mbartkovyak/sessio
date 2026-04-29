@@ -47,10 +47,6 @@
                 <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/join-school/" />
                 <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/join/" />
                 <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/auth/callback" />
-                <!-- Dev preview host so Sessio Dev (debug variant) opens dev links. -->
-                <data android:scheme="https" android:host="sessio-git-dev-mbartkovyak-6875s-projects.vercel.app" android:pathPrefix="/join-school/" />
-                <data android:scheme="https" android:host="sessio-git-dev-mbartkovyak-6875s-projects.vercel.app" android:pathPrefix="/join/" />
-                <data android:scheme="https" android:host="sessio-git-dev-mbartkovyak-6875s-projects.vercel.app" android:pathPrefix="/auth/callback" />
             </intent-filter>
 
         </activity>
