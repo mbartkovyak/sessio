@@ -256,12 +256,6 @@
     "description": "This page doesn't exist or is no longer available.",
     "goHome": "Go home"
   },
-  "pwa": {
-    "title": "Add Sessio to your home screen",
-    "description": "Use Sessio like an app. No app store needed.",
-    "notNow": "Not now",
-    "install": "Install"
-  },
   "dialog": {
     "unsavedTitle": "Unsaved changes",
     "unsavedDesc": "You have unsaved changes. If you leave now, they'll be lost.",

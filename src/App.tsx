@@ -1,9 +1,10 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, Navigate } from "react-router-dom";
 import NavigationLoadingBar from "@/components/layout/NavigationLoadingBar";
-import InstallPWA from "@/components/layout/InstallPWA";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
@@ -55,7 +56,6 @@ function RootLayout() {
       <ScrollToTop />
       <RefreshOnResume />
       <PullToRefresh />
-      <InstallPWA />
       <ErrorBoundary>
         <AuthProvider>
           <PushRegistrar />
@@ -163,11 +163,20 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,   // 5 min — data stays fresh, realtime + RefreshOnResume handle updates
-      gcTime: 10 * 60 * 1000,     // 10 min — keep unused cache in memory
-      refetchOnWindowFocus: false, // mobile PWA: no refetch on tab switch
+      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days — must be ≥ persister maxAge so rehydrated queries aren't gc'd
+      refetchOnWindowFocus: false, // no refetch on tab switch
       retry: 1,                    // fail fast
     },
   },
+});
+
+// Persist the query cache to localStorage so cold starts hydrate instantly
+// with last-known data while a background refetch confirms it. Lives across
+// app launches; cleared on signOut() in AuthContext to prevent leaking the
+// previous user's data into the next sign-in.
+const queryPersister = createSyncStoragePersister({
+  storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  key: 'sessio_query_cache',
 });
 
 const router = createBrowserRouter(
@@ -235,12 +244,19 @@ const router = createBrowserRouter(
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <PersistQueryClientProvider
+    client={queryClient}
+    persistOptions={{
+      persister: queryPersister,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — older persisted entries are dropped on rehydration
+      buster: 'v1',                // bump to invalidate every cache (e.g. after a schema change)
+    }}
+  >
     <TooltipProvider>
       <Toaster />
       <RouterProvider router={router} />
     </TooltipProvider>
-  </QueryClientProvider>
+  </PersistQueryClientProvider>
 );
 
 export default App;

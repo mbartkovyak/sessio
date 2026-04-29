@@ -5,7 +5,10 @@ export const isIOS = Capacitor.getPlatform() === 'ios';
 export const isAndroid = Capacitor.getPlatform() === 'android';
 export const isWeb = !isNative;
 
-const WEB_ORIGIN = 'https://get-sessio.com';
+// Native builds bake VITE_WEB_ORIGIN at build time so dev TestFlight / dev APK
+// share links point at the dev web origin (which talks to the dev Supabase),
+// while prod builds default to https://get-sessio.com.
+const WEB_ORIGIN = (import.meta.env.VITE_WEB_ORIGIN as string | undefined)?.trim() || 'https://get-sessio.com';
 
 /** Returns a web-accessible origin for shareable links (invite URLs, etc.) */
 export function getShareableOrigin(): string {

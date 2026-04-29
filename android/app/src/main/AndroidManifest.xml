@@ -36,6 +36,19 @@
                 <data android:scheme="com.get-sessio.app" />
             </intent-filter>
 
+            <!-- HTTPS App Links for https://get-sessio.com/* — verified via
+                 /.well-known/assetlinks.json so Android opens the app instead
+                 of the browser. autoVerify must be true on every <intent-filter>
+                 element for the same host or verification fails. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/join-school/" />
+                <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/join/" />
+                <data android:scheme="https" android:host="get-sessio.com" android:pathPrefix="/auth/callback" />
+            </intent-filter>
+
         </activity>
 
         <provider

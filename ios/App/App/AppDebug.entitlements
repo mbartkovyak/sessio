@@ -8,5 +8,10 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:get-sessio.com</string>
+		<string>applinks:sessio-git-dev-mbartkovyak-6875s-projects.vercel.app</string>
+	</array>
 </dict>
 </plist>

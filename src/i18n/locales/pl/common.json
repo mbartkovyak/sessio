@@ -256,12 +256,6 @@
     "description": "Ta strona nie istnieje albo nie jest już dostępna.",
     "goHome": "Strona główna"
   },
-  "pwa": {
-    "title": "Dodaj Sessio do ekranu głównego",
-    "description": "Korzystaj z Sessio jak z aplikacji. Bez sklepu z aplikacjami.",
-    "notNow": "Nie teraz",
-    "install": "Zainstaluj"
-  },
   "dialog": {
     "unsavedTitle": "Niezapisane zmiany",
     "unsavedDesc": "Masz niezapisane zmiany. Jeśli wyjdziesz, zostaną utracone.",

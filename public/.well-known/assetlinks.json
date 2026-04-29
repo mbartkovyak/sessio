@@ -9,5 +9,15 @@
         "08:4C:1A:BF:2D:01:65:07:7C:C7:42:3F:58:2E:CA:C4:85:0E:E1:95:AE:DD:22:A1:C0:C4:38:9B:DB:F3:FC:24"
       ]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.get_sessio.twa.debug",
+      "sha256_cert_fingerprints": [
+        "89:BA:BD:E4:D1:39:CD:CC:CB:6F:F7:76:5A:D7:6A:DE:88:53:2F:45:CC:CA:77:13:76:34:AB:DF:40:5B:DC:B1"
+      ]
+    }
   }
 ]

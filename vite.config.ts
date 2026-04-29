@@ -25,7 +25,6 @@ export default defineConfig(({ mode, command }) => {
   },
   plugins: [
     react(),
-    // PWA: manifest + SW are static files in public/ (vite-plugin-pwa's SW build hangs under bun)
   ],
   build: {
     rollupOptions: {

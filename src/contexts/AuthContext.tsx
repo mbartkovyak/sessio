@@ -207,6 +207,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     localStorage.removeItem('sessio_cached_profile');
+    // Wipe persisted React Query cache so the next user's sign-in doesn't
+    // briefly show the previous user's data on cold start (the persister
+    // rehydrates before auth resolves).
+    localStorage.removeItem('sessio_query_cache');
 
     // Clear React state synchronously so the UI reflects sign-out immediately.
     // Without this, session/profile stay populated for the 3-5s that
