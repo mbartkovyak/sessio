@@ -26,8 +26,11 @@ export default function PullToRefresh() {
     busy.current = true;
     setRefreshing(true);
     setDistance(36); // snap to spinner position
-    await queryClient.invalidateQueries();
-    // Brief pause so user sees the spinner
+    // Active queries only — pull-to-refresh refreshes the visible page, not
+    // every cached query in the app. Fire-and-forget so the spinner doesn't
+    // outlive navigation: the singleton overlay would otherwise keep spinning
+    // on the next page while the previous page's queries refetch.
+    queryClient.invalidateQueries({ refetchType: 'active' });
     await new Promise(r => setTimeout(r, 400));
     busy.current = false;
     setRefreshing(false);
