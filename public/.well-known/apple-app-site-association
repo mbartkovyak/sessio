@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "H82FZ6FBK6.com.get-sessio.app",
+          "H82FZ6FBK6.com.get-sessio.app.dev"
+        ],
+        "components": [
+          { "/": "/join-school/*" },
+          { "/": "/join/*" },
+          { "/": "/auth/callback*" }
+        ]
+      }
+    ]
+  }
+}

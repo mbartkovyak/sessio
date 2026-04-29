@@ -35,6 +35,7 @@ jobs:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_GOOGLE_WEB_CLIENT_ID: ${{ secrets.VITE_GOOGLE_WEB_CLIENT_ID }}
+          VITE_WEB_ORIGIN: https://sessio-git-dev-mbartkovyak-6875s-projects.vercel.app
 
       - name: Upload to Capgo dev channel
         run: |
