@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,7 @@ import { getDeviceId } from '@/lib/device-id';
 export function useNativePush() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const handlesRef = useRef<PluginListenerHandle[]>([]);
   const lastTokenRef = useRef<string | null>(null);
 
@@ -133,6 +135,16 @@ export function useNativePush() {
           (e) => {
             const data = (e.notification?.data ?? {}) as Record<string, unknown>;
             const url = typeof data.url === 'string' ? data.url : null;
+            // Invalidate caches the notification likely points at. The
+            // realtime WebSocket was disconnected while the app was
+            // suspended, so the persisted query cache has no record of
+            // whatever event triggered this push. Without this, opening
+            // the chat shows stale messages until the user pulls to
+            // refresh. Targeted to messaging keys — calendar, schools,
+            // etc. don't need touching.
+            queryClient.invalidateQueries({ queryKey: ['messages'] });
+            queryClient.invalidateQueries({ queryKey: ['my-conversations'] });
+            queryClient.invalidateQueries({ queryKey: ['upcoming-sessions'] });
             if (url) navigate(url);
           },
         );
