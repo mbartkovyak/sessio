@@ -219,7 +219,8 @@
     "trialNote": "This is a trial session. Sign up for all sessions to continue attending.",
     "signUpAll": "Sign up for all sessions",
     "orPickSession": "Or pick a single session",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back."
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

@@ -218,8 +218,15 @@
     "trialUsed": "Wykorzystałeś próbne zajęcia. Zapisz się na wszystkie, aby kontynuować.",
     "trialNote": "To są zajęcia próbne. Zapisz się na wszystkie, aby kontynuować.",
     "signUpAll": "Zapisz się na wszystkie zajęcia",
+    "signUpWeekly": "Zapisz się co tydzień",
+    "requestWeekly": "Poproś o cotygodniowe miejsce",
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
-    "signUp": "Zapisz się"
+    "signUp": "Zapisz się",
+    "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać."
+  },
+  "signUp": {
+    "justThisSession": "Tylko te zajęcia",
+    "everyWeek": "Co tydzień"
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
@@ -302,6 +309,7 @@
     "removedFromFavourites": "Usunięto z ulubionych",
     "addedToFavourites": "Dodano do ulubionych",
     "schoolCreated": "Utworzono szkołę",
-    "schoolUpdated": "Zaktualizowano szkołę"
+    "schoolUpdated": "Zaktualizowano szkołę",
+    "reviewSubmitted": "Dzięki za opinię"
   }
 }

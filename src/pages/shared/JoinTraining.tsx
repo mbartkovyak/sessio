@@ -178,6 +178,11 @@ export default function JoinTraining() {
       }
       queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['session-attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Drop-in deducts a pass entry via the DB charge trigger.
+      queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
+      queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
       toast.success(t('join.joinedSession', { name: training.name }));
       navigate('/player');
     } catch (err: any) {
@@ -190,18 +195,20 @@ export default function JoinTraining() {
   }
 
   async function handleJoinAllSessions() {
+    // Router: ?session= mode short-circuits to single-session join.
+    if (sessionParam && sessionInfo) {
+      await handleJoinSession(sessionParam);
+      return;
+    }
+    await handleJoinRecurring();
+  }
+
+  async function handleJoinRecurring() {
     if (!training || !profile) return;
     if (joiningRef.current) return;
     joiningRef.current = true;
     setJoining(true);
     try {
-      // ── Direct session link (legacy ?session= param) ──
-      if (sessionParam && sessionInfo) {
-        await handleJoinSession(sessionParam);
-        return;
-      }
-
-      // ── Sign up for all sessions ──
       if (training._type === 'training') {
         const { data: existing } = await supabase
           .from('training_members')
@@ -315,6 +322,11 @@ export default function JoinTraining() {
           });
         }
         queryClient.removeQueries({ queryKey: ['my-upcoming-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['my-attendance'] });
+        // Becoming a regular cascades into auto-attendance INSERTs which deduct passes via the trigger.
+        queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
+        queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
+        queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
         toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
         navigate('/player');
       }
@@ -470,13 +482,23 @@ export default function JoinTraining() {
             {training.drop_in_policy === 'trial' && (
               <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
             )}
+            <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
             <button
               onClick={() => handleJoinSession(sessionParam)}
-              disabled={!!joiningSessionId}
+              disabled={!!joiningSessionId || joining}
               className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
             >
               {joiningSessionId ? t('join.joining') : t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) })}
             </button>
+            {training.is_recurring === true && (
+              <button
+                onClick={handleJoinRecurring}
+                disabled={!!joiningSessionId || joining}
+                className="w-full rounded-2xl border border-border bg-card py-4 text-base font-semibold text-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+              >
+                {joining ? t('join.joining') : isApproval ? t('join.requestWeekly') : t('join.signUpWeekly')}
+              </button>
+            )}
           </main>
         </div>
       );
@@ -498,6 +520,8 @@ export default function JoinTraining() {
               </div>
             </div>
           )}
+
+          <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
 
           {/* Primary: sign up for all sessions */}
           <button

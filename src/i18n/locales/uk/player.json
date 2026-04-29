@@ -75,6 +75,8 @@
     "title": "Тренер",
     "about": "Про мене",
     "availableTrainings": "Доступні заняття",
+    "upcomingSessions": "Найближчі заняття",
+    "noUpcomingSessions": "Немає занять у наступні 2 тижні",
     "requestToJoin": "Подати запит",
     "joinTraining": "Приєднатися до заняття",
     "reviews": "Відгуки",
@@ -85,7 +87,10 @@
   },
   "schoolProfile": {
     "title": "Школа",
+    "about": "Про нас",
     "groupTrainings": "Групові заняття",
+    "upcomingSessions": "Найближчі заняття",
+    "noUpcomingSessions": "Немає занять у наступні 2 тижні",
     "spots_one": "{{count}} місце",
     "spots_few": "{{count}} місця",
     "spots_many": "{{count}} місць",
@@ -132,15 +137,64 @@
     "remaining": "Залишилось {{remaining}} з {{total}}",
     "unlimited": "Без ліміту занять",
     "expiresOn": "Діє до {{date}}",
+    "noEndDate": "Без дати завершення",
     "expired": "Завершився",
     "usedUp": "Використано",
     "startsOn": "З {{date}}",
     "availablePasses": "Доступні абонементи",
+    "activePasses": "Активні абонементи",
+    "requestedPasses": "Запити на абонементи",
+    "availableToRequest": "Доступні для запиту",
+    "pastPasses": "Минулі абонементи",
     "request": "Запросити",
+    "requestStartDate": "Дата початку",
+    "chooseStartDate": "Спочатку оберіть дату початку",
     "requestSent": "Запит на абонемент надіслано",
-    "pendingApproval": "Очікує підтвердження"
+    "pendingApproval": "Очікує підтвердження",
+    "noPassesHere": "Тут ще немає доступних абонементів",
+    "noActivePasses": "Немає активних абонементів",
+    "noRequestedPasses": "Немає запитів на абонементи",
+    "noAvailablePasses": "Немає абонементів для запиту",
+    "noPastPasses": "Немає минулих абонементів"
   },
   "favouriteSchools": {
     "title": "Школи, за якими ви стежите"
+  },
+  "saved": {
+    "title": "Збережене",
+    "school": "Школа",
+    "coach": "Тренер",
+    "emptyTitle": "Збережіть тренерів і школи",
+    "emptyDesc": "Натисніть сердечко на профілі, щоб швидко повертатися"
+  },
+  "actions": {
+    "save": "Зберегти",
+    "saved": "Збережено",
+    "passes": "Абонементи",
+    "viewSchedule": "Дивитися розклад"
+  },
+  "schedule": {
+    "subtitle": "Розклад"
+  },
+  "venues": {
+    "title": "Місця проведення"
+  },
+  "reviews": {
+    "title": "Відгуки",
+    "seeAll": "Дивитися всі",
+    "empty": "Поки немає відгуків",
+    "athlete": "Учасник",
+    "aboutCoach": "Тренер {{name}}",
+    "ratingCount_one": "{{count}} оцінка",
+    "ratingCount_few": "{{count}} оцінки",
+    "ratingCount_many": "{{count}} оцінок",
+    "ratingCount_other": "{{count}} оцінок",
+    "allTitle": "Усі відгуки",
+    "leaveCta": "Залишити відгук",
+    "leaveTitle": "Залишити відгук",
+    "leaveDesc": "Поділіться враженнями про {{name}}",
+    "textPlaceholder": "Розкажіть іншим про ваші враження (необов'язково)",
+    "submit": "Надіслати",
+    "submitting": "Надсилання..."
   }
 }

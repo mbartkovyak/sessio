@@ -259,6 +259,24 @@ html.android-keyboard-open .fixed.bottom-0.left-0.right-0 {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Idiot-proof CTA: gentle scale + expanding orange glow ring to draw the eye. */
+@keyframes ctaPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(30 95% 52% / 0.55);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 0 0 10px hsl(30 95% 52% / 0);
+  }
+}
+.cta-pulse {
+  animation: ctaPulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-pulse { animation: none; }
+}
+
 /* Subtle AI-prompt shimmer on the quote glyphs around copilot card prompts.
    Keeps the rest of the text stable (black-on-gradient clip breaks long lines
    in RTL/CJK), only the quote marks animate. */

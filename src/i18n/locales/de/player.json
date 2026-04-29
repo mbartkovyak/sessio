@@ -132,15 +132,33 @@
     "remaining": "{{remaining}} of {{total}} left",
     "unlimited": "Unlimited sessions",
     "expiresOn": "Expires {{date}}",
+    "noEndDate": "No end date",
     "expired": "Expired",
     "usedUp": "All used",
     "startsOn": "Starts {{date}}",
     "availablePasses": "Available passes",
+    "activePasses": "Active passes",
+    "requestedPasses": "Requested passes",
+    "availableToRequest": "Available to request",
+    "pastPasses": "Past passes",
     "request": "Request",
+    "requestStartDate": "Start date",
+    "chooseStartDate": "Choose a start date first",
     "requestSent": "Pass request sent",
-    "pendingApproval": "Waiting for approval"
+    "pendingApproval": "Waiting for approval",
+    "noPassesHere": "No passes available here yet",
+    "noActivePasses": "No active passes",
+    "noRequestedPasses": "No requested passes",
+    "noAvailablePasses": "No passes available to request",
+    "noPastPasses": "No past passes"
   },
   "favouriteSchools": {
     "title": "Schools you follow"
+  },
+  "actions": {
+    "save": "Save",
+    "saved": "Saved",
+    "passes": "Passes",
+    "viewSchedule": "View schedule"
   }
 }

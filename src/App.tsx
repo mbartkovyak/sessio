@@ -102,13 +102,16 @@ const TermsOfService = lazyRetry(() => import("./pages/shared/TermsOfService"));
 const PlayerHome = lazyRetry(() => import("./pages/player/PlayerHome"));
 const PlayerSearch = lazyRetry(() => import("./pages/player/PlayerSearch"));
 const CoachPublicProfile = lazyRetry(() => import("./pages/player/CoachPublicProfile"));
+const CoachSchedule = lazyRetry(() => import("./pages/player/CoachSchedule"));
 const SchoolPublicProfile = lazyRetry(() => import("./pages/player/SchoolPublicProfile"));
+const SchoolSchedule = lazyRetry(() => import("./pages/player/SchoolSchedule"));
 const PlayerCalendar = lazyRetry(() => import("./pages/player/PlayerCalendar"));
 const PlayerProfile = lazyRetry(() => import("./pages/player/PlayerProfile"));
 const PlayerMessages = lazyRetry(() => import("./pages/player/PlayerMessages"));
 const PlayerChat = lazyRetry(() => import("./pages/player/PlayerChat"));
 const PlayerDirectChat = lazyRetry(() => import("./pages/player/PlayerDirectChat"));
 const PlayerTrainingDetail = lazyRetry(() => import("./pages/player/PlayerTrainingDetail"));
+const PlayerPasses = lazyRetry(() => import("./pages/player/PlayerPasses"));
 const CoachHome = lazyRetry(() => import("./pages/coach/CoachHome"));
 const CoachCalendar = lazyRetry(() => import("./pages/coach/CoachCalendar"));
 const CoachTrainings = lazyRetry(() => import("./pages/coach/CoachTrainings"));
@@ -184,6 +187,7 @@ const router = createBrowserRouter(
       <Route path="/join/:inviteCode" element={<LazyPage component={JoinTraining} />} />
       <Route path="/join-school/:code" element={<LazyPage component={JoinSchool} />} />
       <Route path="/s/:id" element={<LazyPage component={SchoolPublicProfile} />} />
+      <Route path="/s/:id/schedule" element={<LazyPage component={SchoolSchedule} />} />
       <Route path="/privacy" element={<LazyPage component={PrivacyPolicy} />} />
       <Route path="/terms" element={<LazyPage component={TermsOfService} />} />
 
@@ -191,7 +195,11 @@ const router = createBrowserRouter(
       <Route path="/player" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerHome} /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerSearch} /></ProtectedRoute>} />
       <Route path="/search/coach/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={CoachPublicProfile} /></ProtectedRoute>} />
+      <Route path="/search/coach/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
+      <Route path="/search/coach/:id/schedule" element={<ProtectedRoute requiredRole="player"><LazyPage component={CoachSchedule} /></ProtectedRoute>} />
       <Route path="/search/school/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={SchoolPublicProfile} /></ProtectedRoute>} />
+      <Route path="/search/school/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
+      <Route path="/s/:id/passes" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerPasses} /></ProtectedRoute>} />
       <Route path="/player/messages" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerMessages} /></ProtectedRoute>} />
       <Route path="/player/messages/:id" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerChat} /></ProtectedRoute>} />
       <Route path="/player/dm/:userId" element={<ProtectedRoute requiredRole="player"><LazyPage component={PlayerDirectChat} /></ProtectedRoute>} />

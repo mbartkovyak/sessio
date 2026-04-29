@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import i18n from '@/i18n';
 import { toast } from 'sonner';
 import { notifyUsers } from '@/lib/pushNotify';
-import { getFixedTForCurrentLanguage, getFixedTForUser } from '@/lib/notificationI18n';
+import { getFixedTForCurrentLanguage, getFixedTForUser, getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import type { Tables } from '@/integrations/supabase/types';
@@ -611,8 +611,35 @@ export function useUpsertAttendance() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // confirmed↔declined transitions move passes via the DB charge trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Look up the current user's attendance status across a batch of session IDs.
+ *  Returns a `{ [session_id]: status }` map so callers can render per-session UI. */
+export function useMyAttendanceForSessions(sessionIds: string[]) {
+  const { user } = useAuth();
+  const key = sessionIds.slice().sort().join(',');
+  return useQuery({
+    queryKey: ['my-attendance', user?.id, key],
+    enabled: !!user && sessionIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('session_attendance')
+        .select('session_id, status')
+        .eq('user_id', user!.id)
+        .in('session_id', sessionIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const row of data ?? []) map[row.session_id] = row.status;
+      return map;
+    },
   });
 }
 
@@ -658,11 +685,14 @@ export function useMarkAttendance() {
         .eq('id', sessionId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['past-unmarked-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
       qc.invalidateQueries({ queryKey: ['stats-data'] });
+      // pending→confirmed transitions catch up via the DB charge trigger.
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -679,8 +709,163 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Drop-in deducts a pass entry via the DB charge trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Sign up for a training as a regular member (or waitlist / approval-pending request).
+ *  Mirrors the recurring branch of JoinTraining so callers can join without leaving the page.
+ *  `isWaitlist` distinguishes waitlist from any "in-training" role (regular, flex, ...). */
+export type RecurringJoinResult =
+  | { kind: 'alreadyIn'; isWaitlist: boolean }
+  | { kind: 'requestPending' }
+  | { kind: 'requestSent'; resent: boolean }
+  | { kind: 'joined'; role: 'regular' | 'waitlist' }
+  | { kind: 'full' };
+
+interface RecurringTrainingInput {
+  id: string;
+  coach_id: string | null;
+  name: string;
+  max_players?: number | null;
+  allow_waitlist?: boolean | null;
+  booking_mode?: string | null;
+  coach?: { language?: string | null } | null;
+}
+
+export function useJoinTrainingRecurring() {
+  const { profile } = useAuth();
+  const qc = useQueryClient();
+  return useMutation<RecurringJoinResult, Error, { training: RecurringTrainingInput }>({
+    mutationFn: async ({ training }) => {
+      if (!profile) throw new Error('Not authenticated');
+
+      // Already in?
+      const { data: existing } = await supabase
+        .from('training_members')
+        .select('id, role')
+        .eq('training_id', training.id)
+        .eq('user_id', profile.id)
+        .maybeSingle();
+      if (existing) {
+        return { kind: 'alreadyIn', isWaitlist: existing.role === 'waitlist' };
+      }
+
+      // Capacity
+      const { count: activeCount } = await supabase
+        .from('training_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('training_id', training.id)
+        .eq('role', 'regular');
+      const isFull = !!training.max_players && (activeCount ?? 0) >= training.max_players;
+      if (isFull && !training.allow_waitlist) {
+        return { kind: 'full' };
+      }
+
+      // Approval mode → join_request
+      if (training.booking_mode === 'approval') {
+        const { data: existingReq } = await supabase
+          .from('join_requests')
+          .select('id, status')
+          .eq('user_id', profile.id)
+          .eq('training_id', training.id)
+          .maybeSingle();
+        if (existingReq?.status === 'pending') return { kind: 'requestPending' };
+        if (existingReq) {
+          await supabase
+            .from('join_requests')
+            .update({ status: 'pending', created_at: new Date().toISOString() })
+            .eq('id', existingReq.id);
+          notifyJoinRequest(training, profile);
+          return { kind: 'requestSent', resent: true };
+        }
+        const { error } = await supabase
+          .from('join_requests')
+          .insert({ user_id: profile.id, training_id: training.id, status: 'pending' });
+        if (error) throw error;
+        notifyJoinRequest(training, profile);
+        return { kind: 'requestSent', resent: false };
+      }
+
+      // Instant join
+      const role: 'regular' | 'waitlist' = isFull ? 'waitlist' : 'regular';
+      const { error } = await supabase
+        .from('training_members')
+        .insert({ training_id: training.id, user_id: profile.id, role });
+      if (error) {
+        // 23505 = unique constraint, i.e. raced with another tab. Treat as already-in.
+        if (error.code === '23505') return { kind: 'alreadyIn', isWaitlist: false };
+        throw error;
+      }
+      notifyMemberJoined(training, profile);
+      return { kind: 'joined', role };
+    },
+    onSuccess: (result, { training }) => {
+      qc.removeQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['my-join-requests'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
+      // Recurring join cascades into auto-attendance INSERTs which deduct passes via the trigger.
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      const tk = (k: string, opts?: Record<string, unknown>) => i18n.t(k, { ns: 'common', ...opts });
+      switch (result.kind) {
+        case 'alreadyIn':
+          toast.info(tk(result.isWaitlist ? 'join.alreadyOnWaitlist' : 'join.alreadyInTraining'));
+          break;
+        case 'full':
+          toast.error(tk('join.trainingFull'));
+          break;
+        case 'requestPending':
+          toast.info(tk('join.requestAlreadySent'));
+          break;
+        case 'requestSent':
+          toast.success(tk(result.resent ? 'join.joinRequestSentAgain' : 'join.joinRequestSent'));
+          break;
+        case 'joined':
+          toast.success(
+            result.role === 'waitlist'
+              ? tk('join.addedToWaitlist')
+              : tk('join.joinedTraining', { name: training.name })
+          );
+          break;
+      }
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('join.failedToJoin', { ns: 'common' }))),
+  });
+}
+
+function notifyJoinRequest(training: RecurringTrainingInput, profile: { id: string; full_name: string | null }) {
+  if (!training.coach_id) return;
+  const tCoach = getFixedTForLanguage(training.coach?.language);
+  notifyUsers([training.coach_id], {
+    title: tCoach('join.requestNotificationTitle'),
+    body: tCoach('join.requestNotificationBody', {
+      name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+      training: training.name,
+    }),
+    tag: `join-req-${training.id}`,
+    url: `/coach/trainings/${training.id}`,
+  });
+}
+
+function notifyMemberJoined(training: RecurringTrainingInput, profile: { id: string; full_name: string | null }) {
+  if (!training.coach_id) return;
+  const tCoach = getFixedTForLanguage(training.coach?.language);
+  notifyUsers([training.coach_id], {
+    title: tCoach('join.memberJoinedTitle'),
+    body: tCoach('join.memberJoinedBody', {
+      name: profile.full_name ?? tCoach('join.anonymousParticipant'),
+      training: training.name,
+    }),
+    tag: `joined-${training.id}`,
+    url: `/coach/trainings/${training.id}`,
   });
 }
 
@@ -802,6 +987,10 @@ export function useCancelSession(trainingId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['training-sessions', trainingId] });
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      // Cancellation refunds passes via the DB trigger.
+      qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       toast.success(i18n.t('toast.sessionCancelled', { ns: 'common' }));
     },
   });

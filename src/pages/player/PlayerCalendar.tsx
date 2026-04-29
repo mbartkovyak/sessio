@@ -86,6 +86,8 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
   const cancelDeadlineHours = training?.confirmation_window_hours;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = cancelDeadlineHours != null && hoursUntil < cancelDeadlineHours;
+  const isPast = !!session?.session_date && !!session?.end_time
+    && new Date(`${session.session_date}T${session.end_time}`).getTime() < Date.now();
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
 
@@ -118,8 +120,8 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
             {session?.start_time?.slice(0, 5)} – {session?.end_time?.slice(0, 5)}
           </span>
         </button>
-        {/* Cancel / rejoin pill — hidden when confirmation is showing */}
-        {!showCancelWarning && !showRejoinConfirm && (
+        {/* Cancel / rejoin pill — hidden when confirmation is showing or session is in the past */}
+        {!isPast && !showCancelWarning && !showRejoinConfirm && (
           isDeclined ? (
             <button
               onClick={handleRejoinClick}
@@ -139,6 +141,10 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
               {t('calendar.cancelAnyway')}
             </button>
           )
+        )}
+        {/* Past sessions still show terminal status, but no actions */}
+        {isPast && isNoShow && (
+          <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
         )}
       </div>
       <CalendarSessionFooter training={training} />

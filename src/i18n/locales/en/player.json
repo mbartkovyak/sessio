@@ -75,6 +75,8 @@
     "title": "Coach",
     "about": "About",
     "availableTrainings": "Available trainings",
+    "upcomingSessions": "Upcoming sessions",
+    "noUpcomingSessions": "No sessions scheduled in the next 2 weeks",
     "requestToJoin": "Request to join",
     "joinTraining": "Join training",
     "reviews": "Reviews",
@@ -85,7 +87,10 @@
   },
   "schoolProfile": {
     "title": "School",
+    "about": "About",
     "groupTrainings": "Group trainings",
+    "upcomingSessions": "Upcoming sessions",
+    "noUpcomingSessions": "No sessions scheduled in the next 2 weeks",
     "spots_one": "{{count}} spot",
     "spots_few": "{{count}} spots",
     "spots_many": "{{count}} spots",
@@ -132,15 +137,64 @@
     "remaining": "{{remaining}} of {{total}} left",
     "unlimited": "Unlimited sessions",
     "expiresOn": "Expires {{date}}",
+    "noEndDate": "No end date",
     "expired": "Expired",
     "usedUp": "All used",
     "startsOn": "Starts {{date}}",
     "availablePasses": "Available passes",
+    "activePasses": "Active passes",
+    "requestedPasses": "Requested passes",
+    "availableToRequest": "Available to request",
+    "pastPasses": "Past passes",
     "request": "Request",
+    "requestStartDate": "Start date",
+    "chooseStartDate": "Choose a start date first",
     "requestSent": "Pass request sent",
-    "pendingApproval": "Waiting for approval"
+    "pendingApproval": "Waiting for approval",
+    "noPassesHere": "No passes available here yet",
+    "noActivePasses": "No active passes",
+    "noRequestedPasses": "No requested passes",
+    "noAvailablePasses": "No passes available to request",
+    "noPastPasses": "No past passes"
   },
   "favouriteSchools": {
     "title": "Schools you follow"
+  },
+  "saved": {
+    "title": "Saved",
+    "school": "School",
+    "coach": "Coach",
+    "emptyTitle": "Save coaches and schools",
+    "emptyDesc": "Tap the heart on any profile to come back to them quickly"
+  },
+  "actions": {
+    "save": "Save",
+    "saved": "Saved",
+    "passes": "Passes",
+    "viewSchedule": "View schedule"
+  },
+  "schedule": {
+    "subtitle": "Schedule"
+  },
+  "venues": {
+    "title": "Venues"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "seeAll": "See all",
+    "empty": "No reviews yet",
+    "athlete": "Athlete",
+    "aboutCoach": "Coach {{name}}",
+    "ratingCount_one": "{{count}} rating",
+    "ratingCount_few": "{{count}} ratings",
+    "ratingCount_many": "{{count}} ratings",
+    "ratingCount_other": "{{count}} ratings",
+    "allTitle": "All reviews",
+    "leaveCta": "Leave a review",
+    "leaveTitle": "Leave a review",
+    "leaveDesc": "Share your experience with {{name}}",
+    "textPlaceholder": "Tell others about your experience (optional)",
+    "submit": "Submit",
+    "submitting": "Submitting..."
   }
 }

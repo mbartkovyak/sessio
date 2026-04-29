@@ -8,7 +8,7 @@ import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import { useMyUpcomingSessions } from '@/hooks/training/useTrainings';
 import { relativeTime } from '@/components/player/home/relativeTime';
 import OpenSpotsSection from '@/components/player/home/OpenSpotsSection';
-import FavouriteSchoolsSection from '@/components/player/home/FavouriteSchoolsSection';
+import SavedSection from '@/components/player/home/SavedSection';
 import ThisWeekSection from '@/components/player/home/ThisWeekSection';
 import MyJoinRequests from '@/components/player/home/MyJoinRequests';
 import MyAbonamentsSection from '@/components/player/home/MyAbonamentsSection';
@@ -21,7 +21,7 @@ export default function PlayerHome() {
   const { t } = useTranslation('player');
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { data: upcoming = [], isLoading } = useMyUpcomingSessions();
+  const { data: upcoming = [], isLoading: upcomingLoading } = useMyUpcomingSessions();
 
   // Sessions within next 7 days shown as "This week", fallback to all upcoming
   const thisWeekSessions = upcoming.filter((a: any) => {
@@ -43,11 +43,6 @@ export default function PlayerHome() {
       </PageHeader>
 
       <main className="flex-1 pb-24">
-        {isLoading ? (
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <SessioLoader />
-          </div>
-        ) : (
         <div className="max-w-md mx-auto px-4 py-6 space-y-6">
           {/* Greeting */}
           <div>
@@ -60,7 +55,13 @@ export default function PlayerHome() {
           </div>
 
           {/* Status card */}
-          {hasUpcoming && nextConfirmed ? (
+          {upcomingLoading ? (
+            <div className="card-elevated rounded-2xl p-5">
+              <div className="flex items-center justify-center py-3">
+                <SessioLoader size={40} />
+              </div>
+            </div>
+          ) : hasUpcoming && nextConfirmed ? (
             <div className="card-elevated rounded-2xl p-5 border-l-4 border-l-success">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
@@ -93,8 +94,11 @@ export default function PlayerHome() {
             </div>
           ) : null}
 
-          {/* Pending / declined join requests */}
-          <MyJoinRequests />
+          {/* Upcoming training */}
+          {!upcomingLoading && <ThisWeekSection sessions={displaySessions} title={sectionTitle} />}
+
+          {/* Saved coaches + schools */}
+          <SavedSection />
 
           {/* Active passes */}
           <MyAbonamentsSection />
@@ -102,19 +106,11 @@ export default function PlayerHome() {
           {/* Available passes to request */}
           <AvailablePassesSection />
 
-          {/* Push notification prompt */}
-          <PushNotificationPrompt />
-
-          {/* Open spots */}
+          {/* Auxiliary — pending state, drop-ins, system prompts below the main flow */}
+          <MyJoinRequests />
           <OpenSpotsSection />
-
-          {/* Favourite schools */}
-          <FavouriteSchoolsSection />
-
-          {/* Upcoming sessions with cancel option */}
-          <ThisWeekSection sessions={displaySessions} title={sectionTitle} />
+          <PushNotificationPrompt />
         </div>
-        )}
       </main>
 
       <PlayerBottomNav />

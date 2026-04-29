@@ -17,8 +17,6 @@ type SchoolWithMembers = Tables<'schools'> & {
 type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
 
-type TrainingWithCoach = Tables<'trainings'> & { coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
-
 type ReviewWithReviewer = Tables<'reviews'> & { profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
 
 type FavouriteSchoolWithSchool = Tables<'favourite_schools'> & { school: SchoolBasic | null };
@@ -114,25 +112,6 @@ export function useSchool(id: string | undefined) {
   });
 }
 
-/** Group trainings for a school (public-facing — group + discoverable only) */
-export function useSchoolPublicTrainings(schoolId: string | undefined) {
-  return useQuery({
-    queryKey: ['school-public-trainings', schoolId],
-    enabled: !!schoolId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trainings')
-        .select('*, coach:profiles!trainings_coach_id_fkey(id, full_name, avatar_url)')
-        .eq('school_id', schoolId!)
-        .eq('is_active', true)
-        .eq('type', 'group')
-        .order('start_time', { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as TrainingWithCoach[];
-    },
-  });
-}
-
 /** School owner — approve or decline a pending coach */
 export function useRespondSchoolMember() {
   const { user } = useAuth();
@@ -204,11 +183,12 @@ export function useToggleFavouriteSchool() {
         if (error) throw error;
       }
     },
-    onSuccess: (_, { schoolId, isFav }) => {
+    onSuccess: (_, { isFav }) => {
       qc.invalidateQueries({ queryKey: ['fav-school'] });
       qc.invalidateQueries({ queryKey: ['favourite-schools'] });
       toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
     },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -224,6 +204,148 @@ export function useMyFavouriteSchools() {
         .eq('user_id', user!.id);
       return (data ?? []) as FavouriteSchoolWithSchool[];
     },
+  });
+}
+
+// ── Coach favourites ──
+
+export function useIsFavouriteCoach(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['fav-coach', user?.id, coachId],
+    enabled: !!user && !!coachId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('favourite_coaches')
+        .select('id')
+        .eq('user_id', user!.id)
+        .eq('coach_id', coachId!)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+}
+
+export function useToggleFavouriteCoach() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ coachId, isFav }: { coachId: string; isFav: boolean }) => {
+      if (isFav) {
+        const { error } = await supabase
+          .from('favourite_coaches')
+          .delete()
+          .eq('user_id', user!.id)
+          .eq('coach_id', coachId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('favourite_coaches')
+          .insert({ user_id: user!.id, coach_id: coachId });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { isFav }) => {
+      qc.invalidateQueries({ queryKey: ['fav-coach'] });
+      qc.invalidateQueries({ queryKey: ['favourite-coaches'] });
+      toast.success(i18n.t(isFav ? 'toast.removedFromFavourites' : 'toast.addedToFavourites', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+type FavouriteCoachRow = Tables<'favourite_coaches'> & {
+  coach: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url' | 'sport' | 'city'> | null;
+};
+
+export function useMyFavouriteCoaches() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['favourite-coaches', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: favourites, error: favouritesError } = await supabase
+        .from('favourite_coaches')
+        .select('*')
+        .eq('user_id', user!.id);
+      if (favouritesError) throw favouritesError;
+
+      const rows = favourites ?? [];
+      if (rows.length === 0) return [] as FavouriteCoachRow[];
+
+      const coachIds = rows.map(row => row.coach_id);
+      const { data: coaches, error: coachesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, sport, city')
+        .in('id', coachIds);
+      if (coachesError) throw coachesError;
+
+      const coachesById = new Map((coaches ?? []).map(coach => [coach.id, coach]));
+      return rows.map(row => ({
+        ...row,
+        coach: coachesById.get(row.coach_id) ?? null,
+      })) as FavouriteCoachRow[];
+    },
+  });
+}
+
+// ── Reviews ──
+
+export function useCanReviewCoach(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['can-review-coach', user?.id, coachId],
+    enabled: !!user && !!coachId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('can_review_coach', { p_coach_id: coachId! });
+      if (error) throw error;
+      return !!data;
+    },
+  });
+}
+
+export type SchoolReview = {
+  id: string;
+  rating: number;
+  text: string | null;
+  coach_response: string | null;
+  reviewer_id: string;
+  reviewer_name: string | null;
+  reviewer_avatar_url: string | null;
+  coach_id: string;
+  coach_name: string | null;
+  created_at: string;
+};
+
+export function useSchoolReviews(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-reviews', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_school_reviews', { p_school_id: schoolId! });
+      if (error) throw error;
+      return (data ?? []) as SchoolReview[];
+    },
+  });
+}
+
+export function useLeaveReview() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ coachId, rating, text }: { coachId: string; rating: number; text?: string }) => {
+      const { error } = await supabase
+        .from('reviews')
+        .insert({ reviewer_id: user!.id, coach_id: coachId, rating, text: text || null });
+      if (error) throw error;
+    },
+    onSuccess: (_, { coachId }) => {
+      qc.invalidateQueries({ queryKey: ['coach-reviews', coachId] });
+      qc.invalidateQueries({ queryKey: ['can-review-coach'] });
+      qc.invalidateQueries({ queryKey: ['school-reviews'] });
+      toast.success(i18n.t('toast.reviewSubmitted', { ns: 'common' }));
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
@@ -332,19 +454,50 @@ export function useCoachReviews(coachId: string | undefined) {
   });
 }
 
-export function useCoachTrainings(coachId: string | undefined) {
+export type PublicUpcomingSession = {
+  session_id: string;
+  training_id: string;
+  training_name: string;
+  sport: string;
+  invite_code: string;
+  is_recurring: boolean | null;
+  drop_in_policy: 'allowed' | 'trial' | 'none';
+  booking_mode: 'instant' | 'approval';
+  type: 'group' | 'individual';
+  coach_id: string;
+  coach_name: string | null;
+  coach_avatar_url: string | null;
+  session_date: string;
+  start_time: string;
+  end_time: string;
+};
+
+export function useCoachUpcomingSessions(coachId: string | undefined) {
   return useQuery({
-    queryKey: ['coach-trainings-public', coachId],
+    queryKey: ['coach-upcoming-sessions', coachId],
     enabled: !!coachId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trainings')
-        .select('*')
-        .eq('coach_id', coachId!)
-        .eq('is_active', true)
-        .eq('visibility', 'discoverable');
+      const { data, error } = await supabase.rpc('get_coach_upcoming_sessions', {
+        p_coach_id: coachId!,
+        p_days: 14,
+      });
       if (error) throw error;
-      return (data ?? []) as Tables<'trainings'>[];
+      return (data ?? []) as PublicUpcomingSession[];
+    },
+  });
+}
+
+export function useSchoolUpcomingSessions(schoolId: string | undefined) {
+  return useQuery({
+    queryKey: ['school-upcoming-sessions', schoolId],
+    enabled: !!schoolId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_school_upcoming_sessions', {
+        p_school_id: schoolId!,
+        p_days: 14,
+      });
+      if (error) throw error;
+      return (data ?? []) as PublicUpcomingSession[];
     },
   });
 }

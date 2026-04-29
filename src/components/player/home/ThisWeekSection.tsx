@@ -40,6 +40,8 @@ function SessionCard({ attendance }: { attendance: any }) {
   const cancelDeadlineHours = training?.confirmation_window_hours;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = cancelDeadlineHours != null && hoursUntil < cancelDeadlineHours;
+  const isPast = !!session?.session_date && !!session?.end_time
+    && new Date(`${session.session_date}T${session.end_time}`).getTime() < Date.now();
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
@@ -63,7 +65,7 @@ function SessionCard({ attendance }: { attendance: any }) {
           </span>
         </button>
 
-        {!showWarning && !showRejoinConfirm && (
+        {!isPast && !showWarning && !showRejoinConfirm && (
           isDeclined ? (
             <button
               onClick={() => setShowRejoinConfirm(true)}
@@ -83,6 +85,9 @@ function SessionCard({ attendance }: { attendance: any }) {
               {t('thisWeek.cancelAnyway')}
             </button>
           )
+        )}
+        {isPast && isNoShow && (
+          <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
         )}
       </div>
 

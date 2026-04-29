@@ -78,6 +78,8 @@
     "title": "Trener",
     "about": "O mnie",
     "availableTrainings": "Dostępne zajęcia",
+    "upcomingSessions": "Najbliższe zajęcia",
+    "noUpcomingSessions": "Brak zajęć w ciągu najbliższych 2 tygodni",
     "requestToJoin": "Poproś o dołączenie",
     "joinTraining": "Dołącz do zajęć",
     "reviews": "Opinie",
@@ -88,7 +90,10 @@
   },
   "schoolProfile": {
     "title": "Szkoła",
+    "about": "O nas",
     "groupTrainings": "Zajęcia grupowe",
+    "upcomingSessions": "Najbliższe zajęcia",
+    "noUpcomingSessions": "Brak zajęć w ciągu najbliższych 2 tygodni",
     "spots_one": "{{count}} miejsce",
     "spots_few": "{{count}} miejsca",
     "spots_many": "{{count}} miejsc",
@@ -135,15 +140,64 @@
     "remaining": "Pozostało {{remaining}} z {{total}}",
     "unlimited": "Bez limitu zajęć",
     "expiresOn": "Wygasa {{date}}",
+    "noEndDate": "Bez daty końcowej",
     "expired": "Wygasł",
     "usedUp": "Wykorzystany",
     "startsOn": "Od {{date}}",
     "availablePasses": "Dostępne karnety",
+    "activePasses": "Aktywne karnety",
+    "requestedPasses": "Prośby o karnet",
+    "availableToRequest": "Dostępne do zamówienia",
+    "pastPasses": "Poprzednie karnety",
     "request": "Poproś",
+    "requestStartDate": "Data rozpoczęcia",
+    "chooseStartDate": "Najpierw wybierz datę rozpoczęcia",
     "requestSent": "Prośba o karnet wysłana",
-    "pendingApproval": "Oczekuje na akceptację"
+    "pendingApproval": "Oczekuje na akceptację",
+    "noPassesHere": "Nie ma tu jeszcze dostępnych karnetów",
+    "noActivePasses": "Brak aktywnych karnetów",
+    "noRequestedPasses": "Brak próśb o karnet",
+    "noAvailablePasses": "Brak karnetów dostępnych do zamówienia",
+    "noPastPasses": "Brak poprzednich karnetów"
   },
   "favouriteSchools": {
     "title": "Obserwowane szkoły"
+  },
+  "saved": {
+    "title": "Zapisane",
+    "school": "Szkoła",
+    "coach": "Trener",
+    "emptyTitle": "Zapisz trenerów i szkoły",
+    "emptyDesc": "Kliknij serce na profilu, by szybko do nich wrócić"
+  },
+  "actions": {
+    "save": "Zapisz",
+    "saved": "Zapisane",
+    "passes": "Karnety",
+    "viewSchedule": "Zobacz grafik"
+  },
+  "schedule": {
+    "subtitle": "Grafik"
+  },
+  "venues": {
+    "title": "Miejsca"
+  },
+  "reviews": {
+    "title": "Opinie",
+    "seeAll": "Zobacz wszystkie",
+    "empty": "Brak opinii",
+    "athlete": "Uczestnik",
+    "aboutCoach": "Trener {{name}}",
+    "ratingCount_one": "{{count}} ocena",
+    "ratingCount_few": "{{count}} oceny",
+    "ratingCount_many": "{{count}} ocen",
+    "ratingCount_other": "{{count}} ocen",
+    "allTitle": "Wszystkie opinie",
+    "leaveCta": "Dodaj opinię",
+    "leaveTitle": "Dodaj opinię",
+    "leaveDesc": "Podziel się swoim doświadczeniem z {{name}}",
+    "textPlaceholder": "Powiedz innym o swoim doświadczeniu (opcjonalnie)",
+    "submit": "Wyślij",
+    "submitting": "Wysyłanie..."
   }
 }

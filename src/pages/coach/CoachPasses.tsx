@@ -27,7 +27,7 @@ export default function CoachPasses() {
               <SessioLoader />
             </div>
           ) : schoolId ? (
-            <AbonamentSection schoolId={schoolId} schoolCountry={school?.country ?? membership?.schools?.country} />
+            <AbonamentSection schoolId={schoolId} schoolCountry={school?.country ?? membership?.schools?.country} canManageTypes={isSchoolOwner} />
           ) : null}
         </div>
       </main>

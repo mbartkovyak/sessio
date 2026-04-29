@@ -218,8 +218,15 @@
     "trialUsed": "You've already used your trial session. Sign up for all sessions to keep attending.",
     "trialNote": "This is a trial session. Sign up for all sessions to continue attending.",
     "signUpAll": "Sign up for all sessions",
+    "signUpWeekly": "Sign up weekly",
+    "requestWeekly": "Request weekly spot",
     "orPickSession": "Or pick a single session",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back."
+  },
+  "signUp": {
+    "justThisSession": "Just this session",
+    "everyWeek": "Every week"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",
@@ -302,6 +309,7 @@
     "removedFromFavourites": "Removed from favourites",
     "addedToFavourites": "Added to favourites",
     "schoolCreated": "School created",
-    "schoolUpdated": "School updated"
+    "schoolUpdated": "School updated",
+    "reviewSubmitted": "Thanks for your review"
   }
 }

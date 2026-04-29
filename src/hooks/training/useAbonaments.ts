@@ -178,6 +178,26 @@ export function useMyAbonaments() {
   });
 }
 
+/** Player's full pass history for one school */
+export function useMySchoolAbonaments(schoolId: string | undefined | null) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-school-abonaments', user?.id, schoolId],
+    enabled: !!user && !!schoolId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_abonaments')
+        .select('*, abonament_types(*), schools(id, name)')
+        .eq('player_id', user!.id)
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PlayerAbonamentWithSchool[];
+    },
+  });
+}
+
 // ── Player search (for assign picker) ──
 
 /** Search players by name across all profiles. */
@@ -351,32 +371,40 @@ export function usePlayerAbonamentHistory(playerId: string | undefined, schoolId
 
 // ── Pass request flow ──
 
-/** Player: available pass types from schools where the player has training memberships */
-export function useAvailablePassTypes() {
+/** Player: available pass types from specific schools, or from schools where the player has training memberships. */
+export function useAvailablePassTypes(schoolIds?: Array<string | null | undefined>) {
   const { user } = useAuth();
+  const requestedSchoolIds = [...new Set((schoolIds ?? []).filter(Boolean))] as string[];
+  const hasRequestedSchools = schoolIds !== undefined;
+
   return useQuery({
-    queryKey: ['available-passes', user?.id],
-    enabled: !!user,
+    queryKey: ['available-passes', user?.id, requestedSchoolIds],
+    enabled: !!user && (!hasRequestedSchools || requestedSchoolIds.length > 0),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      // Get school IDs from training memberships
-      const { data: memberships, error: mErr } = await supabase
-        .from('training_members')
-        .select('trainings(school_id)')
-        .eq('user_id', user!.id);
-      if (mErr) throw mErr;
+      let sourceSchoolIds = requestedSchoolIds;
 
-      const schoolIds = [...new Set(
-        (memberships ?? [])
-          .map((m: any) => m.trainings?.school_id)
-          .filter(Boolean) as string[],
-      )];
-      if (!schoolIds.length) return [];
+      if (!hasRequestedSchools) {
+        // Get school IDs from training memberships for the home page.
+        const { data: memberships, error: mErr } = await supabase
+          .from('training_members')
+          .select('trainings(school_id)')
+          .eq('user_id', user!.id);
+        if (mErr) throw mErr;
+
+        sourceSchoolIds = [...new Set(
+          (memberships ?? [])
+            .map((m: any) => m.trainings?.school_id)
+            .filter(Boolean) as string[],
+        )];
+      }
+
+      if (!sourceSchoolIds.length) return [];
 
       const { data, error } = await supabase
         .from('abonament_types')
         .select('*, schools(id, name)')
-        .in('school_id', schoolIds)
+        .in('school_id', sourceSchoolIds)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -409,11 +437,32 @@ export function useRequestPass() {
   const qc = useQueryClient();
   const { user, profile } = useAuth();
   return useMutation({
-    mutationFn: async ({ abonamentTypeId, schoolId, typeName }: {
+    mutationFn: async ({ abonamentTypeId, schoolId, typeName, startDate }: {
       abonamentTypeId: string;
       schoolId: string;
       typeName: string;
+      startDate: string;
     }) => {
+      if (!startDate) throw new Error('Pass start date is required');
+      const start = new Date(startDate + 'T00:00:00');
+      if (Number.isNaN(start.getTime())) throw new Error('Invalid pass start date');
+
+      const { data: abonamentType, error: typeError } = await supabase
+        .from('abonament_types')
+        .select('sessions_count, duration_days')
+        .eq('id', abonamentTypeId)
+        .eq('school_id', schoolId)
+        .single();
+      if (typeError) throw typeError;
+
+      let expiresAt: string | null = null;
+      if (abonamentType.duration_days) {
+        const end = new Date(start);
+        end.setDate(end.getDate() + abonamentType.duration_days);
+        end.setHours(23, 59, 59, 999);
+        expiresAt = end.toISOString();
+      }
+
       const { error } = await supabase
         .from('player_abonaments')
         .insert({
@@ -421,6 +470,10 @@ export function useRequestPass() {
           school_id: schoolId,
           player_id: user!.id,
           status: 'pending',
+          activated_at: start.toISOString(),
+          sessions_total: abonamentType.sessions_count,
+          sessions_remaining: abonamentType.sessions_count,
+          expires_at: expiresAt,
         });
       if (error) throw error;
 
@@ -458,6 +511,7 @@ export function useRequestPass() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['available-passes'] });
       qc.invalidateQueries({ queryKey: ['pending-pass-requests', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
@@ -479,11 +533,18 @@ export function useRespondPassRequest() {
       accept: boolean;
     }) => {
       if (accept) {
-        // Activate: set status, sessions, expiry (same logic as useAssignAbonament)
-        const now = new Date();
+        // Activate from the player-requested start date, falling back to now for older requests.
+        const { data: requestRow, error: requestErr } = await supabase
+          .from('player_abonaments')
+          .select('activated_at')
+          .eq('id', id)
+          .single();
+        if (requestErr) throw requestErr;
+
+        const start = requestRow?.activated_at ? new Date(requestRow.activated_at) : new Date();
         let expiresAt: string | null = null;
         if (abonamentType.duration_days) {
-          const end = new Date(now);
+          const end = new Date(start);
           end.setDate(end.getDate() + abonamentType.duration_days);
           end.setHours(23, 59, 59, 999);
           expiresAt = end.toISOString();
@@ -493,7 +554,7 @@ export function useRespondPassRequest() {
           .from('player_abonaments')
           .update({
             status: 'active',
-            activated_at: now.toISOString(),
+            activated_at: start.toISOString(),
             sessions_total: abonamentType.sessions_count,
             sessions_remaining: abonamentType.sessions_count,
             expires_at: expiresAt,
@@ -528,6 +589,7 @@ export function useRespondPassRequest() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['available-passes'] });
       toast.success(i18n.t(
         vars.accept ? 'abonaments.approved' : 'abonaments.declined',
@@ -580,6 +642,7 @@ export function useAssignAbonament() {
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       toast.success(i18n.t('abonaments.assigned', { ns: 'common' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
@@ -604,30 +667,24 @@ export function useAutoDeductSession() {
         qc.invalidateQueries({ queryKey: ['abonament-usage-session', sessionId] });
         qc.invalidateQueries({ queryKey: ['school-abonaments'] });
         qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+        qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
         qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       }
     },
   });
 }
 
-/** Mark player as no-show: undo deduction + set attendance to no_show */
+/** Toggle attendance status to no_show. Pass charge stays — refund explicitly via pass card if needed.
+ *  Policy: no-shows pay. */
 export function useMarkNoShow() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
-      playerAbonamentId: string;
+    mutationFn: async ({ sessionId, userId }: {
+      playerAbonamentId?: string;
       sessionId: string;
       schoolId: string;
       userId: string;
     }) => {
-      // Undo the deduction
-      const { error: undoErr } = await supabase.rpc('undo_abonament_deduction', {
-        p_player_abonament_id: playerAbonamentId,
-        p_session_id: sessionId,
-      });
-      if (undoErr) throw undoErr;
-
-      // Mark attendance as no_show so auto-deduct won't re-create it
       const { error: attErr } = await supabase
         .from('session_attendance')
         .update({ status: 'no_show' })
@@ -636,35 +693,23 @@ export function useMarkNoShow() {
       if (attErr) throw attErr;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
-      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
-      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
 }
 
-/** Re-mark as attended: deduct again + set attendance back to confirmed */
+/** Toggle attendance status back to confirmed. Pass charge stays — both states are charged. */
 export function useRemarkAttended() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ playerAbonamentId, sessionId, schoolId, userId }: {
-      playerAbonamentId: string;
+    mutationFn: async ({ sessionId, userId }: {
+      playerAbonamentId?: string;
       sessionId: string;
       schoolId: string;
       userId: string;
     }) => {
-      // Re-deduct
-      const { error: deductErr } = await supabase.rpc('deduct_abonament_session', {
-        p_player_abonament_id: playerAbonamentId,
-        p_session_id: sessionId,
-      });
-      if (deductErr) throw deductErr;
-
-      // Set attendance back to confirmed
       const { error: attErr } = await supabase
         .from('session_attendance')
         .update({ status: 'confirmed' })
@@ -673,14 +718,37 @@ export function useRemarkAttended() {
       if (attErr) throw attErr;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
-      qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
-      qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
-      qc.invalidateQueries({ queryKey: ['my-abonaments'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Recent abonament_usage rows for a single pass, joined with session + training info.
+ *  Used by the refund chooser. */
+export function usePassRecentUsages(playerAbonamentId: string | undefined | null) {
+  return useQuery({
+    queryKey: ['pass-recent-usages', playerAbonamentId],
+    enabled: !!playerAbonamentId,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('abonament_usage')
+        .select('*, training_sessions(id, session_date, start_time, trainings(name))')
+        .eq('player_abonament_id', playerAbonamentId!)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data ?? []) as (AbonamentUsage & {
+        training_sessions: {
+          id: string;
+          session_date: string;
+          start_time: string | null;
+          trainings: { name: string } | null;
+        } | null;
+      })[];
+    },
   });
 }
 
@@ -718,6 +786,7 @@ export function useDeductSession() {
       qc.invalidateQueries({ queryKey: ['abonament-usage-session', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
+      qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['session-attendance', vars.sessionId] });
       qc.invalidateQueries({ queryKey: ['attendance-summary'] });
