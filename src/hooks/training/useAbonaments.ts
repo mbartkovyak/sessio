@@ -53,18 +53,25 @@ export function daysRemaining(expiresAt: string): number {
 
 // ── Abonament type queries ──
 
-export function useAbonamentTypes(schoolId: string | undefined | null) {
+export function useAbonamentTypes(
+  schoolId: string | undefined | null,
+  options?: { coachId?: string | null },
+) {
+  const coachId = options?.coachId ?? null;
   return useQuery({
-    queryKey: ['abonament-types', schoolId],
+    queryKey: ['abonament-types', schoolId, coachId],
     enabled: !!schoolId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('abonament_types')
         .select('*')
         .eq('school_id', schoolId!)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true });
+        .eq('is_active', true);
+      // coachId filter: include the coach's own pass types AND any school-wide ones (coach_id IS NULL).
+      // Use PostgREST `or` filter so a single round-trip covers both branches.
+      if (coachId) query = query.or(`coach_id.eq.${coachId},coach_id.is.null`);
+      const { data, error } = await query.order('created_at', { ascending: true });
       if (error) throw error;
       return (data ?? []) as AbonamentType[];
     },
@@ -81,6 +88,7 @@ export function useCreateAbonamentType() {
       duration_days?: number | null;
       price?: number | null;
       currency?: string;
+      coach_id?: string | null;
     }) => {
       const { data, error } = await supabase
         .from('abonament_types')
@@ -413,7 +421,7 @@ export function useAvailablePassTypes(schoolIds?: Array<string | null | undefine
   });
 }
 
-/** Coach: pending pass requests for a school */
+/** Coach: pending pass requests for a school (school owner uses this — full school view) */
 export function usePendingPassRequests(schoolId: string | undefined | null) {
   return useQuery({
     queryKey: ['pending-pass-requests', schoolId],
@@ -422,7 +430,7 @@ export function usePendingPassRequests(schoolId: string | undefined | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('player_abonaments')
-        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url)')
+        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url), trainings:requested_for_training_id(id, name)')
         .eq('school_id', schoolId!)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
@@ -432,16 +440,107 @@ export function usePendingPassRequests(schoolId: string | undefined | null) {
   });
 }
 
-/** Player: request a pass (inserts pending row + notifies school staff) */
+/** Coach (non-owner): pending pass requests routed specifically to me. */
+export function useMyCoachPendingPassRequests(schoolId: string | undefined | null) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['my-coach-pending-pass-requests', schoolId, user?.id],
+    enabled: !!schoolId && !!user,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('player_abonaments')
+        .select('*, abonament_types(*), profiles:player_id(id, full_name, avatar_url), trainings:requested_for_training_id(id, name)')
+        .eq('school_id', schoolId!)
+        .eq('status', 'pending')
+        .eq('requesting_coach_id', user!.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as PlayerAbonamentWithProfile[];
+    },
+  });
+}
+
+/**
+ * Player: my pass status for a training that requires a pass.
+ * Returns:
+ *   - `requiredType`: the abonament_types row the training requires (or null if no gate)
+ *   - `activePass`:  active pass of that type the player holds (or null)
+ *   - `pendingPass`: pending pass request of that type (or null)
+ *   - `coachId`:     the training's coach (used when routing a new request)
+ */
+export function useTrainingRequiredPass(training: {
+  id: string;
+  required_pass_type_id: string | null;
+  coach_id: string | null;
+} | null | undefined) {
+  const { user } = useAuth();
+  const trainingId = training?.id ?? null;
+  const passTypeId = training?.required_pass_type_id ?? null;
+  return useQuery({
+    queryKey: ['training-required-pass', trainingId, user?.id],
+    enabled: !!user && !!training,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      if (!passTypeId) {
+        return { requiredType: null, activePass: null, pendingPass: null, coachId: training?.coach_id ?? null };
+      }
+      const { data: type, error: typeErr } = await supabase
+        .from('abonament_types')
+        .select('*')
+        .eq('id', passTypeId)
+        .maybeSingle();
+      if (typeErr) throw typeErr;
+
+      const { data: rows, error: rowsErr } = await supabase
+        .from('player_abonaments')
+        .select('*')
+        .eq('player_id', user!.id)
+        .eq('abonament_type_id', passTypeId)
+        .in('status', ['active', 'pending'])
+        .order('created_at', { ascending: false });
+      if (rowsErr) throw rowsErr;
+
+      const activePass = (rows ?? []).find(r => r.status === 'active' && isAbonamentActive(r as any)) ?? null;
+      const pendingPass = (rows ?? []).find(r => r.status === 'pending') ?? null;
+      return {
+        requiredType: type as AbonamentType | null,
+        activePass: activePass as Tables<'player_abonaments'> | null,
+        pendingPass: pendingPass as Tables<'player_abonaments'> | null,
+        coachId: training?.coach_id ?? null,
+      };
+    },
+  });
+}
+
+/**
+ * Player: request a pass.
+ *
+ * Two routing modes:
+ *   - Training-originated: caller passes `trainingId` + `requestingCoachId`. Stored on
+ *     the row; only that coach is notified (and per RLS, only that coach + school owner
+ *     can approve).
+ *   - Browse-originated: caller passes neither. Whole school staff is notified, any
+ *     approved coach (or the owner) can approve. Legacy PlayerPasses path.
+ */
 export function useRequestPass() {
   const qc = useQueryClient();
   const { user, profile } = useAuth();
   return useMutation({
-    mutationFn: async ({ abonamentTypeId, schoolId, typeName, startDate }: {
+    mutationFn: async ({
+      abonamentTypeId,
+      schoolId,
+      typeName,
+      startDate,
+      trainingId,
+      requestingCoachId,
+    }: {
       abonamentTypeId: string;
       schoolId: string;
       typeName: string;
       startDate: string;
+      trainingId?: string;
+      requestingCoachId?: string;
     }) => {
       if (!startDate) throw new Error('Pass start date is required');
       const start = new Date(startDate + 'T00:00:00');
@@ -474,28 +573,35 @@ export function useRequestPass() {
           sessions_total: abonamentType.sessions_count,
           sessions_remaining: abonamentType.sessions_count,
           expires_at: expiresAt,
+          requesting_coach_id: requestingCoachId ?? null,
+          requested_for_training_id: trainingId ?? null,
         });
       if (error) throw error;
 
-      // Notify school owner + approved coaches
-      const { data: school } = await supabase
-        .from('schools')
-        .select('owner_id')
-        .eq('id', schoolId)
-        .single();
-      const { data: members } = await supabase
-        .from('school_members')
-        .select('coach_id')
-        .eq('school_id', schoolId)
-        .eq('status', 'approved');
+      // Pick recipients: training-originated → only the routed coach;
+      // browse-originated → school owner + every approved coach (legacy fan-out).
+      let recipientIds: string[] = [];
+      if (requestingCoachId) {
+        recipientIds = [requestingCoachId];
+      } else {
+        const { data: school } = await supabase
+          .from('schools')
+          .select('owner_id')
+          .eq('id', schoolId)
+          .single();
+        const { data: members } = await supabase
+          .from('school_members')
+          .select('coach_id')
+          .eq('school_id', schoolId)
+          .eq('status', 'approved');
+        recipientIds = [
+          school?.owner_id,
+          ...(members ?? []).map(m => m.coach_id),
+        ].filter(Boolean) as string[];
+      }
 
-      const staffIds = [
-        school?.owner_id,
-        ...(members ?? []).map(m => m.coach_id),
-      ].filter(Boolean) as string[];
-
-      if (staffIds.length) {
-        const groups = await groupUsersByLanguage(staffIds);
+      if (recipientIds.length) {
+        const groups = await groupUsersByLanguage(recipientIds);
         const playerName = profile?.full_name ?? '';
         for (const [lang, ids] of Object.entries(groups)) {
           if (!ids?.length) continue;
@@ -514,7 +620,9 @@ export function useRequestPass() {
       qc.invalidateQueries({ queryKey: ['my-school-abonaments'] });
       qc.invalidateQueries({ queryKey: ['available-passes'] });
       qc.invalidateQueries({ queryKey: ['pending-pass-requests', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['my-coach-pending-pass-requests'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments', vars.schoolId] });
+      qc.invalidateQueries({ queryKey: ['training-required-pass'] });
       toast.success(i18n.t('abonaments.requestSent', { ns: 'player' }));
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),

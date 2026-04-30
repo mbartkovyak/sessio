@@ -51,6 +51,7 @@ export interface TrainingFormValues {
   visibility: string;
   confirmation_window_hours: number | null;
   day_schedules: DaySchedules | null;
+  required_pass_type_id: string | null;
 }
 
 const defaults: TrainingFormValues = {
@@ -63,9 +64,26 @@ const defaults: TrainingFormValues = {
   confirmation_window_hours: 24,
   booking_mode: 'instant', drop_in_policy: 'allowed', visibility: 'discoverable',
   day_schedules: null,
+  required_pass_type_id: null,
 };
 
 export type VenueOption = Venue;
+
+export interface PassTypeOption {
+  id: string;
+  name: string;
+  sessions_count: number | null;
+  duration_days: number | null;
+  price: number | null;
+  currency: string;
+}
+
+export interface NewPassTypeInput {
+  name: string;
+  sessions_count: number | null;
+  duration_days: number | null;
+  price: number | null;
+}
 
 interface Props {
   mode: 'create' | 'edit';
@@ -85,9 +103,16 @@ interface Props {
   extraErrors?: string[];
   /** Called when submit is attempted (even if invalid) — lets parent show its own errors */
   onAttemptSubmit?: () => void;
+  /** Pass types the form-coach can attach as a requirement (their own + school-wide). */
+  passTypeOptions?: PassTypeOption[];
+  /**
+   * Called when user creates a new pass type from the inline sheet. Parent persists it
+   * (with the right coach_id) and resolves the new option so we can auto-select it.
+   */
+  onCreatePassType?: (values: NewPassTypeInput) => Promise<PassTypeOption>;
 }
 
-export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors, onAttemptSubmit }: Props) {
+export default function TrainingForm({ mode, initialValues, onSubmit, submitting, submitLabel, onCancel, onDelete, schoolSlot, venueOptions, onNewVenue, extraErrors, onAttemptSubmit, passTypeOptions, onCreatePassType }: Props) {
   const { t } = useTranslation('coach');
   // Persist create-mode form to localStorage so it survives app-switch.
   // Save synchronously on every change (useEffect might not fire before page kill).
@@ -126,6 +151,44 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [addingNewVenue, setAddingNewVenue] = useState(false);
   const [sameTime, setSameTime] = useState(() => restoredDraft ? !restoredDraft.day_schedules : !initialValues?.day_schedules);
+  const [showCreatePass, setShowCreatePass] = useState(false);
+  const [newPassName, setNewPassName] = useState('');
+  const [newPassSessions, setNewPassSessions] = useState('');
+  const [newPassDuration, setNewPassDuration] = useState('');
+  const [newPassPrice, setNewPassPrice] = useState('');
+  const [creatingPass, setCreatingPass] = useState(false);
+
+  function resetNewPass() {
+    setNewPassName(''); setNewPassSessions(''); setNewPassDuration(''); setNewPassPrice('');
+  }
+
+  async function handleCreatePass() {
+    if (!onCreatePassType) return;
+    if (!newPassName.trim()) return;
+    if (!newPassSessions && !newPassDuration) return;
+    setCreatingPass(true);
+    try {
+      const created = await onCreatePassType({
+        name: newPassName.trim(),
+        sessions_count: newPassSessions ? parseInt(newPassSessions, 10) : null,
+        duration_days: newPassDuration ? parseInt(newPassDuration, 10) : null,
+        price: newPassPrice ? parseFloat(newPassPrice) : null,
+      });
+      set('required_pass_type_id', created.id);
+      resetNewPass();
+      setShowCreatePass(false);
+    } finally {
+      setCreatingPass(false);
+    }
+  }
+
+  function passSummary(p: PassTypeOption) {
+    const parts: string[] = [];
+    if (p.sessions_count) parts.push(t('abonaments.sessionsLabel', { count: p.sessions_count }));
+    if (p.duration_days) parts.push(t('abonaments.daysLabel', { count: p.duration_days }));
+    if (p.price != null) parts.push(`${p.price} ${p.currency}`);
+    return parts.join(' · ');
+  }
 
   // Also save when page goes to background (iOS fires this before killing)
   useEffect(() => {
@@ -151,6 +214,15 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     }
   }, [venueOptions]);
 
+  // Auto-select sole pass type for the common solo-coach case (only on create).
+  // Edit mode honors the saved required_pass_type_id, including null.
+  useEffect(() => {
+    if (mode !== 'create') return;
+    if (passTypeOptions?.length === 1 && form.required_pass_type_id === null && !restoredDraft) {
+      set('required_pass_type_id', passTypeOptions[0].id);
+    }
+  }, [passTypeOptions?.length]);
+
   // Track whether form has been modified from its initial state
   const baseline = useMemo(() => restoredDraft ?? { ...defaults, ...initialValues }, []);
   const isDirty = form.name !== baseline.name
@@ -165,6 +237,7 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
     || form.drop_in_policy !== baseline.drop_in_policy
     || form.visibility !== baseline.visibility
     || form.one_off_date !== baseline.one_off_date
+    || form.required_pass_type_id !== baseline.required_pass_type_id
     || JSON.stringify(form.days_of_week) !== JSON.stringify(baseline.days_of_week);
   const [submitted, setSubmitted] = useState(false);
   const blocker = useUnsavedChanges(isDirty && !submitted);
@@ -462,6 +535,95 @@ export default function TrainingForm({ mode, initialValues, onSubmit, submitting
       )}
 
       {schoolSlot}
+
+      {/* Required pass — coaches/owners can attach a pass requirement to a training */}
+      {(passTypeOptions !== undefined || onCreatePassType) && (
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1 block">{t('form.requiredPass')}</label>
+          <p className="text-xs text-muted-foreground mb-2">{t('form.requiredPassDesc')}</p>
+
+          <div className="space-y-2">
+            {/* "None" option — always available */}
+            <button
+              type="button"
+              onClick={() => set('required_pass_type_id', null)}
+              className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-colors min-h-[44px] ${form.required_pass_type_id === null ? 'border-primary bg-primary/5' : 'border-border'}`}
+            >
+              <p className={`text-sm font-semibold ${form.required_pass_type_id === null ? 'text-primary' : 'text-foreground'}`}>{t('form.noPassRequired')}</p>
+              <p className="text-xs text-muted-foreground">{t('form.noPassRequiredDesc')}</p>
+            </button>
+
+            {(passTypeOptions ?? []).map(p => {
+              const selected = form.required_pass_type_id === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => set('required_pass_type_id', p.id)}
+                  className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-colors min-h-[44px] ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}
+                >
+                  <p className={`text-sm font-semibold ${selected ? 'text-primary' : 'text-foreground'}`}>{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{passSummary(p)}</p>
+                </button>
+              );
+            })}
+
+            {onCreatePassType && !showCreatePass && (
+              <button
+                type="button"
+                onClick={() => setShowCreatePass(true)}
+                className="w-full rounded-xl border-2 border-dashed border-border px-4 py-3 text-sm font-medium text-muted-foreground min-h-[44px]"
+              >
+                {t('form.createNewPass')}
+              </button>
+            )}
+
+            {showCreatePass && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2.5">
+                <p className="text-xs font-semibold text-foreground">{t('form.createNewPass')}</p>
+                <input
+                  type="text"
+                  value={newPassName}
+                  onChange={e => setNewPassName(e.target.value)}
+                  placeholder={t('abonaments.typeNamePlaceholder')}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground">{t('abonaments.sessionsCount')} {t('abonaments.optional')}</label>
+                    <input type="number" min="1" value={newPassSessions} onChange={e => setNewPassSessions(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="—" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">{t('abonaments.durationDays')} {t('abonaments.optional')}</label>
+                    <input type="number" min="1" value={newPassDuration} onChange={e => setNewPassDuration(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder={t('abonaments.durationPlaceholder')} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">{t('abonaments.price')} {t('abonaments.optional')}</label>
+                  <input type="number" min="0" step="0.01" value={newPassPrice} onChange={e => setNewPassPrice(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="—" />
+                </div>
+                {(!newPassSessions && !newPassDuration && newPassName.trim()) && (
+                  <p className="text-xs text-warning">{t('abonaments.sessionsOrDuration')}</p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => { setShowCreatePass(false); resetNewPass(); }}
+                    className="rounded-lg border border-border py-2 text-sm font-medium text-foreground min-h-[36px]">
+                    {t('common:actions.cancel')}
+                  </button>
+                  <button type="button" onClick={handleCreatePass}
+                    disabled={creatingPass || !newPassName.trim() || (!newPassSessions && !newPassDuration)}
+                    className="rounded-lg bg-primary py-2 text-sm font-bold text-primary-foreground min-h-[36px] disabled:opacity-50">
+                    {creatingPass ? t('form.saving') : t('abonaments.createType')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Cancellation deadline */}
       <div>

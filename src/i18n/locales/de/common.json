@@ -220,7 +220,19 @@
     "signUpAll": "Sign up for all sessions",
     "orPickSession": "Or pick a single session",
     "signUp": "Sign up",
-    "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back."
+    "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back.",
+    "passRequiredToast": "This training requires a pass. Open the training to request one.",
+    "passRequiredTitle": "Pass required",
+    "passRequiredDescription": "{{coach}} requires the {{pass}} pass for this training.",
+    "passWorksForAllOfThisCoach": "This pass works for any of {{coach}}'s trainings that require it.",
+    "passDifferentFromOthers": "Other 10-packs you hold won't work — this is {{coach}}'s pass.",
+    "requestPass": "Request pass",
+    "passApprovalPending": "Pass approval pending",
+    "requestNewPass": "Request new pass",
+    "passUsedUpDescription": "Your previous {{pass}} pass is finished. Request a new one to keep joining.",
+    "requestPassSheetTitle": "Request {{pass}}",
+    "requestPassSheetCta": "Send request",
+    "requestPassSheetStartLabel": "When should it start?"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

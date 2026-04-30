@@ -56,7 +56,7 @@ export default function SignUpSheet({ session, onClose }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('trainings')
-        .select('id, name, coach_id, max_players, allow_waitlist, booking_mode, coach:profiles!trainings_coach_id_fkey(language)')
+        .select('id, name, coach_id, max_players, allow_waitlist, booking_mode, required_pass_type_id, coach:profiles!trainings_coach_id_fkey(language)')
         .eq('id', session.training_id)
         .maybeSingle();
       return data;
@@ -104,7 +104,15 @@ export default function SignUpSheet({ session, onClose }: Props) {
         });
       }
       toast.success(t('join.joinedSession', { name: session.training_name }));
-    } catch {
+    } catch (err: any) {
+      // PASS_REQUIRED comes from the join_single_session RPC: route the athlete to
+      // the join page where the request-pass flow lives.
+      if (typeof err?.message === 'string' && err.message.includes('PASS_REQUIRED')) {
+        toast.info(t('join.passRequiredToast'));
+        navigate(`/join/${session.invite_code}?session=${session.session_id}`);
+        onClose();
+        return;
+      }
       // hook's onError already toasted; fall through to close
     }
     onClose();
@@ -112,8 +120,12 @@ export default function SignUpSheet({ session, onClose }: Props) {
 
   async function handleRecurring() {
     if (!training) return;
-    // Hook handles toasts on every branch (alreadyIn / full / requestSent / joined / error).
-    await joinRecurring.mutateAsync({ training }).catch(() => {});
+    // Hook handles toasts on every branch (alreadyIn / full / requestSent / joined / error / passRequired).
+    const result = await joinRecurring.mutateAsync({ training }).catch(() => null);
+    // passRequired → bounce to the training page where the request-pass UI lives.
+    if (result?.kind === 'passRequired') {
+      navigate(`/join/${session.invite_code}`);
+    }
     onClose();
   }
 

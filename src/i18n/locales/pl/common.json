@@ -222,7 +222,19 @@
     "requestWeekly": "Poproś o cotygodniowe miejsce",
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
     "signUp": "Zapisz się",
-    "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać."
+    "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać.",
+    "passRequiredToast": "Te zajęcia wymagają karnetu. Otwórz zajęcia, aby go zamówić.",
+    "passRequiredTitle": "Wymagany karnet",
+    "passRequiredDescription": "{{coach}} wymaga karnetu {{pass}} do tych zajęć.",
+    "passWorksForAllOfThisCoach": "Ten karnet działa na wszystkich zajęciach {{coach}}, które go wymagają.",
+    "passDifferentFromOthers": "Inne karnety, które masz, nie zadziałają — to karnet {{coach}}.",
+    "requestPass": "Zamów karnet",
+    "passApprovalPending": "Karnet czeka na zatwierdzenie",
+    "requestNewPass": "Zamów nowy karnet",
+    "passUsedUpDescription": "Twój poprzedni karnet {{pass}} się skończył. Zamów nowy, aby kontynuować.",
+    "requestPassSheetTitle": "Zamów {{pass}}",
+    "requestPassSheetCta": "Wyślij prośbę",
+    "requestPassSheetStartLabel": "Od kiedy?"
   },
   "signUp": {
     "justThisSession": "Tylko te zajęcia",
