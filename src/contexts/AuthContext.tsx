@@ -74,14 +74,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       // Auth errors (permission denied, JWT expired): token is broken, retrying won't help
       const isAuthError = error.code === '42501' || error.code === 'PGRST301';
+      // 57014 = Postgres statement_timeout. Transient DB pressure — back off harder
+      // so we don't pile back into the same overloaded box.
+      const isTimeout = error.code === '57014';
       if (!isAuthError && retries > 0) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, isTimeout ? 3000 : 1000));
         return fetchProfile(userId, retries - 1);
       }
       // Only report real API errors, not transient network failures
       const isNetworkError = !error.code && !error.details;
       if (!isNetworkError) {
-        Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+        if (isTimeout) {
+          // No app-level bug — keep signal as a warning, not a high-priority exception.
+          Sentry.captureMessage('fetchProfile: statement timeout after retries', {
+            level: 'warning',
+            tags: { context: 'fetchProfile' },
+            extra: { userId },
+          });
+        } else {
+          Sentry.captureException(error, { tags: { context: 'fetchProfile' }, extra: { userId } });
+        }
       }
       // Never nuke existing profile on error — keep cached data visible.
       // Auth state handler clears profile on SIGNED_OUT.

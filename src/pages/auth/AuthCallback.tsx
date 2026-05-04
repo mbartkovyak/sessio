@@ -9,7 +9,10 @@ export default function AuthCallback() {
   const { session, profile, loading, refreshProfile } = useAuth();
   const { t } = useTranslation('auth');
   const [pwaReturn, setPwaReturn] = useState(false);
-  const [retriedProfile, setRetriedProfile] = useState(false);
+  const [profileAttempts, setProfileAttempts] = useState(0);
+  // 4 total tries (0 = initial, then 3 retries) at 0s, 5s, 15s — bounded ~20s
+  // of waiting plus each fetchProfile's own internal retries on top.
+  const MAX_PROFILE_ATTEMPTS = 4;
 
   useEffect(() => {
     if (loading) return;
@@ -32,21 +35,18 @@ export default function AuthCallback() {
       return;
     }
 
-    // Session exists but profile didn't load. This can happen if the first
-    // fetchProfile call raced ahead of the new session's JWT being fully
-    // propagated through the Supabase client (observed on re-sign-in). Try
-    // refreshProfile once more before giving up. Without this, the user
-    // would be bounced to /auth/sign-in even though they're authenticated.
-    // IMPORTANT: set `retriedProfile` only AFTER refreshProfile resolves,
-    // otherwise the state update triggers a re-render before the refetch
-    // completes and we'd navigate away before the retry has a chance.
+    // Session exists but profile didn't load. Two known causes:
+    //   1. JWT race after fresh sign-in — usually resolves on first retry.
+    //   2. Postgres statement timeout under DB pressure — needs longer backoff.
+    // Don't navigate away: the user IS authenticated. Bouncing to /auth/sign-in
+    // makes them think they got logged out when they didn't.
     if (!profile) {
-      if (!retriedProfile) {
-        refreshProfile().finally(() => setRetriedProfile(true));
-        return;
-      }
-      navigate('/auth/sign-in');
-      return;
+      if (profileAttempts >= MAX_PROFILE_ATTEMPTS) return; // render error UI below
+      const delay = profileAttempts === 0 ? 0 : profileAttempts === 1 ? 5000 : 15000;
+      const timer = setTimeout(() => {
+        refreshProfile().finally(() => setProfileAttempts(a => a + 1));
+      }, delay);
+      return () => clearTimeout(timer);
     }
 
     if (!profile.onboarding_complete || !profile.role) {
@@ -78,7 +78,7 @@ export default function AuthCallback() {
     }
 
     navigate(profile.role === 'player' ? '/player' : '/coach');
-  }, [loading, session, profile, retriedProfile, refreshProfile, navigate]);
+  }, [loading, session, profile, profileAttempts, refreshProfile, navigate]);
 
   if (pwaReturn) {
     return (
@@ -87,6 +87,32 @@ export default function AuthCallback() {
           <div className="mb-6"><SessioLogoCompact /></div>
           <p className="font-medium text-foreground">{t('auth.authComplete', 'Signed in successfully')}</p>
           <p className="text-sm text-muted-foreground mt-2">{t('auth.returnToApp', 'You can close this tab and return to the Sessio app.')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Retries exhausted but session is still valid → DB couldn't deliver the
+  // profile in time. Show an inline error with a manual retry instead of
+  // silently dumping the user back at sign-in.
+  if (!loading && session && !profile && profileAttempts >= MAX_PROFILE_ATTEMPTS) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center px-6 max-w-sm">
+          <div className="mb-6"><SessioLogoCompact /></div>
+          <p className="font-medium text-foreground">
+            {t('auth.profileLoadFailed', "We couldn't finish signing you in.")}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2 mb-6">
+            {t('auth.profileLoadFailedDetail', 'Check your connection and try again.')}
+          </p>
+          <button
+            type="button"
+            onClick={() => setProfileAttempts(0)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 min-h-[44px]"
+          >
+            {t('auth.tryAgain', 'Try again')}
+          </button>
         </div>
       </div>
     );
