@@ -26,6 +26,8 @@
   "profile": {
     "title": "Profil szkoły",
     "schoolName": "Nazwa szkoły",
+    "slug": "Publiczny adres URL",
+    "slugTaken": "Ten adres URL jest już zajęty — wybierz inny.",
     "description": "Opis",
     "saving": "Zapisywanie...",
     "coachesSection": "Trenerzy",

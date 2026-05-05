@@ -18,6 +18,7 @@ import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { slugify } from '@/lib/utils';
 import { getShareableOrigin } from '@/lib/platform';
 import { SessioLoader } from '@/components/SessioLogo';
 
@@ -31,6 +32,7 @@ export default function SchoolProfileEditor() {
   const qc = useQueryClient();
 
   const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [sports, setSports] = useState<string[]>([]);
@@ -47,6 +49,7 @@ export default function SchoolProfileEditor() {
   useEffect(() => {
     if (school) {
       setName(school.name ?? '');
+      setSlug(school.slug ?? '');
       setCountry(school.country ?? '');
       setCity(school.city ?? '');
       setSports(school.sport ?? []);
@@ -63,6 +66,7 @@ export default function SchoolProfileEditor() {
   }, [school]);
 
   const isDirty = name !== (school?.name ?? '')
+    || slug !== (school?.slug ?? '')
     || country !== (school?.country ?? '')
     || city !== (school?.city ?? '')
     || JSON.stringify(sports) !== JSON.stringify(school?.sport ?? [])
@@ -132,6 +136,18 @@ export default function SchoolProfileEditor() {
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.schoolName')}</label>
             <input className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.slug')}</label>
+            <input
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder={slugify(name) || 'my-school'}
+              value={slug}
+              onChange={e => setSlug(slugify(e.target.value))}
+            />
+            <p className="text-xs text-muted-foreground mt-1.5 break-all">
+              {getShareableOrigin()}/s/<span className="font-medium text-foreground">{slug || slugify(name) || 'my-school'}</span>
+            </p>
           </div>
           <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!school?.country} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
@@ -231,6 +247,7 @@ export default function SchoolProfileEditor() {
           <button
             onClick={() => update.mutate({
               name, country, city, sport: sports, description, venues,
+              slug: (slug || slugify(name)) || null,
               legal_name: legalName || null,
               tax_id: taxId || null,
               legal_address: legalAddress || null,

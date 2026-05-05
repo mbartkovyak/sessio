@@ -14,14 +14,16 @@ type SchoolWithMembers = Tables<'schools'> & {
   pending_members?: SchoolMemberWithCoach[];
 };
 
-type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues'>;
+type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues' | 'slug'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type ReviewWithReviewer = Tables<'reviews'> & { profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
 
 type FavouriteSchoolWithSchool = Tables<'favourite_schools'> & { school: SchoolBasic | null };
 
-type DiscoverableSchoolRow = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'city' | 'logo_url' | 'description'> & {
+type DiscoverableSchoolRow = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'city' | 'logo_url' | 'description' | 'slug'> & {
   school_members: Pick<Tables<'school_members'>, 'id' | 'status'>[];
 };
 type DiscoverableSchool = DiscoverableSchoolRow & { coach_count: number };
@@ -63,7 +65,7 @@ export function useMySchoolMembership() {
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members')
-        .select('id, school_id, status, schools:school_id(id, name, sport, country, city, logo_url, venues)')
+        .select('id, school_id, status, schools:school_id(id, name, sport, country, city, logo_url, venues, slug)')
         .eq('coach_id', user!.id)
         .eq('status', 'approved')
         .maybeSingle();
@@ -90,16 +92,17 @@ export function useMyPendingSchoolRequest() {
   });
 }
 
-/** Fetch a single school by ID (public) */
-export function useSchool(id: string | undefined) {
+/** Fetch a single school by UUID or slug (public). The /s/:id route param can be either. */
+export function useSchool(idOrSlug: string | undefined) {
   return useQuery({
-    queryKey: ['school', id],
-    enabled: !!id,
+    queryKey: ['school', idOrSlug],
+    enabled: !!idOrSlug,
     queryFn: async () => {
+      const column = UUID_RE.test(idOrSlug!) ? 'id' : 'slug';
       const { data, error } = await supabase
         .from('schools')
         .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
-        .eq('id', id!)
+        .eq(column, idOrSlug!)
         .single();
       if (error) throw error;
       // Only return approved coaches
@@ -200,7 +203,7 @@ export function useMyFavouriteSchools() {
     queryFn: async () => {
       const { data } = await supabase
         .from('favourite_schools')
-        .select('*, school:school_id(id, name, sport, city, logo_url)')
+        .select('*, school:school_id(id, name, sport, city, logo_url, slug)')
         .eq('user_id', user!.id);
       return (data ?? []) as FavouriteSchoolWithSchool[];
     },
@@ -381,8 +384,14 @@ export function useUpdateSchool(schoolId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-school'] });
-      qc.invalidateQueries({ queryKey: ['school', schoolId] });
+      qc.invalidateQueries({ queryKey: ['school'] });
       toast.success(i18n.t('toast.schoolUpdated', { ns: 'common' }));
+    },
+    onError: (e: any) => {
+      const msg = e?.code === '23505'
+        ? i18n.t('school:profile.slugTaken', 'That URL is already taken — try another.')
+        : localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }));
+      toast.error(msg);
     },
   });
 }
@@ -393,7 +402,7 @@ export function useDiscoverableSchools(search?: string, sport?: string, city?: s
     queryFn: async () => {
       let q = supabase
         .from('schools')
-        .select('id, name, sport, city, logo_url, description, school_members(id, status)')
+        .select('id, name, sport, city, logo_url, description, slug, school_members(id, status)')
         .not('name', 'is', null)
         .eq('is_listed', true);
       if (search) q = q.ilike('name', `%${search}%`);

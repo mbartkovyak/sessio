@@ -5,7 +5,7 @@ import { useMyFavouriteSchools, useMyFavouriteCoaches } from '@/hooks/school/use
 import Avatar from '@/components/shared/Avatar';
 
 type Item =
-  | { kind: 'school'; id: string; name: string; logo_url: string | null }
+  | { kind: 'school'; id: string; slug: string | null; name: string; logo_url: string | null }
   | { kind: 'coach'; id: string; name: string; avatar_url: string | null };
 
 export default function SavedSection() {
@@ -20,6 +20,7 @@ export default function SavedSection() {
       .map(f => ({
         kind: 'school' as const,
         id: f.school!.id,
+        slug: f.school!.slug ?? null,
         name: f.school!.name ?? '',
         logo_url: f.school!.logo_url ?? null,
       })),
@@ -68,7 +69,7 @@ export default function SavedSection() {
           {items.map(item => (
             <button
               key={`${item.kind}-${item.id}`}
-              onClick={() => navigate(item.kind === 'school' ? `/s/${item.id}` : `/search/coach/${item.id}`)}
+              onClick={() => navigate(item.kind === 'school' ? `/s/${item.slug ?? item.id}` : `/search/coach/${item.id}`)}
               className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 min-w-[100px] shrink-0 active:bg-secondary/50 shadow-sm"
             >
               <Avatar

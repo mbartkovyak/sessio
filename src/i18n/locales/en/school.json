@@ -26,6 +26,8 @@
   "profile": {
     "title": "School profile",
     "schoolName": "School name",
+    "slug": "Public URL",
+    "slugTaken": "That URL is already taken — try another.",
     "description": "Description",
     "saving": "Saving...",
     "coachesSection": "Coaches",

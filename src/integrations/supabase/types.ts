@@ -659,6 +659,7 @@ export type Database = {
           owner_id: string
           refund_policy: string | null
           services_info: string | null
+          slug: string | null
           sport: string[] | null
           tax_id: string | null
           updated_at: string
@@ -681,6 +682,7 @@ export type Database = {
           owner_id: string
           refund_policy?: string | null
           services_info?: string | null
+          slug?: string | null
           sport?: string[] | null
           tax_id?: string | null
           updated_at?: string
@@ -703,6 +705,7 @@ export type Database = {
           owner_id?: string
           refund_policy?: string | null
           services_info?: string | null
+          slug?: string | null
           sport?: string[] | null
           tax_id?: string | null
           updated_at?: string

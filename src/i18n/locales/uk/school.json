@@ -26,6 +26,8 @@
   "profile": {
     "title": "Профіль школи",
     "schoolName": "Назва школи",
+    "slug": "Публічна URL-адреса",
+    "slugTaken": "Ця URL-адреса вже зайнята — оберіть іншу.",
     "description": "Опис",
     "saving": "Збереження...",
     "coachesSection": "Тренери",
