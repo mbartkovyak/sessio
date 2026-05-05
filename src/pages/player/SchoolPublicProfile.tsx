@@ -21,8 +21,9 @@ export default function SchoolPublicProfile() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { data: school, isLoading: schoolLoading } = useSchool(id);
-  const { data: reviewsRaw = [], isLoading: reviewsLoading } = useSchoolReviews(id);
-  const { data: isFav } = useIsFavouriteSchool(id);
+  const schoolUuid = school?.id;
+  const { data: reviewsRaw = [], isLoading: reviewsLoading } = useSchoolReviews(schoolUuid);
+  const { data: isFav } = useIsFavouriteSchool(schoolUuid);
   const toggleFav = useToggleFavouriteSchool();
   const isLoading = schoolLoading || reviewsLoading;
 
@@ -93,10 +94,10 @@ export default function SchoolPublicProfile() {
           )}
 
           {/* Action buttons row */}
-          {session && id && (
+          {session && schoolUuid && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button
-                onClick={() => toggleFav.mutate({ schoolId: id, isFav: !!isFav })}
+                onClick={() => toggleFav.mutate({ schoolId: schoolUuid, isFav: !!isFav })}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold min-h-[36px] whitespace-nowrap transition-colors ${
                   isFav ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-foreground'
                 }`}

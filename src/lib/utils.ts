@@ -10,6 +10,13 @@ export function getInitials(name: string | undefined | null): string {
   return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True when the string is a canonical UUID (used to disambiguate /s/:id between UUID and slug). */
+export function isUuid(value: string | null | undefined): boolean {
+  return !!value && UUID_RE.test(value);
+}
+
 /** Slugify text for URL paths. Mirrors the PG slugify_text function for live-preview UX.
  *  Latin + Cyrillic UA/RU + Polish/German diacritics. The DB enforces uniqueness — this is preview-only. */
 export function slugify(input: string | null | undefined): string {

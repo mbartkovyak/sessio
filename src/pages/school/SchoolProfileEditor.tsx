@@ -143,10 +143,14 @@ export default function SchoolProfileEditor() {
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder={slugify(name) || 'my-school'}
               value={slug}
-              onChange={e => setSlug(slugify(e.target.value))}
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              onChange={e => setSlug(e.target.value.toLowerCase())}
+              onBlur={() => setSlug(slugify(slug))}
             />
             <p className="text-xs text-muted-foreground mt-1.5 break-all">
-              {getShareableOrigin()}/s/<span className="font-medium text-foreground">{slug || slugify(name) || 'my-school'}</span>
+              {getShareableOrigin()}/s/<span className="font-medium text-foreground">{slugify(slug) || slugify(name) || 'my-school'}</span>
             </p>
           </div>
           <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!school?.country} />
@@ -247,7 +251,9 @@ export default function SchoolProfileEditor() {
           <button
             onClick={() => update.mutate({
               name, country, city, sport: sports, description, venues,
-              slug: (slug || slugify(name)) || null,
+              // Always send a non-empty slug when name is set — the trigger only fires on INSERT,
+              // so an UPDATE with NULL would clear the slug permanently.
+              slug: slugify(slug) || slugify(name) || school?.slug || null,
               legal_name: legalName || null,
               tax_id: taxId || null,
               legal_address: legalAddress || null,

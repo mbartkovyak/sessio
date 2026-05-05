@@ -14,10 +14,10 @@ type SchoolWithMembers = Tables<'schools'> & {
   pending_members?: SchoolMemberWithCoach[];
 };
 
+import { isUuid } from '@/lib/utils';
+
 type SchoolBasic = Pick<Tables<'schools'>, 'id' | 'name' | 'sport' | 'country' | 'city' | 'logo_url' | 'venues' | 'slug'>;
 type SchoolMembershipRow = Pick<Tables<'school_members'>, 'id' | 'school_id' | 'status'> & { schools: SchoolBasic | null };
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type ReviewWithReviewer = Tables<'reviews'> & { profiles: Pick<Tables<'profiles'>, 'id' | 'full_name' | 'avatar_url'> | null };
 
@@ -98,7 +98,7 @@ export function useSchool(idOrSlug: string | undefined) {
     queryKey: ['school', idOrSlug],
     enabled: !!idOrSlug,
     queryFn: async () => {
-      const column = UUID_RE.test(idOrSlug!) ? 'id' : 'slug';
+      const column = isUuid(idOrSlug) ? 'id' : 'slug';
       const { data, error } = await supabase
         .from('schools')
         .select('*, school_members(id, coach_id, status, coach:profiles(id, full_name, avatar_url, sport, city, bio))')
