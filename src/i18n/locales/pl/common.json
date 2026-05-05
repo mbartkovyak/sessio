@@ -234,7 +234,13 @@
     "passUsedUpDescription": "Twój poprzedni karnet {{pass}} się skończył. Zamów nowy, aby kontynuować.",
     "requestPassSheetTitle": "Zamów {{pass}}",
     "requestPassSheetCta": "Wyślij prośbę",
-    "requestPassSheetStartLabel": "Od kiedy?"
+    "requestPassSheetStartLabel": "Od kiedy?",
+    "confirmedTitle": "Jesteś zapisany",
+    "confirmedSingle": "{{date}} o {{time}}",
+    "confirmedRecurring": "Co tydzień: {{days}} o {{time}}",
+    "confirmedAttendees": "{{count}} z {{max}} zapisanych",
+    "confirmedAttendeesNoCap": "{{count}} zapisanych",
+    "confirmedDone": "Rozumiem"
   },
   "signUp": {
     "justThisSession": "Tylko te zajęcia",

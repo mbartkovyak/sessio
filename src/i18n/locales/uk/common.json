@@ -234,7 +234,13 @@
     "passUsedUpDescription": "Твій попередній абонемент {{pass}} закінчився. Подай запит на новий, щоб продовжити.",
     "requestPassSheetTitle": "Запит на {{pass}}",
     "requestPassSheetCta": "Надіслати запит",
-    "requestPassSheetStartLabel": "З якої дати?"
+    "requestPassSheetStartLabel": "З якої дати?",
+    "confirmedTitle": "Тебе записано",
+    "confirmedSingle": "{{date}} о {{time}}",
+    "confirmedRecurring": "Щотижня: {{days}} о {{time}}",
+    "confirmedAttendees": "{{count}} із {{max}} записалися",
+    "confirmedAttendeesNoCap": "{{count}} записалися",
+    "confirmedDone": "Зрозуміло"
   },
   "signUp": {
     "justThisSession": "Тільки це заняття",

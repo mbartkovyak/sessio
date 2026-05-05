@@ -234,7 +234,13 @@
     "passUsedUpDescription": "Your previous {{pass}} pass is finished. Request a new one to keep joining.",
     "requestPassSheetTitle": "Request {{pass}}",
     "requestPassSheetCta": "Send request",
-    "requestPassSheetStartLabel": "When should it start?"
+    "requestPassSheetStartLabel": "When should it start?",
+    "confirmedTitle": "You're signed up",
+    "confirmedSingle": "{{date}} at {{time}}",
+    "confirmedRecurring": "Every {{days}} at {{time}}",
+    "confirmedAttendees": "{{count}} of {{max}} signed up",
+    "confirmedAttendeesNoCap": "{{count}} signed up",
+    "confirmedDone": "Got it"
   },
   "signUp": {
     "justThisSession": "Just this session",

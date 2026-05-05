@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
-import { Clock, Users, Mail, Calendar, CalendarDays, Ticket } from 'lucide-react';
+import { Clock, Users, Mail, Calendar, CalendarDays, Ticket, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { toast } from 'sonner';
@@ -45,6 +45,10 @@ export default function JoinTraining() {
   const [emailSent, setEmailSent] = useState(false);
   const [showRequestPassSheet, setShowRequestPassSheet] = useState(false);
   const [passStartDate, setPassStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  // After a successful sign-up: drive a confirmation screen instead of bouncing
+  // straight to /player. Parents reported phoning the coach to ask "am I really
+  // signed up?" — toast + immediate redirect was too easy to miss.
+  const [joinedSuccess, setJoinedSuccess] = useState<null | { mode: 'single' | 'recurring'; sessionDate?: string }>(null);
   const joiningRef = useRef(false);
 
   // Pass status for the current training (only meaningful once `training` and player are loaded).
@@ -151,8 +155,12 @@ export default function JoinTraining() {
         .eq('user_id', profile.id)
         .maybeSingle();
       if (existingAtt) {
-        toast.info(t('join.alreadyInSession'));
-        navigate('/player');
+        // Reassure the parent: yes, you ARE signed up. Same confirmation as a
+        // fresh join — they likely re-opened the link to verify.
+        const picked = sessionId === sessionParam
+          ? sessionInfo
+          : upcomingSessions.find((s: any) => s.id === sessionId);
+        setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
         return;
       }
       const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
@@ -197,8 +205,11 @@ export default function JoinTraining() {
       queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
       queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
       queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
-      toast.success(t('join.joinedSession', { name: training.name }));
-      navigate('/player');
+      setMemberCount(c => (c ?? 0) + 1);
+      const picked = sessionId === sessionParam
+        ? sessionInfo
+        : upcomingSessions.find((s: any) => s.id === sessionId);
+      setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
     } catch (err: any) {
       toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
       navigate('/player');
@@ -237,8 +248,13 @@ export default function JoinTraining() {
           .maybeSingle();
 
         if (existing) {
-          toast.info(existing.role === 'waitlist' ? t('join.alreadyOnWaitlist') : t('join.alreadyInTraining'));
-          navigate('/player');
+          if (existing.role === 'waitlist') {
+            toast.info(t('join.alreadyOnWaitlist'));
+            navigate('/player');
+          } else {
+            // Reassure the parent — re-opening the link is how they verify.
+            setJoinedSuccess({ mode: 'recurring' });
+          }
           return;
         }
 
@@ -346,8 +362,13 @@ export default function JoinTraining() {
         queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
         queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
         queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
-        toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
-        navigate('/player');
+        if (memberRole === 'waitlist') {
+          toast.success(t('join.addedToWaitlist'));
+          navigate('/player');
+        } else {
+          setMemberCount(c => (c ?? 0) + 1);
+          setJoinedSuccess({ mode: 'recurring' });
+        }
       }
     } catch (err: any) {
       toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
@@ -476,6 +497,52 @@ export default function JoinTraining() {
       </div>
     </div>
   );
+
+  // Post-join confirmation — replaces the toast + redirect with a screen
+  // parents can't miss. Privacy-safe: shows count, never other kids' names.
+  if (joinedSuccess) {
+    const daysLabel = (training.days_of_week ?? [training.day_of_week])
+      .map((d: number) => dayLabel(DAYS[d]))
+      .filter(Boolean)
+      .join(', ');
+    const subtitle = joinedSuccess.mode === 'single' && joinedSuccess.sessionDate
+      ? t('join.confirmedSingle', {
+          date: format(new Date(joinedSuccess.sessionDate + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() }),
+          time: training.start_time?.slice(0, 5) ?? '',
+        })
+      : t('join.confirmedRecurring', {
+          days: daysLabel,
+          time: training.start_time?.slice(0, 5) ?? '',
+        });
+    const attendees = training.max_players
+      ? t('join.confirmedAttendees', { count: memberCount ?? 0, max: training.max_players })
+      : t('join.confirmedAttendeesNoCap', { count: memberCount ?? 0 });
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <AppHeader title={training.name} />
+        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full flex flex-col items-center justify-center text-center space-y-5">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-success/10">
+            <Check className="h-10 w-10 text-success" strokeWidth={3} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">{t('join.confirmedTitle')}</h2>
+            <p className="text-base text-foreground">{training.name}</p>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4 shrink-0" />
+            <span>{attendees}</span>
+          </div>
+          <button
+            onClick={() => navigate('/player')}
+            className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
+          >
+            {t('join.confirmedDone')}
+          </button>
+        </main>
+      </div>
+    );
+  }
 
   // Logged-in view — show sessions, let player choose
   if (session && profile?.onboarding_complete && profile?.role === 'player') {
