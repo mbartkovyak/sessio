@@ -26,6 +26,8 @@
   "profile": {
     "title": "School profile",
     "schoolName": "School name",
+    "slug": "Öffentliche URL",
+    "slugTaken": "Diese URL ist bereits vergeben — wählen Sie eine andere.",
     "description": "Description",
     "saving": "Saving...",
     "coachesSection": "Coaches",
@@ -43,7 +45,23 @@
     "venues": "Venues",
     "venueName": "Venue name (e.g. Court 3)",
     "venueAddress": "Full address (e.g. ul. Marszałkowska 12, Warszawa)",
-    "addVenue": "Add venue"
+    "addVenue": "Add venue",
+    "businessInfoTitle": "Geschäftsdaten & Kontakt",
+    "businessInfoHelper": "Optional. Erforderlich für Online-Zahlungen (LiqPay, Stripe usw.). Wird öffentlich auf der Schulseite angezeigt.",
+    "legalName": "Firmenname",
+    "legalNamePlaceholder": "z.B. Olena Ivanova (Einzelunternehmen)",
+    "taxId": "Steuernummer",
+    "taxIdPlaceholder": "z.B. USt-IdNr.",
+    "legalAddress": "Geschäftsadresse",
+    "legalAddressPlaceholder": "Eingetragene Geschäftsadresse",
+    "contactPhone": "Telefon",
+    "contactEmail": "Kontakt-E-Mail",
+    "contactEmailPlaceholder": "contact@example.com",
+    "servicesInfo": "Leistungen & Preise",
+    "servicesInfoPlaceholder": "Gruppentraining — 25 €/Einheit\nEinzeltraining — 60 €/Einheit",
+    "refundPolicy": "Rückerstattungsbedingungen",
+    "refundPolicyPlaceholder": "Beschreiben Sie die Rückerstattungsbedingungen Ihrer Schule...",
+    "publicAboutTitle": "Über die Schule"
   },
   "coaches": {
     "title": "Coaches",

@@ -83,7 +83,7 @@ export default function PlayerSearch() {
                 item._type === 'school' ? (
                   <button
                     key={`school-${item.id}`}
-                    onClick={() => navigate(`/s/${item.id}`)}
+                    onClick={() => navigate(`/s/${item.slug ?? item.id}`)}
                     className="w-full flex items-start gap-4 rounded-xl border border-border bg-card p-4 text-left active:bg-secondary/50 transition-colors shadow-sm"
                   >
                     <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl font-bold text-primary overflow-hidden">

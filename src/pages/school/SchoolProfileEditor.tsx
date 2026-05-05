@@ -13,10 +13,12 @@ import { SPORTS, COUNTRIES, CITIES_BY_COUNTRY, sportLabel, countryLabel, type Co
 import SelectField from '@/components/shared/SelectField';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
 import VenueManager, { type Venue } from '@/components/shared/VenueManager';
+import PhoneInput from '@/components/shared/PhoneInput';
 import Avatar from '@/components/shared/Avatar';
 import { useUnsavedChanges } from '@/hooks/shared/useUnsavedChanges';
 import UnsavedChangesDialog from '@/components/shared/UnsavedChangesDialog';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { slugify } from '@/lib/utils';
 import { getShareableOrigin } from '@/lib/platform';
 import { SessioLoader } from '@/components/SessioLogo';
 
@@ -30,28 +32,52 @@ export default function SchoolProfileEditor() {
   const qc = useQueryClient();
 
   const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [sports, setSports] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [legalName, setLegalName] = useState('');
+  const [taxId, setTaxId] = useState('');
+  const [legalAddress, setLegalAddress] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [servicesInfo, setServicesInfo] = useState('');
+  const [refundPolicy, setRefundPolicy] = useState('');
 
   useEffect(() => {
     if (school) {
       setName(school.name ?? '');
+      setSlug(school.slug ?? '');
       setCountry(school.country ?? '');
       setCity(school.city ?? '');
       setSports(school.sport ?? []);
       setDescription(school.description ?? '');
       setVenues(((school as any).venues as Venue[]) ?? []);
+      setLegalName(school.legal_name ?? '');
+      setTaxId(school.tax_id ?? '');
+      setLegalAddress(school.legal_address ?? '');
+      setContactPhone(school.contact_phone ?? '');
+      setContactEmail(school.contact_email ?? '');
+      setServicesInfo(school.services_info ?? '');
+      setRefundPolicy(school.refund_policy ?? '');
     }
   }, [school]);
 
   const isDirty = name !== (school?.name ?? '')
+    || slug !== (school?.slug ?? '')
     || country !== (school?.country ?? '')
     || city !== (school?.city ?? '')
     || JSON.stringify(sports) !== JSON.stringify(school?.sport ?? [])
-    || description !== (school?.description ?? '');
+    || description !== (school?.description ?? '')
+    || legalName !== (school?.legal_name ?? '')
+    || taxId !== (school?.tax_id ?? '')
+    || legalAddress !== (school?.legal_address ?? '')
+    || contactPhone !== (school?.contact_phone ?? '')
+    || contactEmail !== (school?.contact_email ?? '')
+    || servicesInfo !== (school?.services_info ?? '')
+    || refundPolicy !== (school?.refund_policy ?? '');
   const cities = country ? CITIES_BY_COUNTRY[country as Country] ?? [] : [];
   function handleCountryChange(c: string) { setCountry(c); setCity(''); }
   const countryLabels = Object.fromEntries(COUNTRIES.map(c => [c, countryLabel(c)]));
@@ -111,6 +137,22 @@ export default function SchoolProfileEditor() {
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.schoolName')}</label>
             <input className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={e => setName(e.target.value)} />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.slug')}</label>
+            <input
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder={slugify(name) || 'my-school'}
+              value={slug}
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              onChange={e => setSlug(e.target.value.toLowerCase())}
+              onBlur={() => setSlug(slugify(slug))}
+            />
+            <p className="text-xs text-muted-foreground mt-1.5 break-all">
+              {getShareableOrigin()}/s/<span className="font-medium text-foreground">{slugify(slug) || slugify(name) || 'my-school'}</span>
+            </p>
+          </div>
           <SelectField label={t('common:form.country')} value={country} onChange={handleCountryChange} options={COUNTRIES} placeholder={t('common:form.selectCountry')} labels={countryLabels} disabled={!!school?.country} />
           <SelectField label={t('common:form.city')} value={city} onChange={setCity} options={cities} placeholder={t('common:form.selectCity')} required />
           <div>
@@ -138,7 +180,89 @@ export default function SchoolProfileEditor() {
             <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.description')}</label>
             <textarea rows={3} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
-          <button onClick={() => update.mutate({ name, country, city, sport: sports, description, venues })} disabled={update.isPending || !country || !city}
+
+          {/* Business information — public, used by payment processors (LiqPay, Stripe) */}
+          <div className="rounded-2xl border border-border bg-card/50 p-4 space-y-4">
+            <div>
+              <h3 className="font-semibold text-foreground text-sm">{t('profile.businessInfoTitle')}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{t('profile.businessInfoHelper')}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.legalName')}</label>
+              <input
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder={t('profile.legalNamePlaceholder')}
+                value={legalName}
+                onChange={e => setLegalName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.taxId')}</label>
+              <input
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder={t('profile.taxIdPlaceholder')}
+                value={taxId}
+                onChange={e => setTaxId(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.legalAddress')}</label>
+              <textarea
+                rows={2}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                placeholder={t('profile.legalAddressPlaceholder')}
+                value={legalAddress}
+                onChange={e => setLegalAddress(e.target.value)}
+              />
+            </div>
+            <PhoneInput value={contactPhone} onChange={setContactPhone} />
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.contactEmail')}</label>
+              <input
+                type="email"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder={t('profile.contactEmailPlaceholder')}
+                value={contactEmail}
+                onChange={e => setContactEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.servicesInfo')}</label>
+              <textarea
+                rows={4}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                placeholder={t('profile.servicesInfoPlaceholder')}
+                value={servicesInfo}
+                onChange={e => setServicesInfo(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.refundPolicy')}</label>
+              <textarea
+                rows={4}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                placeholder={t('profile.refundPolicyPlaceholder')}
+                value={refundPolicy}
+                onChange={e => setRefundPolicy(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={() => update.mutate({
+              name, country, city, sport: sports, description, venues,
+              // Always send a non-empty slug when name is set — the trigger only fires on INSERT,
+              // so an UPDATE with NULL would clear the slug permanently.
+              slug: slugify(slug) || slugify(name) || school?.slug || null,
+              legal_name: legalName || null,
+              tax_id: taxId || null,
+              legal_address: legalAddress || null,
+              contact_phone: contactPhone || null,
+              contact_email: contactEmail || null,
+              services_info: servicesInfo || null,
+              refund_policy: refundPolicy || null,
+            })}
+            disabled={update.isPending || !country || !city}
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60">
             {update.isPending ? t('profile.saving') : t('common:actions.save')}
           </button>

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Heart, Star, Ticket } from 'lucide-react';
+import { MapPin, Heart, Star, Ticket, Phone, Mail } from 'lucide-react';
 import AppHeader from '@/components/shared/AppHeader';
 import {
   useSchool,
@@ -21,8 +21,9 @@ export default function SchoolPublicProfile() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { data: school, isLoading: schoolLoading } = useSchool(id);
-  const { data: reviewsRaw = [], isLoading: reviewsLoading } = useSchoolReviews(id);
-  const { data: isFav } = useIsFavouriteSchool(id);
+  const schoolUuid = school?.id;
+  const { data: reviewsRaw = [], isLoading: reviewsLoading } = useSchoolReviews(schoolUuid);
+  const { data: isFav } = useIsFavouriteSchool(schoolUuid);
   const toggleFav = useToggleFavouriteSchool();
   const isLoading = schoolLoading || reviewsLoading;
 
@@ -93,10 +94,10 @@ export default function SchoolPublicProfile() {
           )}
 
           {/* Action buttons row */}
-          {session && id && (
+          {session && schoolUuid && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button
-                onClick={() => toggleFav.mutate({ schoolId: id, isFav: !!isFav })}
+                onClick={() => toggleFav.mutate({ schoolId: schoolUuid, isFav: !!isFav })}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold min-h-[36px] whitespace-nowrap transition-colors ${
                   isFav ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-foreground'
                 }`}
@@ -135,6 +136,65 @@ export default function SchoolPublicProfile() {
                   if (!coach) return null;
                   return <CoachCard key={m.id} coach={coach} />;
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Business info — public; required by payment processors (LiqPay, Stripe) */}
+          {school && (school.legal_name || school.tax_id || school.legal_address
+            || school.contact_phone || school.contact_email
+            || school.services_info || school.refund_policy) && (
+            <div>
+              <h3 className="font-semibold text-foreground mb-3">{t('school:profile.publicAboutTitle')}</h3>
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 text-sm">
+                {school.legal_name && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.legalName')}</p>
+                    <p className="text-foreground">{school.legal_name}</p>
+                  </div>
+                )}
+                {school.tax_id && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.taxId')}</p>
+                    <p className="text-foreground">{school.tax_id}</p>
+                  </div>
+                )}
+                {school.legal_address && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.legalAddress')}</p>
+                    <p className="text-foreground whitespace-pre-line">{school.legal_address}</p>
+                  </div>
+                )}
+                {school.contact_phone && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.contactPhone', 'Phone')}</p>
+                    <a href={`tel:${school.contact_phone}`} className="flex items-center gap-1.5 text-foreground hover:text-primary">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      {school.contact_phone}
+                    </a>
+                  </div>
+                )}
+                {school.contact_email && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.contactEmail')}</p>
+                    <a href={`mailto:${school.contact_email}`} className="flex items-center gap-1.5 text-foreground hover:text-primary break-all">
+                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                      {school.contact_email}
+                    </a>
+                  </div>
+                )}
+                {school.services_info && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.servicesInfo')}</p>
+                    <p className="text-foreground whitespace-pre-line leading-relaxed">{school.services_info}</p>
+                  </div>
+                )}
+                {school.refund_policy && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t('school:profile.refundPolicy')}</p>
+                    <p className="text-foreground whitespace-pre-line leading-relaxed">{school.refund_policy}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

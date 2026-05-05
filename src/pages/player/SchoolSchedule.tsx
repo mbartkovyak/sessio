@@ -10,7 +10,7 @@ export default function SchoolSchedule() {
   const { t } = useTranslation('player');
 
   const { data: school } = useSchool(id);
-  const { data: sessions = [], isLoading } = useSchoolUpcomingSessions(id);
+  const { data: sessions = [], isLoading } = useSchoolUpcomingSessions(school?.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

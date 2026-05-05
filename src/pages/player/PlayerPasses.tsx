@@ -8,6 +8,7 @@ import { CheckCircle2, Clock, History, Ticket } from 'lucide-react';
 import AppHeader from '@/components/shared/AppHeader';
 import { SessioLoader } from '@/components/SessioLogo';
 import { supabase } from '@/integrations/supabase/client';
+import { isUuid } from '@/lib/utils';
 import {
   daysRemaining,
   isAbonamentActive,
@@ -39,24 +40,29 @@ export default function PlayerPasses() {
     },
   });
 
-  const routeSchoolId = isCoachRoute ? coach?.school_id : id;
+  // From the coach route the param resolves to a coach UUID via the coach query above;
+  // from the school route the param can be either a UUID or a slug.
+  const schoolLookup = isCoachRoute ? coach?.school_id : id;
 
   const { data: school, isLoading: schoolLoading } = useQuery({
-    queryKey: ['pass-page-school', routeSchoolId],
-    enabled: !!routeSchoolId,
+    queryKey: ['pass-page-school', schoolLookup],
+    enabled: !!schoolLookup,
     queryFn: async () => {
+      const column = isUuid(schoolLookup) ? 'id' : 'slug';
       const { data, error } = await supabase
         .from('schools')
         .select('id, name')
-        .eq('id', routeSchoolId!)
+        .eq(column, schoolLookup!)
         .single();
       if (error) throw error;
       return data as { id: string; name: string | null };
     },
   });
 
-  const { data: passes = [], isLoading: passesLoading } = useMySchoolAbonaments(routeSchoolId);
-  const { data: passTypes = [], isLoading: typesLoading } = useAvailablePassTypes(routeSchoolId ? [routeSchoolId] : []);
+  // Always pass the resolved UUID to downstream hooks — they query by school_id (UUID FK).
+  const schoolUuid = school?.id;
+  const { data: passes = [], isLoading: passesLoading } = useMySchoolAbonaments(schoolUuid);
+  const { data: passTypes = [], isLoading: typesLoading } = useAvailablePassTypes(schoolUuid ? [schoolUuid] : []);
   const requestPass = useRequestPass();
 
   const pendingTypeIds = new Set(
@@ -106,7 +112,7 @@ export default function PlayerPasses() {
           <div className="flex min-h-[60vh] items-center justify-center">
             <SessioLoader />
           </div>
-        ) : !routeSchoolId ? (
+        ) : !schoolUuid ? (
           <div className="max-w-md mx-auto px-4 py-6">
             <EmptyState text={t('abonaments.noPassesHere')} />
           </div>
