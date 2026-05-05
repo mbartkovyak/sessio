@@ -465,6 +465,27 @@ export function useTrainingSessions(trainingId: string | undefined) {
 }
 
 export function useSessionAttendance(sessionId: string | undefined) {
+  const qc = useQueryClient();
+
+  // Realtime: refetch when an athlete confirms/declines for this session.
+  // Without this, the coach's UI was stale for up to 5 minutes (the default
+  // staleTime) after a parent canceled — even after closing/reopening the app.
+  useEffect(() => {
+    if (!sessionId) return;
+    const channel = supabase
+      .channel(`session-attendance:${sessionId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'session_attendance',
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: ['session-attendance', sessionId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [sessionId, qc]);
+
   return useQuery({
     queryKey: ['session-attendance', sessionId],
     enabled: !!sessionId,
