@@ -195,7 +195,6 @@
     "joinName": "Приєднатися до {{name}}",
     "invitedToJoin": "{{name}} запрошує вас приєднатися",
     "beenInvitedToJoin": "Вас запросили на це заняття",
-    "joinIn30Seconds": "Щоб приєднатися:",
     "requestNotificationTitle": "Новий запит на приєднання",
     "requestNotificationBody": "{{name}} хоче приєднатися до {{training}}.",
     "memberJoinedTitle": "Новий учасник",

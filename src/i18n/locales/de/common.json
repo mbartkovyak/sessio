@@ -195,7 +195,6 @@
     "joinName": "Join {{name}}",
     "invitedToJoin": "{{name}} invited you to join",
     "beenInvitedToJoin": "You've been invited to join this training",
-    "joinIn30Seconds": "Join in 30 seconds. No app download needed.",
     "requestNotificationTitle": "New join request",
     "requestNotificationBody": "{{name}} wants to join {{training}}.",
     "memberJoinedTitle": "New participant",

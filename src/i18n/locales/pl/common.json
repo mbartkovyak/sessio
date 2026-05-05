@@ -195,7 +195,6 @@
     "joinName": "Dołącz do {{name}}",
     "invitedToJoin": "{{name}} zaprasza cię do dołączenia",
     "beenInvitedToJoin": "Zostałeś/aś zaproszony/a na zajęcia",
-    "joinIn30Seconds": "Żeby dołączyć:",
     "requestNotificationTitle": "Nowa prośba o dołączenie",
     "requestNotificationBody": "{{name}} chce dołączyć do {{training}}.",
     "memberJoinedTitle": "Nowy uczestnik",

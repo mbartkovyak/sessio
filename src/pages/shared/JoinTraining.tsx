@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ import { getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getEmailRedirectUrl } from '@/lib/auth-native';
 import { signInWithGoogle, signInWithApple } from '@/lib/auth-providers';
+import { useResetOAuthLoadingOnReturn } from '@/hooks/shared/useResetOAuthLoadingOnReturn';
 import { useRequestPass, useTrainingRequiredPass } from '@/hooks/training/useAbonaments';
 
 import Avatar from '@/components/shared/Avatar';
@@ -106,25 +107,14 @@ export default function JoinTraining() {
       .then(({ data }) => setMemberCount(data ?? 0));
   }, [training]);
 
-  // In standalone PWA mode, detect when user returns from Google OAuth popup
-  useEffect(() => {
-    if (!googleLoading) return;
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-    function onVisible() {
-      if (document.visibilityState !== 'visible') return;
-      localStorage.removeItem('sessio_oauth_pwa');
-      supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (s) { window.location.reload(); return; }
-        try {
-          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
-          if (localStorage.getItem(`sb-${ref}-auth-token`)) { window.location.reload(); return; }
-        } catch {}
-        setGoogleLoading(false);
-      });
-    }
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [googleLoading]);
+  // Reset OAuth loading if the user returns without completing (e.g. cancelled
+  // the Google sheet or pressed back in the in-app browser). Shared with
+  // AuthForm so the behaviour is identical across native + web.
+  const resetOAuthLoading = useCallback(() => {
+    setGoogleLoading(false);
+    setAppleLoading(false);
+  }, []);
+  useResetOAuthLoadingOnReturn(googleLoading || appleLoading, resetOAuthLoading);
 
   // Redirect non-players and non-onboarded users
   useEffect(() => {
@@ -786,8 +776,6 @@ export default function JoinTraining() {
         )}
 
         <TrainingDetails />
-
-        <p className="text-center text-sm text-muted-foreground">{t('join.joinIn30Seconds')}</p>
 
         {emailSent ? (
           <div className="rounded-2xl bg-success/10 border border-success/20 p-5 text-center">
