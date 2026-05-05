@@ -51,7 +51,7 @@
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
-    "going": "Going",
+    "going": "Signed up",
     "cantMakeItAnymore": "I can't make it",
     "changedMind": "Actually, I can make it",
     "rejoinConfirm": "Rejoin this session?",
@@ -113,7 +113,7 @@
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
-    "going": "Going",
+    "going": "Signed up",
     "rejoinConfirm": "Rejoin this session?",
     "rejoin": "Rejoin",
     "stayOut": "No, stay out"
