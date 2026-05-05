@@ -24,8 +24,8 @@ export default function CoachOverviewSection() {
   const navigate = useNavigate();
   const { t } = useTranslation('coach');
   const isSchoolOwner = profile?.role === 'school_owner';
-  const { data: trainings = [], isLoading: trainingsLoading } = useTrainings();
-  const { data: joinRequests = [], isLoading: joinRequestsLoading } = useAllCoachJoinRequests();
+  const { data: trainings = [] } = useTrainings();
+  const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
   const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
   const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(profile?.id);
@@ -98,16 +98,9 @@ export default function CoachOverviewSection() {
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  const isLoading = trainingsLoading || joinRequestsLoading || sessionsLoading;
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <SessioLoader />
-      </div>
-    );
-  }
-
+  // Render the page chrome immediately and let each section show its own
+  // state. Gating the whole page on three queries used to cause minutes-long
+  // blank screens whenever any single query stalled (cold cache, pool spike).
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
       {/* Greeting */}
@@ -216,7 +209,11 @@ export default function CoachOverviewSection() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('home.upcoming')}</h2>
         </div>
-        {upcomingSessions.length === 0 ? (
+        {sessionsLoading && upcomingSessions.length === 0 ? (
+          <div className="rounded-2xl bg-white p-6 shadow-sm flex items-center justify-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+            <SessioLoader />
+          </div>
+        ) : upcomingSessions.length === 0 ? (
           <div className="rounded-2xl bg-white p-6 shadow-sm text-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
             <p className="text-sm text-muted-foreground">{t('home.noUpcoming')}</p>
           </div>
