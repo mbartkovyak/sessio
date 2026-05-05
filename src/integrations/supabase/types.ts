@@ -644,46 +644,67 @@ export type Database = {
       schools: {
         Row: {
           city: string | null
+          contact_email: string | null
+          contact_phone: string | null
           country: string | null
           created_at: string
           description: string | null
           id: string
           invite_code: string
           is_listed: boolean
+          legal_address: string | null
+          legal_name: string | null
           logo_url: string | null
           name: string
           owner_id: string
+          refund_policy: string | null
+          services_info: string | null
           sport: string[] | null
+          tax_id: string | null
           updated_at: string
           venues: Json | null
         }
         Insert: {
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           country?: string | null
           created_at?: string
           description?: string | null
           id?: string
           invite_code?: string
           is_listed?: boolean
+          legal_address?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           name: string
           owner_id: string
+          refund_policy?: string | null
+          services_info?: string | null
           sport?: string[] | null
+          tax_id?: string | null
           updated_at?: string
           venues?: Json | null
         }
         Update: {
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           country?: string | null
           created_at?: string
           description?: string | null
           id?: string
           invite_code?: string
           is_listed?: boolean
+          legal_address?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           name?: string
           owner_id?: string
+          refund_policy?: string | null
+          services_info?: string | null
           sport?: string[] | null
+          tax_id?: string | null
           updated_at?: string
           venues?: Json | null
         }
