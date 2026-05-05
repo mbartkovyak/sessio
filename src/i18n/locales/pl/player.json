@@ -52,13 +52,13 @@
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj",
     "going": "Zapisany/a",
-    "rejoinConfirm": "Wrócić na te zajęcia?",
-    "rejoin": "Wróć",
+    "rejoinConfirm": "Zapisać się ponownie na te zajęcia?",
+    "rejoin": "Zapisz się ponownie",
     "stayOut": "Nie, zostaw",
     "cantMakeItAnymore": "Nie dam rady",
     "changedMind": "Jednak będę",
-    "rejoinConfirm": "Wrócić na te zajęcia?",
-    "rejoin": "Wróć",
+    "rejoinConfirm": "Zapisać się ponownie na te zajęcia?",
+    "rejoin": "Zapisz się ponownie",
     "stayOut": "Nie, zostaw"
   },
   "messages": {
@@ -117,8 +117,8 @@
     "keepSpot": "Zostaw moje miejsce",
     "cancelAnyway": "Zrezygnuj",
     "going": "Zapisany/a",
-    "rejoinConfirm": "Wrócić na te zajęcia?",
-    "rejoin": "Wróć",
+    "rejoinConfirm": "Zapisać się ponownie na te zajęcia?",
+    "rejoin": "Zapisz się ponownie",
     "stayOut": "Nie, zostaw"
   },
   "joinRequests": {
