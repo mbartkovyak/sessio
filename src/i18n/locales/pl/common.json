@@ -234,7 +234,7 @@
     "requestPassSheetTitle": "Zamów {{pass}}",
     "requestPassSheetCta": "Wyślij prośbę",
     "requestPassSheetStartLabel": "Od kiedy?",
-    "confirmedTitle": "Jesteś zapisany",
+    "confirmedTitle": "Zapisano cię",
     "confirmedSingle": "{{date}} o {{time}}",
     "confirmedRecurring": "Co tydzień: {{days}} o {{time}}",
     "confirmedAttendees": "{{count}} z {{max}} zapisanych",
