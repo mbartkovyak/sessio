@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, MapPin, MessageCircle } from 'lucide-react';
+import { AlertTriangle, MapPin, MessageCircle, Check } from 'lucide-react';
 import { useUpsertAttendance } from '@/hooks/training/useTrainings';
 import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
@@ -77,13 +77,20 @@ function SessionCard({ attendance }: { attendance: any }) {
           ) : isNoShow ? (
             <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
           ) : (
-            <button
-              onClick={() => setShowWarning(true)}
-              disabled={upsert.isPending}
-              className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0 disabled:opacity-50"
-            >
-              {t('thisWeek.cancelAnyway')}
-            </button>
+            // Reassures the parent at a glance — they're on the list. Cancel
+            // stays available immediately below.
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                <Check className="h-3 w-3" strokeWidth={3} /> {t('thisWeek.going')}
+              </span>
+              <button
+                onClick={() => setShowWarning(true)}
+                disabled={upsert.isPending}
+                className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive disabled:opacity-50"
+              >
+                {t('thisWeek.cancelAnyway')}
+              </button>
+            </div>
           )
         )}
         {isPast && isNoShow && (
