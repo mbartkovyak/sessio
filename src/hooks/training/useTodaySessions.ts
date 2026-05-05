@@ -18,7 +18,7 @@ export function useUpcomingSessions(coachId: string | undefined, limit?: number)
       const today = new Date().toISOString().split('T')[0];
       let query = supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players)')
         .eq('trainings.coach_id', coachId!)
         .eq('trainings.is_active', true)
         .gte('session_date', today)
@@ -43,7 +43,7 @@ export function usePastUnmarkedSessions(coachId?: string, schoolId?: string) {
 
       let query = supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, coach:profiles!trainings_coach_id_fkey(full_name))')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players, coach:profiles!trainings_coach_id_fkey(full_name))')
         .eq('trainings.is_active', true)
         .eq('status', 'scheduled')
         .is('attendance_marked_at', null)
@@ -94,7 +94,7 @@ export function useSchoolUpcomingSessions(schoolId: string | undefined, limit?: 
       const today = new Date().toISOString().split('T')[0];
       let query = supabase
         .from('training_sessions')
-        .select('*, trainings!inner(id, name, sport, venue, type, coach_id)')
+        .select('*, trainings!inner(id, name, sport, venue, type, coach_id, max_players)')
         .eq('trainings.school_id', schoolId!)
         .eq('trainings.is_active', true)
         .gte('session_date', today)
