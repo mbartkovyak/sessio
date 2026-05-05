@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import { useTraining, useTrainingMembers, useRemoveTrainingMember, useTrainingSessions, useUpdateTraining, useJoinRequests, useRespondJoinRequest, useAttendanceSummary, useAddTrainingMember } from '@/hooks/training/useTrainings';
-import { useSchoolAthletesWithPassHolders } from '@/hooks/training/useAbonaments';
+import { useSchoolAthletesWithPassHolders, useAbonamentTypes, useCreateAbonamentType } from '@/hooks/training/useAbonaments';
+import { currencyForCountry } from '@/lib/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { notifyUsers } from '@/lib/pushNotify';
@@ -22,7 +23,7 @@ import VenueLink from '@/components/shared/VenueLink';
 import ChatView from '@/components/shared/ChatView';
 import ProfileSheet from '@/components/shared/ProfileSheet';
 import ShareLinkButton from '@/components/shared/ShareLinkButton';
-import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
+import TrainingForm, { type TrainingFormValues, type VenueOption, type PassTypeOption } from '@/components/shared/TrainingForm';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import PageHeader from '@/components/shared/PageHeader';
 import AddMemberSheet from '@/components/coach/AddMemberSheet';
@@ -467,8 +468,56 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
   const { data: schoolMembership } = useMySchoolMembership();
   const isSchoolOwner = profile?.role === 'school_owner';
   const isSchoolMember = !isSchoolOwner && !!schoolMembership;
+  const isSolo = (school as any)?.is_listed === false;
   const schoolCoaches = (school as any)?.school_members ?? [];
   const [selectedCoachId, setSelectedCoachId] = useState<string>(training.coach_id ?? '');
+
+  // Pass-type context — same logic as CreateTraining: load passes for the
+  // training's coach (with school-wide ones included).
+  const trainingSchoolId = isSchoolOwner
+    ? school?.id ?? null
+    : isSchoolMember
+      ? schoolMembership?.school_id ?? null
+      : null;
+  const passTypeCoachId = isSchoolOwner && !isSolo
+    ? (selectedCoachId || training.coach_id || null)
+    : profile?.id ?? null;
+  const schoolCountry = isSchoolOwner
+    ? (school as any)?.country ?? null
+    : isSchoolMember
+      ? (schoolMembership?.schools as any)?.country ?? null
+      : null;
+  const { data: passTypes = [] } = useAbonamentTypes(trainingSchoolId, { coachId: passTypeCoachId });
+  const createPassType = useCreateAbonamentType();
+  const passTypeOptions: PassTypeOption[] = passTypes.map(p => ({
+    id: p.id,
+    name: p.name,
+    sessions_count: p.sessions_count,
+    duration_days: p.duration_days,
+    price: p.price as number | null,
+    currency: p.currency,
+  }));
+
+  async function handleCreatePassType(values: { name: string; sessions_count: number | null; duration_days: number | null; price: number | null }): Promise<PassTypeOption> {
+    if (!trainingSchoolId) throw new Error('Missing school context');
+    const created = await createPassType.mutateAsync({
+      school_id: trainingSchoolId,
+      coach_id: isSchoolOwner ? null : passTypeCoachId,
+      name: values.name,
+      sessions_count: values.sessions_count,
+      duration_days: values.duration_days,
+      price: values.price,
+      currency: currencyForCountry(schoolCountry),
+    });
+    return {
+      id: created.id,
+      name: created.name,
+      sessions_count: created.sessions_count,
+      duration_days: created.duration_days,
+      price: created.price as number | null,
+      currency: created.currency,
+    };
+  }
 
   // Venues — same logic as CreateTraining
   const sourceVenues: VenueOption[] = isSchoolOwner
@@ -515,6 +564,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
     visibility: training.visibility ?? 'private',
     confirmation_window_hours: training.confirmation_window_hours ?? 24,
     day_schedules: training.day_schedules ?? null,
+    required_pass_type_id: (training as any).required_pass_type_id ?? null,
   } : undefined;
 
   async function handleSave(form: TrainingFormValues) {
@@ -531,6 +581,7 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
       booking_mode: form.booking_mode, drop_in_policy: form.drop_in_policy, visibility: form.visibility,
       confirmation_window_hours: form.confirmation_window_hours,
       day_schedules: form.day_schedules || null,
+      required_pass_type_id: form.required_pass_type_id || null,
     };
     // Update coach if changed (school owner only)
     if (isSchoolOwner && selectedCoachId && selectedCoachId !== training.coach_id) {
@@ -632,6 +683,8 @@ function EditSection({ training, onClose }: { training: any; onClose: () => void
         schoolSlot={schoolSlot}
         venueOptions={localVenues}
         onNewVenue={isSchoolOwner ? handleNewSchoolVenue : handleNewCoachVenue}
+        passTypeOptions={passTypeOptions}
+        onCreatePassType={handleCreatePassType}
       />
     </div>
   );

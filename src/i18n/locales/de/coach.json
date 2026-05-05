@@ -210,7 +210,12 @@
     "dropInPolicyDesc": "Can players attend individual sessions without joining the series?",
     "dropInAllowed": "Allowed",
     "dropInTrial": "One trial",
-    "dropInNone": "Series only"
+    "dropInNone": "Series only",
+    "requiredPass": "Required pass",
+    "requiredPassDesc": "Athletes need an active pass of this type to join (optional)",
+    "noPassRequired": "No pass required",
+    "noPassRequiredDesc": "Anyone can join without a pass",
+    "createNewPass": "+ Create new pass"
   },
   "setupGuide": {
     "title": "Getting started",
@@ -296,7 +301,9 @@
     "refundSheetTitle": "Refund a session",
     "refundHint": "Pick a session to give one entry back to this pass.",
     "noRefundableSessions": "No sessions to refund.",
-    "refunded": "Refunded {{date}}"
+    "refunded": "Refunded {{date}}",
+    "requestedFor": "Requested for {{training}}",
+    "ownerSeesAllBanner": "Showing pass requests for all coaches in your school"
   },
   "stats": {
     "title": "Stats",

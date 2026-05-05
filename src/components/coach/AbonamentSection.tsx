@@ -12,6 +12,7 @@ import {
   useAssignAbonament,
   useSearchPlayers,
   usePendingPassRequests,
+  useMyCoachPendingPassRequests,
   useRespondPassRequest,
   usePassRecentUsages,
   useUndoDeduction,
@@ -23,7 +24,21 @@ import { format } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { useCreateStandalonePlaceholder } from '@/hooks/training/useTrainings';
 
-export default function AbonamentSection({ schoolId, schoolCountry, canManageTypes = false }: { schoolId: string; schoolCountry?: string | null; canManageTypes?: boolean }) {
+export default function AbonamentSection({
+  schoolId,
+  schoolCountry,
+  canManageTypes = false,
+  isSchoolOwner = false,
+  coachId = null,
+}: {
+  schoolId: string;
+  schoolCountry?: string | null;
+  canManageTypes?: boolean;
+  /** Distinguishes "view all coaches" mode from "view my own" mode. */
+  isSchoolOwner?: boolean;
+  /** When non-null, the coach's own ID — used to scope pass-type management and pending requests. */
+  coachId?: string | null;
+}) {
   const { t } = useTranslation('coach');
   const [showForm, setShowForm] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -45,14 +60,18 @@ export default function AbonamentSection({ schoolId, schoolCountry, canManageTyp
   // Refund chooser sheet
   const [refundPass, setRefundPass] = useState<{ id: string; schoolId: string; playerName: string | null } | null>(null);
 
-  const { data: types = [] } = useAbonamentTypes(schoolId);
+  // Non-owner coach: see own pass types + school-wide; school owner: see everything.
+  const { data: types = [] } = useAbonamentTypes(schoolId, { coachId: isSchoolOwner ? null : coachId });
   const { data: playerAbonaments = [] } = useSchoolAbonaments(schoolId);
   const { data: searchResults = [] } = useSearchPlayers(playerSearch, schoolId);
   const createType = useCreateAbonamentType();
   const deleteType = useDeleteAbonamentType();
   const assign = useAssignAbonament();
   const createPlaceholder = useCreateStandalonePlaceholder();
-  const { data: pendingRequests = [] } = usePendingPassRequests(schoolId);
+  // School owner: every pending in the school. Coach: only requests routed to them.
+  const ownerPending = usePendingPassRequests(isSchoolOwner ? schoolId : null);
+  const coachPending = useMyCoachPendingPassRequests(isSchoolOwner ? null : schoolId);
+  const pendingRequests = isSchoolOwner ? (ownerPending.data ?? []) : (coachPending.data ?? []);
   const respondRequest = useRespondPassRequest();
 
   const active = playerAbonaments.filter((pa: any) => isAbonamentActive(pa));
@@ -65,6 +84,9 @@ export default function AbonamentSection({ schoolId, schoolCountry, canManageTyp
     createType.mutate(
       {
         school_id: schoolId,
+        // School owner creates school-wide passes (coach_id = null).
+        // Non-owner coach creates per-coach passes (coach_id = themselves).
+        coach_id: isSchoolOwner ? null : coachId,
         name: name.trim(),
         sessions_count: sessionsCount ? parseInt(sessionsCount) : null,
         duration_days: durationDays ? parseInt(durationDays) : null,
@@ -365,6 +387,9 @@ export default function AbonamentSection({ schoolId, schoolCountry, canManageTyp
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             {t('abonaments.pendingRequests')} <span className="font-normal">({pendingRequests.length})</span>
           </h3>
+          {isSchoolOwner && (
+            <p className="text-xs text-muted-foreground mb-2">{t('abonaments.ownerSeesAllBanner')}</p>
+          )}
           <div className="rounded-xl border border-warning/30 bg-warning/5 divide-y divide-warning/20">
             {pendingRequests.map((req: any) => (
               <div key={req.id} className="flex items-center gap-3 px-4 py-3">
@@ -374,6 +399,9 @@ export default function AbonamentSection({ schoolId, schoolCountry, canManageTyp
                   <p className="text-xs text-muted-foreground">
                     {req.abonament_types?.name} · {requestDateLabel(req)}
                   </p>
+                  {req.trainings?.name && (
+                    <p className="text-[11px] text-muted-foreground italic">{t('abonaments.requestedFor', { training: req.trainings.name })}</p>
+                  )}
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                   <button

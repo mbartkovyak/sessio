@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format, addWeeks, subWeeks } from 'date-fns';
-import { AlertTriangle, MapPin, MessageCircle, ArrowDown } from 'lucide-react';
+import { AlertTriangle, MapPin, MessageCircle, ArrowDown, Check } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
 import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
@@ -133,13 +133,18 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
           ) : isNoShow ? (
             <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
           ) : (
-            <button
-              onClick={handleCancelClick}
-              disabled={upsert.isPending}
-              className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0 disabled:opacity-50"
-            >
-              {t('calendar.cancelAnyway')}
-            </button>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                <Check className="h-3 w-3" strokeWidth={3} /> {t('calendar.going')}
+              </span>
+              <button
+                onClick={handleCancelClick}
+                disabled={upsert.isPending}
+                className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive disabled:opacity-50"
+              >
+                {t('calendar.cancelAnyway')}
+              </button>
+            </div>
           )
         )}
         {/* Past sessions still show terminal status, but no actions */}

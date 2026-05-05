@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { SessioLoader } from '@/components/SessioLogo';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getEmailRedirectUrl } from '@/lib/auth-native';
 import { signInWithGoogle, signInWithApple } from '@/lib/auth-providers';
+import { useResetOAuthLoadingOnReturn } from '@/hooks/shared/useResetOAuthLoadingOnReturn';
 
 export default function JoinSchool() {
   const { code } = useParams<{ code: string }>();
@@ -54,25 +55,14 @@ export default function JoinSchool() {
       });
   }, [code, session, i18n]);
 
-  // In standalone PWA mode, detect when user returns from Google OAuth popup
-  useEffect(() => {
-    if (!googleLoading) return;
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-    function onVisible() {
-      if (document.visibilityState !== 'visible') return;
-      localStorage.removeItem('sessio_oauth_pwa');
-      supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (s) { window.location.reload(); return; }
-        try {
-          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
-          if (localStorage.getItem(`sb-${ref}-auth-token`)) { window.location.reload(); return; }
-        } catch {}
-        setGoogleLoading(false);
-      });
-    }
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [googleLoading]);
+  // Reset OAuth loading if the user returns without completing (e.g. cancelled
+  // the Google sheet or pressed back in the in-app browser). Shared with
+  // AuthForm so the behaviour is identical across native + web.
+  const resetOAuthLoading = useCallback(() => {
+    setGoogleLoading(false);
+    setAppleLoading(false);
+  }, []);
+  useResetOAuthLoadingOnReturn(googleLoading || appleLoading, resetOAuthLoading);
 
   // Check status once auth resolves
   useEffect(() => {

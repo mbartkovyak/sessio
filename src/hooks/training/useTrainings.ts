@@ -465,6 +465,27 @@ export function useTrainingSessions(trainingId: string | undefined) {
 }
 
 export function useSessionAttendance(sessionId: string | undefined) {
+  const qc = useQueryClient();
+
+  // Realtime: refetch when an athlete confirms/declines for this session.
+  // Without this, the coach's UI was stale for up to 5 minutes (the default
+  // staleTime) after a parent canceled — even after closing/reopening the app.
+  useEffect(() => {
+    if (!sessionId) return;
+    const channel = supabase
+      .channel(`session-attendance:${sessionId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'session_attendance',
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: ['session-attendance', sessionId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [sessionId, qc]);
+
   return useQuery({
     queryKey: ['session-attendance', sessionId],
     enabled: !!sessionId,
@@ -727,7 +748,8 @@ export type RecurringJoinResult =
   | { kind: 'requestPending' }
   | { kind: 'requestSent'; resent: boolean }
   | { kind: 'joined'; role: 'regular' | 'waitlist' }
-  | { kind: 'full' };
+  | { kind: 'full' }
+  | { kind: 'passRequired'; passTypeId: string; coachId: string | null };
 
 interface RecurringTrainingInput {
   id: string;
@@ -736,6 +758,7 @@ interface RecurringTrainingInput {
   max_players?: number | null;
   allow_waitlist?: boolean | null;
   booking_mode?: string | null;
+  required_pass_type_id?: string | null;
   coach?: { language?: string | null } | null;
 }
 
@@ -745,6 +768,29 @@ export function useJoinTrainingRecurring() {
   return useMutation<RecurringJoinResult, Error, { training: RecurringTrainingInput }>({
     mutationFn: async ({ training }) => {
       if (!profile) throw new Error('Not authenticated');
+
+      // Pass gate: training requires a specific pass type, athlete must hold an active one.
+      if (training.required_pass_type_id) {
+        const { data: passes } = await supabase
+          .from('player_abonaments')
+          .select('id, status, expires_at, sessions_remaining, activated_at')
+          .eq('player_id', profile.id)
+          .eq('abonament_type_id', training.required_pass_type_id)
+          .eq('status', 'active');
+        const now = new Date();
+        const hasActive = (passes ?? []).some(p => {
+          if (p.expires_at && new Date(p.expires_at) < now) return false;
+          if (p.sessions_remaining !== null && p.sessions_remaining <= 0) return false;
+          return true;
+        });
+        if (!hasActive) {
+          return {
+            kind: 'passRequired',
+            passTypeId: training.required_pass_type_id,
+            coachId: training.coach_id,
+          };
+        }
+      }
 
       // Already in?
       const { data: existing } = await supabase
@@ -834,6 +880,10 @@ export function useJoinTrainingRecurring() {
               ? tk('join.addedToWaitlist')
               : tk('join.joinedTraining', { name: training.name })
           );
+          break;
+        case 'passRequired':
+          // Caller is expected to surface the request-pass UI; we just inform briefly.
+          toast.info(tk('join.passRequiredToast'));
           break;
       }
     },

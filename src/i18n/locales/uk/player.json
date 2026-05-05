@@ -51,8 +51,9 @@
     "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
     "cancelAnyway": "Скасувати",
-    "rejoinConfirm": "Повернутися на це заняття?",
-    "rejoin": "Повернутися",
+    "going": "Записаний/а",
+    "rejoinConfirm": "Записатися знову на це заняття?",
+    "rejoin": "Записатися знову",
     "stayOut": "Ні, залишити",
     "cantMakeItAnymore": "Не зможу прийти",
     "changedMind": "Все ж зможу прийти"
@@ -112,8 +113,9 @@
     "cancelConfirm": "Скасувати це заняття?",
     "keepSpot": "Залишити моє місце",
     "cancelAnyway": "Скасувати",
-    "rejoinConfirm": "Повернутися на це заняття?",
-    "rejoin": "Повернутися",
+    "going": "Записаний/а",
+    "rejoinConfirm": "Записатися знову на це заняття?",
+    "rejoin": "Записатися знову",
     "stayOut": "Ні, залишити"
   },
   "joinRequests": {

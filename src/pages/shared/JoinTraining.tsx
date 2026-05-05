@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
-import { Clock, Users, Mail, Calendar, CalendarDays } from 'lucide-react';
+import { Clock, Users, Mail, Calendar, CalendarDays, Ticket, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { getDateLocale } from '@/lib/dateFnsLocale';
 import { toast } from 'sonner';
@@ -15,6 +15,8 @@ import { getFixedTForLanguage } from '@/lib/notificationI18n';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
 import { getEmailRedirectUrl } from '@/lib/auth-native';
 import { signInWithGoogle, signInWithApple } from '@/lib/auth-providers';
+import { useResetOAuthLoadingOnReturn } from '@/hooks/shared/useResetOAuthLoadingOnReturn';
+import { useRequestPass, useTrainingRequiredPass } from '@/hooks/training/useAbonaments';
 
 import Avatar from '@/components/shared/Avatar';
 import VenueLink from '@/components/shared/VenueLink';
@@ -42,7 +44,17 @@ export default function JoinTraining() {
   const [email, setEmail] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showRequestPassSheet, setShowRequestPassSheet] = useState(false);
+  const [passStartDate, setPassStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  // After a successful sign-up: drive a confirmation screen instead of bouncing
+  // straight to /player. Parents reported phoning the coach to ask "am I really
+  // signed up?" — toast + immediate redirect was too easy to miss.
+  const [joinedSuccess, setJoinedSuccess] = useState<null | { mode: 'single' | 'recurring'; sessionDate?: string }>(null);
   const joiningRef = useRef(false);
+
+  // Pass status for the current training (only meaningful once `training` and player are loaded).
+  const passInfo = useTrainingRequiredPass(training);
+  const requestPass = useRequestPass();
 
   async function applyInviteLanguage(lang?: string | null) {
     if (!lang || !SUPPORTED_LANGS.includes(lang as SupportedLang)) return;
@@ -95,25 +107,14 @@ export default function JoinTraining() {
       .then(({ data }) => setMemberCount(data ?? 0));
   }, [training]);
 
-  // In standalone PWA mode, detect when user returns from Google OAuth popup
-  useEffect(() => {
-    if (!googleLoading) return;
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-    function onVisible() {
-      if (document.visibilityState !== 'visible') return;
-      localStorage.removeItem('sessio_oauth_pwa');
-      supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (s) { window.location.reload(); return; }
-        try {
-          const ref = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
-          if (localStorage.getItem(`sb-${ref}-auth-token`)) { window.location.reload(); return; }
-        } catch {}
-        setGoogleLoading(false);
-      });
-    }
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [googleLoading]);
+  // Reset OAuth loading if the user returns without completing (e.g. cancelled
+  // the Google sheet or pressed back in the in-app browser). Shared with
+  // AuthForm so the behaviour is identical across native + web.
+  const resetOAuthLoading = useCallback(() => {
+    setGoogleLoading(false);
+    setAppleLoading(false);
+  }, []);
+  useResetOAuthLoadingOnReturn(googleLoading || appleLoading, resetOAuthLoading);
 
   // Redirect non-players and non-onboarded users
   useEffect(() => {
@@ -144,12 +145,23 @@ export default function JoinTraining() {
         .eq('user_id', profile.id)
         .maybeSingle();
       if (existingAtt) {
-        toast.info(t('join.alreadyInSession'));
-        navigate('/player');
+        // Reassure the parent: yes, you ARE signed up. Same confirmation as a
+        // fresh join — they likely re-opened the link to verify.
+        const picked = sessionId === sessionParam
+          ? sessionInfo
+          : upcomingSessions.find((s: any) => s.id === sessionId);
+        setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
         return;
       }
       const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
       if (error) {
+        if (error.message?.includes('PASS_REQUIRED')) {
+          // Drop the user back to the join page where the request-pass UI is rendered.
+          toast.info(t('join.passRequiredToast'));
+          // Stay on this page — clear the session param so the recurring view shows the request UI.
+          if (sessionParam) navigate(`/join/${inviteCode}`, { replace: true });
+          return;
+        }
         if (error.message?.includes('Drop-ins not allowed')) {
           toast.error(t('join.dropInNotAllowed'));
         } else if (error.message?.includes('Trial session already used')) {
@@ -183,8 +195,11 @@ export default function JoinTraining() {
       queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
       queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
       queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
-      toast.success(t('join.joinedSession', { name: training.name }));
-      navigate('/player');
+      setMemberCount(c => (c ?? 0) + 1);
+      const picked = sessionId === sessionParam
+        ? sessionInfo
+        : upcomingSessions.find((s: any) => s.id === sessionId);
+      setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
     } catch (err: any) {
       toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
       navigate('/player');
@@ -206,6 +221,11 @@ export default function JoinTraining() {
   async function handleJoinRecurring() {
     if (!training || !profile) return;
     if (joiningRef.current) return;
+    // Pass-required gate: athlete must hold an active pass before signing up.
+    if (training.required_pass_type_id && !passInfo.data?.activePass) {
+      setShowRequestPassSheet(true);
+      return;
+    }
     joiningRef.current = true;
     setJoining(true);
     try {
@@ -218,8 +238,13 @@ export default function JoinTraining() {
           .maybeSingle();
 
         if (existing) {
-          toast.info(existing.role === 'waitlist' ? t('join.alreadyOnWaitlist') : t('join.alreadyInTraining'));
-          navigate('/player');
+          if (existing.role === 'waitlist') {
+            toast.info(t('join.alreadyOnWaitlist'));
+            navigate('/player');
+          } else {
+            // Reassure the parent — re-opening the link is how they verify.
+            setJoinedSuccess({ mode: 'recurring' });
+          }
           return;
         }
 
@@ -327,8 +352,13 @@ export default function JoinTraining() {
         queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
         queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
         queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
-        toast.success(memberRole === 'waitlist' ? t('join.addedToWaitlist') : t('join.joinedTraining', { name: training.name }));
-        navigate('/player');
+        if (memberRole === 'waitlist') {
+          toast.success(t('join.addedToWaitlist'));
+          navigate('/player');
+        } else {
+          setMemberCount(c => (c ?? 0) + 1);
+          setJoinedSuccess({ mode: 'recurring' });
+        }
       }
     } catch (err: any) {
       toast.error(localizeErrorMessage(err, t('join.failedToJoin')));
@@ -458,13 +488,119 @@ export default function JoinTraining() {
     </div>
   );
 
+  // Post-join confirmation — replaces the toast + redirect with a screen
+  // parents can't miss. Privacy-safe: shows count, never other kids' names.
+  if (joinedSuccess) {
+    const daysLabel = (training.days_of_week ?? [training.day_of_week])
+      .map((d: number) => dayLabel(DAYS[d]))
+      .filter(Boolean)
+      .join(', ');
+    const subtitle = joinedSuccess.mode === 'single' && joinedSuccess.sessionDate
+      ? t('join.confirmedSingle', {
+          date: format(new Date(joinedSuccess.sessionDate + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() }),
+          time: training.start_time?.slice(0, 5) ?? '',
+        })
+      : t('join.confirmedRecurring', {
+          days: daysLabel,
+          time: training.start_time?.slice(0, 5) ?? '',
+        });
+    const attendees = training.max_players
+      ? t('join.confirmedAttendees', { count: memberCount ?? 0, max: training.max_players })
+      : t('join.confirmedAttendeesNoCap', { count: memberCount ?? 0 });
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <AppHeader title={training.name} />
+        <main className="flex-1 px-4 py-8 max-w-sm mx-auto w-full flex flex-col items-center justify-center text-center space-y-5">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-success/10">
+            <Check className="h-10 w-10 text-success" strokeWidth={3} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">{t('join.confirmedTitle')}</h2>
+            <p className="text-base text-foreground">{training.name}</p>
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4 shrink-0" />
+            <span>{attendees}</span>
+          </div>
+          <button
+            onClick={() => navigate('/player')}
+            className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
+          >
+            {t('join.confirmedDone')}
+          </button>
+        </main>
+      </div>
+    );
+  }
+
   // Logged-in view — show sessions, let player choose
   if (session && profile?.onboarding_complete && profile?.role === 'player') {
     const isApproval = training.booking_mode === 'approval';
     const allowDropIn = training.drop_in_policy !== 'none';
 
+    // ── Pass-required UI helpers ─────────────────────────────────
+    const requiredPass = passInfo.data?.requiredType ?? null;
+    const activePass = passInfo.data?.activePass ?? null;
+    const pendingPass = passInfo.data?.pendingPass ?? null;
+    const requiresPass = !!training.required_pass_type_id;
+    const passLoading = requiresPass && passInfo.isLoading;
+    const passDetail = (() => {
+      if (!requiredPass) return '';
+      const parts: string[] = [];
+      if (requiredPass.sessions_count) parts.push(`${requiredPass.sessions_count}x`);
+      if (requiredPass.duration_days) parts.push(`${requiredPass.duration_days}d`);
+      if (requiredPass.price != null) parts.push(`${requiredPass.price} ${requiredPass.currency}`);
+      return parts.join(' · ');
+    })();
+    const PassRequiredCard = () => requiresPass && requiredPass ? (
+      <div className="rounded-2xl border border-warning/30 bg-warning/5 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <Ticket className="h-4 w-4 text-warning shrink-0" />
+          <p className="text-sm font-semibold text-foreground">{t('join.passRequiredTitle')}</p>
+        </div>
+        <p className="text-sm font-medium text-foreground">{requiredPass.name}{passDetail && <span className="text-muted-foreground"> · {passDetail}</span>}</p>
+        <p className="text-xs text-muted-foreground">
+          {t('join.passRequiredDescription', { coach: coach?.full_name ?? '', pass: requiredPass.name })}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {t('join.passWorksForAllOfThisCoach', { coach: coach?.full_name ?? '' })}
+        </p>
+      </div>
+    ) : null;
+    // The CTA renderer returns null when the existing primary button should still be shown.
+    function renderPassCta(onCancel?: () => void) {
+      if (!requiresPass) return null;
+      if (passLoading) {
+        return (
+          <button disabled className="w-full rounded-2xl bg-muted py-4 text-lg font-bold text-muted-foreground min-h-[56px]">
+            {t('join.joining')}
+          </button>
+        );
+      }
+      if (activePass) return null; // existing CTA will render
+      if (pendingPass) {
+        return (
+          <button disabled className="w-full rounded-2xl bg-muted py-4 text-lg font-bold text-muted-foreground min-h-[56px]">
+            {t('join.passApprovalPending')}
+          </button>
+        );
+      }
+      // Used-up / expired: fall through to no-pass CTA but with different label.
+      // We can't easily distinguish here; the request flow handles both.
+      return (
+        <button
+          onClick={() => setShowRequestPassSheet(true)}
+          className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"
+        >
+          {t('join.requestPass')}
+        </button>
+      );
+    }
+
     // Direct session link — single session view
     if (sessionParam && sessionInfo) {
+      const passCta = renderPassCta();
       return (
         <div className="flex min-h-screen flex-col bg-background">
           <AppHeader title={training.name} back />
@@ -479,18 +615,21 @@ export default function JoinTraining() {
                 </div>
               </div>
             )}
+            <PassRequiredCard />
             {training.drop_in_policy === 'trial' && (
               <p className="text-xs text-muted-foreground text-center px-4">{t('join.trialNote')}</p>
             )}
             <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
-            <button
-              onClick={() => handleJoinSession(sessionParam)}
-              disabled={!!joiningSessionId || joining}
-              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
-            >
-              {joiningSessionId ? t('join.joining') : t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) })}
-            </button>
-            {training.is_recurring === true && (
+            {passCta ?? (
+              <button
+                onClick={() => handleJoinSession(sessionParam)}
+                disabled={!!joiningSessionId || joining}
+                className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+              >
+                {joiningSessionId ? t('join.joining') : t('join.joinSessionOn', { name: training.name, date: format(new Date(sessionInfo.session_date + 'T00:00:00'), 'd MMM', { locale: getDateLocale() }) })}
+              </button>
+            )}
+            {!passCta && training.is_recurring === true && (
               <button
                 onClick={handleJoinRecurring}
                 disabled={!!joiningSessionId || joining}
@@ -500,11 +639,35 @@ export default function JoinTraining() {
               </button>
             )}
           </main>
+          {showRequestPassSheet && requiredPass && (
+            <RequestPassSheet
+              passType={requiredPass}
+              coachId={passInfo.data?.coachId ?? training.coach_id ?? null}
+              schoolId={requiredPass.school_id}
+              trainingId={training.id}
+              startDate={passStartDate}
+              onStartDateChange={setPassStartDate}
+              onClose={() => setShowRequestPassSheet(false)}
+              submitting={requestPass.isPending}
+              onSubmit={async () => {
+                await requestPass.mutateAsync({
+                  abonamentTypeId: requiredPass.id,
+                  schoolId: requiredPass.school_id,
+                  typeName: requiredPass.name,
+                  startDate: passStartDate,
+                  trainingId: training.id,
+                  requestingCoachId: passInfo.data?.coachId ?? training.coach_id ?? undefined,
+                });
+                setShowRequestPassSheet(false);
+              }}
+            />
+          )}
         </div>
       );
     }
 
     // Default view — show all sessions + sign up options
+    const passCta = renderPassCta();
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <AppHeader title={training.name} back />
@@ -521,19 +684,23 @@ export default function JoinTraining() {
             </div>
           )}
 
+          <PassRequiredCard />
+
           <p className="text-xs text-muted-foreground text-center px-4">{t('join.passDeductionNote')}</p>
 
-          {/* Primary: sign up for all sessions */}
-          <button
-            onClick={handleJoinAllSessions}
-            disabled={joining}
-            className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
-          >
-            {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.signUpAll')}
-          </button>
+          {/* Primary: sign up for all sessions (or request the required pass) */}
+          {passCta ?? (
+            <button
+              onClick={handleJoinAllSessions}
+              disabled={joining}
+              className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+            >
+              {joining ? t('join.joining') : isApproval ? t('join.requestToJoin') : t('join.signUpAll')}
+            </button>
+          )}
 
-          {/* Individual sessions — if drop-ins allowed */}
-          {allowDropIn && upcomingSessions.length > 0 && (
+          {/* Individual sessions — if drop-ins allowed and no pending pass blocker */}
+          {!passCta && allowDropIn && upcomingSessions.length > 0 && (
             <div>
               <p className="text-sm font-medium text-foreground mb-2">{t('join.orPickSession')}</p>
               {training.drop_in_policy === 'trial' && (
@@ -562,6 +729,29 @@ export default function JoinTraining() {
             </div>
           )}
         </main>
+        {showRequestPassSheet && requiredPass && (
+          <RequestPassSheet
+            passType={requiredPass}
+            coachId={passInfo.data?.coachId ?? training.coach_id ?? null}
+            schoolId={requiredPass.school_id}
+            trainingId={training.id}
+            startDate={passStartDate}
+            onStartDateChange={setPassStartDate}
+            onClose={() => setShowRequestPassSheet(false)}
+            submitting={requestPass.isPending}
+            onSubmit={async () => {
+              await requestPass.mutateAsync({
+                abonamentTypeId: requiredPass.id,
+                schoolId: requiredPass.school_id,
+                typeName: requiredPass.name,
+                startDate: passStartDate,
+                trainingId: training.id,
+                requestingCoachId: passInfo.data?.coachId ?? training.coach_id ?? undefined,
+              });
+              setShowRequestPassSheet(false);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -586,8 +776,6 @@ export default function JoinTraining() {
         )}
 
         <TrainingDetails />
-
-        <p className="text-center text-sm text-muted-foreground">{t('join.joinIn30Seconds')}</p>
 
         {emailSent ? (
           <div className="rounded-2xl bg-success/10 border border-success/20 p-5 text-center">
@@ -658,5 +846,68 @@ export default function JoinTraining() {
         )}
       </main>
     </div>
+  );
+}
+
+interface RequestPassSheetProps {
+  passType: {
+    id: string;
+    name: string;
+    sessions_count: number | null;
+    duration_days: number | null;
+    price: number | null;
+    currency: string;
+  };
+  coachId: string | null;
+  schoolId: string;
+  trainingId: string;
+  startDate: string;
+  onStartDateChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => Promise<void>;
+  submitting: boolean;
+}
+
+function RequestPassSheet({ passType, startDate, onStartDateChange, onClose, onSubmit, submitting }: RequestPassSheetProps) {
+  const { t } = useTranslation('common');
+  const details: string[] = [];
+  if (passType.sessions_count) details.push(`${passType.sessions_count}x`);
+  if (passType.duration_days) details.push(`${passType.duration_days}d`);
+  if (passType.price != null) details.push(`${passType.price} ${passType.currency}`);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-foreground/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-card shadow-2xl animate-in slide-in-from-bottom duration-200 max-h-[80vh]">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-foreground text-sm">{t('join.requestPassSheetTitle', { pass: passType.name })}</h3>
+            {details.length > 0 && <p className="text-xs text-muted-foreground truncate">{details.join(' · ')}</p>}
+          </div>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary shrink-0">
+            <span aria-hidden>×</span>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">{t('join.requestPassSheetStartLabel')}</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => onStartDateChange(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <button
+            onClick={onSubmit}
+            disabled={submitting || !startDate}
+            className="w-full rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+          >
+            {submitting ? t('join.joining') : t('join.requestPassSheetCta')}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

@@ -210,7 +210,12 @@
     "dropInPolicyDesc": "Czy uczestnicy mogą dołączyć na pojedyncze zajęcia bez zapisywania się na stałe?",
     "dropInAllowed": "Dozwolone",
     "dropInTrial": "Jedno próbne",
-    "dropInNone": "Tylko stałe"
+    "dropInNone": "Tylko stałe",
+    "requiredPass": "Wymagany karnet",
+    "requiredPassDesc": "Uczestnicy potrzebują aktywnego karnetu, aby dołączyć (opcjonalnie)",
+    "noPassRequired": "Bez karnetu",
+    "noPassRequiredDesc": "Każdy może dołączyć bez karnetu",
+    "createNewPass": "+ Stwórz nowy karnet"
   },
   "setupGuide": {
     "title": "Jak zacząć?",
@@ -296,7 +301,9 @@
     "refundSheetTitle": "Zwróć wejście",
     "refundHint": "Wybierz zajęcia, by zwrócić jedno wejście do tego karnetu.",
     "noRefundableSessions": "Brak zajęć do zwrotu.",
-    "refunded": "Zwrócono ({{date}})"
+    "refunded": "Zwrócono ({{date}})",
+    "requestedFor": "Prośba do zajęć: {{training}}",
+    "ownerSeesAllBanner": "Widzisz prośby o karnety wszystkich trenerów w szkole"
   },
   "stats": {
     "title": "Statystyki",

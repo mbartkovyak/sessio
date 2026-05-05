@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { isNative } from '@/lib/platform';
+import { useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
@@ -10,6 +9,7 @@ import {
   signUpWithEmail,
 } from '@/lib/auth-providers';
 import { localizeErrorMessage } from '@/lib/localizedErrors';
+import { useResetOAuthLoadingOnReturn } from '@/hooks/shared/useResetOAuthLoadingOnReturn';
 
 type Mode = 'signin' | 'signup';
 
@@ -40,37 +40,11 @@ export default function AuthForm({ mode }: Props) {
   const [emailLoading, setEmailLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Reset OAuth loading if user returns without completing auth (pressed back
-  // in the external browser). 1s delay lets a successful auth callback land first.
-  useEffect(() => {
-    if (!googleLoading && !appleLoading) return;
-
-    let timeout: ReturnType<typeof setTimeout>;
-    const reset = () => {
-      timeout = setTimeout(() => {
-        setGoogleLoading(false);
-        setAppleLoading(false);
-      }, 1000);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') reset();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-
-    let browserListener: { remove: () => void } | undefined;
-    if (isNative) {
-      import('@capacitor/browser').then(({ Browser }) => {
-        Browser.addListener('browserFinished', reset).then(l => { browserListener = l; });
-      });
-    }
-
-    return () => {
-      clearTimeout(timeout);
-      document.removeEventListener('visibilitychange', onVisibility);
-      browserListener?.remove();
-    };
-  }, [googleLoading, appleLoading]);
+  const resetOAuthLoading = useCallback(() => {
+    setGoogleLoading(false);
+    setAppleLoading(false);
+  }, []);
+  useResetOAuthLoadingOnReturn(googleLoading || appleLoading, resetOAuthLoading);
 
   async function handleGoogle() {
     setError('');

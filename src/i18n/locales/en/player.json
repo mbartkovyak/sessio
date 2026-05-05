@@ -51,10 +51,11 @@
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
+    "going": "Signed up",
     "cantMakeItAnymore": "I can't make it",
     "changedMind": "Actually, I can make it",
-    "rejoinConfirm": "Rejoin this session?",
-    "rejoin": "Rejoin",
+    "rejoinConfirm": "Sign up for this session again?",
+    "rejoin": "Sign up again",
     "stayOut": "No, stay out"
   },
   "messages": {
@@ -112,8 +113,9 @@
     "cancelConfirm": "Cancel this session?",
     "keepSpot": "Keep my spot",
     "cancelAnyway": "Cancel",
-    "rejoinConfirm": "Rejoin this session?",
-    "rejoin": "Rejoin",
+    "going": "Signed up",
+    "rejoinConfirm": "Sign up for this session again?",
+    "rejoin": "Sign up again",
     "stayOut": "No, stay out"
   },
   "joinRequests": {

@@ -4,13 +4,15 @@ import { ChevronDown } from 'lucide-react';
 import CoachBottomNav from '@/components/coach/CoachBottomNav';
 import CoachHeader from '@/components/coach/CoachHeader';
 import { useCreateTraining } from '@/hooks/training/useTrainings';
+import { useAbonamentTypes, useCreateAbonamentType } from '@/hooks/training/useAbonaments';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMySchool, useMySchoolMembership } from '@/hooks/school/useSchools';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import TrainingForm, { type TrainingFormValues, type VenueOption } from '@/components/shared/TrainingForm';
+import TrainingForm, { type TrainingFormValues, type VenueOption, type PassTypeOption } from '@/components/shared/TrainingForm';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { currencyForCountry } from '@/lib/constants';
 
 /** Given a start_date and a target day (Monday=0), return the first occurrence
  *  of that day on or after start_date. Prevents sessions starting on the wrong day. */
@@ -42,6 +44,53 @@ export default function CreateTraining() {
       ? ((schoolMembership?.schools as any)?.venues ?? [])
       : ((profile as any)?.venues ?? []);
   const [localVenues, setLocalVenues] = useState<VenueOption[]>(sourceVenues);
+
+  // Pass-type context: which coach owns this training, and which school it lives in.
+  // Solo / member: current user is the coach. Multi-coach owner: their picked coach.
+  const trainingSchoolId = isSchoolOwner
+    ? school?.id ?? null
+    : isSchoolMember
+      ? schoolMembership?.school_id ?? null
+      : null;
+  const trainingCoachId = isSchoolOwner && !isSolo
+    ? (selectedCoachId || null)
+    : profile?.id ?? null;
+  const schoolCountry = isSchoolOwner
+    ? (school as any)?.country ?? null
+    : isSchoolMember
+      ? (schoolMembership?.schools as any)?.country ?? null
+      : null;
+  const { data: passTypes = [] } = useAbonamentTypes(trainingSchoolId, { coachId: trainingCoachId });
+  const createPassType = useCreateAbonamentType();
+  const passTypeOptions: PassTypeOption[] = passTypes.map(p => ({
+    id: p.id,
+    name: p.name,
+    sessions_count: p.sessions_count,
+    duration_days: p.duration_days,
+    price: p.price as number | null,
+    currency: p.currency,
+  }));
+
+  async function handleCreatePassType(values: { name: string; sessions_count: number | null; duration_days: number | null; price: number | null }): Promise<PassTypeOption> {
+    if (!trainingSchoolId) throw new Error('Missing school context');
+    const created = await createPassType.mutateAsync({
+      school_id: trainingSchoolId,
+      coach_id: isSchoolOwner ? null : trainingCoachId, // solo/owner = school-wide; member coach = own
+      name: values.name,
+      sessions_count: values.sessions_count,
+      duration_days: values.duration_days,
+      price: values.price,
+      currency: currencyForCountry(schoolCountry),
+    });
+    return {
+      id: created.id,
+      name: created.name,
+      sessions_count: created.sessions_count,
+      duration_days: created.duration_days,
+      price: created.price as number | null,
+      currency: created.currency,
+    };
+  }
 
   // Sync when source data loads (profile/school async)
   useEffect(() => {
@@ -95,6 +144,8 @@ export default function CreateTraining() {
       delete payload.one_off_date;
       // Per-day schedules (null when same time for all)
       payload.day_schedules = form.day_schedules || null;
+      // Pass requirement (null when no pass needed)
+      payload.required_pass_type_id = form.required_pass_type_id || null;
       if (form.type === 'individual') delete payload.max_players;
       // Sport inherited from school (first sport) or coach profile
       payload.sport = (isSchoolOwner && school)
@@ -179,6 +230,8 @@ export default function CreateTraining() {
             onNewVenue={isSchoolOwner ? handleNewVenue : handleNewCoachVenue}
             extraErrors={extraErrors}
             onAttemptSubmit={() => setAttempted(true)}
+            passTypeOptions={passTypeOptions}
+            onCreatePassType={handleCreatePassType}
           />
           </div>
         </div>
