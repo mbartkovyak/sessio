@@ -258,11 +258,15 @@ export default function ChatView({ trainingId, otherUserId, conversationId: dire
     ensuredRef.current = conversationId;
     supabase
       .from('conversation_participants')
-      .insert({ conversation_id: conversationId, user_id: user.id })
-      .then(({ error }) => {
-        // 23505 = already a participant — expected for most users
-        if (!error) {
-          // Just became a participant — refresh messages that were blocked by RLS
+      .upsert(
+        { conversation_id: conversationId, user_id: user.id },
+        { onConflict: 'conversation_id,user_id', ignoreDuplicates: true },
+      )
+      .then(({ error, data }) => {
+        if (error) return;
+        // Only refresh when we actually inserted a new row — `data` is empty
+        // when the existing row was kept (no-op upsert).
+        if (data && (data as any[]).length > 0) {
           qc.invalidateQueries({ queryKey: ['messages', conversationId] });
           qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
         }

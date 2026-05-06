@@ -187,10 +187,10 @@
     "notFound": "Invite not found",
     "notFoundDesc": "This invite link is invalid or has expired.",
     "goHome": "Go home",
-    "spotsPerTraining_one": "{{count}} spot",
-    "spotsPerTraining_few": "{{count}} spots",
-    "spotsPerTraining_many": "{{count}} spots",
-    "spotsPerTraining_other": "{{count}} spots",
+    "spotsPerSession_one": "{{count}} spot per session",
+    "spotsPerSession_few": "{{count}} spots per session",
+    "spotsPerSession_many": "{{count}} spots per session",
+    "spotsPerSession_other": "{{count}} spots per session",
     "joining": "Joining...",
     "joinName": "Join {{name}}",
     "invitedToJoin": "{{name}} invited you to join",
@@ -237,8 +237,6 @@
     "confirmedTitle": "You're signed up",
     "confirmedSingle": "{{date}} at {{time}}",
     "confirmedRecurring": "Every {{days}} at {{time}}",
-    "confirmedAttendees": "{{count}} of {{max}} signed up",
-    "confirmedAttendeesNoCap": "{{count}} signed up",
     "confirmedDone": "Got it"
   },
   "signUp": {

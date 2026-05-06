@@ -11,6 +11,25 @@ Sentry.init({
   dsn: "https://b0f77b62654df6d6961befbf75ae6c57@o4511111659388928.ingest.de.sentry.io/4511111675576400",
   sendDefaultPii: false,
   environment: import.meta.env.MODE,
+  // Belt-and-braces PII strip on top of sendDefaultPii: false. Catches keys we
+  // might accidentally pass via captureException(extra) or breadcrumb data.
+  beforeSend(event) {
+    const PII_KEYS = ['email', 'phone', 'full_name', 'first_name', 'last_name', 'address'];
+    const scrub = (obj: Record<string, unknown> | undefined) => {
+      if (!obj) return;
+      for (const k of PII_KEYS) {
+        if (k in obj) (obj as any)[k] = '[redacted]';
+      }
+    };
+    scrub(event.extra);
+    scrub(event.contexts as any);
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.username;
+      delete event.user.ip_address;
+    }
+    return event;
+  },
 });
 
 Sentry.addBreadcrumb({ category: 'boot', message: 'main:start' });

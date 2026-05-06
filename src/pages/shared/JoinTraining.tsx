@@ -36,7 +36,6 @@ export default function JoinTraining() {
   const [trainingLoading, setTrainingLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
-  const [memberCount, setMemberCount] = useState<number | null>(null);
   const [joining, setJoining] = useState(false);
   const [joiningSessionId, setJoiningSessionId] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -101,10 +100,6 @@ export default function JoinTraining() {
     supabase
       .rpc('get_upcoming_sessions', { p_training_id: training.id, p_limit: 8 })
       .then(({ data }) => setUpcomingSessions(data ?? []));
-    // Fetch member count via RPC (RLS blocks cross-user reads on training_members)
-    supabase
-      .rpc('get_training_member_count', { p_training_id: training.id })
-      .then(({ data }) => setMemberCount(data ?? 0));
   }, [training]);
 
   // Reset OAuth loading if the user returns without completing (e.g. cancelled
@@ -195,7 +190,6 @@ export default function JoinTraining() {
       queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
       queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
       queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
-      setMemberCount(c => (c ?? 0) + 1);
       const picked = sessionId === sessionParam
         ? sessionInfo
         : upcomingSessions.find((s: any) => s.id === sessionId);
@@ -245,19 +239,6 @@ export default function JoinTraining() {
             // Reassure the parent — re-opening the link is how they verify.
             setJoinedSuccess({ mode: 'recurring' });
           }
-          return;
-        }
-
-        const { count: activeCount } = await supabase
-          .from('training_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('training_id', training.id)
-          .eq('role', 'regular');
-
-        const isFull = training.max_players && (activeCount ?? 0) >= training.max_players;
-        if (isFull && !training.allow_waitlist) {
-          toast.error(t('join.trainingFull'));
-          navigate('/player');
           return;
         }
 
@@ -321,11 +302,14 @@ export default function JoinTraining() {
           return;
         }
 
-        const memberRole = isFull ? 'waitlist' : 'regular';
-        const { error } = await supabase
-          .from('training_members')
-          .insert({ training_id: training.id, user_id: profile.id, role: memberRole });
+        // Server-side capacity check + insert (atomic, race-safe).
+        const { data: roleData, error } = await supabase.rpc('join_training', { p_training_id: training.id });
         if (error) {
+          if (error.message?.includes('TRAINING_FULL')) {
+            toast.error(t('join.trainingFull'));
+            navigate('/player');
+            return;
+          }
           if (error.code === '23505') {
             toast.info(t('join.alreadyInTraining'));
             navigate('/player');
@@ -333,6 +317,7 @@ export default function JoinTraining() {
           }
           throw error;
         }
+        const memberRole = (roleData as string) ?? 'regular';
         // Notify coach about the new member
         if (training.coach_id) {
           const tCoach = getFixedTForLanguage(training.coach?.language);
@@ -356,7 +341,6 @@ export default function JoinTraining() {
           toast.success(t('join.addedToWaitlist'));
           navigate('/player');
         } else {
-          setMemberCount(c => (c ?? 0) + 1);
           setJoinedSuccess({ mode: 'recurring' });
         }
       }
@@ -481,7 +465,7 @@ export default function JoinTraining() {
         {training.max_players && (
           <div className="flex items-center gap-2 text-sm text-foreground">
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span>{memberCount != null ? `${memberCount}/${training.max_players}` : training.max_players}</span>
+            <span>{t('join.spotsPerSession', { count: training.max_players })}</span>
           </div>
         )}
       </div>
@@ -504,9 +488,6 @@ export default function JoinTraining() {
           days: daysLabel,
           time: training.start_time?.slice(0, 5) ?? '',
         });
-    const attendees = training.max_players
-      ? t('join.confirmedAttendees', { count: memberCount ?? 0, max: training.max_players })
-      : t('join.confirmedAttendeesNoCap', { count: memberCount ?? 0 });
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <AppHeader title={training.name} />
@@ -518,10 +499,6 @@ export default function JoinTraining() {
             <h2 className="text-2xl font-bold text-foreground">{t('join.confirmedTitle')}</h2>
             <p className="text-base text-foreground">{training.name}</p>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4 shrink-0" />
-            <span>{attendees}</span>
           </div>
           <button
             onClick={() => navigate('/player')}

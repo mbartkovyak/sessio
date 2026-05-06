@@ -187,10 +187,10 @@
     "notFound": "Запрошення не знайдено",
     "notFoundDesc": "Це запрошення недійсне або вже неактуальне.",
     "goHome": "На головну",
-    "spotsPerTraining_one": "{{count}} місце",
-    "spotsPerTraining_few": "{{count}} місця",
-    "spotsPerTraining_many": "{{count}} місць",
-    "spotsPerTraining_other": "{{count}} місця",
+    "spotsPerSession_one": "{{count}} місце на заняття",
+    "spotsPerSession_few": "{{count}} місця на заняття",
+    "spotsPerSession_many": "{{count}} місць на заняття",
+    "spotsPerSession_other": "{{count}} місця на заняття",
     "joining": "Приєднання...",
     "joinName": "Приєднатися до {{name}}",
     "invitedToJoin": "{{name}} запрошує вас приєднатися",
@@ -237,8 +237,6 @@
     "confirmedTitle": "Тебе записано",
     "confirmedSingle": "{{date}} о {{time}}",
     "confirmedRecurring": "Щотижня: {{days}} о {{time}}",
-    "confirmedAttendees": "{{count}} із {{max}} записалися",
-    "confirmedAttendeesNoCap": "{{count}} записалися",
     "confirmedDone": "Зрозуміло"
   },
   "signUp": {
