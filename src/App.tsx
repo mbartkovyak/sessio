@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
 import { useNativePush } from "@/hooks/shared/useNativePush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
+import { useSentryPageContext } from "@/hooks/shared/useSentryPageContext";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
@@ -43,6 +44,7 @@ function RefreshOnResume() {
 
 function RootLayout() {
   useVisualViewport();
+  useSentryPageContext();
   const { pathname } = useLocation();
   // Landing is light-themed and paints its own top area — the app's dark header strip doesn't belong there.
   const isLanding = pathname === '/' || pathname === '/welcome';
