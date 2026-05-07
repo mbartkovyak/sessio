@@ -70,8 +70,8 @@
     "participants": "uczestników",
     "openChat": "Czat grupowy",
     "viewProfile": "Zobacz profil",
-    "leave": "Opuść zajęcia",
-    "leaveConfirm": "Opuścić {{name}}? Nie będziesz dostawać aktualizacji ani zaproszeń."
+    "leave": "Opuść cotygodniowe zajęcia",
+    "leaveConfirm": "Opuścić regularny harmonogram {{name}}? Nie będziesz już zapisany na przyszłe cotygodniowe zajęcia ani nie otrzymasz aktualizacji."
   },
   "coachProfile": {
     "title": "Trener",

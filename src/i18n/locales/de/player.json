@@ -69,8 +69,8 @@
     "participants": "participants",
     "openChat": "Group chat",
     "viewProfile": "View profile",
-    "leave": "Leave training",
-    "leaveConfirm": "Leave {{name}}? You won't get updates or invitations for this training."
+    "leave": "Leave weekly training",
+    "leaveConfirm": "Leave the recurring schedule for {{name}}? You'll stop being signed up for future weekly sessions and won't get updates."
   },
   "coachProfile": {
     "title": "Coach",
