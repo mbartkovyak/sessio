@@ -238,10 +238,11 @@
     "confirmedSingle": "{{date}} at {{time}}",
     "confirmedRecurring": "Every {{days}} at {{time}}",
     "firstDate": "First session: {{date}}",
-    "pendingStandby_one": "{{count}} upcoming session is full — you're on standby. We'll let you know if a spot opens.",
-    "pendingStandby_few": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
-    "pendingStandby_many": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
-    "pendingStandby_other": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
+    "pendingStandbyTitle_one": "The next session is full — you're on standby for it.",
+    "pendingStandbyTitle_few": "The next {{count}} sessions are full — you're on standby for them.",
+    "pendingStandbyTitle_many": "The next {{count}} sessions are full — you're on standby for them.",
+    "pendingStandbyTitle_other": "The next {{count}} sessions are full — you're on standby for them.",
+    "youStartFrom": "You'll start from {{date}}.",
     "confirmedDone": "Got it"
   },
   "signUp": {

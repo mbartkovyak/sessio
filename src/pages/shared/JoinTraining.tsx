@@ -515,15 +515,21 @@ export default function JoinTraining() {
             <h2 className="text-2xl font-bold text-foreground">{t('join.confirmedTitle')}</h2>
             <p className="text-base text-foreground">{training.name}</p>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
-            {nextDateLabel && (
-              <p className="text-sm font-medium text-foreground pt-1">{t('join.firstDate', { date: nextDateLabel })}</p>
-            )}
           </div>
-          {pendingCount > 0 && (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
-              <p className="text-sm text-amber-900">{t('join.pendingStandby', { count: pendingCount })}</p>
+          {pendingCount > 0 && nextDateLabel ? (
+            // Some upcoming dates are at capacity — be explicit about the skip and
+            // when they'll actually attend, instead of a vague "you're signed up".
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left space-y-2">
+              <p className="text-sm font-semibold text-amber-900">
+                {t('join.pendingStandbyTitle', { count: pendingCount })}
+              </p>
+              <p className="text-sm text-amber-900">
+                {t('join.youStartFrom', { date: nextDateLabel })}
+              </p>
             </div>
-          )}
+          ) : nextDateLabel ? (
+            <p className="text-sm font-medium text-foreground">{t('join.firstDate', { date: nextDateLabel })}</p>
+          ) : null}
           <button
             onClick={() => navigate('/player')}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"

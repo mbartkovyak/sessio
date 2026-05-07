@@ -238,10 +238,11 @@
     "confirmedSingle": "{{date}} о {{time}}",
     "confirmedRecurring": "Щотижня: {{days}} о {{time}}",
     "firstDate": "Перше заняття: {{date}}",
-    "pendingStandby_one": "{{count}} найближче заняття вже заповнене — ти в резерві. Сповістимо, якщо звільниться місце.",
-    "pendingStandby_few": "{{count}} найближчі заняття заповнені — ти в резерві. Сповістимо, якщо звільняться місця.",
-    "pendingStandby_many": "{{count}} найближчих занять заповнені — ти в резерві. Сповістимо, якщо звільняться місця.",
-    "pendingStandby_other": "{{count}} найближчих занять заповнені — ти в резерві.",
+    "pendingStandbyTitle_one": "Найближче заняття вже заповнене — ти в резерві.",
+    "pendingStandbyTitle_few": "Найближчі {{count}} заняття вже заповнені — ти в резерві.",
+    "pendingStandbyTitle_many": "Найближчих {{count}} занять вже заповнені — ти в резерві.",
+    "pendingStandbyTitle_other": "Найближчі {{count}} занять вже заповнені — ти в резерві.",
+    "youStartFrom": "Стартуєш з {{date}}.",
     "confirmedDone": "Зрозуміло"
   },
   "signUp": {

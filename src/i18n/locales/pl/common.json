@@ -238,10 +238,11 @@
     "confirmedSingle": "{{date}} o {{time}}",
     "confirmedRecurring": "Co tydzień: {{days}} o {{time}}",
     "firstDate": "Pierwsze zajęcia: {{date}}",
-    "pendingStandby_one": "{{count}} najbliższe zajęcia są pełne — jesteś na liście rezerwowej. Damy znać, gdy zwolni się miejsce.",
-    "pendingStandby_few": "{{count}} najbliższe zajęcia są pełne — jesteś na liście rezerwowej. Damy znać, gdy zwolnią się miejsca.",
-    "pendingStandby_many": "{{count}} najbliższych zajęć jest pełnych — jesteś na liście rezerwowej. Damy znać, gdy zwolnią się miejsca.",
-    "pendingStandby_other": "{{count}} najbliższych zajęć jest pełnych — jesteś na liście rezerwowej.",
+    "pendingStandbyTitle_one": "Najbliższe zajęcia są pełne — jesteś na liście rezerwowej.",
+    "pendingStandbyTitle_few": "Najbliższe {{count}} zajęcia są pełne — jesteś na liście rezerwowej.",
+    "pendingStandbyTitle_many": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście rezerwowej.",
+    "pendingStandbyTitle_other": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście rezerwowej.",
+    "youStartFrom": "Startujesz od {{date}}.",
     "confirmedDone": "Rozumiem"
   },
   "signUp": {
