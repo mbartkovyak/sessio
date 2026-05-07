@@ -12,6 +12,7 @@ import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
 import { useNativePush } from "@/hooks/shared/useNativePush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
 import { useSentryPageContext } from "@/hooks/shared/useSentryPageContext";
+import { useGlobalMessageRealtime } from "@/hooks/shared/useConversations";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
@@ -20,6 +21,9 @@ import PullToRefresh from "@/components/shared/PullToRefresh";
 // Both hooks early-return on the wrong platform (useAutoRegisterPush skips
 // on native, useNativePush skips on web). One device = one push path.
 function PushRegistrar() { useAutoRegisterPush(); useNativePush(); return null; }
+// One realtime channel for messages, mounted once at app level. Updates the
+// React Query cache directly so nav badge / chats list move without RPCs.
+function GlobalRealtime() { useGlobalMessageRealtime(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
 function RefreshOnResume() {
   useEffect(() => {
@@ -61,6 +65,7 @@ function RootLayout() {
       <ErrorBoundary>
         <AuthProvider>
           <PushRegistrar />
+          <GlobalRealtime />
           <PrefetchRoutes />
           <div className="relative z-[9]" style={{ paddingBottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))' }}><Outlet /></div>
         </AuthProvider>

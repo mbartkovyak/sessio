@@ -283,35 +283,15 @@ export async function getOrCreateDMConversation(otherUserId: string): Promise<st
 
 export function useMyConversations() {
   const { user } = useAuth();
-  const qc = useQueryClient();
 
   // One-time: seed localStorage read state to DB (fire-and-forget)
   useEffect(() => {
     if (user) seedReadTrackingToDb();
   }, [user?.id]);
 
-  // Realtime: update conversation list when new messages arrive (debounced)
-  useEffect(() => {
-    if (!user) return;
-    let debounceTimer: ReturnType<typeof setTimeout>;
-    const channel = supabase
-      .channel('conv-list-messages')
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-      }, (payload: any) => {
-        if (payload.new.sender_id === user.id) return;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          qc.invalidateQueries({ queryKey: ['my-conversations', user.id] });
-          qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
-        }, 300);
-      })
-      .subscribe();
-    return () => {
-      clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, qc]);
+  // Realtime cache updates for new messages live in useGlobalMessageRealtime,
+  // mounted once at app level. Keeping it out of this hook means the channel
+  // doesn't churn every time the chats page mounts/unmounts.
 
   return useQuery({
     queryKey: ['my-conversations', user?.id],
@@ -382,16 +362,95 @@ export function useMyConversations() {
   });
 }
 
-// ── Unread total (for nav badge) — single RPC ──
-
-export function useUnreadMessageCount() {
+// ── Global message realtime ──
+//
+// One subscription per session, mounted at app level. Updates the React Query
+// cache directly on incoming messages so the nav badge and chats list move
+// without firing get_my_unread_count / get_my_conversations RPCs on every
+// message. Without this, both hooks were subscribing to ALL message INSERTs
+// (no filter) and invalidating on each one — and the bottom nav re-mounted
+// on every navigation, churning realtime subscriptions.
+export function useGlobalMessageRealtime() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  useEffect(() => {
+    if (!user) return;
+    const userId = user.id;
+    let pendingNewConvoCheck: ReturnType<typeof setTimeout> | undefined;
+
+    const channel = supabase
+      .channel(`global-messages:${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload: any) => {
+        const msg = payload.new;
+        if (!msg || msg.sender_id === userId) return;
+
+        const convos = qc.getQueryData<ConversationInfo[]>(['my-conversations', userId]);
+        const target = convos?.find(c => c.id === msg.conversation_id);
+
+        if (!target) {
+          // Unknown conversation — likely a new training chat we were just
+          // added to. Debounced single refresh to pick it up; no per-message
+          // invalidation thrash.
+          clearTimeout(pendingNewConvoCheck);
+          pendingNewConvoCheck = setTimeout(() => {
+            qc.invalidateQueries({ queryKey: ['my-conversations', userId] });
+          }, 500);
+          return;
+        }
+
+        qc.setQueryData<ConversationInfo[]>(
+          ['my-conversations', userId],
+          (convos ?? []).map(c =>
+            c.id === msg.conversation_id
+              ? {
+                  ...c,
+                  lastMessage: {
+                    content: msg.content ?? '',
+                    senderName: c.lastMessage?.senderName ?? null,
+                    createdAt: msg.created_at,
+                  },
+                  unreadCount: c.unreadCount + 1,
+                }
+              : c
+          ).sort((a, b) => {
+            const aTime = a.lastMessage?.createdAt ?? '';
+            const bTime = b.lastMessage?.createdAt ?? '';
+            if (!aTime && !bTime) return 0;
+            if (!aTime) return 1;
+            if (!bTime) return -1;
+            return bTime.localeCompare(aTime);
+          })
+        );
+
+        // Only increment if the badge query has already populated. If not,
+        // the next mount will fetch the correct total via the RPC.
+        qc.setQueryData<number | undefined>(['unread-total', userId], (old) =>
+          old === undefined ? undefined : old + 1
+        );
+      })
+      .subscribe();
+
+    return () => {
+      clearTimeout(pendingNewConvoCheck);
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, qc]);
+}
+
+// ── Unread total (for nav badge) ──
+
+export function useUnreadMessageCount() {
+  const { user } = useAuth();
+
+  // Compute once per session — staleTime: Infinity. Live updates come from
+  // useGlobalMessageRealtime (increment on incoming) and markConversationSeen
+  // (decrement on read). RefreshOnResume re-fetches when the app comes back
+  // from background, which covers messages received while offline.
   const { data: count = 0 } = useQuery({
     queryKey: ['unread-total', user?.id],
     enabled: !!user,
-    staleTime: 2 * 60 * 1000,
+    staleTime: Infinity,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_my_unread_count');
       if (error) throw error;
@@ -403,20 +462,6 @@ export function useUnreadMessageCount() {
       return total;
     },
   });
-
-  // Realtime: bump count when a new message arrives
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('unread-badge')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload: any) => {
-        if (payload.new.sender_id !== user.id) {
-          qc.invalidateQueries({ queryKey: ['unread-total', user.id] });
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id, qc]);
 
   return count;
 }
