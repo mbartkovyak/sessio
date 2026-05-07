@@ -48,7 +48,12 @@ export default function JoinTraining() {
   // After a successful sign-up: drive a confirmation screen instead of bouncing
   // straight to /player. Parents reported phoning the coach to ask "am I really
   // signed up?" — toast + immediate redirect was too easy to miss.
-  const [joinedSuccess, setJoinedSuccess] = useState<null | { mode: 'single' | 'recurring'; sessionDate?: string }>(null);
+  const [joinedSuccess, setJoinedSuccess] = useState<null | {
+    mode: 'single' | 'recurring';
+    sessionDate?: string;
+    nextConfirmedDate?: string;
+    pendingCount?: number;
+  }>(null);
   const joiningRef = useRef(false);
 
   // Pass status for the current training (only meaningful once `training` and player are loaded).
@@ -302,8 +307,10 @@ export default function JoinTraining() {
           return;
         }
 
-        // Server-side capacity check + insert (atomic, race-safe).
-        const { data: roleData, error } = await supabase.rpc('join_training', { p_training_id: training.id });
+        // Server-side capacity check + insert (atomic, race-safe). Returns
+        // { role, next_confirmed_date, pending_count } so the success screen
+        // can tell the player which date they're confirmed for next.
+        const { data: rpcData, error } = await supabase.rpc('join_training', { p_training_id: training.id });
         if (error) {
           if (error.message?.includes('TRAINING_FULL')) {
             toast.error(t('join.trainingFull'));
@@ -317,7 +324,8 @@ export default function JoinTraining() {
           }
           throw error;
         }
-        const memberRole = (roleData as string) ?? 'regular';
+        const summary = (rpcData ?? {}) as { role?: string; next_confirmed_date?: string | null; pending_count?: number };
+        const memberRole = summary.role ?? 'regular';
         // Notify coach about the new member
         if (training.coach_id) {
           const tCoach = getFixedTForLanguage(training.coach?.language);
@@ -341,7 +349,11 @@ export default function JoinTraining() {
           toast.success(t('join.addedToWaitlist'));
           navigate('/player');
         } else {
-          setJoinedSuccess({ mode: 'recurring' });
+          setJoinedSuccess({
+            mode: 'recurring',
+            nextConfirmedDate: summary.next_confirmed_date ?? undefined,
+            pendingCount: summary.pending_count ?? 0,
+          });
         }
       }
     } catch (err: any) {
@@ -488,6 +500,10 @@ export default function JoinTraining() {
           days: daysLabel,
           time: training.start_time?.slice(0, 5) ?? '',
         });
+    const nextDateLabel = joinedSuccess.mode === 'recurring' && joinedSuccess.nextConfirmedDate
+      ? format(new Date(joinedSuccess.nextConfirmedDate + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() })
+      : null;
+    const pendingCount = joinedSuccess.pendingCount ?? 0;
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <AppHeader title={training.name} />
@@ -499,7 +515,15 @@ export default function JoinTraining() {
             <h2 className="text-2xl font-bold text-foreground">{t('join.confirmedTitle')}</h2>
             <p className="text-base text-foreground">{training.name}</p>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
+            {nextDateLabel && (
+              <p className="text-sm font-medium text-foreground pt-1">{t('join.firstDate', { date: nextDateLabel })}</p>
+            )}
           </div>
+          {pendingCount > 0 && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-left">
+              <p className="text-sm text-amber-900">{t('join.pendingStandby', { count: pendingCount })}</p>
+            </div>
+          )}
           <button
             onClick={() => navigate('/player')}
             className="w-full rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground min-h-[56px] active:opacity-80 transition-opacity"

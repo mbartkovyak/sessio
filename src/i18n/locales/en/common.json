@@ -237,6 +237,11 @@
     "confirmedTitle": "You're signed up",
     "confirmedSingle": "{{date}} at {{time}}",
     "confirmedRecurring": "Every {{days}} at {{time}}",
+    "firstDate": "First session: {{date}}",
+    "pendingStandby_one": "{{count}} upcoming session is full — you're on standby. We'll let you know if a spot opens.",
+    "pendingStandby_few": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
+    "pendingStandby_many": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
+    "pendingStandby_other": "{{count}} upcoming sessions are full — you're on standby. We'll let you know if spots open.",
     "confirmedDone": "Got it"
   },
   "signUp": {

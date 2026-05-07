@@ -90,6 +90,7 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
     && new Date(`${session.session_date}T${session.end_time}`).getTime() < Date.now();
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
+  const isPending = attendance.status === 'pending';
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
@@ -132,6 +133,8 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
             </button>
           ) : isNoShow ? (
             <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
+          ) : isPending ? (
+            <span className="rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 shrink-0">{t('calendar.standby')}</span>
           ) : (
             <div className="flex flex-col items-end gap-1 shrink-0">
               <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">

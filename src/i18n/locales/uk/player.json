@@ -56,7 +56,8 @@
     "rejoin": "Записатися знову",
     "stayOut": "Ні, залишити",
     "cantMakeItAnymore": "Не зможу прийти",
-    "changedMind": "Все ж зможу прийти"
+    "changedMind": "Все ж зможу прийти",
+    "standby": "Резерв"
   },
   "messages": {
     "title": "Чати",

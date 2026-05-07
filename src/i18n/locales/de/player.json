@@ -55,7 +55,8 @@
     "changedMind": "Actually, I can make it",
     "rejoinConfirm": "Rejoin this session?",
     "rejoin": "Rejoin",
-    "stayOut": "No, stay out"
+    "stayOut": "No, stay out",
+    "standby": "Standby"
   },
   "messages": {
     "title": "Chats",

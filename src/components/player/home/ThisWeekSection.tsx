@@ -37,6 +37,7 @@ function SessionCard({ attendance }: { attendance: any }) {
 
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
+  const isPending = attendance.status === 'pending';
   const cancelDeadlineHours = training?.confirmation_window_hours;
   const hoursUntil = getHoursUntilSession(session?.session_date, session?.start_time);
   const isLateCancel = cancelDeadlineHours != null && hoursUntil < cancelDeadlineHours;
@@ -76,6 +77,8 @@ function SessionCard({ attendance }: { attendance: any }) {
             </button>
           ) : isNoShow ? (
             <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
+          ) : isPending ? (
+            <span className="rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 shrink-0">{t('calendar.standby')}</span>
           ) : (
             // Reassures the parent at a glance — they're on the list. Cancel
             // stays available immediately below.
