@@ -106,9 +106,9 @@ export default function SignUpSheet({ session, onClose }: Props) {
       toast.success(t('join.joinedSession', { name: session.training_name }));
     } catch (err: any) {
       // PASS_REQUIRED comes from the join_single_session RPC: route the athlete to
-      // the join page where the request-pass flow lives.
+      // the join page where the request-pass flow lives. The hook's onError
+      // already showed the localized hint toast — just redirect.
       if (typeof err?.message === 'string' && err.message.includes('PASS_REQUIRED')) {
-        toast.info(t('join.passRequiredToast'));
         navigate(`/join/${session.invite_code}?session=${session.session_id}`);
         onClose();
         return;

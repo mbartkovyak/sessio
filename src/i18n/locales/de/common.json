@@ -209,6 +209,7 @@
     "requestToJoin": "Request to join",
     "alreadyInSession": "You're already in this session",
     "sessionFull": "This session is full",
+    "sessionUnavailable": "This session is no longer available",
     "joinedSession": "You're in for {{name}}",
     "joinSessionOn": "Join {{name}} on {{date}}",
     "guestJoinedTitle": "Guest signed up",

@@ -209,6 +209,7 @@
     "requestToJoin": "Надіслати запит",
     "alreadyInSession": "Ви вже записані на цю сесію",
     "sessionFull": "Ця сесія заповнена",
+    "sessionUnavailable": "Це заняття вже недоступне",
     "joinedSession": "Ви записані на {{name}}",
     "joinSessionOn": "Приєднатися до {{name}} {{date}}",
     "guestJoinedTitle": "Новий гість",

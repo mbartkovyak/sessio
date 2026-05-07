@@ -749,7 +749,34 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
-    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+    onError: (e: any) => {
+      // RPC RAISE EXCEPTION strings come back in English from Postgres. The previous
+      // generic fallback ("something went wrong") hid the actual cause from non-EN
+      // users — pattern-match the known cases and translate per-locale instead.
+      const msg = String(e?.message ?? '');
+      if (msg.includes('PASS_REQUIRED')) {
+        // SignUpSheet redirects to the request-pass UI; this toast is a hint, not an error.
+        toast.info(i18n.t('join.passRequiredToast', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Drop-ins not allowed')) {
+        toast.error(i18n.t('join.dropInNotAllowed', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Trial session already used')) {
+        toast.error(i18n.t('join.trialUsed', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('full')) {
+        toast.error(i18n.t('join.sessionFull', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Session not found') || msg.includes('cancelled')) {
+        toast.error(i18n.t('join.sessionUnavailable', { ns: 'common' }));
+        return;
+      }
+      toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' })));
+    },
   });
 }
 
