@@ -385,13 +385,21 @@ export function useGlobalMessageRealtime() {
         const msg = payload.new;
         if (!msg || msg.sender_id === userId) return;
 
+        // Always bump the badge if the cache exists. RLS on messages already
+        // ensures we only receive events for conversations the user can see,
+        // so any message landing here is a real unread for this user.
+        qc.setQueryData<number | undefined>(['unread-total', userId], (old) =>
+          old === undefined ? undefined : old + 1
+        );
+
+        // Update the conversation list cache if it's loaded.
         const convos = qc.getQueryData<ConversationInfo[]>(['my-conversations', userId]);
         const target = convos?.find(c => c.id === msg.conversation_id);
 
         if (!target) {
           // Unknown conversation — likely a new training chat we were just
-          // added to. Debounced single refresh to pick it up; no per-message
-          // invalidation thrash.
+          // added to, or the chats list hasn't been loaded yet. Debounced
+          // single refresh to pick it up.
           clearTimeout(pendingNewConvoCheck);
           pendingNewConvoCheck = setTimeout(() => {
             qc.invalidateQueries({ queryKey: ['my-conversations', userId] });
@@ -421,12 +429,6 @@ export function useGlobalMessageRealtime() {
             if (!bTime) return -1;
             return bTime.localeCompare(aTime);
           })
-        );
-
-        // Only increment if the badge query has already populated. If not,
-        // the next mount will fetch the correct total via the RPC.
-        qc.setQueryData<number | undefined>(['unread-total', userId], (old) =>
-          old === undefined ? undefined : old + 1
         );
       })
       .subscribe();
