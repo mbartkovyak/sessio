@@ -488,7 +488,7 @@ export function useCoachUpcomingSessions(coachId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_coach_upcoming_sessions', {
         p_coach_id: coachId!,
-        p_days: 14,
+        p_days: 84,
       });
       if (error) throw error;
       return (data ?? []) as PublicUpcomingSession[];
@@ -503,7 +503,7 @@ export function useSchoolUpcomingSessions(schoolId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_school_upcoming_sessions', {
         p_school_id: schoolId!,
-        p_days: 14,
+        p_days: 84,
       });
       if (error) throw error;
       return (data ?? []) as PublicUpcomingSession[];
