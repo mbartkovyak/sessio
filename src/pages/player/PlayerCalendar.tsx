@@ -13,11 +13,12 @@ import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/Calen
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
 const WINDOW_STEP = 4; // weeks per load
+const INITIAL_FUTURE_WEEKS = 12; // ~3 months — coach typically schedules months ahead
 
 export default function PlayerCalendar() {
   const { t } = useTranslation('player');
   const [pastWeeks, setPastWeeks] = useState(WINDOW_STEP);
-  const [futureWeeks, setFutureWeeks] = useState(WINDOW_STEP);
+  const [futureWeeks, setFutureWeeks] = useState(INITIAL_FUTURE_WEEKS);
   const now = new Date();
   const from = format(subWeeks(now, pastWeeks), 'yyyy-MM-dd');
   const to = format(addWeeks(now, futureWeeks), 'yyyy-MM-dd');
@@ -90,6 +91,7 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
     && new Date(`${session.session_date}T${session.end_time}`).getTime() < Date.now();
   const isDeclined = attendance.status === 'declined';
   const isNoShow = attendance.status === 'no_show';
+  const isPending = attendance.status === 'pending';
 
   const notify = training?.coach?.id
     ? { coachId: training.coach.id, trainingName: training.name, trainingId: training.id }
@@ -132,6 +134,8 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
             </button>
           ) : isNoShow ? (
             <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
+          ) : isPending ? (
+            <span className="rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 shrink-0">{t('calendar.standby')}</span>
           ) : (
             <div className="flex flex-col items-end gap-1 shrink-0">
               <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">

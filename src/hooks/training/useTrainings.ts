@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -232,6 +233,24 @@ export function useLeaveTraining() {
         .eq('training_id', trainingId)
         .eq('user_id', user.id);
       if (error) throw error;
+
+      // Cascade-clean future attendance so leaving doesn't leave orphan 'confirmed' rows
+      // counted toward capacity. Past attendance (attendance_marked_at IS NOT NULL) is
+      // preserved as audit history.
+      const { data: futureSessionIds } = await supabase
+        .from('training_sessions')
+        .select('id')
+        .eq('training_id', trainingId)
+        .gte('session_date', new Date().toISOString().slice(0, 10))
+        .is('attendance_marked_at', null);
+      const ids = (futureSessionIds ?? []).map(r => r.id);
+      if (ids.length > 0) {
+        await supabase
+          .from('session_attendance')
+          .delete()
+          .eq('user_id', user.id)
+          .in('session_id', ids);
+      }
 
       // Hide the group chat for the athlete
       const { data: conv } = await supabase
@@ -586,33 +605,27 @@ export function useUpsertAttendance() {
       status: string;
       notify?: { coachId: string; trainingName: string; trainingId: string };
     }) => {
-      // Check capacity before re-confirming (rejoin after cancel)
-      if (status === 'confirmed') {
-        const { data: sess } = await supabase
-          .from('training_sessions')
-          .select('id, trainings(max_players)')
-          .eq('id', sessionId)
-          .single();
-        const maxPlayers = (sess?.trainings as any)?.max_players;
-        if (maxPlayers) {
-          const { count } = await supabase
-            .from('session_attendance')
-            .select('*', { count: 'exact', head: true })
-            .eq('session_id', sessionId)
-            .eq('status', 'confirmed');
-          if ((count ?? 0) >= maxPlayers) {
-            throw new Error(i18n.t('join.trainingFull', { ns: 'common' }));
-          }
-        }
-      }
+      Sentry.addBreadcrumb({
+        category: 'capacity',
+        message: `attendance:${status}`,
+        data: { sessionId, userId: user?.id },
+      });
 
-      const update: any = { session_id: sessionId, user_id: user!.id, status };
-      if (status === 'confirmed') update.confirmed_at = new Date().toISOString();
-      if (status === 'declined') update.declined_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('session_attendance')
-        .upsert(update, { onConflict: 'session_id,user_id' });
-      if (error) throw error;
+      // Server-side RPCs: capacity is enforced atomically by enforce_session_capacity()
+      // BEFORE trigger. The previous client-side count was silently RLS-stripped to
+      // the caller's own row, which is how the «ДОДО» 9/8 overbook landed in prod.
+      const rpc = status === 'confirmed' ? 'confirm_session_attendance' : 'decline_session_attendance';
+      const { error } = await supabase.rpc(rpc, { p_session_id: sessionId });
+      if (error) {
+        if (error.message?.includes('SESSION_FULL')) {
+          Sentry.captureMessage('SESSION_FULL', {
+            level: 'warning',
+            extra: { sessionId, userId: user?.id },
+          });
+          throw new Error(i18n.t('join.sessionFull', { ns: 'common' }));
+        }
+        throw error;
+      }
 
       if (notify && (status === 'confirmed' || status === 'declined')) {
         const tNotify = await getFixedTForUser(notify.coachId);
@@ -735,8 +748,38 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      // Refresh the public schedule so the capacity badge reflects the new attendance.
+      qc.invalidateQueries({ queryKey: ['coach-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-upcoming-sessions'] });
     },
-    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+    onError: (e: any) => {
+      // RPC RAISE EXCEPTION strings come back in English from Postgres. The previous
+      // generic fallback ("something went wrong") hid the actual cause from non-EN
+      // users — pattern-match the known cases and translate per-locale instead.
+      const msg = String(e?.message ?? '');
+      if (msg.includes('PASS_REQUIRED')) {
+        // SignUpSheet redirects to the request-pass UI; this toast is a hint, not an error.
+        toast.info(i18n.t('join.passRequiredToast', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Drop-ins not allowed')) {
+        toast.error(i18n.t('join.dropInNotAllowed', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Trial session already used')) {
+        toast.error(i18n.t('join.trialUsed', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('full')) {
+        toast.error(i18n.t('join.sessionFull', { ns: 'common' }));
+        return;
+      }
+      if (msg.includes('Session not found') || msg.includes('cancelled')) {
+        toast.error(i18n.t('join.sessionUnavailable', { ns: 'common' }));
+        return;
+      }
+      toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' })));
+    },
   });
 }
 

@@ -75,7 +75,12 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
         emptyState={emptyState}
         renderItem={(s) => {
           const isConfirmed = attendance[s.session_id] === 'confirmed';
+          const isPending = attendance[s.session_id] === 'pending';
           const busy = cancellingId === s.session_id;
+          const max = s.max_players;
+          const taken = s.confirmed_count ?? 0;
+          const isFull = max != null && taken >= max;
+          const allowWaitlist = s.allow_waitlist !== false; // null/true → allow
           return (
             <div
               key={s.session_id}
@@ -91,6 +96,11 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
                   <p className="font-semibold text-sm text-foreground truncate">{s.training_name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}
+                    {max != null && (
+                      <span className={`ml-2 font-medium ${isFull ? 'text-amber-700' : 'text-muted-foreground'}`}>
+                        · {isFull ? t('capacity.full') : `${taken}/${max}`}
+                      </span>
+                    )}
                   </p>
                   {showCoach && s.coach_name && (
                     <div className="mt-1 flex items-center gap-1.5">
@@ -112,6 +122,14 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
                 >
                   {t('actions.cancel')}
                 </button>
+              ) : isPending ? (
+                <span className="shrink-0 rounded-full bg-amber-500/15 px-3.5 py-2 text-xs font-bold text-amber-700 min-h-[36px] flex items-center">
+                  {t('calendar.standby', { ns: 'player' })}
+                </span>
+              ) : isFull && !allowWaitlist ? (
+                <span className="shrink-0 rounded-full bg-muted px-3.5 py-2 text-xs font-bold text-muted-foreground min-h-[36px] flex items-center">
+                  {t('capacity.full')}
+                </span>
               ) : (
                 <button
                   type="button"
@@ -119,9 +137,11 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
                     e.stopPropagation();
                     setSignUpFor(s);
                   }}
-                  className="shrink-0 rounded-full bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground min-h-[36px] active:opacity-80 transition-opacity"
+                  className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-bold min-h-[36px] active:opacity-80 transition-opacity ${
+                    isFull ? 'bg-amber-500/15 text-amber-700' : 'bg-primary text-primary-foreground'
+                  }`}
                 >
-                  {t('join.signUp')}
+                  {isFull ? t('join.joinWaitlist') : t('join.signUp')}
                 </button>
               )}
             </div>

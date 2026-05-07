@@ -39,8 +39,18 @@ export type TrainingStats = {
   attendanceRate: number;
 };
 
+// Window narrowed from 180 to 90 days. Covers the common "trends + last few
+// months" use case for /coach/stats while keeping the result set small enough
+// to render without timing out. The nested session_attendance(status) select
+// expands one row per attendance record, so the response grows quadratically
+// with active trainings × session count.
+const STATS_WINDOW_DAYS = 90;
+// Hard cap on rows pulled — backstop in case a single coach has wildly more
+// data than expected. 5000 sessions × ~10 attendees still fits in ~250 KB JSON.
+const STATS_ROW_LIMIT = 5000;
+
 export function useStatsData(trainingIds: string[]) {
-  const sixMonthsAgo = format(new Date(Date.now() - 180 * 86400000), 'yyyy-MM-dd');
+  const windowStart = format(new Date(Date.now() - STATS_WINDOW_DAYS * 86400000), 'yyyy-MM-dd');
   return useQuery({
     queryKey: ['stats-data', trainingIds],
     enabled: trainingIds.length > 0,
@@ -49,10 +59,11 @@ export function useStatsData(trainingIds: string[]) {
         .from('training_sessions')
         .select('id, session_date, status, training_id, session_attendance(status), trainings(id, name, sport, coach_id)')
         .in('training_id', trainingIds)
-        .gte('session_date', sixMonthsAgo)
+        .gte('session_date', windowStart)
         .lte('session_date', new Date().toISOString().split('T')[0])
         .neq('status', 'cancelled')
-        .order('session_date', { ascending: true });
+        .order('session_date', { ascending: true })
+        .limit(STATS_ROW_LIMIT);
       if (error) throw error;
       return (data ?? []) as StatsSession[];
     },

@@ -11,6 +11,8 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { useAutoRegisterPush } from "@/hooks/shared/useAutoRegisterPush";
 import { useNativePush } from "@/hooks/shared/useNativePush";
 import { useVisualViewport } from "@/hooks/shared/useVisualViewport";
+import { useSentryPageContext } from "@/hooks/shared/useSentryPageContext";
+import { useGlobalMessageRealtime } from "@/hooks/shared/useConversations";
 import { lazy, Suspense, useEffect, ComponentType } from "react";
 import { useLocation } from "react-router-dom";
 import { SessioLoader } from "@/components/SessioLogo";
@@ -19,7 +21,15 @@ import PullToRefresh from "@/components/shared/PullToRefresh";
 // Both hooks early-return on the wrong platform (useAutoRegisterPush skips
 // on native, useNativePush skips on web). One device = one push path.
 function PushRegistrar() { useAutoRegisterPush(); useNativePush(); return null; }
+// One realtime channel for messages, mounted once at app level. Updates the
+// React Query cache directly so nav badge / chats list move without RPCs.
+function GlobalRealtime() { useGlobalMessageRealtime(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
+// Query keys whose data is kept fresh by a realtime subscription. Skipping
+// these in RefreshOnResume avoids unnecessary RPCs on tab/app focus — the
+// cache is already correct because the DB has been pushing updates.
+const REALTIME_MAINTAINED_KEYS = new Set(['unread-total', 'my-conversations', 'messages', 'trainings']);
+
 function RefreshOnResume() {
   useEffect(() => {
     let lastRefresh = 0;
@@ -27,7 +37,12 @@ function RefreshOnResume() {
       const now = Date.now();
       if (now - lastRefresh < 10_000) return; // throttle: skip if < 10s since last refresh
       lastRefresh = now;
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const primary = query.queryKey[0];
+          return typeof primary !== 'string' || !REALTIME_MAINTAINED_KEYS.has(primary);
+        },
+      });
     };
     const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
     const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) refresh(); };
@@ -43,6 +58,7 @@ function RefreshOnResume() {
 
 function RootLayout() {
   useVisualViewport();
+  useSentryPageContext();
   const { pathname } = useLocation();
   // Landing is light-themed and paints its own top area — the app's dark header strip doesn't belong there.
   const isLanding = pathname === '/' || pathname === '/welcome';
@@ -59,6 +75,7 @@ function RootLayout() {
       <ErrorBoundary>
         <AuthProvider>
           <PushRegistrar />
+          <GlobalRealtime />
           <PrefetchRoutes />
           <div className="relative z-[9]" style={{ paddingBottom: 'var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))' }}><Outlet /></div>
         </AuthProvider>

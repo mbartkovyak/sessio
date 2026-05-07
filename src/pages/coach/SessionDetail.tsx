@@ -347,11 +347,20 @@ export default function SessionDetail() {
         athletes={athletePool}
         existingMemberIds={new Set(attendance.map(a => a.user_id))}
         onAdd={async (athlete) => {
-          // Add to this session only (session_attendance), not training_members
-          const { error } = await supabase
-            .from('session_attendance')
-            .upsert({ session_id: sessionId!, user_id: athlete.id, status: 'confirmed', confirmed_at: new Date().toISOString() }, { onConflict: 'session_id,user_id' });
-          if (error) { toast.error(error.message); return; }
+          // Add to this session only (session_attendance), not training_members.
+          // RPC enforces capacity server-side and locks the parent training row.
+          const { error } = await supabase.rpc('coach_add_to_session', {
+            p_session_id: sessionId!,
+            p_user_id: athlete.id,
+          });
+          if (error) {
+            if (error.message?.includes('SESSION_FULL')) {
+              toast.error(i18n.t('join.sessionFull', { ns: 'common' }));
+              return;
+            }
+            toast.error(error.message);
+            return;
+          }
           qc.invalidateQueries({ queryKey: ['session-attendance', sessionId] });
           qc.invalidateQueries({ queryKey: ['attendance-summary'] });
           // Adding a confirmed attendee deducts a pass via the DB charge trigger.

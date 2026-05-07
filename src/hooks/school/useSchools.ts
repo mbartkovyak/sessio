@@ -479,6 +479,11 @@ export type PublicUpcomingSession = {
   session_date: string;
   start_time: string;
   end_time: string;
+  // Capacity fields are only present after the 20260507180000 migration; they
+  // may be null briefly during a deploy. Treat null as "unknown capacity".
+  max_players: number | null;
+  confirmed_count: number | null;
+  allow_waitlist: boolean | null;
 };
 
 export function useCoachUpcomingSessions(coachId: string | undefined) {
@@ -488,7 +493,7 @@ export function useCoachUpcomingSessions(coachId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_coach_upcoming_sessions', {
         p_coach_id: coachId!,
-        p_days: 14,
+        p_days: 84,
       });
       if (error) throw error;
       return (data ?? []) as PublicUpcomingSession[];
@@ -503,7 +508,7 @@ export function useSchoolUpcomingSessions(schoolId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_school_upcoming_sessions', {
         p_school_id: schoolId!,
-        p_days: 14,
+        p_days: 84,
       });
       if (error) throw error;
       return (data ?? []) as PublicUpcomingSession[];
