@@ -25,6 +25,11 @@ function PushRegistrar() { useAutoRegisterPush(); useNativePush(); return null; 
 // React Query cache directly so nav badge / chats list move without RPCs.
 function GlobalRealtime() { useGlobalMessageRealtime(); return null; }
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo(0, 0); }, [pathname]); return null; }
+// Query keys whose data is kept fresh by a realtime subscription. Skipping
+// these in RefreshOnResume avoids unnecessary RPCs on tab/app focus — the
+// cache is already correct because the DB has been pushing updates.
+const REALTIME_MAINTAINED_KEYS = new Set(['unread-total', 'my-conversations', 'messages', 'trainings']);
+
 function RefreshOnResume() {
   useEffect(() => {
     let lastRefresh = 0;
@@ -32,7 +37,12 @@ function RefreshOnResume() {
       const now = Date.now();
       if (now - lastRefresh < 10_000) return; // throttle: skip if < 10s since last refresh
       lastRefresh = now;
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const primary = query.queryKey[0];
+          return typeof primary !== 'string' || !REALTIME_MAINTAINED_KEYS.has(primary);
+        },
+      });
     };
     const onVisibility = () => { if (document.visibilityState === 'visible') refresh(); };
     const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) refresh(); };

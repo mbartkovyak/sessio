@@ -187,11 +187,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .then(() => { initialLoadDone.current = true; setLoading(false); })
                 .catch(() => { initialLoadDone.current = true; setLoading(false); });
             }
-          } else {
-            // Token refresh, user update, etc: silent background refresh — do NOT set loading
-            // to avoid unmounting the entire page tree and tearing down realtime subscriptions
+          } else if (event === 'USER_UPDATED') {
+            // auth.users row changed (e.g. email/password update) — profile may
+            // be stale, refresh silently.
             fetchProfile(session.user.id);
           }
+          // TOKEN_REFRESHED and other events: skip the fetch. The cached profile
+          // is still valid; refreshing wastes a round-trip and Supabase JS fires
+          // these often (esp. on tab focus).
         } else {
           setProfile(null);
           setLoading(false);
