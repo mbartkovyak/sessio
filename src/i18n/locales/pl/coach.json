@@ -111,7 +111,7 @@
     "decline": "Odrzuć",
     "members": "Uczestnicy",
     "noMembers": "Nie ma jeszcze uczestników. Udostępnij link zaproszenia.",
-    "waitlist": "Lista rezerwowa",
+    "waitlist": "Lista oczekujących",
     "directMessage": "Wiadomość prywatna",
     "remove": "Usuń",
     "removeConfirm": "Usunąć {{name}}?",
@@ -250,7 +250,7 @@
     "checkGroupCreated": "Zajęcia utworzone",
     "checkInviteReady": "Link zaproszenia gotowy",
     "checkAutoConfirm": "Uczestnicy zapisani automatycznie",
-    "checkWaitlist": "Lista rezerwowa włączona"
+    "checkWaitlist": "Lista oczekujących włączona"
   },
   "pending": {
     "title": "Oczekiwanie na zatwierdzenie",

@@ -172,13 +172,13 @@
     "reload": "Reload"
   },
   "join": {
-    "alreadyOnWaitlist": "You're already on the waitlist",
+    "alreadyOnWaitlist": "Du bist bereits auf der Warteliste",
     "alreadyInTraining": "You're already in this training",
-    "trainingFull": "No spots left",
-    "requestAlreadySent": "Request already sent. Waiting for approval.",
-    "joinRequestSent": "Request sent. The coach will review it.",
-    "joinRequestSentAgain": "Request sent again.",
-    "addedToWaitlist": "Added to the waitlist",
+    "trainingFull": "Keine Plätze frei",
+    "requestAlreadySent": "Anfrage bereits gesendet. Warte auf Bestätigung.",
+    "joinRequestSent": "Anfrage gesendet. Der Coach prüft sie.",
+    "joinRequestSentAgain": "Anfrage erneut gesendet.",
+    "addedToWaitlist": "Zur Warteliste hinzugefügt",
     "joinedTraining": "You're in {{name}}",
     "alreadyInGroup": "You're already in this training",
     "groupFull": "This training is full",
@@ -208,7 +208,7 @@
     "at": "at",
     "requestToJoin": "Request to join",
     "alreadyInSession": "You're already in this session",
-    "sessionFull": "This session is full",
+    "sessionFull": "Diese Einheit ist voll",
     "sessionUnavailable": "This session is no longer available",
     "joinedSession": "You're in for {{name}}",
     "joinSessionOn": "Join {{name}} on {{date}}",
@@ -220,8 +220,8 @@
     "signUpAll": "Sign up for all sessions",
     "orPickSession": "Or pick a single session",
     "signUp": "Sign up",
-    "joinWaitlist": "Join waitlist",
-    "addedToSessionWaitlist": "Added to the waitlist for this session — we'll let you know if a spot opens.",
+    "joinWaitlist": "Auf Warteliste",
+    "addedToSessionWaitlist": "Du bist auf der Warteliste für diese Einheit. Wir melden uns, wenn ein Platz frei wird.",
     "passDeductionNote": "1 pass entry is deducted 2 weeks before each class. Cancel before then to get it back.",
     "passRequiredToast": "This training requires a pass. Open the training to request one.",
     "passRequiredTitle": "Pass required",
@@ -234,7 +234,19 @@
     "passUsedUpDescription": "Your previous {{pass}} pass is finished. Request a new one to keep joining.",
     "requestPassSheetTitle": "Request {{pass}}",
     "requestPassSheetCta": "Send request",
-    "requestPassSheetStartLabel": "When should it start?"
+    "requestPassSheetStartLabel": "When should it start?",
+    "pendingStandbyTitle_one": "Die nächste Einheit ist voll. Du bist auf der Warteliste.",
+    "pendingStandbyTitle_few": "Die nächsten {{count}} Einheiten sind voll. Du bist auf der Warteliste.",
+    "pendingStandbyTitle_many": "Die nächsten {{count}} Einheiten sind voll. Du bist auf der Warteliste.",
+    "pendingStandbyTitle_other": "Die nächsten {{count}} Einheiten sind voll. Du bist auf der Warteliste."
+  },
+  "signUp": {
+    "justThisSession": "Nur diese Einheit",
+    "joinSessionWaitlist": "Für diese Einheit auf Warteliste eintragen",
+    "everyWeek": "Jede Woche"
+  },
+  "capacity": {
+    "full": "Keine Plätze"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

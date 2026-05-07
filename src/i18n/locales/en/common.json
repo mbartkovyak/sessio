@@ -250,11 +250,11 @@
   },
   "signUp": {
     "justThisSession": "Just this session",
-    "joinSessionWaitlist": "Join waitlist for this session",
+    "joinSessionWaitlist": "Join the waitlist for this session",
     "everyWeek": "Every week"
   },
   "capacity": {
-    "full": "Full"
+    "full": "No spots"
   },
   "joinSchool": {
     "onlyCoaches": "Only coaches can join a school",

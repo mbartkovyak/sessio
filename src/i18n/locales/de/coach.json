@@ -111,7 +111,7 @@
     "decline": "Decline",
     "members": "Participants",
     "noMembers": "No participants yet. Share the invite link.",
-    "waitlist": "Waitlist",
+    "waitlist": "Warteliste",
     "directMessage": "Direct message",
     "remove": "Remove",
     "removeConfirm": "Remove {{name}}?",
@@ -250,7 +250,7 @@
     "checkGroupCreated": "Training created",
     "checkInviteReady": "Invite link ready",
     "checkAutoConfirm": "Participants auto-enrolled",
-    "checkWaitlist": "Waitlist enabled"
+    "checkWaitlist": "Warteliste aktiviert"
   },
   "pending": {
     "title": "Waiting for approval",
