@@ -26,6 +26,9 @@ interface SessionInput {
   session_date: string;
   start_time: string;
   end_time: string;
+  max_players?: number | null;
+  confirmed_count?: number | null;
+  allow_waitlist?: boolean | null;
 }
 
 interface Props {
@@ -72,6 +75,14 @@ export default function SignUpSheet({ session, onClose }: Props) {
   const showSingle = !isRecurring || allowSingle;
   const isApproval = session.booking_mode === 'approval';
 
+  const taken = session.confirmed_count ?? 0;
+  const max = session.max_players ?? null;
+  const isFull = max != null && taken >= max;
+  const allowWaitlist = session.allow_waitlist !== false;
+  // Drop-ins on full sessions: route to waitlist if training allows it,
+  // otherwise the single-session button is hidden entirely.
+  const singleDisabled = isFull && !allowWaitlist;
+
   const sessionLabel = `${format(new Date(session.session_date + 'T00:00:00'), 'EEE, d MMM', { locale: getDateLocale() })} · ${session.start_time?.slice(0, 5)}–${session.end_time?.slice(0, 5)}`;
 
   async function handleSingle() {
@@ -103,7 +114,13 @@ export default function SignUpSheet({ session, onClose }: Props) {
           url: `/coach/sessions/${session.session_id}`,
         });
       }
-      toast.success(t('join.joinedSession', { name: session.training_name }));
+      // The RPC silently routes a full session to the waitlist (status='pending')
+      // when allow_waitlist=true. Pick the matching toast from what we knew at click time.
+      if (isFull && allowWaitlist) {
+        toast.success(t('join.addedToSessionWaitlist'));
+      } else {
+        toast.success(t('join.joinedSession', { name: session.training_name }));
+      }
     } catch (err: any) {
       // PASS_REQUIRED comes from the join_single_session RPC: route the athlete to
       // the join page where the request-pass flow lives. The hook's onError
@@ -147,18 +164,31 @@ export default function SignUpSheet({ session, onClose }: Props) {
           <span className="text-2xl">{SPORT_ICONS[session.sport] ?? '🎯'}</span>
           <h3 className="text-lg font-bold text-foreground">{session.training_name}</h3>
         </div>
-        <p className="text-sm text-muted-foreground mb-5">{sessionLabel}</p>
+        <p className="text-sm text-muted-foreground mb-5">
+          {sessionLabel}
+          {max != null && (
+            <span className={`ml-2 font-medium ${isFull ? 'text-amber-700' : ''}`}>
+              · {isFull ? t('capacity.full') : `${taken}/${max}`}
+            </span>
+          )}
+        </p>
 
         <div className="space-y-2.5">
-          {showSingle && (
+          {showSingle && !singleDisabled && (
             <button
               onClick={handleSingle}
               disabled={busy}
-              className="w-full flex items-center gap-3 rounded-2xl bg-primary px-4 py-4 text-base font-bold text-primary-foreground min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity"
+              className={`w-full flex items-center gap-3 rounded-2xl px-4 py-4 text-base font-bold min-h-[56px] disabled:opacity-60 active:opacity-80 transition-opacity ${
+                isFull ? 'bg-amber-500/15 text-amber-700' : 'bg-primary text-primary-foreground'
+              }`}
             >
               <Calendar className="h-5 w-5 shrink-0" />
               <span className="flex-1 text-left">
-                {joinOne.isPending ? t('join.joining') : t('signUp.justThisSession')}
+                {joinOne.isPending
+                  ? t('join.joining')
+                  : isFull
+                    ? t('signUp.joinSessionWaitlist')
+                    : t('signUp.justThisSession')}
               </span>
             </button>
           )}

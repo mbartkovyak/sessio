@@ -748,6 +748,9 @@ export function useJoinSingleSession() {
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+      // Refresh the public schedule so the capacity badge reflects the new attendance.
+      qc.invalidateQueries({ queryKey: ['coach-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['school-upcoming-sessions'] });
     },
     onError: (e: any) => {
       // RPC RAISE EXCEPTION strings come back in English from Postgres. The previous

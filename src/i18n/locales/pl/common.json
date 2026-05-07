@@ -222,6 +222,8 @@
     "requestWeekly": "Poproś o cotygodniowe miejsce",
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
     "signUp": "Zapisz się",
+    "joinWaitlist": "Na listę oczekujących",
+    "addedToSessionWaitlist": "Dopisaliśmy cię do listy oczekujących na te zajęcia — damy znać, gdy zwolni się miejsce.",
     "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać.",
     "passRequiredToast": "Te zajęcia wymagają karnetu. Otwórz zajęcia, aby go zamówić.",
     "passRequiredTitle": "Wymagany karnet",
@@ -248,7 +250,11 @@
   },
   "signUp": {
     "justThisSession": "Tylko te zajęcia",
+    "joinSessionWaitlist": "Na listę oczekujących na te zajęcia",
     "everyWeek": "Co tydzień"
+  },
+  "capacity": {
+    "full": "Brak miejsc"
   },
   "joinSchool": {
     "onlyCoaches": "Tylko trener może dołączyć do szkoły",
