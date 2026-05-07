@@ -173,7 +173,7 @@
   },
   "join": {
     "alreadyOnWaitlist": "You're already on the waitlist",
-    "alreadyInTraining": "You're already in this training",
+    "alreadyInTraining": "You're already signed up for this weekly class",
     "trainingFull": "No spots left",
     "requestAlreadySent": "Request already sent. Waiting for approval.",
     "joinRequestSent": "Request sent. The coach will review it.",
@@ -238,10 +238,10 @@
     "confirmedSingle": "{{date}} at {{time}}",
     "confirmedRecurring": "Every {{days}} at {{time}}",
     "firstDate": "First session: {{date}}",
-    "pendingStandbyTitle_one": "The next session is full — you're on standby for it.",
-    "pendingStandbyTitle_few": "The next {{count}} sessions are full — you're on standby for them.",
-    "pendingStandbyTitle_many": "The next {{count}} sessions are full — you're on standby for them.",
-    "pendingStandbyTitle_other": "The next {{count}} sessions are full — you're on standby for them.",
+    "pendingStandbyTitle_one": "The next session is full — you're on the waitlist for it.",
+    "pendingStandbyTitle_few": "The next {{count}} sessions are full — you're on the waitlist for them.",
+    "pendingStandbyTitle_many": "The next {{count}} sessions are full — you're on the waitlist for them.",
+    "pendingStandbyTitle_other": "The next {{count}} sessions are full — you're on the waitlist for them.",
     "youStartFrom": "You'll start from {{date}}.",
     "confirmedDone": "Got it"
   },

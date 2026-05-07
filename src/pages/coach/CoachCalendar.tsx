@@ -61,6 +61,7 @@ function useSchoolSessions(schoolId: string | undefined, from: string, to: strin
 }
 
 const WINDOW_STEP = 4; // weeks per load
+const INITIAL_FUTURE_WEEKS = 12; // ~3 months — coaches schedule months ahead
 
 export default function CoachCalendar() {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ export default function CoachCalendar() {
   const { data: school } = useMySchool();
 
   const [pastWeeks, setPastWeeks] = useState(WINDOW_STEP);
-  const [futureWeeks, setFutureWeeks] = useState(WINDOW_STEP);
+  const [futureWeeks, setFutureWeeks] = useState(INITIAL_FUTURE_WEEKS);
   const now = new Date();
   const from = format(subWeeks(now, pastWeeks), 'yyyy-MM-dd');
   const to = format(addWeeks(now, futureWeeks), 'yyyy-MM-dd');

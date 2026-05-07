@@ -173,7 +173,7 @@
   },
   "join": {
     "alreadyOnWaitlist": "Ви вже у списку очікування",
-    "alreadyInTraining": "Ви вже записані на це заняття",
+    "alreadyInTraining": "Ви вже записані на щотижневі заняття",
     "trainingFull": "Вільних місць немає",
     "requestAlreadySent": "Запит уже надіслано. Зачекайте на рішення.",
     "joinRequestSent": "Запит надіслано. Тренер його перегляне.",
@@ -238,10 +238,10 @@
     "confirmedSingle": "{{date}} о {{time}}",
     "confirmedRecurring": "Щотижня: {{days}} о {{time}}",
     "firstDate": "Перше заняття: {{date}}",
-    "pendingStandbyTitle_one": "Найближче заняття вже заповнене — ти в резерві.",
-    "pendingStandbyTitle_few": "Найближчі {{count}} заняття вже заповнені — ти в резерві.",
-    "pendingStandbyTitle_many": "Найближчих {{count}} занять вже заповнені — ти в резерві.",
-    "pendingStandbyTitle_other": "Найближчі {{count}} занять вже заповнені — ти в резерві.",
+    "pendingStandbyTitle_one": "Найближче заняття вже заповнене — ти у списку очікування.",
+    "pendingStandbyTitle_few": "Найближчі {{count}} заняття вже заповнені — ти у списку очікування.",
+    "pendingStandbyTitle_many": "Найближчих {{count}} занять вже заповнені — ти у списку очікування.",
+    "pendingStandbyTitle_other": "Найближчі {{count}} занять вже заповнені — ти у списку очікування.",
     "youStartFrom": "Стартуєш з {{date}}.",
     "confirmedDone": "Зрозуміло"
   },

@@ -173,7 +173,7 @@
   },
   "join": {
     "alreadyOnWaitlist": "Masz już miejsce na liście rezerwowej",
-    "alreadyInTraining": "Już jesteś zapisany na te zajęcia",
+    "alreadyInTraining": "Już jesteś zapisany na te cotygodniowe zajęcia",
     "trainingFull": "Brak wolnych miejsc",
     "requestAlreadySent": "Prośba została już wysłana. Poczekaj na decyzję.",
     "joinRequestSent": "Prośba została wysłana. Trener ją sprawdzi.",
@@ -238,10 +238,10 @@
     "confirmedSingle": "{{date}} o {{time}}",
     "confirmedRecurring": "Co tydzień: {{days}} o {{time}}",
     "firstDate": "Pierwsze zajęcia: {{date}}",
-    "pendingStandbyTitle_one": "Najbliższe zajęcia są pełne — jesteś na liście rezerwowej.",
-    "pendingStandbyTitle_few": "Najbliższe {{count}} zajęcia są pełne — jesteś na liście rezerwowej.",
-    "pendingStandbyTitle_many": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście rezerwowej.",
-    "pendingStandbyTitle_other": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście rezerwowej.",
+    "pendingStandbyTitle_one": "Najbliższe zajęcia są pełne — jesteś na liście oczekujących.",
+    "pendingStandbyTitle_few": "Najbliższe {{count}} zajęcia są pełne — jesteś na liście oczekujących.",
+    "pendingStandbyTitle_many": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście oczekujących.",
+    "pendingStandbyTitle_other": "Najbliższych {{count}} zajęć jest pełnych — jesteś na liście oczekujących.",
     "youStartFrom": "Startujesz od {{date}}.",
     "confirmedDone": "Rozumiem"
   },

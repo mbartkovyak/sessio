@@ -13,11 +13,12 @@ import CalendarGrid, { type CalendarGridHandle } from '@/components/shared/Calen
 import { getHoursUntilSession } from '@/components/player/home/sessionUtils';
 
 const WINDOW_STEP = 4; // weeks per load
+const INITIAL_FUTURE_WEEKS = 12; // ~3 months — coach typically schedules months ahead
 
 export default function PlayerCalendar() {
   const { t } = useTranslation('player');
   const [pastWeeks, setPastWeeks] = useState(WINDOW_STEP);
-  const [futureWeeks, setFutureWeeks] = useState(WINDOW_STEP);
+  const [futureWeeks, setFutureWeeks] = useState(INITIAL_FUTURE_WEEKS);
   const now = new Date();
   const from = format(subWeeks(now, pastWeeks), 'yyyy-MM-dd');
   const to = format(addWeeks(now, futureWeeks), 'yyyy-MM-dd');
