@@ -7,6 +7,10 @@
 -- Body copied from current state (20260505230000_capacity_safe_joins.sql)
 -- and patched in-place per CLAUDE.md "copy current body, not stale" rule.
 
+-- Return type changes from `text` to `jsonb`. Postgres CREATE OR REPLACE
+-- cannot change return type of an existing function, so drop first.
+DROP FUNCTION IF EXISTS public.join_training(UUID);
+
 CREATE OR REPLACE FUNCTION public.join_training(p_training_id UUID)
 RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
