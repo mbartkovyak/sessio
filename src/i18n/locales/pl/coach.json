@@ -325,6 +325,8 @@
     "guest": "Gość",
     "shareSessionLink": "Udostępnij zaproszenie na sesję",
     "participantCount": "{{confirmed}}/{{total}}",
+    "waitlist": "Lista oczekujących",
+    "waitlistBadge": "Na liście oczekujących",
     "notComing": "Nie przychodzą",
     "cancelled": "Ta sesja została odwołana",
     "pastSession": "Ta sesja się już odbyła",

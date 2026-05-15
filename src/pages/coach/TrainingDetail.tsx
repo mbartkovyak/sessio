@@ -56,6 +56,7 @@ export default function TrainingDetail() {
   const today = new Date().toISOString().split('T')[0];
   const upcoming = sessions.filter((s: any) => s.session_date >= today).slice(0, 5);
   const regularMembers = members.filter((m: any) => m.role === 'regular');
+  const waitlistMembers = members.filter((m: any) => m.role === 'waitlist');
   const scheduledIds = upcoming.filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
   const { data: attendanceSummary = {} } = useAttendanceSummary(scheduledIds);
   const [pendingAthlete, setPendingAthlete] = useState<any>(null);
@@ -240,7 +241,7 @@ export default function TrainingDetail() {
                 {/* Members */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({members.length})</span></h2>
+                    <h2 className="font-semibold text-foreground text-sm">{t('detail.members')} <span className="text-muted-foreground font-normal">({regularMembers.length})</span></h2>
                     <button
                       onClick={() => setShowAddMember(true)}
                       className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
@@ -248,13 +249,13 @@ export default function TrainingDetail() {
                       <UserPlus className="h-3.5 w-3.5" /> {t('detail.addMember')}
                     </button>
                   </div>
-                  {members.length === 0 && joinRequests.length === 0 ? (
+                  {regularMembers.length === 0 && joinRequests.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border p-6 text-center">
                       <p className="text-sm text-muted-foreground">{t('detail.noMembers')}</p>
                     </div>
                   ) : (
                     <div className="rounded-xl border border-border bg-card divide-y divide-border">
-                      {members.map((m: any) => {
+                      {regularMembers.map((m: any) => {
                         const p = m.profiles;
                         const isPlaceholder = p?.is_placeholder === true;
                         return (
@@ -292,6 +293,52 @@ export default function TrainingDetail() {
                     </div>
                   )}
                 </div>
+
+                {/* Waitlist (training-level) */}
+                {waitlistMembers.length > 0 && (
+                  <div>
+                    <h2 className="font-semibold text-foreground text-sm mb-3">
+                      {t('detail.waitlist')} <span className="text-muted-foreground font-normal">({waitlistMembers.length})</span>
+                    </h2>
+                    <div className="rounded-xl border border-border bg-card divide-y divide-border">
+                      {waitlistMembers.map((m: any) => {
+                        const p = m.profiles;
+                        const isPlaceholder = p?.is_placeholder === true;
+                        return (
+                          <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+                            <button onClick={() => setViewProfile(p)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                              <Avatar url={p?.avatar_url} name={p?.full_name} size="sm" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{p?.full_name ?? p?.email ?? t('common:profile.unknown')}</p>
+                                <span className="inline-block mt-0.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                                  {t('session.waitlistBadge')}
+                                </span>
+                              </div>
+                            </button>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {!isPlaceholder && (
+                                <button
+                                  onClick={() => navigate(`/coach/dm/${p?.id}`)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                                  title={t('detail.directMessage')}
+                                >
+                                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => { setRemovingMember({ id: m.id, userId: m.user_id, name: p?.full_name ?? '' }); setRemoveMessage(''); }}
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                                title={t('detail.remove')}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Upcoming lessons — link to Session Detail */}
                 <div>

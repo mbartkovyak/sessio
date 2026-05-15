@@ -178,7 +178,8 @@
     "requestAlreadySent": "Prośba została już wysłana. Poczekaj na decyzję.",
     "joinRequestSent": "Prośba została wysłana. Trener ją sprawdzi.",
     "joinRequestSentAgain": "Wysłano prośbę ponownie.",
-    "addedToWaitlist": "Dodano do listy oczekujących",
+    "addedToWaitlist": "Jesteś na liście oczekujących",
+    "leftWaitlist": "Usunięto z listy oczekujących",
     "joinedTraining": "Udało się dołączyć do {{name}}",
     "alreadyInGroup": "Już jesteś w tych zajęciach",
     "groupFull": "Te zajęcia są pełne",
@@ -222,8 +223,8 @@
     "requestWeekly": "Poproś o cotygodniowe miejsce",
     "orPickSession": "Lub wybierz pojedyncze zajęcia",
     "signUp": "Zapisz się",
-    "joinWaitlist": "Dołącz do listy",
-    "addedToSessionWaitlist": "Dopisaliśmy cię do listy oczekujących na te zajęcia — damy znać, gdy zwolni się miejsce.",
+    "joinWaitlist": "Dołącz do listy oczekujących",
+    "addedToSessionWaitlist": "Jesteś na liście oczekujących na te zajęcia — powiadomimy, jeśli zwolni się miejsce.",
     "passDeductionNote": "1 wejście z karnetu zostanie odjęte 2 tygodnie przed każdymi zajęciami. Zrezygnuj wcześniej, aby je odzyskać.",
     "passRequiredToast": "Te zajęcia wymagają karnetu. Otwórz zajęcia, aby go zamówić.",
     "passRequiredTitle": "Wymagany karnet",
@@ -250,7 +251,7 @@
   },
   "signUp": {
     "justThisSession": "Tylko te zajęcia",
-    "joinSessionWaitlist": "Dołącz do listy oczekujących na te zajęcia",
+    "joinSessionWaitlist": "Dołącz do listy oczekujących",
     "everyWeek": "Co tydzień"
   },
   "capacity": {

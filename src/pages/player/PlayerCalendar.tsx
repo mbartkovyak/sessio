@@ -5,7 +5,7 @@ import { format, addWeeks, subWeeks } from 'date-fns';
 import { AlertTriangle, MapPin, MessageCircle, ArrowDown, Check } from 'lucide-react';
 import PlayerBottomNav from '@/components/player/PlayerBottomNav';
 import AppHeader from '@/components/shared/AppHeader';
-import { useMyUpcomingSessions, useUpsertAttendance } from '@/hooks/training/useTrainings';
+import { useMyUpcomingSessions, useUpsertAttendance, useLeaveSessionWaitlist } from '@/hooks/training/useTrainings';
 import { SPORT_ICONS } from '@/lib/constants';
 import { toast } from 'sonner';
 import { openExternal } from '@/components/shared/VenueLink';
@@ -81,6 +81,7 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
   const training = session?.trainings;
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
   const upsert = useUpsertAttendance();
+  const leaveWaitlist = useLeaveSessionWaitlist();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
 
@@ -110,6 +111,11 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
 
   function handleRejoinClick() {
     setShowRejoinConfirm(true);
+  }
+
+  async function handleLeaveWaitlist() {
+    await leaveWaitlist.mutateAsync({ sessionId: attendance.session_id });
+    toast.success(t('common:join.leftWaitlist'));
   }
 
   return (
@@ -156,6 +162,18 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
           <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
         )}
       </div>
+      {isPending && !isPast && (
+        <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50">
+          <p className="text-xs text-amber-800 leading-snug">{t('calendar.standbyExplain')}</p>
+          <button
+            onClick={handleLeaveWaitlist}
+            disabled={leaveWaitlist.isPending}
+            className="mt-1 text-xs font-semibold text-amber-700 underline underline-offset-2 disabled:opacity-50"
+          >
+            {t('calendar.leaveWaitlist')}
+          </button>
+        </div>
+      )}
       <CalendarSessionFooter training={training} />
 
       {/* Rejoin confirmation — inline */}

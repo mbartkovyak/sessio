@@ -655,6 +655,26 @@ export function useUpsertAttendance() {
   });
 }
 
+/** Leave a session-level waitlist (status='pending' rows only). Deletes the row
+ *  via the leave_session_waitlist RPC — the player opted out and shouldn't
+ *  surface in the coach's "not coming" list. Confirmed/declined attendees keep
+ *  using useUpsertAttendance which preserves audit history. */
+export function useLeaveSessionWaitlist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      const { error } = await supabase.rpc('leave_session_waitlist', { p_session_id: sessionId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
 /** Look up the current user's attendance status across a batch of session IDs.
  *  Returns a `{ [session_id]: status }` map so callers can render per-session UI. */
 export function useMyAttendanceForSessions(sessionIds: string[]) {

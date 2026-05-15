@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, MapPin, MessageCircle, Check } from 'lucide-react';
-import { useUpsertAttendance } from '@/hooks/training/useTrainings';
+import { useUpsertAttendance, useLeaveSessionWaitlist } from '@/hooks/training/useTrainings';
 import { toast } from 'sonner';
 import { SPORT_ICONS } from '@/lib/constants';
 import { relativeTime } from './relativeTime';
@@ -31,6 +31,7 @@ function SessionCard({ attendance }: { attendance: any }) {
   const session = attendance.training_sessions;
   const training = session?.trainings;
   const upsert = useUpsertAttendance();
+  const leaveWaitlist = useLeaveSessionWaitlist();
   const [showWarning, setShowWarning] = useState(false);
   const [showRejoinConfirm, setShowRejoinConfirm] = useState(false);
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
@@ -53,6 +54,11 @@ function SessionCard({ attendance }: { attendance: any }) {
     toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
     setShowWarning(false);
     setShowRejoinConfirm(false);
+  }
+
+  async function handleLeaveWaitlist() {
+    await leaveWaitlist.mutateAsync({ sessionId: attendance.session_id });
+    toast.success(t('common:join.leftWaitlist'));
   }
 
   return (
@@ -100,6 +106,19 @@ function SessionCard({ attendance }: { attendance: any }) {
           <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shrink-0">{t('calendar.noShow')}</span>
         )}
       </div>
+
+      {isPending && !isPast && (
+        <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50">
+          <p className="text-xs text-amber-800 leading-snug">{t('calendar.standbyExplain')}</p>
+          <button
+            onClick={handleLeaveWaitlist}
+            disabled={leaveWaitlist.isPending}
+            className="mt-1 text-xs font-semibold text-amber-700 underline underline-offset-2 disabled:opacity-50"
+          >
+            {t('calendar.leaveWaitlist')}
+          </button>
+        </div>
+      )}
 
       {/* Footer: venue + chat */}
       <SessionFooter training={training} />

@@ -178,7 +178,8 @@
     "requestAlreadySent": "Anfrage bereits gesendet. Warte auf Bestätigung.",
     "joinRequestSent": "Anfrage gesendet. Der Coach prüft sie.",
     "joinRequestSentAgain": "Anfrage erneut gesendet.",
-    "addedToWaitlist": "Zur Warteliste hinzugefügt",
+    "addedToWaitlist": "Auf die Warteliste gesetzt",
+    "leftWaitlist": "Von der Warteliste entfernt",
     "joinedTraining": "You're in {{name}}",
     "alreadyInGroup": "You're already in this training",
     "groupFull": "This training is full",
@@ -242,7 +243,7 @@
   },
   "signUp": {
     "justThisSession": "Nur diese Einheit",
-    "joinSessionWaitlist": "Für diese Einheit auf Warteliste eintragen",
+    "joinSessionWaitlist": "Auf Warteliste setzen",
     "everyWeek": "Jede Woche"
   },
   "capacity": {

@@ -325,6 +325,8 @@
     "guest": "Гість",
     "shareSessionLink": "Поділитися запрошенням на сесію",
     "participantCount": "{{confirmed}}/{{total}}",
+    "waitlist": "Список очікування",
+    "waitlistBadge": "У списку очікування",
     "notComing": "Не прийдуть",
     "cancelled": "Цю сесію скасовано",
     "pastSession": "Ця сесія вже відбулася",
