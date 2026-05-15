@@ -59,6 +59,7 @@
     "stayOut": "No, stay out",
     "standby": "On waitlist",
     "standbyExplain": "You're on the waitlist — we'll let you know if a spot opens",
+    "claimSpot": "Claim the spot",
     "leaveWaitlist": "Leave waitlist",
     "leftWaitlist": "Removed from waitlist"
   },
