@@ -57,7 +57,12 @@
     "stayOut": "Nie, zostaw",
     "cantMakeItAnymore": "Nie dam rady",
     "changedMind": "Jednak będę",
-    "standby": "Lista oczekujących"
+    "standby": "Na liście oczekujących",
+    "standbyExplain": "Jesteś na liście oczekujących — powiadomimy, jeśli zwolni się miejsce",
+    "spotOpenedNow": "Zwolniło się miejsce! Bądź pierwszy, zajmij je",
+    "claimSpot": "Zajmij miejsce",
+    "leaveWaitlist": "Opuść listę oczekujących",
+    "leftWaitlist": "Usunięto z listy oczekujących"
   },
   "messages": {
     "title": "Czaty",

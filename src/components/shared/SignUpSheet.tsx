@@ -101,7 +101,10 @@ export default function SignUpSheet({ session, onClose }: Props) {
       return;
     }
     try {
-      await joinOne.mutateAsync({ sessionId: session.session_id });
+      // The RPC returns 'confirmed' or 'pending' — use the actual server result
+      // rather than client-side `isFull`, which goes stale if capacity fills
+      // between the sheet rendering and the tap.
+      const resultStatus = await joinOne.mutateAsync({ sessionId: session.session_id });
       if (session.coach_id) {
         const tCoach = getFixedTForLanguage(training?.coach?.language);
         notifyUsers([session.coach_id], {
@@ -114,9 +117,7 @@ export default function SignUpSheet({ session, onClose }: Props) {
           url: `/coach/sessions/${session.session_id}`,
         });
       }
-      // The RPC silently routes a full session to the waitlist (status='pending')
-      // when allow_waitlist=true. Pick the matching toast from what we knew at click time.
-      if (isFull && allowWaitlist) {
+      if (resultStatus === 'pending') {
         toast.success(t('join.addedToSessionWaitlist'));
       } else {
         toast.success(t('join.joinedSession', { name: session.training_name }));

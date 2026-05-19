@@ -56,7 +56,12 @@
     "rejoinConfirm": "Rejoin this session?",
     "rejoin": "Rejoin",
     "stayOut": "No, stay out",
-    "standby": "Waitlist"
+    "standby": "Auf der Warteliste",
+    "standbyExplain": "Du bist auf der Warteliste — wir benachrichtigen dich, wenn ein Platz frei wird",
+    "spotOpenedNow": "Ein Platz wurde frei! Sei der Erste — schnapp ihn dir",
+    "claimSpot": "Platz übernehmen",
+    "leaveWaitlist": "Warteliste verlassen",
+    "leftWaitlist": "Von der Warteliste entfernt"
   },
   "messages": {
     "title": "Chats",

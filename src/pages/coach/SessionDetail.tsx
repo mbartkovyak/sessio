@@ -73,8 +73,12 @@ export default function SessionDetail() {
   const sportIcon = SPORT_ICONS[training.sport] ?? '🎯';
   const dateLabel = format(new Date(session.session_date + 'T00:00:00'), 'EEEE, d MMM', { locale: getDateLocale() });
 
-  // Attendance: split into signed-up vs not-coming
+  // Attendance: three buckets so the UI matches what's in the DB. The 'pending'
+  // bucket is the per-session waitlist (capacity guardrails route auto-attendance
+  // here when a session is full at member-join time). Hiding it caused the
+  // 7-vs-8 mismatch that originally surfaced this bug.
   const signedUp = attendance.filter(a => a.status === 'confirmed');
+  const pending = attendance.filter(a => a.status === 'pending');
   const notComing = attendance.filter(a => a.status === 'declined' || a.status === 'no_show');
 
   // Abonament lookups
@@ -266,6 +270,33 @@ export default function SessionDetail() {
               </div>
             )}
           </section>
+
+          {/* Waitlist — visible when there's anyone on it */}
+          {pending.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                {t('session.waitlist')}
+                <span className="text-xs font-medium text-muted-foreground normal-case">({pending.length})</span>
+              </h2>
+              <div className="rounded-2xl bg-white shadow-sm divide-y divide-border overflow-hidden" style={{ border: '1px solid hsl(203 20% 90%)' }}>
+                {pending.map(a => (
+                  <div key={a.id} className="flex items-center gap-3 px-4 py-3">
+                    <button onClick={() => setViewProfile(a.profiles)} className="shrink-0">
+                      <Avatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} size="sm" />
+                    </button>
+                    <button onClick={() => setViewProfile(a.profiles)} className="flex-1 min-w-0 text-left">
+                      <span className="text-sm font-medium text-foreground truncate block">
+                        {a.profiles?.full_name ?? t('common:profile.unknown')}
+                      </span>
+                      <span className="inline-block mt-0.5 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                        {t('session.waitlistBadge')}
+                      </span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Not coming — collapsed by default */}
           {notComing.length > 0 && (

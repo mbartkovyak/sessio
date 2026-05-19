@@ -107,7 +107,9 @@ export default function AttendanceSheet({ session, onClose }: AttendanceSheetPro
           </div>
         )}
 
-        {/* Participant list */}
+        {/* Participant list — grouped to match SessionDetail's three buckets so
+            the count the coach sees here lines up with what's on the previous
+            screen. */}
         <div className="flex-1 overflow-y-auto px-4">
           {isLoading ? (
             <div className="py-6 space-y-3">
@@ -116,8 +118,12 @@ export default function AttendanceSheet({ session, onClose }: AttendanceSheetPro
           ) : attendance.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">{t('detail.noAttendance')}</p>
           ) : (
-            <div className="divide-y divide-border">
-              {attendance.map(a => {
+            (() => {
+              const confirmed = attendance.filter(a => a.status === 'confirmed');
+              const pending = attendance.filter(a => a.status === 'pending');
+              const notComing = attendance.filter(a => a.status === 'declined' || a.status === 'no_show');
+
+              const renderRow = (a: typeof attendance[number]) => {
                 const isPresent = present.get(a.user_id) ?? false;
                 return (
                   <button
@@ -136,8 +142,43 @@ export default function AttendanceSheet({ session, onClose }: AttendanceSheetPro
                     )}
                   </button>
                 );
-              })}
-            </div>
+              };
+
+              return (
+                <div className="pb-2 space-y-4">
+                  {confirmed.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1 pb-1">
+                        {t('session.participants')} ({confirmed.length})
+                      </p>
+                      <div className="divide-y divide-border">
+                        {confirmed.map(renderRow)}
+                      </div>
+                    </div>
+                  )}
+                  {pending.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide pt-1 pb-1">
+                        {t('session.waitlist')} ({pending.length})
+                      </p>
+                      <div className="divide-y divide-border">
+                        {pending.map(renderRow)}
+                      </div>
+                    </div>
+                  )}
+                  {notComing.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide pt-1 pb-1">
+                        {t('session.notComing')} ({notComing.length})
+                      </p>
+                      <div className="divide-y divide-border">
+                        {notComing.map(renderRow)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()
           )}
         </div>
 

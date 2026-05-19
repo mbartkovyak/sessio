@@ -582,6 +582,7 @@ export function useMyUpcomingSessions(options?: { from?: string; to?: string }) 
             sport: row.sport,
             venue: row.venue,
             max_players: row.max_players,
+            confirmed_count: row.confirmed_count,
             confirmation_window_hours: row.confirmation_window_hours,
             is_active: row.is_active,
             coach: {
@@ -622,7 +623,12 @@ export function useUpsertAttendance() {
             level: 'warning',
             extra: { sessionId, userId: user?.id },
           });
-          throw new Error(i18n.t('join.sessionFull', { ns: 'common' }));
+          // Tag so localizeErrorMessage shows the localized message instead of
+          // discarding it on non-EN locales (FCFS losers were seeing the generic
+          // "Щось пішло не так" toast).
+          const err: any = new Error(i18n.t('join.sessionFull', { ns: 'common' }));
+          err.__localized = true;
+          throw err;
         }
         throw error;
       }
@@ -650,6 +656,26 @@ export function useUpsertAttendance() {
       qc.invalidateQueries({ queryKey: ['my-school-abonament'] });
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
+    },
+    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+  });
+}
+
+/** Leave a session-level waitlist (status='pending' rows only). Deletes the row
+ *  via the leave_session_waitlist RPC — the player opted out and shouldn't
+ *  surface in the coach's "not coming" list. Confirmed/declined attendees keep
+ *  using useUpsertAttendance which preserves audit history. */
+export function useLeaveSessionWaitlist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId }: { sessionId: string }) => {
+      const { error } = await supabase.rpc('leave_session_waitlist', { p_session_id: sessionId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
+      qc.invalidateQueries({ queryKey: ['session-attendance'] });
+      qc.invalidateQueries({ queryKey: ['my-attendance'] });
     },
     onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
   });
@@ -736,8 +762,12 @@ export function useJoinSingleSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ sessionId }: { sessionId: string }) => {
-      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      // RPC now returns 'confirmed' or 'pending' so callers can render the
+      // right success messaging instead of trusting stale client-side capacity.
+      // See migration 20260519160000_join_single_session_return_status.sql.
+      const { data, error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
       if (error) throw error;
+      return data as 'confirmed' | 'pending' | null;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
