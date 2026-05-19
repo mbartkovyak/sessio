@@ -153,7 +153,7 @@ export default function JoinTraining() {
         setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
         return;
       }
-      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      const { data: resultStatus, error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
       if (error) {
         if (error.message?.includes('PASS_REQUIRED')) {
           // Drop the user back to the join page where the request-pass UI is rendered.
@@ -195,6 +195,14 @@ export default function JoinTraining() {
       queryClient.invalidateQueries({ queryKey: ['my-school-abonament'] });
       queryClient.invalidateQueries({ queryKey: ['my-abonaments'] });
       queryClient.invalidateQueries({ queryKey: ['school-abonaments'] });
+      // Session was full → RPC routed to the per-session waitlist (status='pending').
+      // Skip the green "Confirmed!" screen and surface the waitlist toast instead;
+      // the player's calendar shows the yellow strip as the visual confirmation.
+      if (resultStatus === 'pending') {
+        toast.success(t('join.addedToSessionWaitlist'));
+        navigate('/player');
+        return;
+      }
       const picked = sessionId === sessionParam
         ? sessionInfo
         : upcomingSessions.find((s: any) => s.id === sessionId);

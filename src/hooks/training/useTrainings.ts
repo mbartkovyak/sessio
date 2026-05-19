@@ -582,6 +582,7 @@ export function useMyUpcomingSessions(options?: { from?: string; to?: string }) 
             sport: row.sport,
             venue: row.venue,
             max_players: row.max_players,
+            confirmed_count: row.confirmed_count,
             confirmation_window_hours: row.confirmation_window_hours,
             is_active: row.is_active,
             coach: {
@@ -622,7 +623,12 @@ export function useUpsertAttendance() {
             level: 'warning',
             extra: { sessionId, userId: user?.id },
           });
-          throw new Error(i18n.t('join.sessionFull', { ns: 'common' }));
+          // Tag so localizeErrorMessage shows the localized message instead of
+          // discarding it on non-EN locales (FCFS losers were seeing the generic
+          // "Щось пішло не так" toast).
+          const err: any = new Error(i18n.t('join.sessionFull', { ns: 'common' }));
+          err.__localized = true;
+          throw err;
         }
         throw error;
       }

@@ -50,10 +50,16 @@ function SessionCard({ attendance }: { attendance: any }) {
     : undefined;
 
   async function switchTo(newStatus: string) {
-    await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
-    toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
-    setShowWarning(false);
-    setShowRejoinConfirm(false);
+    // try/finally so the modal always closes — otherwise a SESSION_FULL
+    // rejection leaves the rejoin dialog open with the button disabled until
+    // isPending flips back, which reads as "frozen".
+    try {
+      await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
+      toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
+    } finally {
+      setShowWarning(false);
+      setShowRejoinConfirm(false);
+    }
   }
 
   async function handleLeaveWaitlist() {
@@ -107,27 +113,36 @@ function SessionCard({ attendance }: { attendance: any }) {
         )}
       </div>
 
-      {isPending && !isPast && (
-        <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 space-y-2">
-          <p className="text-xs text-amber-800 leading-snug">{t('calendar.standbyExplain')}</p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => switchTo('confirmed')}
-              disabled={upsert.isPending}
-              className="rounded-lg bg-success/15 px-3 py-1.5 text-xs font-semibold text-success disabled:opacity-50"
-            >
-              {t('calendar.claimSpot')}
-            </button>
-            <button
-              onClick={handleLeaveWaitlist}
-              disabled={leaveWaitlist.isPending}
-              className="text-xs font-semibold text-amber-700 underline underline-offset-2 disabled:opacity-50"
-            >
-              {t('calendar.leaveWaitlist')}
-            </button>
+      {isPending && !isPast && (() => {
+        const max = training?.max_players;
+        const confirmedCount = training?.confirmed_count;
+        const spotOpen = typeof max === 'number' && max > 0
+          && typeof confirmedCount === 'number'
+          && confirmedCount < max;
+        return (
+          <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 space-y-2">
+            <p className="text-xs text-amber-800 leading-snug">{t('calendar.standbyExplain')}</p>
+            <div className="flex items-center gap-3">
+              {spotOpen && (
+                <button
+                  onClick={() => switchTo('confirmed')}
+                  disabled={upsert.isPending}
+                  className="rounded-lg bg-success/15 px-3 py-1.5 text-xs font-semibold text-success disabled:opacity-50"
+                >
+                  {t('calendar.claimSpot')}
+                </button>
+              )}
+              <button
+                onClick={handleLeaveWaitlist}
+                disabled={leaveWaitlist.isPending}
+                className="text-xs font-semibold text-amber-700 underline underline-offset-2 disabled:opacity-50"
+              >
+                {t('calendar.leaveWaitlist')}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Footer: venue + chat */}
       <SessionFooter training={training} />
