@@ -127,20 +127,34 @@ export default function Questionnaire() {
 
   async function saveGoal(goal: string) {
     if (!user) return;
-    await supabase
-      .from('profiles')
-      .update({ primary_goal: goal })
-      .eq('id', user.id);
+    // Race-with-timeout: never leave the user stuck on the questionnaire if
+    // the UPDATE hangs (transient network, statement timeout, broken pool).
+    // Worst case the field doesn't persist — re-asked on next run; harmless.
+    try {
+      await Promise.race([
+        supabase.from('profiles').update({ primary_goal: goal }).eq('id', user.id),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]);
+    } catch {
+      // swallow — proceed regardless
+    }
     setStep('demo');
   }
 
   async function saveSports(sports: string[]) {
     if (!user) return;
     if (sports.length > 0) {
-      await supabase
-        .from('profiles')
-        .update({ preferred_sports: sports } as never)
-        .eq('id', user.id);
+      try {
+        await Promise.race([
+          supabase
+            .from('profiles')
+            .update({ preferred_sports: sports } as never)
+            .eq('id', user.id),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        ]);
+      } catch {
+        // swallow — proceed regardless
+      }
     }
     setStep('push');
   }
