@@ -762,8 +762,12 @@ export function useJoinSingleSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ sessionId }: { sessionId: string }) => {
-      const { error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
+      // RPC now returns 'confirmed' or 'pending' so callers can render the
+      // right success messaging instead of trusting stale client-side capacity.
+      // See migration 20260519160000_join_single_session_return_status.sql.
+      const { data, error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
       if (error) throw error;
+      return data as 'confirmed' | 'pending' | null;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });

@@ -140,17 +140,24 @@ export default function JoinTraining() {
     try {
       const { data: existingAtt } = await supabase
         .from('session_attendance')
-        .select('id')
+        .select('id, status')
         .eq('session_id', sessionId)
         .eq('user_id', profile.id)
         .maybeSingle();
-      if (existingAtt) {
-        // Reassure the parent: yes, you ARE signed up. Same confirmation as a
-        // fresh join — they likely re-opened the link to verify.
+      // Re-opening the invite link: status determines messaging.
+      //  - confirmed → green success screen (they're in).
+      //  - pending   → waitlist toast (don't mislead with "Confirmed!").
+      //  - declined  → fall through to the RPC so they can rejoin.
+      if (existingAtt?.status === 'confirmed') {
         const picked = sessionId === sessionParam
           ? sessionInfo
           : upcomingSessions.find((s: any) => s.id === sessionId);
         setJoinedSuccess({ mode: 'single', sessionDate: picked?.session_date });
+        return;
+      }
+      if (existingAtt?.status === 'pending') {
+        toast.info(t('join.alreadyOnWaitlist'));
+        navigate('/player');
         return;
       }
       const { data: resultStatus, error } = await supabase.rpc('join_single_session', { p_session_id: sessionId });
