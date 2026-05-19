@@ -54,9 +54,17 @@ function SessionCard({ attendance }: { attendance: any }) {
     // doesn't leave it open looking "frozen"), and we swallow the rejection
     // here because useUpsertAttendance.onError already toasted the localized
     // error — letting it bubble would log a noisy unhandled-rejection to Sentry.
+    const wasPending = attendance.status === 'pending';
     try {
       await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
-      toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
+      if (newStatus === 'confirmed') {
+        // "back in" only makes sense for declined→confirmed (rejoin). For
+        // pending→confirmed (FCFS claim) the athlete was never "in" — show
+        // the same first-time-signed-up message a fresh join would.
+        toast.success(wasPending ? t('calendar.confirmed') : t('thisWeek.backIn'));
+      } else {
+        toast.success(t('thisWeek.spotReleased'));
+      }
     } catch {
       // onError already surfaced the toast.
     } finally {
@@ -124,7 +132,9 @@ function SessionCard({ attendance }: { attendance: any }) {
           && confirmedCount < max;
         return (
           <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 space-y-2">
-            <p className="text-xs text-amber-800 leading-snug">{t('calendar.standbyExplain')}</p>
+            <p className={`text-xs leading-snug ${spotOpen ? 'text-amber-900 font-semibold' : 'text-amber-800'}`}>
+              {spotOpen ? t('calendar.spotOpenedNow') : t('calendar.standbyExplain')}
+            </p>
             <div className="flex items-center gap-3">
               {spotOpen && (
                 <button
