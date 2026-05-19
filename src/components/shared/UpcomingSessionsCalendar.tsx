@@ -96,11 +96,18 @@ export default function UpcomingSessionsCalendar({ sessions, isLoading, showCoac
                   <p className="font-semibold text-sm text-foreground truncate">{s.training_name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}
-                    {max != null && (
-                      <span className={`ml-2 font-medium ${isFull ? 'text-amber-700' : 'text-muted-foreground'}`}>
-                        · {isFull ? t('capacity.full') : `${taken}/${max}`}
-                      </span>
-                    )}
+                    {max != null && (() => {
+                      // Don't flash "Заповнено" at people who already hold a
+                      // seat (or waitlist slot) — they're in, the message
+                      // doesn't apply to them. Just show the count.
+                      const viewerIsIn = isConfirmed || isPending;
+                      const showFullLabel = isFull && !viewerIsIn;
+                      return (
+                        <span className={`ml-2 font-medium ${showFullLabel ? 'text-amber-700' : 'text-muted-foreground'}`}>
+                          · {showFullLabel ? t('capacity.full') : `${taken}/${max}`}
+                        </span>
+                      );
+                    })()}
                   </p>
                   {showCoach && s.coach_name && (
                     <div className="mt-1 flex items-center gap-1.5">
