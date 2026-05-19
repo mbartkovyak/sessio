@@ -50,12 +50,15 @@ function SessionCard({ attendance }: { attendance: any }) {
     : undefined;
 
   async function switchTo(newStatus: string) {
-    // try/finally so the modal always closes — otherwise a SESSION_FULL
-    // rejection leaves the rejoin dialog open with the button disabled until
-    // isPending flips back, which reads as "frozen".
+    // try/catch/finally: the modal always closes (so a SESSION_FULL rejection
+    // doesn't leave it open looking "frozen"), and we swallow the rejection
+    // here because useUpsertAttendance.onError already toasted the localized
+    // error — letting it bubble would log a noisy unhandled-rejection to Sentry.
     try {
       await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
       toast.success(newStatus === 'confirmed' ? t('thisWeek.backIn') : t('thisWeek.spotReleased'));
+    } catch {
+      // onError already surfaced the toast.
     } finally {
       setShowWarning(false);
       setShowRejoinConfirm(false);

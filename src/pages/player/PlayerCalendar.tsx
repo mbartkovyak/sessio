@@ -99,12 +99,15 @@ function CalendarSessionItem({ attendance }: { attendance: any }) {
     : undefined;
 
   async function handleChange(newStatus: string) {
-    // try/finally so the modal always closes — otherwise a SESSION_FULL
-    // rejection leaves the rejoin dialog open with the button disabled until
-    // isPending flips back, which reads as "frozen".
+    // try/catch/finally: the modal always closes (so a SESSION_FULL rejection
+    // doesn't leave it open looking "frozen"), and we swallow the rejection
+    // here because useUpsertAttendance.onError already toasted the localized
+    // error — letting it bubble would log a noisy unhandled-rejection to Sentry.
     try {
       await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
       toast.success(newStatus === 'confirmed' ? t('calendar.confirmed') : t('calendar.cancelled'));
+    } catch {
+      // onError already surfaced the toast.
     } finally {
       setShowCancelWarning(false);
       setShowRejoinConfirm(false);
