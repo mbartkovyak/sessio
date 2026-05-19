@@ -112,7 +112,7 @@ export default function Questionnaire() {
     try {
       await Promise.race([
         supabase.from('profiles').update({ questionnaire_complete: true }).eq('id', user.id),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500)),
       ]);
       await Promise.race([
         refreshProfile(),
@@ -133,7 +133,7 @@ export default function Questionnaire() {
     try {
       await Promise.race([
         supabase.from('profiles').update({ primary_goal: goal }).eq('id', user.id),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500)),
       ]);
     } catch {
       // swallow — proceed regardless
@@ -150,7 +150,7 @@ export default function Questionnaire() {
             .from('profiles')
             .update({ preferred_sports: sports } as never)
             .eq('id', user.id),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500)),
         ]);
       } catch {
         // swallow — proceed regardless
