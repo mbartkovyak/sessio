@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import * as Sentry from '@sentry/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { isNative } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
+import { invalidatePushTargets } from '@/lib/pushRefresh';
 
 const VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const VAPID_STORAGE_KEY = '_vapidKey';
@@ -42,6 +44,7 @@ export const pushRegistrationBus = new EventTarget();
  */
 export function useAutoRegisterPush() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   // Tracks the user ID this hook has already registered for. Reset on sign-out
   // so the next sign-in on the same device re-subscribes (signOut now
   // unsubscribes the browser PushSubscription, so we must not skip).
@@ -54,6 +57,23 @@ export function useAutoRegisterPush() {
       reg.active?.postMessage({ type: 'SET_USER_ID', userId: user.id });
     });
   }, [user]);
+
+  // The SW relays incoming pushes to open pages (PUSH_RECEIVED). Refresh the
+  // queries the push made stale — pages don't receive 'push' events directly.
+  // Chat messages are skipped: the global realtime channel keeps them fresh.
+  // No toast here — the SW already shows the OS notification even when the
+  // page is focused (unlike native foreground).
+  useEffect(() => {
+    if (isNative || !user || !('serviceWorker' in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== 'PUSH_RECEIVED') return;
+      const tag = typeof event.data.payload?.tag === 'string' ? event.data.payload.tag : '';
+      if (tag.startsWith('msg-')) return;
+      invalidatePushTargets(queryClient);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [user?.id, queryClient]);
 
   useEffect(() => {
     if (!user) {

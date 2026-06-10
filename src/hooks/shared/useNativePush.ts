@@ -2,11 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react';
+import { toast } from 'sonner';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import i18n from '@/i18n';
 import { isNative, isIOS } from '@/lib/platform';
 import { getDeviceId } from '@/lib/device-id';
+import { invalidatePushTargets } from '@/lib/pushRefresh';
 // FirebaseMessaging is loaded dynamically inside the effect to avoid a
 // startup deadlock on iOS — the plugin's JS bridge synchronizes with
 // native method swizzling during import, blocking React from rendering
@@ -138,13 +141,11 @@ export function useNativePush() {
             // Invalidate caches the notification likely points at. The
             // realtime WebSocket was disconnected while the app was
             // suspended, so the persisted query cache has no record of
-            // whatever event triggered this push. Without this, opening
-            // the chat shows stale messages until the user pulls to
-            // refresh. Targeted to messaging keys — calendar, schools,
-            // etc. don't need touching.
-            queryClient.invalidateQueries({ queryKey: ['messages'] });
-            queryClient.invalidateQueries({ queryKey: ['my-conversations'] });
-            queryClient.invalidateQueries({ queryKey: ['upcoming-sessions'] });
+            // whatever event triggered this push — and on cold start the
+            // persisted cache can still look "fresh" (<5min staleTime).
+            // Without this, the coach lands on a stale participant list
+            // until the user pulls to refresh.
+            invalidatePushTargets(queryClient);
             if (url) navigate(url);
           },
         );
@@ -153,6 +154,42 @@ export function useNativePush() {
           return;
         }
         handlesRef.current.push(tapHandle);
+
+        // Foreground pushes: iOS shows no banner (no presentationOptions —
+        // changing that needs a store release) and Android suppresses
+        // notification messages while the app is open. Refresh the affected
+        // queries so on-screen lists update, and surface a toast so the
+        // event is visible (e.g. a waitlisted athlete can claim a freed
+        // spot before someone else does). Chat messages are skipped: the
+        // global realtime channel already keeps them fresh, and a toast
+        // would fire while the user may be inside that very chat.
+        const fgHandle = await FirebaseMessaging.addListener(
+          'notificationReceived',
+          (e) => {
+            const data = (e.notification?.data ?? {}) as Record<string, unknown>;
+            const tag = typeof data.tag === 'string' ? data.tag : '';
+            if (tag.startsWith('msg-')) return;
+            invalidatePushTargets(queryClient);
+            // Title/body arrive pre-localized per recipient (fcm.ts mirrors
+            // them into data for the web SW path).
+            const title = e.notification?.title ?? (typeof data.title === 'string' ? data.title : null);
+            const body = e.notification?.body ?? (typeof data.body === 'string' ? data.body : '');
+            const url = typeof data.url === 'string' ? data.url : null;
+            if (title) {
+              toast(title, {
+                description: body,
+                action: url
+                  ? { label: i18n.t('profile.open', { ns: 'common' }), onClick: () => navigate(url) }
+                  : undefined,
+              });
+            }
+          },
+        );
+        if (cancelled) {
+          fgHandle.remove();
+          return;
+        }
+        handlesRef.current.push(fgHandle);
 
         // Now fetch the current token and upsert.
         // On iOS, APNS token may not be available yet right after permission

@@ -268,6 +268,22 @@ const App = () => (
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — older persisted entries are dropped on rehydration
       buster: 'v1',                // bump to invalidate every cache (e.g. after a schema change)
     }}
+    onSuccess={() => {
+      // Cold start: the restored cache can look "fresh" (<5min staleTime)
+      // even though realtime was down the whole time the app was closed —
+      // e.g. a coach opening the app right after an "athlete cancelled"
+      // push saw the stale participant list. Mark everything not
+      // realtime-maintained stale; pages still render the cached data
+      // instantly and refetch in the background as they mount.
+      // RefreshOnResume can't cover this — visibilitychange doesn't fire
+      // on initial load.
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const primary = query.queryKey[0];
+          return typeof primary !== 'string' || !REALTIME_MAINTAINED_KEYS.has(primary);
+        },
+      });
+    }}
   >
     <TooltipProvider>
       <Toaster />
