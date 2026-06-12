@@ -42,7 +42,12 @@ jobs:
           # Append run_attempt so re-runs of a failed workflow upload as a new
           # unique version (Capgo blocks identical version names even after
           # deletion). Default to 1 so first attempts produce ...sha.1.
-          VERSION=$(jq -r .version package.json)-dev.$(git rev-parse --short HEAD).${GITHUB_RUN_ATTEMPT:-1}
+          # The 'g' before the short SHA is required: a SHA that happens to be
+          # all digits with a leading zero (e.g. 0390706) is an invalid semver
+          # numeric identifier and Capgo rejects the upload. 'g' makes it an
+          # alphanumeric identifier (leading zeros allowed). Git uses the same
+          # convention in `git describe`.
+          VERSION=$(jq -r .version package.json)-dev.g$(git rev-parse --short HEAD).${GITHUB_RUN_ATTEMPT:-1}
           echo "Uploading version $VERSION"
           npx @capgo/cli@latest bundle upload --channel dev --bundle "$VERSION" --apikey "$CAPGO_APIKEY"
         env:
