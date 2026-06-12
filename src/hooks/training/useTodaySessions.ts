@@ -14,6 +14,10 @@ export function useUpcomingSessions(coachId: string | undefined, limit?: number)
   return useQuery({
     queryKey: ['upcoming-sessions', coachId, limit],
     enabled: !!coachId,
+    // Keep the last list visible across refetches (cold-start invalidation,
+    // resume, a coach cancelling a session). Without it the list drops to []
+    // during the refetch and, if that refetch times out, stays blank.
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       let query = supabase
@@ -90,6 +94,9 @@ export function useSchoolUpcomingSessions(schoolId: string | undefined, limit?: 
   return useQuery({
     queryKey: ['school-upcoming-sessions', schoolId, limit],
     enabled: !!schoolId,
+    // Keep the last list visible across refetches so a slow/errored refetch
+    // (e.g. after cancelling a session) never blanks the school owner's home.
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       let query = supabase

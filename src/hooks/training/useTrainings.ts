@@ -525,6 +525,8 @@ export function useAttendanceSummary(sessionIds: string[]) {
   return useQuery({
     queryKey: ['attendance-summary', sessionIds],
     enabled: sessionIds.length > 0,
+    // Keep the confirmed/total badges stable while the summary refetches.
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('session_attendance')
@@ -633,19 +635,28 @@ export function useUpsertAttendance() {
         throw error;
       }
 
+      // Coach push is best-effort and MUST NOT be able to reject the mutation.
+      // The decline/confirm RPC already committed above; awaiting
+      // getFixedTForUser here meant a transport reject (flaky network/timeout)
+      // would reject the whole mutation — which, with the optimistic onMutate,
+      // rolls the card back AND skips the push: a committed decline that looks
+      // failed and notifies nobody (the missing "player cancelled" push).
+      // Fire-and-forget with its own catch.
       if (notify && (status === 'confirmed' || status === 'declined')) {
-        const tNotify = await getFixedTForUser(notify.coachId);
-        const participantName = profile?.full_name ?? tNotify('join.anonymousParticipant');
-        notifyUsers([notify.coachId], {
-          title: status === 'confirmed'
-            ? tNotify('notifications.playerConfirmedTitle')
-            : tNotify('notifications.playerDeclinedTitle'),
-          body: status === 'confirmed'
-            ? tNotify('notifications.attendanceConfirmedBody', { name: participantName, training: notify.trainingName })
-            : tNotify('notifications.attendanceDeclinedBody', { name: participantName, training: notify.trainingName }),
-          tag: `attendance-${sessionId}`,
-          url: `/coach/trainings/${notify.trainingId}`,
-        });
+        void (async () => {
+          const tNotify = await getFixedTForUser(notify.coachId);
+          const participantName = profile?.full_name ?? tNotify('join.anonymousParticipant');
+          notifyUsers([notify.coachId], {
+            title: status === 'confirmed'
+              ? tNotify('notifications.playerConfirmedTitle')
+              : tNotify('notifications.playerDeclinedTitle'),
+            body: status === 'confirmed'
+              ? tNotify('notifications.attendanceConfirmedBody', { name: participantName, training: notify.trainingName })
+              : tNotify('notifications.attendanceDeclinedBody', { name: participantName, training: notify.trainingName }),
+            tag: `attendance-${sessionId}`,
+            url: `/coach/trainings/${notify.trainingId}`,
+          });
+        })().catch((err) => Sentry.captureException(err, { extra: { context: 'attendance notify', coachId: notify.coachId, sessionId, status } }));
       }
     },
     // Optimistic flip so cancel / claim feels instant. Without it the card and

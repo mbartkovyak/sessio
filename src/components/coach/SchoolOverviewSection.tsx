@@ -26,12 +26,19 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { data: fullSchool } = useMySchool();
-  const { data: trainings = [] } = useSchoolTrainings(fullSchool?.id);
+  // School-scoped queries key off the school.id PROP, which is already resolved
+  // before this component mounts (CoachHome gates render on it) — NOT
+  // fullSchool?.id. That lets them fire immediately, in parallel with the
+  // heavier useMySchool() members join, instead of waterfalling behind it
+  // (was: basic-school → full-school → these → attendance = 4 round-trips).
+  // fullSchool is still the source for the coaches list, pending members,
+  // isSolo and bio below, which genuinely need the full row.
+  const { data: trainings = [] } = useSchoolTrainings(school.id);
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
   const respondSchool = useRespondSchoolMember();
-  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useSchoolUpcomingSessions(fullSchool?.id, 5);
-  const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(undefined, fullSchool?.id);
+  const { data: upcomingSessions = [], isLoading: sessionsLoading, isError: sessionsError } = useSchoolUpcomingSessions(school.id, 5);
+  const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(undefined, school.id);
   const sessionIds = (upcomingSessions ?? []).filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
   const { data: attendanceSummary = {} } = useAttendanceSummary(sessionIds);
   const qc = useQueryClient();
@@ -229,7 +236,12 @@ export default function SchoolOverviewSection({ school }: { school: { id: string
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{tc('home.upcoming')}</h2>
           <NewLessonButton />
         </div>
-        {sessionsLoading && upcomingSessions.length === 0 ? (
+        {(sessionsLoading || (sessionsError && upcomingSessions.length === 0)) ? (
+          // Show the loader while loading AND when a fetch errored with no
+          // cached sessions — a failed/timed-out load must never render a
+          // confident "no upcoming" over sessions that actually exist. It
+          // self-heals on the next cold-start/resume refetch. A genuinely
+          // empty success (no error, length 0) still falls through to noUpcoming.
           <div className="rounded-2xl bg-white p-6 shadow-sm flex items-center justify-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
             <SessioLoader />
           </div>
