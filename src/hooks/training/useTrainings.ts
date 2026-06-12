@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -483,6 +483,28 @@ export function useTrainingSessions(trainingId: string | undefined) {
   });
 }
 
+async function fetchSessionAttendance(sessionId: string) {
+  const { data, error } = await supabase
+    .from('session_attendance')
+    .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
+    .eq('session_id', sessionId);
+  if (error) throw error;
+  return (data ?? []) as SessionAttendanceWithProfile[];
+}
+
+/** Warm the participant list before the coach opens the session detail. The
+ *  card already shows the confirmed count ("1/1"); without this the detail
+ *  re-fetches the participants cold (~1s on a phone) and the person only
+ *  appears after a skeleton. Call on card press (pointer down) so the fetch
+ *  overlaps the navigation. Fire-and-forget. */
+export function prefetchSessionAttendance(qc: QueryClient, sessionId: string) {
+  void qc.prefetchQuery({
+    queryKey: ['session-attendance', sessionId],
+    queryFn: () => fetchSessionAttendance(sessionId),
+    staleTime: 30_000,
+  });
+}
+
 export function useSessionAttendance(sessionId: string | undefined) {
   const qc = useQueryClient();
 
@@ -508,14 +530,10 @@ export function useSessionAttendance(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['session-attendance', sessionId],
     enabled: !!sessionId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('session_attendance')
-        .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
-        .eq('session_id', sessionId!);
-      if (error) throw error;
-      return (data ?? []) as SessionAttendanceWithProfile[];
-    },
+    // Keep the list visible across refetches and instant on re-open; the
+    // prefetch on card press warms it for the first open.
+    placeholderData: (prev: any) => prev,
+    queryFn: () => fetchSessionAttendance(sessionId!),
   });
 }
 
