@@ -648,6 +648,22 @@ export function useUpsertAttendance() {
         });
       }
     },
+    // Optimistic flip so cancel / claim feels instant. Without it the card and
+    // its buttons stayed frozen on "cancelling…" for the whole RPC + notify +
+    // refetch round-trip — seconds on a cold/slow connection. We touch only the
+    // status field on matching my-upcoming-sessions rows; the onSuccess refetch
+    // reconciles, and onError rolls back (e.g. a claim that loses the SESSION_FULL
+    // race flips back to pending). A wrong shape just no-ops and the refetch heals it.
+    onMutate: async ({ sessionId, status }) => {
+      await qc.cancelQueries({ queryKey: ['my-upcoming-sessions'] });
+      const snapshot = qc.getQueriesData({ queryKey: ['my-upcoming-sessions'] });
+      qc.setQueriesData({ queryKey: ['my-upcoming-sessions'] }, (old: any) =>
+        Array.isArray(old)
+          ? old.map((row: any) => (row.session_id === sessionId ? { ...row, status } : row))
+          : old,
+      );
+      return { snapshot };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
       qc.invalidateQueries({ queryKey: ['session-attendance'] });
@@ -657,7 +673,11 @@ export function useUpsertAttendance() {
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
-    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+    onError: (e: any, _vars, ctx: any) => {
+      // Roll the optimistic flip back before surfacing the (localized) error.
+      if (ctx?.snapshot) for (const [key, data] of ctx.snapshot) qc.setQueryData(key, data);
+      toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' })));
+    },
   });
 }
 
