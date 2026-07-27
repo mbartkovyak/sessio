@@ -122,10 +122,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // the exact "App is loading indefinitely" symptom Apple rejected 1.2.0 for.
     // If getSession resolves first, we clear this; otherwise we render sign-in
     // after 5s and let onAuthStateChange hydrate any late session.
+    //
+    // Also clear the cached profile here. Without this, `session=null` +
+    // `profile=cached` leaves the app in an impossible state that drives an
+    // infinite redirect loop: ProtectedRoute (session-based) sends to /auth,
+    // SignIn (profile-based) sends back to /player — until Safari throws
+    // SecurityError for >100 replaceState calls in 10s.
     const bootTimeout = setTimeout(() => {
       if (!initialLoadDone.current) {
         Sentry.captureMessage('auth:getSession timed out after 5s — forcing sign-in render', { level: 'warning' });
         initialLoadDone.current = true;
+        setProfile(null);
         setLoading(false);
       }
     }, 5000);
@@ -159,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       Sentry.captureException(err, { tags: { context: 'AuthProvider:getSession' } });
       if (!initialLoadDone.current) {
         initialLoadDone.current = true;
+        // Same impossible-state guard as the boot timeout above: a rejected
+        // getSession leaves session=null, so a cached profile would drive the
+        // ProtectedRoute ↔ SignIn redirect loop. Clear it.
+        setProfile(null);
         setLoading(false);
       }
     });

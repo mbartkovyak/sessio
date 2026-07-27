@@ -19,6 +19,15 @@ self.addEventListener('message', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
 
+  // Tell open pages a push arrived so they can refresh stale queries
+  // (the page itself never sees 'push' events — only the SW does).
+  // Sent before the self-sender check so the sender's other tabs refresh too.
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) client.postMessage({ type: 'PUSH_RECEIVED', payload: data });
+    })
+  );
+
   // Don't show notifications for your own messages
   if (currentUserId && data.sender_id && data.sender_id === currentUserId) return;
 

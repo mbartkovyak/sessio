@@ -30,6 +30,21 @@ function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { w
 // cache is already correct because the DB has been pushing updates.
 const REALTIME_MAINTAINED_KEYS = new Set(['unread-total', 'my-conversations', 'messages', 'trainings']);
 
+// Session/attendance lists have NO realtime subscription, so a change made
+// while the app was closed (an athlete cancelled, a spot freed) isn't in the
+// persisted cache and the 5-min staleTime hides it on cold start. Refetch ONLY
+// these on cache restore — a small fixed set whose mounted subset is ~2 queries
+// per screen, so there's no cold-start burst. (The earlier empty-home bug came
+// from invalidating ALL ~11 queries at once against the 5s statement_timeout.)
+const COLD_START_REFRESH_KEYS = [
+  'upcoming-sessions',        // coach home
+  'school-upcoming-sessions', // school-owner home
+  'attendance-summary',       // session cards (coach home + training detail)
+  'session-attendance',       // session detail participant list
+  'my-upcoming-sessions',     // player home / calendar
+  'my-attendance',            // player per-session status
+];
+
 function RefreshOnResume() {
   useEffect(() => {
     let lastRefresh = 0;
@@ -267,6 +282,16 @@ const App = () => (
       persister: queryPersister,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days — older persisted entries are dropped on rehydration
       buster: 'v1',                // bump to invalidate every cache (e.g. after a schema change)
+    }}
+    onSuccess={() => {
+      // Cold start: refresh ONLY the session/attendance lists (no realtime to
+      // keep them fresh), so a coach opening the app from the icon after an
+      // athlete cancelled sees the change without pull-to-refresh. Targeted on
+      // purpose — invalidateQueries refetches only currently-mounted observers
+      // (~2 per screen), never the full mount set, so there's no query storm.
+      for (const key of COLD_START_REFRESH_KEYS) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
     }}
   >
     <TooltipProvider>

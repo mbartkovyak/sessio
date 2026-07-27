@@ -27,7 +27,7 @@ export default function CoachOverviewSection() {
   const { data: trainings = [] } = useTrainings();
   const { data: joinRequests = [] } = useAllCoachJoinRequests();
   const respond = useRespondJoinRequest();
-  const { data: upcomingSessions = [], isLoading: sessionsLoading } = useUpcomingSessions(profile?.id, 5);
+  const { data: upcomingSessions = [], isLoading: sessionsLoading, isError: sessionsError } = useUpcomingSessions(profile?.id, 5);
   const { data: unmarkedSessions = [] } = usePastUnmarkedSessions(profile?.id);
   const { data: schoolMembership } = useMySchoolMembership();
   const sessionIds = (upcomingSessions ?? []).filter((s: any) => s.status !== 'cancelled').map((s: any) => s.id);
@@ -209,7 +209,11 @@ export default function CoachOverviewSection() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t('home.upcoming')}</h2>
         </div>
-        {sessionsLoading && upcomingSessions.length === 0 ? (
+        {(sessionsLoading || (sessionsError && upcomingSessions.length === 0)) ? (
+          // Loader while loading AND when a fetch errored with no cached
+          // sessions — a failed/timed-out load must never show a confident
+          // "no upcoming" over sessions that exist; it self-heals on the next
+          // refetch. A genuinely empty success still falls through to noUpcoming.
           <div className="rounded-2xl bg-white p-6 shadow-sm flex items-center justify-center" style={{ border: '1px solid hsl(203 20% 90%)' }}>
             <SessioLoader />
           </div>

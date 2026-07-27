@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -483,6 +483,28 @@ export function useTrainingSessions(trainingId: string | undefined) {
   });
 }
 
+async function fetchSessionAttendance(sessionId: string) {
+  const { data, error } = await supabase
+    .from('session_attendance')
+    .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
+    .eq('session_id', sessionId);
+  if (error) throw error;
+  return (data ?? []) as SessionAttendanceWithProfile[];
+}
+
+/** Warm the participant list before the coach opens the session detail. The
+ *  card already shows the confirmed count ("1/1"); without this the detail
+ *  re-fetches the participants cold (~1s on a phone) and the person only
+ *  appears after a skeleton. Call on card press (pointer down) so the fetch
+ *  overlaps the navigation. Fire-and-forget. */
+export function prefetchSessionAttendance(qc: QueryClient, sessionId: string) {
+  void qc.prefetchQuery({
+    queryKey: ['session-attendance', sessionId],
+    queryFn: () => fetchSessionAttendance(sessionId),
+    staleTime: 30_000,
+  });
+}
+
 export function useSessionAttendance(sessionId: string | undefined) {
   const qc = useQueryClient();
 
@@ -508,14 +530,10 @@ export function useSessionAttendance(sessionId: string | undefined) {
   return useQuery({
     queryKey: ['session-attendance', sessionId],
     enabled: !!sessionId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('session_attendance')
-        .select('*, profiles:user_id(id, full_name, avatar_url, is_placeholder)')
-        .eq('session_id', sessionId!);
-      if (error) throw error;
-      return (data ?? []) as SessionAttendanceWithProfile[];
-    },
+    // Keep the list visible across refetches and instant on re-open; the
+    // prefetch on card press warms it for the first open.
+    placeholderData: (prev: any) => prev,
+    queryFn: () => fetchSessionAttendance(sessionId!),
   });
 }
 
@@ -525,6 +543,8 @@ export function useAttendanceSummary(sessionIds: string[]) {
   return useQuery({
     queryKey: ['attendance-summary', sessionIds],
     enabled: sessionIds.length > 0,
+    // Keep the confirmed/total badges stable while the summary refetches.
+    placeholderData: (prev: any) => prev,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('session_attendance')
@@ -633,20 +653,45 @@ export function useUpsertAttendance() {
         throw error;
       }
 
+      // Coach push is best-effort and MUST NOT be able to reject the mutation.
+      // The decline/confirm RPC already committed above; awaiting
+      // getFixedTForUser here meant a transport reject (flaky network/timeout)
+      // would reject the whole mutation — which, with the optimistic onMutate,
+      // rolls the card back AND skips the push: a committed decline that looks
+      // failed and notifies nobody (the missing "player cancelled" push).
+      // Fire-and-forget with its own catch.
       if (notify && (status === 'confirmed' || status === 'declined')) {
-        const tNotify = await getFixedTForUser(notify.coachId);
-        const participantName = profile?.full_name ?? tNotify('join.anonymousParticipant');
-        notifyUsers([notify.coachId], {
-          title: status === 'confirmed'
-            ? tNotify('notifications.playerConfirmedTitle')
-            : tNotify('notifications.playerDeclinedTitle'),
-          body: status === 'confirmed'
-            ? tNotify('notifications.attendanceConfirmedBody', { name: participantName, training: notify.trainingName })
-            : tNotify('notifications.attendanceDeclinedBody', { name: participantName, training: notify.trainingName }),
-          tag: `attendance-${sessionId}`,
-          url: `/coach/trainings/${notify.trainingId}`,
-        });
+        void (async () => {
+          const tNotify = await getFixedTForUser(notify.coachId);
+          const participantName = profile?.full_name ?? tNotify('join.anonymousParticipant');
+          notifyUsers([notify.coachId], {
+            title: status === 'confirmed'
+              ? tNotify('notifications.playerConfirmedTitle')
+              : tNotify('notifications.playerDeclinedTitle'),
+            body: status === 'confirmed'
+              ? tNotify('notifications.attendanceConfirmedBody', { name: participantName, training: notify.trainingName })
+              : tNotify('notifications.attendanceDeclinedBody', { name: participantName, training: notify.trainingName }),
+            tag: `attendance-${sessionId}`,
+            url: `/coach/trainings/${notify.trainingId}`,
+          });
+        })().catch((err) => Sentry.captureException(err, { extra: { context: 'attendance notify', coachId: notify.coachId, sessionId, status } }));
       }
+    },
+    // Optimistic flip so cancel / claim feels instant. Without it the card and
+    // its buttons stayed frozen on "cancelling…" for the whole RPC + notify +
+    // refetch round-trip — seconds on a cold/slow connection. We touch only the
+    // status field on matching my-upcoming-sessions rows; the onSuccess refetch
+    // reconciles, and onError rolls back (e.g. a claim that loses the SESSION_FULL
+    // race flips back to pending). A wrong shape just no-ops and the refetch heals it.
+    onMutate: async ({ sessionId, status }) => {
+      await qc.cancelQueries({ queryKey: ['my-upcoming-sessions'] });
+      const snapshot = qc.getQueriesData({ queryKey: ['my-upcoming-sessions'] });
+      qc.setQueriesData({ queryKey: ['my-upcoming-sessions'] }, (old: any) =>
+        Array.isArray(old)
+          ? old.map((row: any) => (row.session_id === sessionId ? { ...row, status } : row))
+          : old,
+      );
+      return { snapshot };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-upcoming-sessions'] });
@@ -657,7 +702,11 @@ export function useUpsertAttendance() {
       qc.invalidateQueries({ queryKey: ['my-abonaments'] });
       qc.invalidateQueries({ queryKey: ['school-abonaments'] });
     },
-    onError: (e: any) => toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' }))),
+    onError: (e: any, _vars, ctx: any) => {
+      // Roll the optimistic flip back before surfacing the (localized) error.
+      if (ctx?.snapshot) for (const [key, data] of ctx.snapshot) qc.setQueryData(key, data);
+      toast.error(localizeErrorMessage(e, i18n.t('errors.somethingWentWrong', { ns: 'common' })));
+    },
   });
 }
 

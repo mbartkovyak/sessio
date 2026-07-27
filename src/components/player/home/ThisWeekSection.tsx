@@ -50,11 +50,15 @@ function SessionCard({ attendance }: { attendance: any }) {
     : undefined;
 
   async function switchTo(newStatus: string) {
-    // try/catch/finally: the modal always closes (so a SESSION_FULL rejection
-    // doesn't leave it open looking "frozen"), and we swallow the rejection
-    // here because useUpsertAttendance.onError already toasted the localized
-    // error — letting it bubble would log a noisy unhandled-rejection to Sentry.
+    // Close the confirm UI immediately — the mutation flips the card
+    // optimistically (useUpsertAttendance.onMutate), so the network round-trip
+    // happens in the background instead of freezing the dialog on "cancelling…".
+    // We swallow the rejection here because useUpsertAttendance.onError already
+    // toasted the localized error and rolled the optimistic flip back — letting
+    // it bubble would log a noisy unhandled-rejection to Sentry.
     const wasPending = attendance.status === 'pending';
+    setShowWarning(false);
+    setShowRejoinConfirm(false);
     try {
       await upsert.mutateAsync({ sessionId: attendance.session_id, status: newStatus, notify });
       if (newStatus === 'confirmed') {
@@ -66,10 +70,7 @@ function SessionCard({ attendance }: { attendance: any }) {
         toast.success(t('thisWeek.spotReleased'));
       }
     } catch {
-      // onError already surfaced the toast.
-    } finally {
-      setShowWarning(false);
-      setShowRejoinConfirm(false);
+      // onError already surfaced the toast + rolled back the optimistic flip.
     }
   }
 

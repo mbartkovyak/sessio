@@ -76,10 +76,13 @@ export function useMySchoolMembership() {
 
 /** Coach — check if has a pending school request (blocking screen) */
 export function useMyPendingSchoolRequest() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   return useQuery({
     queryKey: ['my-pending-school-request', user?.id],
-    enabled: !!user,
+    // Only non-owner coaches can have a pending request (it drives
+    // PendingApprovalScreen). School owners never read it (CoachHome gates on
+    // !isSchoolOwner), so don't waste the query for them.
+    enabled: !!user && profile?.role !== 'school_owner',
     queryFn: async () => {
       const { data } = await supabase
         .from('school_members')

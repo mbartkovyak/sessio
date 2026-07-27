@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, X, MapPin, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SPORT_ICONS } from '@/lib/constants';
 import { openExternal } from '@/components/shared/VenueLink';
+import { prefetchSessionAttendance } from '@/hooks/training/useTrainings';
 
 interface CoachSessionCardProps {
   session: any;
@@ -24,6 +26,7 @@ export default function CoachSessionCard({
   onReschedule,
 }: CoachSessionCardProps) {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { t } = useTranslation('coach');
   const training = session.trainings;
   const sportIcon = SPORT_ICONS[training?.sport] ?? '🎯';
@@ -34,6 +37,7 @@ export default function CoachSessionCard({
       <div className="flex items-center gap-2 px-4 py-3">
         <button
           onClick={() => navigate(`/coach/sessions/${session.id}`)}
+          onPointerDown={() => prefetchSessionAttendance(qc, session.id)}
           className="flex flex-1 items-center gap-3 text-left min-w-0"
         >
           <span className="text-xl shrink-0">{sportIcon}</span>
