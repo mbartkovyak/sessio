@@ -166,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       Sentry.captureException(err, { tags: { context: 'AuthProvider:getSession' } });
       if (!initialLoadDone.current) {
         initialLoadDone.current = true;
+        // Same impossible-state guard as the boot timeout above: a rejected
+        // getSession leaves session=null, so a cached profile would drive the
+        // ProtectedRoute ↔ SignIn redirect loop. Clear it.
+        setProfile(null);
         setLoading(false);
       }
     });
